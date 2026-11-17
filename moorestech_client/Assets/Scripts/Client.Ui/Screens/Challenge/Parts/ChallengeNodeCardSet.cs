@@ -10,8 +10,8 @@ namespace Client.Ui.Screens.Challenge.Parts
     /// Reuse cards by GUID and build graph content (precedent ResearchNodeCardSet)
     /// </summary>
     /// <remarks>
-    /// 中身を渡し直すかの判定は State の ChallengeCategoryViewModel.HasSameGraphAs が持つ（並びの比較をここに置かない）
-    /// Whether to hand content over again is decided by State's ChallengeCategoryViewModel.HasSameGraphAs (no order comparison here)
+    /// 同じ形なら組み直さない判定は NodeGraphContent.HasSameShapeAs が持つ（並びの比較をここに置かない）
+    /// Whether to skip the rebuild for the same shape is decided by NodeGraphContent.HasSameShapeAs (no order comparison here)
     /// </remarks>
     public sealed class ChallengeNodeCardSet
     {

@@ -113,7 +113,12 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
         // A real capture copies the tally; the count spans the session, so it is not pinned to zero, only the samples are capped at the first five (A-244)
         p.Assert((string)uiExceptions?["status"] == "recorded", "gameUiExceptions.status が recorded");
         var uiExceptionSamples = uiExceptions?["samples"] as Newtonsoft.Json.Linq.JArray;
-        p.Assert(uiExceptionSamples != null && uiExceptionSamples.Count == System.Math.Min((int)uiExceptions["count"], Client.Game.InGame.BugReport.GameUiExceptions.GameUiExceptionTally.SampleLimit), "gameUiExceptions の見本が件数と上限 SampleLimit に合う");
+        // 上限は internal で動的コンパイルから見えないため、数値を写さずリフレクションで読む（改名すれば null で落ちて気づく）
+        // The cap is internal and invisible to dynamic compilation, so read it by reflection instead of copying the number (a rename fails loudly on null)
+        var sampleLimitField = typeof(Client.Game.InGame.BugReport.GameUiExceptions.GameUiExceptionTally).GetField("SampleLimit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        p.Assert(sampleLimitField != null, "GameUiExceptionTally.SampleLimit をリフレクションで読める");
+        var sampleLimit = (int)sampleLimitField.GetRawConstantValue();
+        p.Assert(uiExceptionSamples != null && uiExceptionSamples.Count == System.Math.Min((int)uiExceptions["count"], sampleLimit), "gameUiExceptions の見本が件数と上限 SampleLimit に合う");
         await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後のトップ");
         await p.ClickUi("pause-menu-open-bug-report");
         if (hasToken)

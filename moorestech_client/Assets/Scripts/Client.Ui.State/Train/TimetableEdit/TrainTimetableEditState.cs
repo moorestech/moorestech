@@ -16,7 +16,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         private readonly ITrainTimetableSource _source;
         private readonly ITrainTimetableCommands _commands;
         private readonly ITrainTimetableWaitTimer _timer;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly IUiCommandResultToaster _toaster;
         private readonly Subject<Unit> _onTimetableAreaInputChanged = new();
         private readonly SerialDisposable _sessionSubscription = new();
         private TrainTimetableEditSession _session;
@@ -29,7 +29,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         // Fires on open/close, display and source changes
         public IObservable<Unit> OnTimetableAreaInputChanged => _onTimetableAreaInputChanged;
 
-        public TrainTimetableEditState(ITrainTimetableSource source, ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster)
+        public TrainTimetableEditState(ITrainTimetableSource source, ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, IUiCommandResultToaster toaster)
         {
             _source = source;
             _commands = commands;

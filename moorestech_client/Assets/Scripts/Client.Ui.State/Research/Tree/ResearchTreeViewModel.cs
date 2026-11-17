@@ -46,20 +46,6 @@ namespace Client.Ui.State.Research.Tree
             detail = _detail;
             return _hasDetail;
         }
-
-        // グラフの形（並び・座標・前提・注目点）が同じか（部品へ渡し直す判定。チャレンジの HasSameGraphAs と同じ基準）
-        // Whether the graph shape (order, positions, prerequisites, focus) matches; the re-handing check, same criteria as the challenge HasSameGraphAs
-        public bool HasSameGraphAs(ResearchTreeViewModel other)
-        {
-            if (Nodes.Count != other.Nodes.Count) return false;
-            for (var i = 0; i < Nodes.Count; i++)
-            {
-                if (!Nodes[i].HasSameGraphPlacementAs(other.Nodes[i])) return false;
-            }
-            var hasFocus = TryGetInitialFocus(out var focus);
-            var otherHasFocus = other.TryGetInitialFocus(out var otherFocus);
-            return hasFocus == otherHasFocus && focus == otherFocus;
-        }
     }
 
     /// <summary>

@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         public TrainPlatformEditCommands PlatformEditCommands { get; }
         public UiOsCursorRequestStack OsCursor { get; }
 
-        public TrainTestBodies(UiCommandResultToaster toaster, BlockInventoryPanelState panel)
+        public TrainTestBodies(IUiCommandResultToaster toaster, BlockInventoryPanelState panel)
         {
             // 本番と同じく器が源を一度だけ購読し、Model とコマンドは器を共有する
             // As in production the holders subscribe to their sources once, and models and commands share them

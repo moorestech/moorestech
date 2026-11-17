@@ -15,9 +15,9 @@ namespace Client.Ui.State.Train.TimetableEdit
         private const string SetAutoRunCommandName = "train_timetable.set_auto_run";
         private readonly TrainTimetableEditState _state;
         private readonly ITrainTimetableCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public TrainTimetableEditCommands(TrainTimetableEditState state, ITrainTimetableCommands commands, UiCommandResultToaster toaster)
+        public TrainTimetableEditCommands(TrainTimetableEditState state, ITrainTimetableCommands commands, IUiCommandResultToaster toaster)
         {
             _state = state;
             _commands = commands;

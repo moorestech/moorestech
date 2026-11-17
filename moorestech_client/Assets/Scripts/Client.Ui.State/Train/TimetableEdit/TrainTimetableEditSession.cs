@@ -22,7 +22,7 @@ namespace Client.Ui.State.Train.TimetableEdit
 
         private readonly ITrainTimetableCommands _commands;
         private readonly ITrainTimetableWaitTimer _timer;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly IUiCommandResultToaster _toaster;
         private readonly Subject<Unit> _onDisplayChanged = new();
         private EditPhase _phase = IdlePhase.Instance;
         private bool _closed;
@@ -34,7 +34,7 @@ namespace Client.Ui.State.Train.TimetableEdit
         public bool IsPending { get; private set; }
         public IObservable<Unit> OnDisplayChanged => _onDisplayChanged;
 
-        public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, UiCommandResultToaster toaster, TrainTimetableReadyData server)
+        public TrainTimetableEditSession(ITrainTimetableCommands commands, ITrainTimetableWaitTimer timer, IUiCommandResultToaster toaster, TrainTimetableReadyData server)
         {
             _commands = commands;
             _timer = timer;

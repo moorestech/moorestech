@@ -67,6 +67,9 @@ class DashboardCollectTest(unittest.TestCase):
         row = next(r for r in self.reports_by_id().values() if r["boxId"] == "20260913_badingest")
         self.assertEqual(row["triage"], "broken")
         self.assertIn("JSON", row["problem"])
+        # 読めない箱も撤去済みの Web・CEF 欄は「欄なし」とし、画面に 3 行を出させない
+        # An unreadable box also reports the retired web/CEF field as absent so the view shows none of its three rows
+        self.assertEqual(row["webUiHealth"], {"status": "absent"})
 
     def test_mistyped_display_field_keeps_triage(self):
         self.add_report("7656005", "20260913_tick", {"kind": "bug", "remoteExec": DISABLED_MARK, "reportTick": "123",

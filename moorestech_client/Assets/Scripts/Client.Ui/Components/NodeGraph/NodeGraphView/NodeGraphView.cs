@@ -37,6 +37,7 @@ namespace Client.Ui.Components.NodeGraph
         private bool _hasClipInset;
         private float _clipInset;
         private Vector2 _lastContentSize;
+        private NodeGraphContent _shownContent;
 
         public IObservable<string> OnNodeTapped => _onNodeTapped;
 
@@ -67,6 +68,9 @@ namespace Client.Ui.Components.NodeGraph
 
         public void SetGraph(NodeGraphContent content)
         {
+            // silent-ok: 前回と同じ形なら組み直さない（カードの中身は画面側が描き直し済み） / NodeGraphContentShapeTest が形の比較を、各画面の L1 が視点の保持を見る
+            if (_shownContent != null && content.HasSameShapeAs(_shownContent)) return;
+            _shownContent = content;
             _scene.Rebuild(content.Nodes);
             _initialFocus = content.InitialFocus;
             CenterOnInitialFocusOnce();

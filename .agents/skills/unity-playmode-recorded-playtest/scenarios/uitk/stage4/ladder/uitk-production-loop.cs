@@ -11,7 +11,6 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Drag;
 using Client.Ui.State.Items;
@@ -181,7 +180,10 @@ return PlaytestRunner.Run("uitk-production-loop", options, async p =>
         {
             await SemanticInput.MouseGlideTo((await PlaytestUiElementOps.FindUi($"main-slot-{slot}")).ScreenRect.center, 0.3f);
             if (!Main()[slot].IsEmpty) { realEnters++; continue; }
-            p.Assert(drag.EnterWithRightButton(PlayerSlotRef.Main(slot)) is UiCommandAccepted, $"右ボタンを押したままの進入（命令）が通る: main {slot}");
+            // 結果はトーストの係へ行くので戻り値でなく、枠に置かれた状態で確かめる
+            // The result goes to the toaster, so confirm by the slot being filled rather than a return value
+            drag.EnterWithRightButton(PlayerSlotRef.Main(slot));
+            await p.Until(() => !Main()[slot].IsEmpty, 5f, $"右ボタンを押したままの進入（命令）で置ける: main {slot}");
         }
         p.Note($"right-drag-real-enters={realEnters}/{slots.Length - 1}（注入の右押下中に実の進入で置けた枠の数）");
         SemanticInput.MouseButtonUp(1);

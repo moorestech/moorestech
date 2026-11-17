@@ -23,7 +23,7 @@ namespace Client.Tests.Ui.Screens
         private IDisposable _toastSubscription;
 
         protected GameUiToastFeed Toasts { get; private set; }
-        protected UiCommandResultToaster Toaster { get; private set; }
+        protected IUiCommandResultToaster Toaster { get; private set; }
         protected List<GameUiToast> ShownToasts { get; } = new();
 
         [SetUp]

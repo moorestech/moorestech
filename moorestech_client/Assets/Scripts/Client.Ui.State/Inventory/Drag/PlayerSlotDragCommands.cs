@@ -4,6 +4,7 @@ using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Logic;
 using Client.Ui.State.ItemMove;
+using Client.Ui.State.SlotCommands.Player;
 using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine;
@@ -20,9 +21,6 @@ namespace Client.Ui.State.Inventory.Drag
     public sealed class PlayerSlotDragCommands : IPlayerSlotDragCommands, IInitializable, ILateTickable
     {
         private const string SplitDragCommandName = "inventory.split_drag";
-        // 右ボタンの進入は枠の操作の 1 つなので枠の操作と同じ名前でトーストへ渡す
-        // A right-button enter is one of the slot gestures, so it is reported under the slot-gesture name
-        private const string RightEnterCommandName = "inventory.slot";
 
         private readonly IPlayerInventoryOperations _operations;
         private readonly PlayerItemActionExecutor _executor;
@@ -86,7 +84,9 @@ namespace Client.Ui.State.Inventory.Drag
 
         public void EnterWithRightButton(PlayerSlotRef slot)
         {
-            _toaster.Report(RightEnterCommandName, Execute());
+            // 右ボタンの進入は枠の操作の 1 つなので枠の操作と同じ名前でトーストへ渡す
+            // A right-button enter is one of the slot gestures, so it is reported under the slot-gesture name
+            _toaster.Report(PlayerSlotCommands.CommandName, Execute());
 
             #region Internal
 

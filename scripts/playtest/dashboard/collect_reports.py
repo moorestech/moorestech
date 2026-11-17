@@ -74,7 +74,7 @@ def base_row(box: Path, meta: dict | None) -> dict:
         "readyAt": ready_at, "date": jst_date(ready_at),
         "media": [name for name in MEDIA_FILES if (box / name).is_file() or name in remote],
         "problem": None, "kind": "", "description": "", "buildLabel": "",
-        "webUiHealth": {"status": "unreadable"},
+        "webUiHealth": {"status": "absent"},
         "gameUiExceptions": {"status": "unreadable"},
     }
 

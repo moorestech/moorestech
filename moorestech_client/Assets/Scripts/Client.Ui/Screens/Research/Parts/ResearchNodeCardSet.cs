@@ -7,8 +7,8 @@ using Client.Ui.State.Research.Tree;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// ノードカードをGUIDで使い回す。中身を渡し直すかの判定は State の ResearchTreeViewModel.HasSameGraphAs が持つ（並びの比較をここに置かない）
-    /// Reuses node cards by GUID; whether to hand content over again is decided by State's ResearchTreeViewModel.HasSameGraphAs (no order comparison here)
+    /// ノードカードをGUIDで使い回す。同じ形なら組み直さない判定は NodeGraphContent.HasSameShapeAs が持つ（並びの比較をここに置かない）
+    /// Reuses node cards by GUID; whether to skip the rebuild for the same shape is decided by NodeGraphContent.HasSameShapeAs (no order comparison here)
     /// </summary>
     public sealed class ResearchNodeCardSet
     {

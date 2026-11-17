@@ -47,19 +47,5 @@ namespace Client.Ui.State.Challenge.Tree
             treePoint = found ? node.TreePosition : Vector2.zero;
             return found;
         }
-
-        // グラフの形が同じか（部品へ渡し直す判定）
-        // Whether the graph shape matches (re-handing check)
-        public bool HasSameGraphAs(ChallengeCategoryViewModel other)
-        {
-            if (Nodes.Count != other.Nodes.Count) return false;
-            for (var i = 0; i < Nodes.Count; i++)
-            {
-                if (!Nodes[i].HasSameGraphPlacementAs(other.Nodes[i])) return false;
-            }
-            var hasFocus = TryGetInitialFocus(out var focus);
-            var otherHasFocus = other.TryGetInitialFocus(out var otherFocus);
-            return hasFocus == otherHasFocus && focus == otherFocus;
-        }
     }
 }

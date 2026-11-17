@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Support
         public FakeEquipmentSelectionPort Equipment { get; private set; }
         public PlayerInventoryPanelModel Model { get; private set; }
 
-        public InventoryScreenFixture(int mainSlots, int equipmentSlots, UiCommandResultToaster toaster)
+        public InventoryScreenFixture(int mainSlots, int equipmentSlots, IUiCommandResultToaster toaster)
         {
             Operations = new RecordingPlayerInventoryOperations(mainSlots, equipmentSlots);
             var executor = new PlayerItemActionExecutor(Operations);

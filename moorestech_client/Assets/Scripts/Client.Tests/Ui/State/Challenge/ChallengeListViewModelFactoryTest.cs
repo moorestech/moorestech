@@ -95,35 +95,6 @@ namespace Client.Tests.Ui.State.Challenge
             CollectionAssert.IsEmpty(category.Nodes[0].PreviousGuids);
         }
 
-        [Test]
-        public void グラフの形は並びと座標と前提と注目点で比べ状態と倍率では変わらない()
-        {
-            var first = Card(Test1, Vector2.zero, Vector2.one, ChallengeNodeState.Completed);
-            var second = Card(Test2, new Vector2(220f, 0f), Vector2.one, ChallengeNodeState.Current, Test1);
-            var shown = Category(first, second);
-
-            // 倍率だけの違いはカードの描き直しで足り、同じ形
-            // A scale-only difference needs just a card redraw, so the shape is the same
-            Assert.IsTrue(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(220f, 0f), new Vector2(2f, 2f), ChallengeNodeState.Current, Test1))));
-
-            // 座標・前提・並びが変われば違う形
-            // Position, prerequisite or order changes differ
-            Assert.IsFalse(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(240f, 0f), Vector2.one, ChallengeNodeState.Current, Test1))), "座標");
-            Assert.IsFalse(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(220f, 0f), Vector2.one, ChallengeNodeState.Current))), "前提");
-            Assert.IsFalse(shown.HasSameGraphAs(Category(second, first)), "並び");
-            Assert.IsFalse(shown.HasSameGraphAs(Category(first, Card(Test2, new Vector2(220f, 0f), Vector2.one, ChallengeNodeState.Completed, Test1))), "注目点");
-        }
-
-        private static ChallengeNodeCardViewModel Card(Guid guid, Vector2 position, Vector2 scale, ChallengeNodeState state, params Guid[] previous)
-        {
-            return new ChallengeNodeCardViewModel(guid, position, scale, previous, state);
-        }
-
-        private static ChallengeCategoryViewModel Category(params ChallengeNodeCardViewModel[] nodes)
-        {
-            return ChallengeCategoryViewModel.Create(Category1, nodes);
-        }
-
         private static ChallengeCategoryResponse Response(Guid category, bool unlocked, Guid[] current, Guid[] completed)
         {
             var master = MasterHolder.ChallengeMaster;

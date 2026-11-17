@@ -119,7 +119,7 @@ function infoGroups(report) {
       ["画面", report.uiState || "不明"],
       ["tick", report.reportTick ?? "不明"],
       ["録画", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "なし"],
-      ...(report.webUiHealth ? webUiHealthRows(report.webUiHealth) : []),
+      ...(report.webUiHealth.status === "absent" ? [] : webUiHealthRows(report.webUiHealth)),
       ...gameUiExceptionRows(report.gameUiExceptions)]],
     ["取り扱い", [
       ["遠隔実行", report.remoteExecReason ? `${report.remoteExec}（${report.remoteExecReason}）` : (report.remoteExec || "不明")],

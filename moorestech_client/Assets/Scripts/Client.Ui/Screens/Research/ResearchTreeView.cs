@@ -25,7 +25,6 @@ namespace Client.Ui.Screens.Research
         private readonly ResearchNodeCardSet _cards;
         private readonly VisualElement _detailHost;
         private readonly ResearchDetailPane _detailPane;
-        private ResearchTreeViewModel _shown;
 
         public ResearchTreeView(IResearchTreeCommands commands, GameContentPresentation content, IUiOsCursor osCursor)
         {
@@ -58,15 +57,11 @@ namespace Client.Ui.Screens.Research
 
         public void Render(ResearchTreeViewModel model)
         {
-            // カードは毎回描き直し、グラフの形（並び・座標・前提・注目点）が変わったときだけ渡し直す
-            // Cards are redrawn every time; content is handed over only when the graph shape changes (order, positions, edges, focus)
+            // カードは毎回描き直し、中身も毎回渡す（同じ形なら組み直さない判定は NodeGraphView.SetGraph が持つ）
+            // Cards are redrawn and content is handed every time (NodeGraphView.SetGraph decides to skip the rebuild for the same shape)
             _cards.RenderCards(model.Nodes);
-            if (_shown == null || !model.HasSameGraphAs(_shown))
-            {
-                var hasFocus = model.TryGetInitialFocus(out var focus);
-                _graph.SetGraph(_cards.BuildContent(model.Nodes, hasFocus ? NodeGraphFocus.At(focus) : NodeGraphFocus.None));
-            }
-            _shown = model;
+            var hasFocus = model.TryGetInitialFocus(out var focus);
+            _graph.SetGraph(_cards.BuildContent(model.Nodes, hasFocus ? NodeGraphFocus.At(focus) : NodeGraphFocus.None));
 
             // 詳細は選択の有無で出し分ける
             // Details show or hide by the selection

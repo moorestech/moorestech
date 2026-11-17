@@ -14,9 +14,9 @@ namespace Client.Ui.State.Train.Platform.Edit
         private const string SetModeCommandName = "train_platform.set_transfer_mode";
         private readonly TrainStationNameEditState _state;
         private readonly ITrainBlockCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public TrainPlatformEditCommands(TrainStationNameEditState state, ITrainBlockCommands commands, UiCommandResultToaster toaster)
+        public TrainPlatformEditCommands(TrainStationNameEditState state, ITrainBlockCommands commands, IUiCommandResultToaster toaster)
         {
             _state = state;
             _commands = commands;
