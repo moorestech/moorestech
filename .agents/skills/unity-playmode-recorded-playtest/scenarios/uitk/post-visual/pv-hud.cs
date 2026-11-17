@@ -55,9 +55,11 @@ return PlaytestRunner.Run("pv-hud", options, async p =>
     await p.WaitSeconds(1f);
     await Shoot("3-build-menu", true);
 
-    // 5. ビルドメニューから木のチェストを選び、空き地を狙った配置 HUD
-    // 5. Pick the wooden chest from the build menu and aim at open ground for the placement HUD
-    await p.ClickBuildMenuBlock("木のチェスト");
+    // 5. ビルドメニューを閉じ、ホットバー枠 0 の木のチェストで空き地を狙った配置 HUD
+    // 5. Close the build menu and aim at open ground holding the wooden chest from hotbar slot 0
+    await p.PressKey(Key.B);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.PressKey(Key.Digit1);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await p.AimAt(new Vector3(-2.5f, 32f, 4.5f));
     await p.WaitSeconds(1f);
@@ -71,7 +73,8 @@ return PlaytestRunner.Run("pv-hud", options, async p =>
     await p.AimAt(new Vector3(2.5f, 32.5f, 4.5f));
     await p.WaitSeconds(1f);
     await Shoot("2-delete-bar", false);
-    await p.ExitToGameScreen();
+    await p.PressKey(Key.G);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     #region Internal
 
