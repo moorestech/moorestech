@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Client.Playtest.Core;
-using Client.Playtest.Input;
+using Client.Playtest.Operations.Ui;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
 using Client.Playtest.UiElements;
@@ -47,15 +47,13 @@ namespace Client.Playtest
                 // Snapshot InputSystem settings the scenario may change and restore them at the end (they are an asset and outlive Play)
                 var savedInputSettings = (InputSystem.settings.backgroundBehavior, InputSystem.settings.editorInputBehaviorInPlayMode);
 
-                // 注入入力が非前面の Editor でも Game View へ届くよう、台本の前に Runner が入れる（前の実行の残りに頼らない）
-                // The Runner sets this before the scenario so injected input reaches the Game View even in a background Editor (no reliance on a previous run's leftovers)
-                InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-                InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
                 try
                 {
-                    // 例外でも走行中フラグと入力設定の復元を通すため try の中で準備する
-                    // Prepare inside the try so an exception still reaches the running-flag and settings restore
-                    SemanticInput.EnsureDevices();
+                    // 注入入力が非前面の Editor でも届くよう、台本の前に焦点無視とデバイスの有効化まで Runner が入れる（前の実行の残りに頼らない）
+                    // The Runner sets focus-ignoring input and re-enables devices before the scenario so a background Editor still gets injected input (no reliance on leftovers)
+                    // 焦点を持たないまま始まった PlayMode ではデバイスが無効のまま残り、設定だけでは戻らない。例外でも復元を通すため try の中で行う
+                    // A PlayMode started without focus leaves devices disabled and settings alone do not restore them; done inside the try so restore still runs
+                    PlaytestUiOps.PrepareBackgroundInput();
                     var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
