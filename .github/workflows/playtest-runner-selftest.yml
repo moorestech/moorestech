@@ -1,0 +1,28 @@
+name: Playtest Runner Self-test
+# 録画ランナー（EDC の分類・終了コード 2）の自己テスト。全 PR で走らせて破損を止める
+# Self-tests of the recorded-playtest runner (EDC classification and exit code 2); run on every PR so breakage is caught
+on:
+  pull_request: {}
+
+# PR更新時に同一PRの古い実行をキャンセルする
+# Cancel outdated runs of the same PR on update
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  playtest-runner-selftest:
+    name: Playtest runner self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test the playtest EDC client and runner exit codes
+        run: |
+          set -e
+          bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/edc-client-test.sh
+          bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/run-scenario-compile-error-test.sh
+          bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/exhibition-mode-run-test.sh

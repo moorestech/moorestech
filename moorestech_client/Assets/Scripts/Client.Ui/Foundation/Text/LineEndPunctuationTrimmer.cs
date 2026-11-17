@@ -128,7 +128,7 @@ namespace Client.Ui.Foundation.Text
             {
                 var lineEnds = _measurer.ReadLineEndIndices(LineEndPunctuationTrim.CountPresentedGlyphs(_source));
                 _measurer.End();
-                // silent-ok: normal 以外の文は原文のまま（nowrap は行末で折れず、pre-wrap は詰めない） / pre-wrap の差はdocs/uitk/look-exceptions.md の LX-180 が例外として持つ
+                // silent-ok: normal 以外の文は原文のまま（nowrap は行末で折れず、pre-wrap は詰めない） / pre-wrap の差は docs/uitk/look-exceptions.md の LX-180 が例外として持つ
                 if (_whiteSpace.Wanted != WhiteSpace.Normal)
                 {
                     _phase = TrimPhase.Plain;

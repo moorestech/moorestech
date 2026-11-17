@@ -14,4 +14,4 @@
 | 撤去前の Web UI の文書 | [docs/archive/webui/](../archive/webui/)・[docs/archive/webui-parity/](../archive/webui-parity/)・[docs/archive/webui-feature-videos-2026-06-14/](../archive/webui-feature-videos-2026-06-14/) |
 | 撤去前の最後の参照キャプチャ | `moorestech_logs/uitk/reference-captures/`（撮影元は [reference-captures.md](reference-captures.md)） |
 
-移行中の追従台帳と写さない Web テストの処遇は消した。基準は切替 PR #1684 のマージコミットの木にある。`git show <マージ SHA>:docs/uitk/TODO.md`／`:docs/uitk/disposition.md` で読む（マージ SHA は `git log --merges --grep='#1684' -1 origin/master` で引ける。SHA: 未記入）。
+移行中の追従台帳と写さない Web テストの処遇は消した。基準は切替 PR #1684 のマージコミットの木にある。`git show <マージ SHA>:docs/uitk/TODO.md`／`:docs/uitk/disposition.md` で読む（マージ SHA は `git log --merges --grep='^Merge pull request #1684 ' -1 origin/master` で引ける。SHA: 未記入）。
