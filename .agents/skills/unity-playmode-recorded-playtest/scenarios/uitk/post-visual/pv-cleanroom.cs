@@ -90,6 +90,9 @@ return PlaytestRunner.Run("pv-cleanroom", options, async p =>
         p.WarpPlayer(new Vector3(5.5f, 33.5f, 5.4f));
         await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, $"床パネルの上に着地（y={p.PlayerPosition.y:F2}）");
         SemanticInput.KeyDown(Key.LeftAlt);
+        // 前の撮影で左端へ寄せたカーソルが Alt の照準になるので、画面の中央へ戻す
+        // The cursor parked at the left edge by the previous shot becomes the Alt aim, so return it to the screen center
+        SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
         await p.AimAt(aim);
         await p.PressInteract();
         var deadline = Time.realtimeSinceStartup + 5f;
