@@ -26,7 +26,7 @@ return PlaytestRunner.Run("belt-route-branch-via-ui", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnPosition = new Vector3(6f, 33.5f, -3f) });
     await p.SkipOpeningSkit();
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     // 足場は地形の山の中にあり、そのままでは設置物が録画に写らない
     // The scaffold sits inside a terrain mound, so placed blocks would not show on the recording
     p.HideMapObjects();
