@@ -29,15 +29,16 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
-        public void ダッシュ方式の変更がViewModelに届く()
+        public void ダッシュ方式のコマンドは保存しViewModelに届く()
         {
             var model = new SettingsModel();
             model.Initialize();
             Assert.AreEqual(SprintInputMode.Toggle, model.Current.Value.SprintMode);
 
-            SprintInputModePreference.SetMode(SprintInputMode.Hold);
+            new SettingsCommands().SetSprintInputMode(SprintInputMode.Hold);
 
             Assert.AreEqual(SprintInputMode.Hold, model.Current.Value.SprintMode);
+            Assert.AreEqual(SprintInputMode.Hold.ToString(), PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey));
             Assert.IsFalse(model.Current.Value.SprintRecovered);
         }
     }

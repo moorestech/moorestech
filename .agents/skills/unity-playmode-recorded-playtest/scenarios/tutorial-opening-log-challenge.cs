@@ -2,15 +2,14 @@
 // Scenario: run the opening challenge (logs) on the natural map: opening skit -> tree pin -> objective HUD outline -> chop to complete -> next key hint
 // チャレンジ・ピン・初期装備はマスタから引く。マスタの形が変わったら最初の Single で止める（意図）
 // Challenges, the pin and the starting tool come from the master; a reshaped master stops at the first Single (intended)
-// SetupDebugEnvironment は呼ばない（自然なマップの木とスポーンを残す）。全体スイッチの GameUi・Web の両方で流す
-// Never call SetupDebugEnvironment (keep the natural map's trees and spawn); run under both GameUi and Web
+// SetupDebugEnvironment は呼ばない（自然なマップの木とスポーンを残す）
+// Never call SetupDebugEnvironment (keep the natural map's trees and spawn)
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -25,9 +24,8 @@ using UnityEngine.InputSystem;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("tutorial-opening-log-challenge", options, async p =>
 {
-    // 系の記録と入力の準備（前例 uitk-skit）
-    // Record the UI system and prepare input (precedent uitk-skit)
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
+    // 入力の準備（前例 uitk-skit）
+    // Prepare input (precedent uitk-skit)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
@@ -23,7 +22,7 @@ namespace Client.Ui.Screens.Inventory.Equipment
         private readonly UiRoutingState _routing;
         private readonly PlayerInventoryPanelModel _model;
         private readonly EquipmentHudView _view;
-        private IDisposable _modelSubscription;
+        private readonly SerialDisposable _modelSubscription = new();
 
         public EquipmentHudPresenter(GameUiRoot root, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, GameContentPresentation content, UiCommandResultToaster toaster)
         {
@@ -36,19 +35,17 @@ namespace Client.Ui.Screens.Inventory.Equipment
         public void Initialize()
         {
             _root.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_view);
-            _routing.Current.Subscribe(snapshot => Apply(UiScreenTraitsTable.Get(snapshot.Screen)));
+            _routing.Current.Subscribe(snapshot => _view.SetClicksAccepted(UiScreenTraitsTable.Get(snapshot.Screen).Grab));
+            _routing.Current.Select(snapshot => UiScreenTraitsTable.Get(snapshot.Screen).AlwaysOnHud).DistinctUntilChanged().Subscribe(SetShown);
 
             #region Internal
 
-            void Apply(UiScreenTraits traits)
+            // traits で出ている間だけモデルを購読する（§4.2 の ①）
+            // Follow the model only while the traits show the HUD (§4.2 type 1)
+            void SetShown(bool shown)
             {
-                var shown = traits.AlwaysOnHud;
-                _view.SetClicksAccepted(traits.Grab);
                 _view.SetShown(shown);
-                if (shown && _modelSubscription == null) _modelSubscription = _model.Current.Subscribe(_view.Render);
-                if (shown || _modelSubscription == null) return;
-                _modelSubscription.Dispose();
-                _modelSubscription = null;
+                _modelSubscription.Disposable = shown ? _model.Current.Subscribe(_view.Render) : Disposable.Empty;
             }
 
             #endregion

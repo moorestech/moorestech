@@ -26,6 +26,7 @@ namespace Client.Ui.Screens.Research
         private readonly GameContentPresentation _content;
         private readonly UiCommandResultToaster _toaster;
         private readonly IUiOsCursor _osCursor;
+        private readonly SerialDisposable _modelSubscription = new();
 
         public ResearchTreePresenter(GameUiRoot gameUiRoot, ResearchTreeModel model, UiRoutingState routing, IResearchTreeCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
@@ -45,8 +46,19 @@ namespace Client.Ui.Screens.Research
             var view = new ResearchTreeView(_commands, _content, _toaster, _osCursor);
             view.Render(_model.Current.Value);
             _gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
-            _routing.Current.Subscribe(snapshot => view.SetShown(ResearchScreenVisibility.IsShown(snapshot)));
-            _model.Current.Subscribe(view.Render);
+            _routing.Current.Select(ResearchScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown);
+
+            #region Internal
+
+            // 表示中だけモデルを購読する（§4.2 の ①。購読した時に最新値で 1 回描く）
+            // Follow the model only while shown (§4.2 type 1; subscribing draws once from the latest)
+            void SetShown(bool shown)
+            {
+                view.SetShown(shown);
+                _modelSubscription.Disposable = shown ? _model.Current.Subscribe(view.Render) : Disposable.Empty;
+            }
+
+            #endregion
         }
     }
 }

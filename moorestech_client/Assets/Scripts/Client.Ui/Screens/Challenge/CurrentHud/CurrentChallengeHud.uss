@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css（.hud・.rule・.objectives・.objective） */
+/* web: web@6248097123/src/features/challenge/CurrentChallengeHud.module.css（.hud・.rule・.objectives・.objective） */
 /* 位置決めと文字の色・影だけを持ち、面は GamePanelSurface(hud)、題と罫線は HudSectionHeading が持つ。罫線の幅だけつまみで縮める */
-/* web: moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css (.hud, .rule, .objectives, .objective) */
+/* web: web@6248097123/src/features/challenge/CurrentChallengeHud.module.css (.hud, .rule, .objectives, .objective) */
 /* Owns only placement, text color and shadow; GamePanelSurface(hud) supplies the face and HudSectionHeading the title and rule, with only the rule width narrowed by its knob */
 
 .current-challenge-hud {

@@ -20,7 +20,7 @@ namespace Client.Tests.Ui.Components.Panels
 
         // Web の calc(var(--panel-top, -8px) - 3.913894px) の定数部
         // The constant part of the Web calc(var(--panel-top, -8px) - 3.913894px)
-        private const float WebTopShift = 3.913894f;
+        private const float ReferenceTopShift = 3.913894f;
 
         private VisualElement _screen;
         private GamePanel _panel;
@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.Components.Panels
             simulate.FrameUpdate();
             var panel = _panel.worldBound;
             var face = Face().worldBound;
-            Assert.AreEqual(panel.y - 8f - WebTopShift, face.y, 0.5f);
+            Assert.AreEqual(panel.y - 8f - ReferenceTopShift, face.y, 0.5f);
             Assert.AreEqual(panel.x - 3f, face.x, 0.5f);
             Assert.AreEqual(panel.xMax + 3f, face.xMax, 0.5f);
             Assert.AreEqual(panel.yMax + 8f, face.yMax, 0.5f);

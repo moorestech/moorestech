@@ -1,49 +1,39 @@
 using System;
-using Client.Input;
 using Client.Playtest.UiElements.GameUi;
-using Client.Playtest.WebUi;
 
 namespace Client.Playtest.UiElements
 {
     /// <summary>
-    ///     ・シナリオ共通のロケータ保持
-    ///     ・照会受け口と入力転送の開閉
-    ///     ・Shared locator for scenarios
-    ///     ・Query receiver and input forwarding lifecycle
+    ///     ・シナリオ共通のロケータ保持（UITK のパネルだけを探す）
+    ///     ・実行の世代の管理
+    ///     ・Shared locator for scenarios (looks up the UITK panel only)
+    ///     ・Execution generation tracking
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
-        // 両系を持ち、Start で使う系を決める
-        // Hold both systems; pick the one to use at Start
-        private static readonly IUiElementLocator GameUiLocator = new GameUiElementLocator();
-        private static readonly IUiElementLocator WebLocator = new WebUiElementLocator();
+        // 切替後は描く系が UITK だけなのでロケータも 1 本
+        // After the cutover UITK is the only drawing system, so there is one locator
+        public static GameUiElementLocator Locator { get; } = new GameUiElementLocator();
         private static int _generation;
         private static bool _active;
-
-        // 系を選ぶとログが出るので選ぶのは Start だけにし、Start 前は配布と同じ既定の Web 系を無ログで置く
-        // Choosing a system logs, so only Start chooses; before Start hold the default Web locator without logging
-        public static IUiElementLocator Locator { get; private set; } = WebLocator;
 
         // 冪等。PlaytestRunnerとRun前のprobeの両方から呼ばれる
         // Idempotent; called from both PlaytestRunner and pre-Run probes
         public static void Start()
         {
-            if (!_active)
-            {
-                _generation++;
-                Locator = new SwitchedUiElementLocator(UiInputExclusivity.ActiveUiSystem, GameUiLocator, WebLocator);
-            }
+            if (!_active) _generation++;
             _active = true;
             Locator.StartSession();
         }
 
-        // 成否にかかわらず転送を止め、次回実行へ応答を持ち越さない
-        // Stop forwarding and discard pending responses regardless of outcome
+        // 成否にかかわらず止め、次回実行へ持ち越さない
+        // Stop regardless of outcome and carry nothing into the next execution
         public static void Stop()
         {
             _active = false;
             Locator.StopSession();
         }
+
         // 開始した実行だけに再送を許す
         // Permit retries only from the execution that started the operation
         internal static int CaptureGeneration()

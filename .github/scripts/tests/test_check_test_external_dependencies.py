@@ -63,9 +63,9 @@ class ExternalDependencyCheckTest(unittest.TestCase):
 
     def test_reports_explicit_private_and_sibling_paths(self):
         self.write(
-            "moorestech_web/webui/e2e/example.test.ts",
-            'const client = "Assets/PersonalAssets/moorestech-client-private";\n'
-            'const master = "../moorestech_master/server_v8";\n',
+            "moorestech_server/Assets/Scripts/Tests/ExampleTest.cs",
+            'var client = "Assets/PersonalAssets/moorestech-client-private";\n'
+            'var master = "../moorestech_master/server_v8";\n',
         )
 
         self.assertEqual(

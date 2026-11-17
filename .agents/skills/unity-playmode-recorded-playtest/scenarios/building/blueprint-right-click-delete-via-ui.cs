@@ -1,12 +1,11 @@
-// BP 右クリック削除: BP コピーで BP『delbp』を作り、ビルドメニューのエントリを右クリックしてサーバーとメニューから消えるのを見る（GameUi・Web 両系。S3-ladder）
-// Blueprint right-click delete: create blueprint "delbp" by copy, right-click its build menu entry, and see it leave the server and the menu (GameUi and Web, S3-ladder)
+// BP 右クリック削除: BP コピーで BP『delbp』を作り、ビルドメニューのエントリを右クリックしてサーバーとメニューから消えるのを見る（S3-ladder）
+// Blueprint right-click delete: create blueprint "delbp" by copy, right-click its build menu entry, and see it leave the server and the menu (S3-ladder)
 using System;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -23,10 +22,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async p =>
 {
-    // 1. 系は主張せず記録し、入力の準備をする（前例 uitk-build-bp）
-    // 1. Record the UI system without asserting it and prepare input (precedent uitk-build-bp)
-    var isGameUi = UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi;
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
+    // 1. 入力の準備をする（前例 uitk-build-bp）
+    // 1. Prepare input (precedent uitk-build-bp)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -81,26 +78,8 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
     // 5. サーバーから消え、メニューからもエントリが消える
     // 5. It leaves the server and the entry leaves the menu
     await p.WaitForBlueprint("delbp", false, 15f, "BP『delbp』がサーバーから消える");
-    if (isGameUi) await p.Until(() => GameUiRoot.Instance.GetRootElement().Q(entryTestId) == null, 5f, "メニューから delbp のエントリが消える（UITK のツリー）");
-    else await WaitWebEntryGone();
+    await p.Until(() => GameUiRoot.Instance.GetRootElement().Q(entryTestId) == null, 5f, "メニューから delbp のエントリが消える（UITK のツリー）");
     p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, $"削除の後もメニューは開いたまま 実際:{p.CurrentUiState}");
     await p.Screenshot("02-menu-after-delete");
     await p.ExitToGameScreen();
-
-    #region Internal
-
-    // Web の照会は非同期なので Until に渡さず、NotFound が返るまで照会し直す
-    // The Web lookup is async, so instead of Until re-query until it answers NotFound
-    async UniTask WaitWebEntryGone()
-    {
-        var wait = p.BeginWait(5f, "メニューから delbp のエントリが消える（Web の DOM）");
-        while ((await PlaytestUiElementOps.FindUi(entryTestId)).Status != UiElementLookupStatus.NotFound)
-        {
-            wait.CheckTimeout("expected=NotFound, actual=still present or renderer unavailable");
-            await UniTask.Yield();
-        }
-        wait.Complete();
-    }
-
-    #endregion
 });

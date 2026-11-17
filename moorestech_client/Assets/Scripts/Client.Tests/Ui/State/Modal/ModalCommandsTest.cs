@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.State.Modal
             var rejected = (UiCommandRejected)commands.Respond(ModalResponse.Cancel(request));
             Assert.AreEqual(UiCommandRejectReason.ModalResponseStale, rejected.Reason);
             Assert.AreEqual("no_pending_modal", rejected.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(rejected.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(rejected.Reason).IsBenign);
         }
     }
 }

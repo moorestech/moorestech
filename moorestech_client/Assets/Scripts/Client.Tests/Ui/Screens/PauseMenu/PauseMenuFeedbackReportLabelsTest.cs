@@ -23,7 +23,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
     /// </summary>
     public class PauseMenuFeedbackReportLabelsTest : ScreenTestHost
     {
-        private FakePauseMenuModel _model;
         private RecordingPauseMenuCommands _commands;
         private PauseMenuView _view;
 
@@ -32,11 +31,10 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         {
             // 言語の選択は本物の SettingsCommands に通し、Localize の言語を実際に切り替える
             // Language choices go through the real SettingsCommands so Localize actually switches
-            _model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
             _commands = new RecordingPauseMenuCommands();
-            var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(_commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
+            _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();
         }
 
@@ -51,6 +49,9 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             // Choosing a language in settings switches the locale marker to it
             ShowPage(PauseMenuPage.Settings);
             simulate.Click(Find<Button>(_view, $"language-select-option-{locale}"));
+            // 言語の購読は Presenter が持つ（PauseMenuScreenSubscriptionTest）ので、ここでは描く口を呼ぶ
+            // The presenter owns the language subscription (PauseMenuScreenSubscriptionTest), so call the render port here
+            _view.RenderLocaleMarker();
             Assert.IsNotNull(_view.Q($"pause-menu-locale-{locale}"), "言語の切り替えが画面に届かない");
 
             // トップ復帰でバグ文言に戻る
@@ -91,11 +92,11 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             return Find<FormButton>(_view, "bug-report-send").Q<Label>().PlainText();
         }
 
-        // ページはホストが決めるので、押した後に偽モデルへ入れて描き直させる。スクロールバーの出し入れで 2 フレーム要る
-        // The host decides the page, so push it into the fake model after the press; scroller toggling needs two frames
+        // ページはホストが決めるので、押した後に描く口へ渡して描き直させる。スクロールバーの出し入れで 2 フレーム要る
+        // The host decides the page, so pass it to the render port after the press; scroller toggling needs two frames
         private void ShowPage(PauseMenuPage page)
         {
-            _model.Set(FakePauseMenuModel.Page(page));
+            _view.RenderPauseMenu(FakePauseMenuModel.Page(page));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
         }

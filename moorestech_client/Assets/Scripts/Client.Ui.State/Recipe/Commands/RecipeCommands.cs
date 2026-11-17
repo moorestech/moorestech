@@ -36,7 +36,7 @@ namespace Client.Ui.State.Recipe.Commands
 
             UiCommandResult Reject(UiCommandRejectReason reason)
             {
-                Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTraits.ToWireCode(reason)} recipe={recipeGuid}");
+                Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTable.Get(reason).WireCode} recipe={recipeGuid}");
                 return UiCommandRejected.Of(reason);
             }
 

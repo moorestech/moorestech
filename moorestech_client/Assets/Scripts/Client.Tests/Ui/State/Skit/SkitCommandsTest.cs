@@ -54,7 +54,7 @@ namespace Client.Tests.Ui.State.Skit
             LogAssert.Expect(LogType.Warning, "[UiCommandResultToaster] skit.select failed: intent_not_allowed");
             Toaster.Report("skit.select", _commands.Select(current.SessionId, current.SceneRevision, "route-a"));
 
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.SkitIntentRejected));
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.SkitIntentRejected).IsBenign);
             Assert.AreEqual(1, ShownToasts.Count);
             Assert.AreEqual("The conversation did not accept that operation", ShownToasts[0].Text);
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts[0].Variant);

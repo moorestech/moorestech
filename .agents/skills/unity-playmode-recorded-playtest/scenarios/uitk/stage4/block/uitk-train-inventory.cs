@@ -1,7 +1,5 @@
 // S4-train: UITK（GameUi）で駅の名前・積み降ろし切替と、機関車の持ち物・時刻表・自動運転を通す。Error ログ 0 件を主張する
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // S4-train: on UITK (GameUi), run station rename and load/unload switch, then the locomotive's inventory, timetable and auto-run, asserting zero Error logs
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
@@ -41,7 +39,6 @@ return PlaytestRunner.Run("uitk-train-inventory", new PlaytestRunOptions { Recor
     Application.logMessageReceived += CountErrors;
     try
     {
-        p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（{UiInputExclusivity.ActiveUiSystem}）");
         InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         SemanticInput.EnsureDevices();

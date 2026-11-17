@@ -1,11 +1,8 @@
-// UITK のビルドメニュー: 末尾ジャンプ・検索・閉じて開き直す復元・選択・閉じるを全体スイッチ GameUi で通す
+// UITK のビルドメニュー: 末尾ジャンプ・検索・閉じて開き直す復元・選択・閉じるを通す
 // UITK build menu: trailing jump, search, close-and-reopen restore, selection and close under the GameUi global switch
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -29,8 +26,6 @@ return PlaytestRunner.Run("uitk-build-menu", options, async p =>
     SemanticInput.EnsureDevices();
     InputSystem.EnableDevice(Keyboard.current);
     InputSystem.EnableDevice(Mouse.current);
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
@@ -87,8 +82,8 @@ return PlaytestRunner.Run("uitk-build-menu", options, async p =>
     p.Assert(Math.Abs(Scroll().scrollOffset.y - filteredOffset) <= 1f, $"スクロール位置が戻る（{filteredOffset} → {Scroll().scrollOffset.y}）");
     await p.Screenshot("04-restored");
 
-    // 検索を空に戻すと末尾付近に居るので、ベルトのカテゴリへ跳んでから選ぶ（前例 webui-buildmenu-click）
-    // Clearing the search leaves us near the end, so jump to the belt's category before selecting (precedent webui-buildmenu-click)
+    // 検索を空に戻すと末尾付近に居るので、ベルトのカテゴリへ跳んでから選ぶ
+    // Clearing the search leaves us near the end, so jump to the belt's category before selecting
     await p.SetText("build-menu-search", "");
     var beltMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("ベルトコンベア"));
     var (beltCategoryGuid, _) = MasterHolder.BuildMenuCategoryMaster.GetGuidPair(beltMaster.Category, beltMaster.SubCategory);

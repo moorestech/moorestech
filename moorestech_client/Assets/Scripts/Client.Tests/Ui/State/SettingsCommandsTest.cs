@@ -2,6 +2,7 @@ using Client.Localization;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.Ui.State
@@ -29,6 +30,20 @@ namespace Client.Tests.Ui.State
             else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
             PlayerPrefs.Save();
             Localize.Initialize();
+        }
+
+        [Test]
+        public void 選べる言語は受理して現在言語と保存値を変え通知を1回出す()
+        {
+            var changes = 0;
+            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => changes++);
+
+            var result = new SettingsCommands().SetLanguage("japanese");
+
+            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
+            Assert.AreEqual("japanese", PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
+            Assert.AreEqual(1, changes);
         }
 
         [TestCase("unknown")]

@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/shared/ui/GamePanel/style.module.css（ref-webui-design §2） */
+/* web: web@6248097123/src/shared/ui/GamePanel/style.module.css（ref-uitk-design の visual-vocabulary.md §3 面） */
 /* 枠付きパネルの default・craft。外周の box-shadow は Web でも mask に切られて画面に出ないので描かない（C2-a 判断記録 D-1） */
-/* web: moorestech_web/webui/src/shared/ui/GamePanel/style.module.css (ref-webui-design §2) */
+/* web: web@6248097123/src/shared/ui/GamePanel/style.module.css (ref-uitk-design visual-vocabulary.md §3, surfaces) */
 /* Framed panel default and craft; the outer box-shadow is clipped by the Web mask and never shows, so it is not drawn (C2-a decision D-1) */
 
 .game-panel {

@@ -1,5 +1,5 @@
-/* web: W/features/tutorial/worldPin.module.css（.overlay・.pin・.label・.marker・.arrow・.arrow svg）。scale(var(--ui-scale)) はパネル単位＝stage px なので要らない */
-/* web: W/features/tutorial/worldPin.module.css (.overlay, .pin, .label, .marker, .arrow, .arrow svg); no --ui-scale since panel units are stage px */
+/* web: web@6248097123/src/features/tutorial/worldPin.module.css（.overlay・.pin・.label・.marker・.arrow・.arrow svg）。scale(var(--ui-scale)) はパネル単位＝stage px なので要らない */
+/* web: web@6248097123/src/features/tutorial/worldPin.module.css (.overlay, .pin, .label, .marker, .arrow, .arrow svg); no --ui-scale since panel units are stage px */
 .world-pin-overlay {
     position: absolute;
     left: 0;

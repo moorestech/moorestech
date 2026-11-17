@@ -1,14 +1,13 @@
 // I-fix7 V の撮り直し: 機械 4 種（石窯・原始的な加工機・電気炉・核融合炉）とチャレンジ一覧を日本語で 1280×720 と 2560×1080 に撮る
 // I-fix7 V retake: shoot four machines (stone kiln, primitive gear machine, electric furnace, fusion reactor) and the challenge list in Japanese at 1280x720 and 2560x1080
-// 実行は winunity play <branch> <この .cs> --ui-system GameUi|Web --name <name>。Web では同じ状態の Web 版を web-live の名で撮る（加工行の記録は GameUi だけ）
-// Run via winunity play <branch> <this .cs> --ui-system GameUi|Web --name <name>; on Web it shoots the same state as web-live (the process-row note is GameUi only)
+// 実行は winunity play <branch> <この .cs> --name <name>
+// Run via winunity play <branch> <this .cs> --name <name>
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -32,11 +31,8 @@ using VContainer;
 
 return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f }, async p =>
 {
-    // 1. 系の記録・入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
-    // 1. Record the system, input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
-    var system = UiInputExclusivity.ActiveUiSystem;
-    var shotPrefix = system == UiSystem.GameUi ? "uitk" : "web-live";
-    p.Note($"系={system}");
+    // 1. 入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
+    // 1. Input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();
@@ -67,7 +63,7 @@ return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions 
         {
             await Place(machine.Name, machine.Origin);
             await Open(machine.Name, machine.Origin, machine.Width, machine.Depth, 0.6f, machine.Body);
-            if (system == UiSystem.GameUi) NoteProcessRow(machine.Name);
+            NoteProcessRow(machine.Name);
             await ShootBoth(machine.ShotId);
             await Close();
         }
@@ -114,8 +110,7 @@ return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions 
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        if (system == UiSystem.GameUi) await p.Until(() => Shown(bodyTestId), 15f, $"{blockName}: {bodyTestId} が出る");
-        else await p.UntilUiElement(bodyTestId, 30f);
+        await p.Until(() => Shown(bodyTestId), 15f, $"{blockName}: {bodyTestId} が出る");
         await p.WaitSeconds(1f);
     }
 
@@ -133,8 +128,8 @@ return PlaytestRunner.Run("uitk-i-fix7-visual-machines", new PlaytestRunOptions 
             await PlaytestGameViewOps.SetResolution(p.CancellationToken, w, h);
             await UniTask.DelayFrame(3);
             p.Assert(Screen.width == w && Screen.height == h, $"Screen が {w}x{h} (実際 {Screen.width}x{Screen.height})");
-            await p.WaitSeconds(system == UiSystem.GameUi ? 0.5f : 2f);
-            await p.Screenshot($"{shotPrefix}-{stateId}-{w}x{h}");
+            await p.WaitSeconds(0.5f);
+            await p.Screenshot($"uitk-{stateId}-{w}x{h}");
         }
         await PlaytestGameViewOps.SetResolution(p.CancellationToken, 1280, 720);
     }

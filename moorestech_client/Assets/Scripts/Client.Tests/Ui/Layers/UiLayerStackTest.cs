@@ -73,6 +73,24 @@ namespace Client.Tests.Ui.Layers
             Assert.AreSame(screenElement, panel.Pick(PanelCenter));
         }
 
+        [TestCase(UiLayer.Toast, UiLayer.Modal)]
+        [TestCase(UiLayer.Grab, UiLayer.Tooltip)]
+        [TestCase(UiLayer.FullScreenGate, UiLayer.Reconnect)]
+        [TestCase(UiLayer.Modal, UiLayer.PauseMenu)]
+        public void FrontLayerElementIsPickedOverBackLayerElement(UiLayer front, UiLayer back)
+        {
+            // 意味で選んだ上下の組（トーストはモーダルの上・掴んだアイテムはツールチップの上・全面ゲートが最前面）
+            // Meaning-chosen pairs: toast over modal, grabbed item over tooltip, full-screen gate in front of all
+            var stack = UiLayerStack.Build(rootVisualElement);
+            var backElement = CreatePickableBox("back-box");
+            var frontElement = CreatePickableBox("front-box");
+            stack.GetLayer(back, UiFamily.Viewport).Add(backElement);
+            stack.GetLayer(front, UiFamily.Viewport).Add(frontElement);
+            simulate.FrameUpdate();
+
+            Assert.AreSame(frontElement, panel.Pick(PanelCenter), $"{front} is not above {back}");
+        }
+
         private static VisualElement CreatePickableBox(string name)
         {
             var box = new VisualElement { name = name, pickingMode = PickingMode.Position };

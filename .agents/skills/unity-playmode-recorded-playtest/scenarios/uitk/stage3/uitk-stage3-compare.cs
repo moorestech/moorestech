@@ -1,11 +1,8 @@
 // 束 3 の並べ比べ（組 2: 崩れの確認）: GameUi で参照 3-hotbar-equipment-empty・3-build-menu・3-modal と同じ状態を実画面で作り、1280×720 と 2560×1080 で撮る（S3-ladder）
 // Bundle 3 comparison (set 2, breakage check): in GameUi build the same states as references 3-hotbar-equipment-empty, 3-build-menu and 3-modal on the real screen and shoot at 1280x720 and 2560x1080 (S3-ladder)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
@@ -23,10 +20,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("uitk-stage3-compare", options, async p =>
 {
-    // 1. 系の主張と入力の準備（前例 uitk-build-bp）
-    // 1. Assert the UI system and prepare input (precedent uitk-build-bp)
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 1. 入力の準備（前例 uitk-build-bp）
+    // 1. Prepare input (precedent uitk-build-bp)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

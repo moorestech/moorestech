@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.Screens.Shell
     {
         // Web の tokens.css の --screen-vignette-edge の α（rgb(4 5 8 / 16%)）。補正の指数は直書きせず、トークンの α から逆に解く
         // Alpha of the Web tokens.css --screen-vignette-edge (rgb(4 5 8 / 16%)); the correction exponent is not hard-coded but solved back from the token alpha
-        private const float WebEdgeAlpha = 0.16f;
+        private const float ReferenceEdgeAlpha = 0.16f;
         private readonly Vector2 _logicalPanelSize;
         private readonly float _pixelsPerPoint;
 
@@ -92,7 +92,7 @@ namespace Client.Tests.Ui.Screens.Shell
 
             // 縁のトークンは Web の α 0.16 のままで、重みを線形に掛ける（A-180）
             // The edge token keeps the Web alpha 0.16 and the weight is multiplied linearly (A-180)
-            Assert.AreEqual(WebEdgeAlpha, ThemeTokenFile.ResolveColor("--screen-vignette-edge").a, 1e-4f);
+            Assert.AreEqual(ReferenceEdgeAlpha, ThemeTokenFile.ResolveColor("--screen-vignette-edge").a, 1e-4f);
         }
     }
 }

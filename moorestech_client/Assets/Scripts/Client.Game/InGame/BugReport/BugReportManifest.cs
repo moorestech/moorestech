@@ -4,7 +4,6 @@ using System.Globalization;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -37,7 +36,9 @@ namespace Client.Game.InGame.BugReport
         // v6: added always-present webUiHealth (raw web host startup, CEF process and seconds since the last WS message)
         // v7: gameUiExceptions（UI の例外の数と見本。数えていない箱は status だけの unknown）を常時非nullで追加
         // v7: added always-present gameUiExceptions (UI exception count and samples; an uncounted box carries only status unknown)
-        public int SchemaVersion = 7;
+        // v8: webUiHealth を外した（UITK 切替で CEF と Web ホストを撤去。ADR 0057）。gameUiExceptions は残す
+        // v8: removed webUiHealth (the UITK cutover removed CEF and the web host; ADR 0057); gameUiExceptions stays
+        public int SchemaVersion = 8;
         public string CreatedAt;
         public string Description;
 
@@ -73,10 +74,6 @@ namespace Client.Game.InGame.BugReport
         // 常時非null。有効と不明の報告は取り込み側のバグ判定と通常集計から除く
         // Always present; ingestion excludes both enabled and unknown reports from bug triage and normal counts
         public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
-
-        // 常時非null。値が取れない事実は欠損列でなく notAttempted/notObserved/null で表す（ADR 0057）
-        // Always present; values that are unavailable read notAttempted/notObserved/null instead of a missing entry (ADR 0057)
-        public WebUiHealthReading WebUiHealth = new();
 
         // UI の例外の数と見本（A-244。Web の AppErrorBoundary の代わり）。v7 で追加、常に非 null。既定は数えていない箱
         // Count and samples of UI exceptions (A-244, standing in for the Web AppErrorBoundary); added in v7, never null, defaulting to an uncounted box

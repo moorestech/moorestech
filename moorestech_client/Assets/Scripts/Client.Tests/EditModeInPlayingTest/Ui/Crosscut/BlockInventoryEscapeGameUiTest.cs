@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
 {
@@ -21,7 +22,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
     /// Verifies in the real GameUi game that Esc on an open chest returns to the game screen (L3; port of the Web e2e inputLayer.spec)
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class BlockInventoryEscapeGameUiTest : UiSystemPlayModeTestBase
+    public class BlockInventoryEscapeGameUiTest
     {
         private const string ChestBlockName = "量子チェスト";
         private const int EscapeWaitFrameLimit = 120;
@@ -30,7 +31,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Crosscut
         [UnityTest]
         public IEnumerator チェストを開いてEscを押すとゲーム画面へ戻る()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと

@@ -1,7 +1,5 @@
 // ホットバー（枠のクリックで建築・入替・枠外で解除）と BP 名のモーダル（確定・幕・ESC 1 回）を UITK（GameUi）で通す（S3-hotbar-modal）
 // Runs the hotbar (click-to-build, swap, clear outside) and the blueprint name modal (confirm, backdrop, one ESC) on UITK (GameUi) (S3-hotbar-modal)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
@@ -26,10 +24,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("uitk-hotbar-and-bp-modal", options, async p =>
 {
-    // 1. 系の主張と入力の準備（前例 uitk-mode-hud-and-tooltip）
-    // 1. Assert the UI system and prepare input (precedent uitk-mode-hud-and-tooltip)
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 1. 入力の準備（前例 uitk-mode-hud-and-tooltip）
+    // 1. Prepare input (precedent uitk-mode-hud-and-tooltip)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

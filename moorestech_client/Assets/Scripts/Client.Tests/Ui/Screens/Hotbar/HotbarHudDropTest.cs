@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         {
             _commands = new RecordingHotbarCommands();
             _view = Mount(new HotbarHudView(_commands, HotbarTestPresentation.Create(), Toaster));
-            _view.Render(HotbarViewModelSamples.WebFixture());
+            _view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             simulate.FrameUpdate();
         }

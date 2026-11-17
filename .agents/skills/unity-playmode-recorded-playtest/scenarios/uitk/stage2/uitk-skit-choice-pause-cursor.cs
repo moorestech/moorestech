@@ -1,13 +1,10 @@
 // スキットの選択肢（S2-skit）: 選択肢を持つ sample_short を UITK で出し、乗ると指・乗ったまま Esc でポーズに入ると指が外れること、ポーズを閉じて UITK の選択肢で選べることを録画する
 // Skit choices (S2-skit): show sample_short's choices in UITK, record the pointer finger on hover, its removal on entering the pause with Esc while hovering, and picking a choice after closing the pause
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Reflection;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -32,8 +29,6 @@ return PlaytestRunner.Run("uitk-skit-choice-pause-cursor", options, async p =>
     InputSystem.EnableDevice(Keyboard.current);
     InputSystem.EnableDevice(Mouse.current);
 
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // Game View が裏タブだと描画されず、Recorder が初回フレーム待ちで timeScale=0 に固定してスキットの scaled Delay が返らないため表へ出す（vq8w・iefh）
     // A Game View behind another tab never renders, so the Recorder pins timeScale=0 and the skit's scaled delays never return; bring it to front (vq8w, iefh)
     Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();

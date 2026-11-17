@@ -36,7 +36,7 @@ namespace Client.Editor.Build.Bundlers
                 return;
             }
             var source = Path.Combine(Application.dataPath, "Packages", $"Lib.Harmony.{harmonyVersion}", "lib", "net48", RemoteExecHarmonyLoader.BundledFileName);
-            if (!File.Exists(source) || CefLfsPointer.IsPointerFile(source))
+            if (!File.Exists(source) || LfsPointerFile.IsPointerFile(source))
             {
                 Fail($"Harmony DLL is missing or an LFS pointer: {source}");
                 return;

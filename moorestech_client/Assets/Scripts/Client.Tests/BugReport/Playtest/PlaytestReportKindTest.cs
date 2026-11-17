@@ -26,5 +26,12 @@ namespace Client.Tests.BugReport
                 Assert.AreEqual(kind, restored);
             }
         }
+
+        [TestCase("nope")]
+        [TestCase("")]
+        public void 契約に無い綴りは読めない(string text)
+        {
+            Assert.IsFalse(PlaytestReportKindText.TryParse(text, out _));
+        }
     }
 }

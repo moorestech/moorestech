@@ -22,6 +22,7 @@ namespace Client.Ui.Screens.BlockInventory
         private readonly IBlockInventoryPanelCommands _commands;
         private readonly UiCommandResultToaster _toaster;
         private readonly IUiOsCursor _osCursor;
+        private readonly SerialDisposable _layoutSubscription = new();
 
         public BlockInventoryScreenPresenter(StageColumnsLayout stage, UiRoutingState routing, BlockInventoryPanelLayoutModel layout, BlockInventoryPartRegistry parts, IBlockInventoryPanelCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
         {
@@ -41,17 +42,34 @@ namespace Client.Ui.Screens.BlockInventory
             var host = new BlockInventoryBodyHost(_parts, view);
             _stage.Get(StageColumn.Viewer).Add(view);
 
-            // 状態と大きさは LayoutModel の組 1 本から読み、画面ルータとの 2 源だけを組にする（派生元と派生先を同時に購読しない。D-55）。隠れている間は部分を外す
-            // Read state and size from the layout model's single pair and combine only it with the screen router (never both source and derived; D-55); parts are detached while hidden
-            _routing.Current.CombineLatest(_layout.Current, (snapshot, presentation) => (snapshot, presentation)).Subscribe(pair =>
+            // 画面ルータが SubInventory の間だけ LayoutModel の組 1 本を購読する（§4.2 の ①。派生元と派生先を同時に購読しない。D-55）
+            // Follow the layout model's single pair only while the router is on SubInventory (§4.2 type 1; never both source and derived; D-55)
+            _routing.Current.Select(BlockInventoryScreenVisibility.IsOnScreen).DistinctUntilChanged().Subscribe(onScreen =>
             {
-                var state = pair.presentation.State;
-                var layout = pair.presentation.Layout;
-                var shown = BlockInventoryScreenVisibility.IsShown(pair.snapshot, state);
+                if (onScreen)
+                {
+                    _layoutSubscription.Disposable = _layout.Current.Subscribe(presentation => Apply(presentation.State, presentation.Layout));
+                    return;
+                }
+
+                // 隠れたら購読を捨て、部分を 1 回外す（隠れている間は描かない）
+                // On hide drop the subscription and detach the parts once (nothing is drawn while hidden)
+                _layoutSubscription.Disposable = Disposable.Empty;
+                view.SetShown(false);
+                host.Apply(BlockInventoryPanelState.Closed, _layout.Current.Value.Layout);
+            });
+
+            #region Internal
+
+            void Apply(BlockInventoryPanelState state, BlockInventoryPanelLayout layout)
+            {
+                var shown = BlockInventoryScreenVisibility.IsShown(_routing.Current.Value, state);
                 view.SetShown(shown);
                 view.Render(state, layout);
                 host.Apply(shown ? state : BlockInventoryPanelState.Closed, layout);
-            });
+            }
+
+            #endregion
         }
     }
 }

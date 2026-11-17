@@ -13,13 +13,13 @@ namespace Client.Editor.Build
     }
 
     /// <summary>
-    /// Mac Playerをarm64専用に固定する（CEFのMacランタイムがosx-arm64しか無いため。ADR 0071）
-    /// Pins the Mac player to arm64 only, since CEF's Mac runtime exists only for osx-arm64 (ADR 0071)
+    /// Mac Playerをarm64専用に固定する（Mac版はApple Silicon専用。同梱ffmpegもmacos-arm64版だけ。ADR 0071）
+    /// Pins the Mac player to arm64 only; the Mac build is Apple Silicon only and bundles a macos-arm64 ffmpeg (ADR 0071)
     /// </summary>
     internal static class MacPlayerArchitecture
     {
         public const string UnsupportedHostReason =
-            "[MacPlayerArchitecture] 非Macホストではarm64へ固定できず、osx-arm64専用CEFのWeb UIが動かない可能性があります";
+            "[MacPlayerArchitecture] 非Macホストではarm64へ固定できず、macos-arm64版だけを同梱したffmpegの録画が動かない可能性があります";
 
 #if UNITY_EDITOR_OSX
         private static UnityEditor.Build.OSArchitecture _architectureBeforePin;

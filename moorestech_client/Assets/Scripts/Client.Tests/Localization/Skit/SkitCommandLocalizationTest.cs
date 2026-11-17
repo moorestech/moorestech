@@ -100,7 +100,7 @@ namespace Client.Tests.Localization.Skit
 
             StringAssert.Contains("SkitCommandLocalization.ResolveLine(", commandSource);
             StringAssert.Contains(
-                "ExecuteWebPresentationAsync(\n                line.SpeakerName,\n                line.DisplayBody,",
+                "ExecutePresentationAsync(\n                line.SpeakerName,\n                line.DisplayBody,",
                 commandSource);
             StringAssert.DoesNotContain("GetSkitUI", commandSource);
         }

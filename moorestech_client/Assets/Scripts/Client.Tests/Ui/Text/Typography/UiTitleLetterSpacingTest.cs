@@ -48,12 +48,12 @@ namespace Client.Tests.Ui.Text.Typography
         [TestCase(UiTypographyClass.TitleOrder2, 0.032f)]
         [TestCase(UiTypographyClass.TitleOrder3, 0.033f)]
         [TestCase(UiTypographyClass.TitleOrder4, 0.020f)]
-        public void 欧文のTitleは見出しの字形をWebの字送りへ詰める(string className, float webTightenEm)
+        public void 欧文のTitleは見出しの字形をWebの字送りへ詰める(string className, float referenceTightenEm)
         {
             var (spaced, unspaced) = MountHeadingPair(rootVisualElement, className, GapSample);
 
             Assert.AreEqual("GameUiLatinBold SDF", spaced.resolvedStyle.unityFontDefinition.fontAsset.name);
-            ExpectTightenedByGaps(spaced, unspaced, webTightenEm);
+            ExpectTightenedByGaps(spaced, unspaced, referenceTightenEm);
         }
 
         // 和文は NotoSansJP Bold を 0.925 倍の大きさで字間を詰めずに描く（.Hiragino Kaku Gothic Interface W6 の字の面と字送り 0.925em）
@@ -109,9 +109,9 @@ namespace Client.Tests.Ui.Text.Typography
 
         // UITK は字の間 9 か所に字間を足す
         // UITK adds the spacing at the 9 gaps between the 10 glyphs
-        private static void ExpectTightenedByGaps(Label spaced, Label unspaced, float webTightenEm)
+        private static void ExpectTightenedByGaps(Label spaced, Label unspaced, float referenceTightenEm)
         {
-            var expected = webTightenEm * spaced.resolvedStyle.fontSize * GapCount;
+            var expected = referenceTightenEm * spaced.resolvedStyle.fontSize * GapCount;
             Assert.AreEqual(expected, unspaced.layout.width - spaced.layout.width, 1f, $"{spaced.layout.width} vs {unspaced.layout.width}");
         }
 

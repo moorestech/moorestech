@@ -12,7 +12,7 @@ namespace Client.Tests.Ui.Text.SizeRounding
     {
         // Web の通知の文の和文の送り: 15px×(1＋0.055em)
         // Web CJK advance of the notification text: 15px x (1 + 0.055em)
-        private const float WebCjkAdvance = 15.825f;
+        private const float ReferenceCjkAdvance = 15.825f;
         private const int CjkRunLength = 20;
         private const string LatinSentence = "Research cannot be completed";
         private static readonly string CjkRun = new('研', CjkRunLength);
@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.Text.SizeRounding
             // Left rounded it is 16.17px at 1.5 and 16.0px at 1.25 (+7px and +3.5px over 20 glyphs)
             pixelsPerPoint = scale;
             var label = MountLocalized(CjkRun, 0f);
-            Assert.AreEqual(WebCjkAdvance * CjkRunLength, label.layout.width, 1f, label.text);
+            Assert.AreEqual(ReferenceCjkAdvance * CjkRunLength, label.layout.width, 1f, label.text);
         }
 
         [Test]
@@ -49,11 +49,11 @@ namespace Client.Tests.Ui.Text.SizeRounding
             // 1 本目の箱は文の幅より広いまま残る（Mac 244 対 236・Windows 244 対 230。bd albof.70）ので、2 本目の幅を Web の幅にする
             // The first box stays wider than the text (Mac 244 vs 236, Windows 244 vs 230; bd albof.70), so the second label's width is the Web width
             var label = MountLocalized(LatinSentence, 0f);
-            var webWidth = label.layout.width;
+            var referenceWidth = label.layout.width;
 
             pixelsPerPoint = 1.5f;
             Frames();
-            Assert.AreEqual(webWidth, label.layout.width, 1f, label.text);
+            Assert.AreEqual(referenceWidth, label.layout.width, 1f, label.text);
         }
 
         [Test]

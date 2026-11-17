@@ -1,13 +1,10 @@
 using Client.Ui.Foundation.Input.Pointer;
 // 掴み絵（GrabOverlay）・分割ドラッグ・舞台の上段 3 列を UITK（GameUi）で通す
 // Runs the grab picture (GrabOverlay), split drag and the top-row stage columns on UITK (GameUi)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -29,7 +26,6 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("uitk-grab-overlay", options, async p =>
 {
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
 
     // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
     // Ignore focus so injected input reaches a background Editor

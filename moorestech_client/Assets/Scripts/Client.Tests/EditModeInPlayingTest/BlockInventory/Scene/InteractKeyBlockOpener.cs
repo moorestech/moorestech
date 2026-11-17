@@ -86,8 +86,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             #endregion
         }
 
-        // 開いているUIを本番のWeb UIと同じ遷移要求で閉じる
-        // Close the open UI with the same transition request the production Web UI uses
+        // 開いているUIを本番のUIと同じ遷移要求で閉じる
+        // Close the open UI with the same transition request the production UI uses
         public static async UniTask CloseToGameScreen()
         {
             var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();

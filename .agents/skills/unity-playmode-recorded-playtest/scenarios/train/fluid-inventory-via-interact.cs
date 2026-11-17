@@ -50,7 +50,6 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.WaitUiState(UIStateEnum.GameScreen,60);
-    p.Note($"描画系={Client.Input.UiInputExclusivity.ActiveUiSystem}");
     // スポーン付近の岩（マップオブジェクト）が照準の線を遮るので消す
     // Hide map objects, since a rock near the spawn blocks the aim ray
     UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>().SetActive(false);
@@ -148,8 +147,8 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.Screenshot("03-car-water10");
     await p.WaitSeconds(1f);
 
-    // 通常tick搬送後のDOM更新を画面を開いたまま確認する
-    // Verify DOM refresh after normal tick transfer while keeping the panel open
+    // 通常tick搬送後の要素の更新を画面を開いたまま確認する
+    // Verify element refresh after normal tick transfer while keeping the panel open
     p.Note("PFへ水80を戻し、開いた貨車画面が90へ更新されるまで待つ");
     await p.RunOnServer("PFへ退避した水を戻す", () => pf.AddLiquid(new FluidStack(reserve.Amount,reserve.FluidId),default));
     await p.Until(()=>Math.Abs(fluid.Amount-90)<0.001,20,"通常tickで貨車へ80搬送");
@@ -184,7 +183,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
             await UniTask.Yield();
             dom = await PlaytestUiElementOps.FindUi(testid);
         }
-        p.Note(label+" DOM="+dom.Text);
+        p.Note(label+" 要素="+dom.Text);
         p.Assert(dom.IsFound&&dom.Visible,label+"の液体スロットが可視");
         p.Assert(dom.Text.Contains("水"),label+"の液体名が水");
         p.Assert(dom.Text.Contains(expected),label+"の量容量="+expected);

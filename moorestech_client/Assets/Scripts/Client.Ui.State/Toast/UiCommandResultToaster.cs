@@ -29,11 +29,11 @@ namespace Client.Ui.State.Toast
             // Log name, code and diagnostic in one line
             var wireCode = rejected.ToWireCode();
             Debug.LogWarning($"[UiCommandResultToaster] {commandName} failed: {rejected.ToLogText()}");
-            if (UiCommandRejectReasonTraits.IsBenign(rejected.Reason)) return;
+            if (UiCommandRejectReasonTable.Get(rejected.Reason).IsBenign) return;
 
             // 失敗コードは常に {code} へ
             // Always pass the failure code as {code} (A-261)
-            var key = UiCommandRejectReasonTraits.ToLocalizationKey(rejected.Reason);
+            var key = UiCommandRejectReasonTable.Get(rejected.Reason).LocalizationKey;
             var text = Localize.GetFormatted(key, new[] { new LocalizationTextParam(CodeParamName, wireCode) });
             _toasts.Show(text, GameUiToastVariant.Error);
         }

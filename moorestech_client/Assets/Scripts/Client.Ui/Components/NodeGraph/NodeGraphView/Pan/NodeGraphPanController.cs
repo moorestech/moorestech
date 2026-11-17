@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ビューポートの押下を分類してパン・タップ・滑走にする。web: moorestech_web/webui/src/shared/treeView/useTreePanGesture.ts と viewport/usePanInertia.ts
+    /// ビューポートの押下を分類してパン・タップ・滑走にする。web: web@6248097123/src/shared/treeView/useTreePanGesture.ts と viewport/usePanInertia.ts
     /// Classifies viewport presses into pan, tap and glide; web: useTreePanGesture.ts and viewport/usePanInertia.ts
     /// </summary>
     /// <remarks>

@@ -91,22 +91,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "ポーズからゲーム画面へ戻れない");
         }
 
-        public static async UniTask WebTextInputIsIgnoredInGameUiSystem()
-        {
-            // (d) GameUi の系は Web の値を読まない
-            // (d) The GameUi system does not read web values
-            UiInputExclusivity.SetState(true, true);
-            await UniTask.DelayFrame(ApplyWaitFrames);
-            LogState("web values written in the GameUi system");
-            var focusedWhileWebWritten = UiInputExclusivity.IsTextInputFocused;
-            var pointerWhileWebWritten = UiInputExclusivity.IsPointerOverWebUi;
-            var modeWhileWebWritten = UnityEngine.Input.imeCompositionMode;
-            UiInputExclusivity.SetState(false, false);
-            Assert.IsFalse(focusedWhileWebWritten, "GameUi の系で Web の入力欄フォーカスが文字入力になった");
-            Assert.IsFalse(pointerWhileWebWritten, "GameUi の系で Web のポインタ占有が通った");
-            Assert.AreEqual(IMECompositionMode.Off, modeWhileWebWritten, "GameUi の系で Web の入力欄フォーカスにより IME が Off でない");
-        }
-
         public static async UniTask EscapeLatchHoldsOnlyItsOwnFrame()
         {
             // (f) ラッチを立てたフレームは CloseUI の押下を返さず、次のフレームでは返す（D-9 の「別フレームで false」）

@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/features/hotbar/HotbarPanel/style.module.css の .hotbarArea・.hotbarFrame・.cell・.num・data-unresolved・data-select-disabled。calc() と transform の 2 つ（.num の top・.hotbarFrame の translateX）は HotbarCalcKnobs が当てる（設計書 A-47）。gap は UITK に無いので 2 枠目以降の左余白で写す */
-/* web: .hotbarArea, .hotbarFrame, .cell, .num, data-unresolved and data-select-disabled in moorestech_web/webui/src/features/hotbar/HotbarPanel/style.module.css; the calc() and transform pair (.num top, .hotbarFrame translateX) is applied by HotbarCalcKnobs (design A-47); UITK has no gap, so cells after the first take a left margin */
+/* web: web@6248097123/src/features/hotbar/HotbarPanel/style.module.css の .hotbarArea・.hotbarFrame・.cell・.num・data-unresolved・data-select-disabled。calc() と transform の 2 つ（.num の top・.hotbarFrame の translateX）は HotbarCalcKnobs が当てる（設計書 A-47）。gap は UITK に無いので 2 枠目以降の左余白で写す */
+/* web: .hotbarArea, .hotbarFrame, .cell, .num, data-unresolved and data-select-disabled in web@6248097123/src/features/hotbar/HotbarPanel/style.module.css; the calc() and transform pair (.num top, .hotbarFrame translateX) is applied by HotbarCalcKnobs (design A-47); UITK has no gap, so cells after the first take a left margin */
 .hotbar-hud {
     position: absolute;
     left: 0;

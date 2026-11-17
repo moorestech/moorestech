@@ -2,7 +2,7 @@
 // C2-b IME check (albof.12, plan §4.9): type Japanese into the bug-report body with OS-level synthetic keys on Mac and verify select-all, underline, candidate window, commit, ESC while composing and ESC after commit
 // 単体では走らせない。uitk-c2b-ime-mac-keys.sh が run-scenario.sh でこれを起動し、step-<n>.keys に書いた key code を osascript で送り step-<n>.done を返す
 // Never run alone: uitk-c2b-ime-mac-keys.sh boots this through run-scenario.sh, sends the key codes written to step-<n>.keys via osascript and answers with step-<n>.done
-// 前提: 全体スイッチを UITK にする手順は uitk-lifeline.cs の冒頭コメントと同じ。macOS の入力ソースに日本語（ローマ字入力）があること
+// 前提: macOS の入力ソースに日本語（ローマ字入力）があること
 // Precondition: set the global switch to UITK as in the uitk-lifeline.cs header; macOS must have the Japanese (Romaji) input source
 // 不変条件（unity-playmode-recorded-playtest 規則 2 の例外。根拠 plan §4.9・S9・D-10）: OS 段は key code のキーボードだけで、OS のマウスは使わない
 // Invariant (exception to unity-playmode-recorded-playtest rule 2; basis plan §4.9, S9, D-10): the OS level sends keyboard key codes only, never the OS mouse

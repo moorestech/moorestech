@@ -1,35 +1,19 @@
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.GameUiExceptions;
-using Client.Game.InGame.BugReport.WebUiHealth;
-using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.Readings
 {
     /// <summary>
-    /// 確保データから manifest の読み取り欄（webUiHealth・gameUiExceptions）を詰める。数えられなかった UI の例外は MarkGameUiExceptionsUnknown の 1 本で不明と欠損を組で書く
-    /// Fills the manifest's reading fields (webUiHealth, gameUiExceptions) from captured data; uncountable UI exceptions go through MarkGameUiExceptionsUnknown alone, writing unknown and the gap together
+    /// 確保データから manifest の読み取り欄（gameUiExceptions）を詰める。数えられなかった UI の例外は MarkGameUiExceptionsUnknown の 1 本で不明と欠損を組で書く
+    /// Fills the manifest's reading fields (gameUiExceptions) from captured data; uncountable UI exceptions go through MarkGameUiExceptionsUnknown alone, writing unknown and the gap together
     /// </summary>
     public static class BugReportManifestReadings
     {
         public static void Apply(BugReportManifest manifest, BugReportCapturedData data)
         {
-            ApplyWebUiHealth();
             ApplyGameUiExceptions();
 
             #region Internal
-
-            void ApplyWebUiHealth()
-            {
-                // 確保が箱を埋め損ねたら unknown を入れ、常時非 null の契約を守りつつ欠損と開発者ログへ残す
-                // If the capture left the box empty, unknown is recorded so the always-non-null contract holds, with the gap in the manifest and the developer log
-                if (data.WebUiHealth == null)
-                {
-                    Debug.LogError("[BugReport] 確保データにWebホスト・CEFの値が無い。webUiHealth は unknown で出す");
-                    MarkWebUiHealthUnknown(manifest, "確保データにWebホスト・CEFの値が無い");
-                    return;
-                }
-                manifest.WebUiHealth = data.WebUiHealth;
-            }
 
             void ApplyGameUiExceptions()
             {
@@ -44,14 +28,6 @@ namespace Client.Game.InGame.BugReport.Readings
             }
 
             #endregion
-        }
-
-        // 不明の Web ホスト・CEF の値の唯一の書き方。不明の値と欠損の行を必ず組で書く
-        // The only way to write an unknown web host/CEF value; the unknown value and the gap entry always go together
-        public static void MarkWebUiHealthUnknown(BugReportManifest manifest, string reason)
-        {
-            manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
-            manifest.AddMissing("webUiHealth", reason);
         }
 
         // 数えていない箱の唯一の書き方。0 件と読ませないよう、不明の値と欠損の行を必ず組で書く（欠損は AddMissing が開発者ログにも出す）

@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CefUnity.Runtime;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.UI.UIState;
@@ -24,7 +23,6 @@ using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 var runName = "vein-terrain-seed196-tour";
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 380f };
 return PlaytestRunner.Run(runName, options, async p =>
@@ -32,7 +30,6 @@ return PlaytestRunner.Run(runName, options, async p =>
     await BringGameViewToFront();
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 20f, "GameScreenに到達");
-    await HideDeadCefOverlay();
     // 本番生成入口で作られた新規worldか(revision5・seed196・未セーブ)をメタとworld.jsonで確かめる
     // Confirm via meta and world.json that this is a fresh production-generated world (revision 5, seed 196, never saved)
     var mapData = await ClientContext.VanillaApi.Response.World.GetMapData(default);
@@ -165,17 +162,6 @@ return PlaytestRunner.Run(runName, options, async p =>
         return best;
     }
     Vector3 Center(Server.Protocol.PacketResponse.MapData.VeinLayoutMessagePack v) => new Vector3((v.MinX + v.MaxX + 1) * 0.5f, (v.MinY + v.MaxY + 1) * 0.5f, (v.MinZ + v.MaxZ + 1) * 0.5f);
-    async UniTask HideDeadCefOverlay()
-    {
-        // GameScreen到達後3秒でもCEFが一度も描画しないとき(既知 moorestech-wsnf)だけ、全画面の白RawImageをシナリオ側で隠して実プレイ視点を録る
-        // Only when CEF has not painted once 3 s after GameScreen (known moorestech-wsnf), hide the white full-screen RawImage scenario-side
-        var (cef, deadline) = (CefUnityBrowserSample.DiagnosticsInstance, Time.realtimeSinceStartup + 3f);
-        while (cef != null && cef.DiagnosticsTexturesApplied == 0 && Time.realtimeSinceStartup < deadline) await UniTask.Yield();
-        var overlay = cef == null ? null : cef.GetComponentInChildren<RawImage>(true);
-        if (overlay == null || 0 < cef.DiagnosticsTexturesApplied || !overlay.isActiveAndEnabled) { p.Note($"[env] CEFは描画中かオーバーレイ無し textures={(cef == null ? 0 : cef.DiagnosticsTexturesApplied)}"); return; }
-        overlay.enabled = false;
-        p.Note("[env] CEF起動失敗(既知 moorestech-wsnf)のため白オーバーレイを非表示にした");
-    }
     async UniTask BringGameViewToFront()
     {
         // Game Viewが裏タブだとRecorderがtimeScale=0で固まるため表へ出す(pause-menu-hierarchy.csと同じ手当て)

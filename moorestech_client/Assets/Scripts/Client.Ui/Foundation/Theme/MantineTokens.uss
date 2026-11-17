@@ -1,5 +1,5 @@
-/* Generated from moorestech_web/webui/node_modules/@mantine/core/styles.css (@mantine/core 8.3.18, defaultColorScheme dark) — do not edit by hand. */
-/* Regenerate: pnpm --dir moorestech_web/webui install --frozen-lockfile && node tools/uitk/convert-mantine-tokens.mjs */
+/* Mantine の既定値を写したトークンの正本。値はこのファイルで直す（出所 @mantine/core 8.3.18 の styles.css・defaultColorScheme dark。版は web: web@6248097123/pnpm-lock.yaml） */
+/* Source of truth for the tokens copied from Mantine defaults; edit values here (source: styles.css of @mantine/core 8.3.18, defaultColorScheme dark; version in web: web@6248097123/pnpm-lock.yaml) */
 :root {
     --mantine-color-white: #fff; /* web: #fff */
     --mantine-color-black: #000; /* web: #000 */

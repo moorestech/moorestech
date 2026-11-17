@@ -38,7 +38,7 @@ Windows と Mac（Apple Silicon）の配布ビルドを焼き、1つの Steam �
 4. macOS 用 depot を作成する（Depots → 新規 depot、OS 指定 macOS）。ID を `MOORESTECH_STEAM_DEPOT_ID_MAC` に設定する。
 5. インストール設定 → 一般 → 起動オプションに macOS 用を追加する（実行ファイル `moorestech.app`、OS: macOS）。
 6. テスター用キーのパッケージ（Packages）に macOS depot を追加する。入れないと Mac のテスターへ配信されない。
-7. ストア/depot のシステム要件に「Apple Silicon（M1 以降）専用。Intel Mac 非対応」と明記する（CEF の Mac ランタイムが arm64 のみのため）。
+7. ストア/depot のシステム要件に「Apple Silicon（M1 以降）専用。Intel Mac 非対応」と明記する（Mac 版は Apple Silicon 専用で、同梱する録画用 ffmpeg も macos-arm64 版だけのため。ADR 0071）。
 8. Steam Web API の publisher key を発行する（Worker のチケット検証と ingest の表示名解決 `GetPlayerSummaries` の両方で使う）。
 9. テスター配布用のキーを発行する（Steamworks → Packages → キー生成）。
 
@@ -83,7 +83,7 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
   ビルドラベル（`MOORESTECH_STEAM_BUILD_LABEL`）は `^[A-Za-z0-9][A-Za-z0-9._-]*$`、両 depot id は数字だけを許す
   （VDF へ埋め込むため）。`verify-on-windows.sh` も入口で同じラベル検証をする。
 - 同じ worktree から Windows→Mac の順に焼き、成果物は `runs/<label>/build-windows/`・`runs/<label>/build-mac/`、ログは `unity-build-windows.log`・`unity-build-mac.log` に残す。どちらかのビルド・成果物検査が失敗したら Steam には何も上げない。
-- Mac 成果物は `moorestech.app` の ad-hoc 署名（`codesign --verify --deep --strict`）と主実行ファイル・同梱 ffmpeg が arm64 のみであること、展示会用スクリプトが入っていないことも検査する。
+- Mac 成果物は `moorestech.app` の ad-hoc 署名（`codesign --verify --deep --strict`）と主実行ファイル・同梱 ffmpeg が arm64 のみであること、展示会用スクリプトが入っていないことも検査する。CEF のファイル（`cef-unity-*`・`libcef*`・`CefUnity.*` など）が Windows・Mac の成果物に 1 つも無いことも検査する（`release_require_no_cef_files`。撤去前のビルドが残した `StreamingAssets/WebUi` も同じく止める。find が失敗したときも止める）。
 - 同梱元 master data は、moorestech_master のメインclone（`$MOORESTECH_MASTER_CLONE`、既定 `~/hermes-agent/data/repos/moorestech_master`）の
   `git worktree list --porcelain` から HEAD がピンの `commitHash` と一致する worktree を選び（`pin-*`→detached→その他の順で clean なものを優先）、
   `MOORESTECH_MASTER_DATA_ROOT` として Unity へ渡す。`moores-wt new` は一致する既存 worktree（メインclone含む）を再利用し、
@@ -180,13 +180,6 @@ plan H の取り込み（supervisor periodic 300s）が走ると、smoke の報�
 こちらの ACK も冪等に 200 を返すため気づけない。検証を回す間は `services.json` から `playtest-ingest` を外す
 （または取り込みを止める）こと。
 
-### CEF raw input 確認（初回合格ビルドのみ・手動）
-
-配布ビルドでは入力注入が使えないため、Windows の CEF raw input 奪取は人が確認する。
-1. Remote Desktop（または実機）で検証機に入り、Steam から `playtest-staging` ブランチのゲームを起動して新規ワールドに入る
-2. 右ドラッグで視点を回しながら Tab でインベントリ（WebUI）を開閉し、開いた状態でホイールスクロールが効くか、閉じた状態で右ドラッグ視点回転が効くかを見る
-3. 結果（両方効く／ホイール死亡／視点回転死亡）を `bd note <配布タスクid> "CEF raw input: ..."` に書く。奪取が再現したら既知バグ一覧へ載せ、根治は別タスク（[[.decisions/2026-09-13-CEF raw input応急処置は入れず検証機の通し検証で実害を確かめてから決める.md]]）
-
 ## テスト
 
 ```bash
@@ -206,7 +199,7 @@ node --test scripts/playtest/tests/test_report_filter.mjs                       
 Steam の起動オプション欄へ `--remoteExec` を付けてゲームを起動する。
 Windows では `steam.exe -applaunch <appid> --remoteExec` でも指定できる。
 ゲーム開始の初期化（ワールドに入る直前）から、C# のメソッド本体をファイルまたは標準入力から送れる。
-入口は Web UI とは別の専用の待受（`127.0.0.1:25100` から上）で、Web UI が起動に失敗しても使える。ポートは `access.json` に書かれる。
+入口はゲームの UI とは別の専用の待受（`127.0.0.1:25100` から上）で、UI の状態に依らず使える。ポートは `access.json` に書かれる。
 
 ```bash
 scripts/playtest/remote-exec.sh snippet.cs

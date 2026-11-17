@@ -3,7 +3,6 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Readings;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -84,9 +83,9 @@ namespace Client.Tests.BugReport.Bundle
         public void 例外が無ければrecordedで0件()
         {
             var manifest = new BugReportManifest();
-            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { GameUiExceptions = new GameUiExceptionTally().Snapshot(), WebUiHealth = new WebUiHealthReading() });
+            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { GameUiExceptions = new GameUiExceptionTally().Snapshot() });
             var json = JObject.Parse(manifest.ToJson());
-            Assert.AreEqual(7, (int)json["schemaVersion"]);
+            Assert.AreEqual(8, (int)json["schemaVersion"]);
             Assert.AreEqual("recorded", (string)json["gameUiExceptions"]["status"]);
             Assert.AreEqual(0, (int)json["gameUiExceptions"]["count"]);
             Assert.AreEqual(0, ((JArray)json["gameUiExceptions"]["samples"]).Count);
@@ -97,7 +96,7 @@ namespace Client.Tests.BugReport.Bundle
         public void 確保時に数を取れなければunknownで件数の欄を持たず欠損に書く()
         {
             var manifest = new BugReportManifest();
-            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { GameUiExceptions = new GameUiExceptionsUnknown(), WebUiHealth = new WebUiHealthReading() });
+            BugReportManifestReadings.Apply(manifest, new BugReportCapturedData { GameUiExceptions = new GameUiExceptionsUnknown() });
             var json = JObject.Parse(manifest.ToJson());
             Assert.AreEqual("unknown", (string)json["gameUiExceptions"]["status"]);
             Assert.IsNull(json["gameUiExceptions"]["count"], "unknown は件数の欄を持たない（0 件と読ませない）");

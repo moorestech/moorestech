@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ドラッグ中の速度を追い、離したときに滑走するかを決める。web: moorestech_web/webui/src/shared/treeView/viewport/usePanInertia.ts の trackMove・release
-    /// Tracks drag velocity and decides on release whether to glide; web: trackMove and release in moorestech_web/webui/src/shared/treeView/viewport/usePanInertia.ts
+    /// ドラッグ中の速度を追い、離したときに滑走するかを決める。web: web@6248097123/src/shared/treeView/viewport/usePanInertia.ts の trackMove・release
+    /// Tracks drag velocity and decides on release whether to glide; web: trackMove and release in web@6248097123/src/shared/treeView/viewport/usePanInertia.ts
     /// </summary>
     internal sealed class NodeGraphPanInertiaTracker
     {

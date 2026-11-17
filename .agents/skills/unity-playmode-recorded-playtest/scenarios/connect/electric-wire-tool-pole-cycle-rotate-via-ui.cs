@@ -159,8 +159,8 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     // With 2+ equipment slots, two notches on the game screen switch the equipment
     async UniTask AssertGameScreenWheelSwitchesEquipment(string label, string screenshotName)
     {
-        // 注入ホイールはCEFへポインタ座標込みで転送されるため、画面中央へ移動してから回す
-        // The injected wheel is forwarded to CEF with the pointer position, so move to the screen center first
+        // 注入ホイールはポインタ座標込みで UI へ届くため、画面中央へ移動してから回す
+        // The injected wheel reaches the UI with the pointer position, so move to the screen center first
         SemanticInput.MouseMoveTo(new Vector2(Screen.width * 0.5f, Screen.height * 0.45f));
         await UniTask.DelayFrame(3);
         // 装備枠1のマスタは切替先が無く EquipmentWheelSelector が何もしないので、装備の変化は見ない

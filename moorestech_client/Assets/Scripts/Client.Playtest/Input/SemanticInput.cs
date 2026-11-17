@@ -150,8 +150,8 @@ namespace Client.Playtest.Input
             return Mouse.current.position.ReadValue();
         }
 
-        // ホイールをノッチ数（正で上・負で下）で注入する。実マウスと同じ正規化済みの値（1 ノッチ＝1）なので UITK も CEF 転送も実機と同じ量で動く
-        // Inject wheel notches (positive up, negative down) as the normalized value a real mouse gives (1 per notch), so UITK and the CEF forward move as on hardware
+        // ホイールをノッチ数（正で上・負で下）で注入する。実マウスと同じ正規化済みの値（1 ノッチ＝1）なので UITK が実機と同じ量で動く
+        // Inject wheel notches (positive up, negative down) as the normalized value a real mouse gives (1 per notch), so UITK moves as on hardware
         public static void MouseWheel(float notchesY)
         {
             EnsureDevices();

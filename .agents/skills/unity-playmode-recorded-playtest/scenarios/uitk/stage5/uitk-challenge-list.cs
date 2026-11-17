@@ -1,13 +1,10 @@
 // チャレンジ一覧を UITK（GameUi）で通す: T で開いて進行中のカードへ中央寄せ・2560×1080 でも中央・アンカー・中身なりの高さのカード・HUD が一覧より上・パンして T で閉じて開き直しても視点が残る・一覧の上の右短押しでは閉じない・Tab でインベントリ
 // Runs the challenge list on UITK (GameUi): open with T centered on the current card, still centered at 2560x1080, anchors, content-height cards, HUD above the list, pan then close and reopen with T keeps the view, a right short press over the list does not close, Tab goes to the inventory
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -26,8 +23,6 @@ using Object = UnityEngine.Object;
 
 return PlaytestRunner.Run("uitk-challenge-list", new PlaytestRunOptions { Record = true }, async p =>
 {
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
     // Ignore focus so injected input reaches a background Editor
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;

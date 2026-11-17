@@ -67,8 +67,8 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 var bundlesBefore = BugReportSubmitUtil.ExistingBundles();
                 var recordsBefore = ExistingDirectories(GameSystemPaths.ProgressRecordOutboxDirectory);
 
-                // 種別は webui のトグルが載せる契約値。送信経路を通ってmanifestまで届くことを確かめる
-                // The kind is the contract value the webui toggle sends; this checks it reaches the manifest through the submit path
+                // 種別はポーズメニューのトグルが載せる契約値。送信経路を通ってmanifestまで届くことを確かめる
+                // The kind is the contract value the pause-menu toggle sends; this checks it reaches the manifest through the submit path
                 await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "感想テスト", PlaytestReportKind.Feedback, bundlesBefore);
                 AssertManifestCarriesKindAndIdentity(bundle);

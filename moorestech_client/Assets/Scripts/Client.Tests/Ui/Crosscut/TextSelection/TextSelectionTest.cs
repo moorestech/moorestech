@@ -30,7 +30,6 @@ namespace Client.Tests.Ui.Crosscut.TextSelection
         private static readonly Guid WoodGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         private InventoryView _inventory;
-        private FakePauseMenuModel _pauseModel;
         private PauseMenuView _pauseMenu;
 
         [SetUp]
@@ -45,10 +44,9 @@ namespace Client.Tests.Ui.Crosscut.TextSelection
             _inventory.SetShown(true);
             _inventory.Render(InventoryWithWood());
 
-            _pauseModel = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
-            var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _pauseMenu = Mount(new PauseMenuView(_pauseModel.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), cursor));
+            _pauseMenu = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), cursor));
             _pauseMenu.SetShown(true);
+            _pauseMenu.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();
         }
 
@@ -62,7 +60,7 @@ namespace Client.Tests.Ui.Crosscut.TextSelection
 
             // 設定ページ描き直し後の文も選択不可
             // Copy redrawn for the settings page is unselectable too
-            _pauseModel.Set(FakePauseMenuModel.Page(PauseMenuPage.Settings));
+            _pauseMenu.RenderPauseMenu(FakePauseMenuModel.Page(PauseMenuPage.Settings));
             simulate.FrameUpdate();
             AssertNoSelectableLabel(_pauseMenu, "ポーズメニューの設定");
         }

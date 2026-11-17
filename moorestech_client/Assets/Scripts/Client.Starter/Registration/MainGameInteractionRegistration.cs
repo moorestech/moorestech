@@ -147,8 +147,8 @@ namespace Client.Starter.Registration
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
             builder.Register<DeleteObjectState>(Lifetime.Singleton);
-            // 入れ子ポーズを持つ画面は役割IFでも解決させ、Web境界へ辞書の全走査を渡さない
-            // Nested-pause screens also resolve by role interface, so the web boundary never scans the whole dictionary
+            // 入れ子ポーズを持つ画面は役割IFでも解決させ、UITK境界へ辞書の全走査を渡さない
+            // Nested-pause screens also resolve by role interface, so the UITK boundary never scans the whole dictionary
             builder.Register<SkitState>(Lifetime.Singleton).AsSelf().As<INestedPauseScreenState>();
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ChallengeListState>(Lifetime.Singleton);

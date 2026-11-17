@@ -8,12 +8,12 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
 {
     /// <summary>
-    ///     設置ゴースト1体分の実体。WebピンIDは呼び手が渡す
-    ///     One placement ghost instance; the caller supplies the web pin id, so this type knows nothing about tutorial identity
+    ///     設置ゴースト1体分の実体。ワールドピンのIDは呼び手が渡す
+    ///     One placement ghost instance; the caller supplies the world pin id, so this type knows nothing about tutorial identity
     /// </summary>
     public class PlacementGhostEntry
     {
-        public string WebPinId { get; }
+        public string WorldPinId { get; }
         public PreviewGhostObject PreviewObject { get; private set; }
         public Vector3Int? TargetCell { get; private set; }
 
@@ -28,9 +28,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
         // Ghost creation awaits an Addressable load; a kind change cancels via token so a stale target is never written back
         private CancellationTokenSource _previewCancellation;
         
-        public PlacementGhostEntry(string webPinId)
+        public PlacementGhostEntry(string worldPinId)
         {
-            WebPinId = webPinId;
+            WorldPinId = worldPinId;
         }
         
         /// <summary>

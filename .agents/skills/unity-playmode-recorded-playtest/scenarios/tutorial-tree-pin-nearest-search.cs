@@ -2,13 +2,12 @@
 // Scenario: check the k-d tree nearest search through the first challenge's tree pin: (a) matches brute force (b) the pin sits on it (c) destroying it moves index and pin to the next tree
 // 木は採掘で倒さずサーバーで壊す。原木を得ると先頭が完了しピンが消えて (c) を見られないため（採掘の完了は tutorial-opening-log-challenge が持つ）
 // Trees are destroyed on the server instead of mined: logs would complete the first challenge and remove the pin before (c) (tutorial-opening-log-challenge covers mining)
-// SetupDebugEnvironment は呼ばない（自然なマップの木とスポーンを残す）。全体スイッチの GameUi・Web の両方で流す
-// Never call SetupDebugEnvironment (keep the natural map's trees and spawn); run under both GameUi and Web
+// SetupDebugEnvironment は呼ばない（自然なマップの木とスポーンを残す）
+// Never call SetupDebugEnvironment (keep the natural map's trees and spawn)
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -21,9 +20,8 @@ using UnityEngine.InputSystem;
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f };
 return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =>
 {
-    // 系の記録と入力の準備（前例 uitk-skit）
-    // Record the UI system and prepare input (precedent uitk-skit)
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
+    // 入力の準備（前例 uitk-skit）
+    // Prepare input (precedent uitk-skit)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

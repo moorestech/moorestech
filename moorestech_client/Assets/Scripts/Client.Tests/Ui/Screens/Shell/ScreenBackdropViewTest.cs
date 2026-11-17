@@ -20,7 +20,7 @@ namespace Client.Tests.Ui.Screens.Shell
     {
         // Web の uiScreenRouting.test.ts の screenShowsBackdrop の表（幕を出すのはモーダルな画面だけ）
         // The Web screenShowsBackdrop table in uiScreenRouting.test.ts (only modal screens show the dim)
-        private static readonly Dictionary<UiScreen, bool> WebBackdropScreens = new()
+        private static readonly Dictionary<UiScreen, bool> ReferenceBackdropScreens = new()
         {
             { UiScreen.None, false },
             { UiScreen.PlayerInventory, true },
@@ -52,8 +52,8 @@ namespace Client.Tests.Ui.Screens.Shell
             // The presenter reads only this column (design §4.4, A-44); check every screen row against the Web table
             foreach (UiScreen screen in Enum.GetValues(typeof(UiScreen)))
             {
-                Assert.IsTrue(WebBackdropScreens.ContainsKey(screen), $"Web の表に {screen} が無い");
-                Assert.AreEqual(WebBackdropScreens[screen], UiScreenTraitsTable.Get(screen).Backdrop, screen.ToString());
+                Assert.IsTrue(ReferenceBackdropScreens.ContainsKey(screen), $"Web の表に {screen} が無い");
+                Assert.AreEqual(ReferenceBackdropScreens[screen], UiScreenTraitsTable.Get(screen).Backdrop, screen.ToString());
             }
         }
 

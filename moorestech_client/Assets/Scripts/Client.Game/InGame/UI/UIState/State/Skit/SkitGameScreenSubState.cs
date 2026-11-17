@@ -39,8 +39,8 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         {
         }
         
-        // スキット中の操作はWeb側の会話UIが担うためキーヒントは持たない
-        // Skit interaction lives in the web dialogue UI, so this sub-state carries no key hints
+        // スキット中の操作はUITK側の会話UIが担うためキーヒントは持たない
+        // Skit interaction lives in the UITK dialogue UI, so this sub-state carries no key hints
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
             return Array.Empty<KeyHint>();

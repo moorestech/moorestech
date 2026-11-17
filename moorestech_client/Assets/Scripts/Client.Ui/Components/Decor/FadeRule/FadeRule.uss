@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/shared/ui/FadeRule/style.module.css（ref-webui-design §6 装飾語彙 1） */
+/* web: web@6248097123/src/shared/ui/FadeRule/style.module.css（ref-uitk-design の visual-vocabulary.md §6 装飾の語彙 ①） */
 /* 色は Web で GamePanel の下の罫線と同値（rgb(128 132 159) 30→42→26%）なので、その前計算トークンを受け直す */
-/* web: moorestech_web/webui/src/shared/ui/FadeRule/style.module.css (ref-webui-design §6, decoration vocabulary 1) */
+/* web: web@6248097123/src/shared/ui/FadeRule/style.module.css (ref-uitk-design visual-vocabulary.md §6, decoration vocabulary 1) */
 /* The Web colors equal the GamePanel bottom rule (rgb(128 132 159) 30→42→26%), so this re-declares its precomputed tokens */
 
 .fade-rule {

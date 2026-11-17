@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/ItemSlot/style.module.css の .shortageSlot・.shortageCount・[data-lack] を写す。z-index: 2 は後に足した子が上に描かれる順で写す */
-/* web: copies .shortageSlot, .shortageCount and [data-lack] in moorestech_web/webui/src/shared/ui/ItemSlot/style.module.css; z-index: 2 maps to the later child drawing on top */
+/* web: web@6248097123/src/shared/ui/ItemSlot/style.module.css の .shortageSlot・.shortageCount・[data-lack] を写す。z-index: 2 は後に足した子が上に描かれる順で写す */
+/* web: copies .shortageSlot, .shortageCount and [data-lack] in web@6248097123/src/shared/ui/ItemSlot/style.module.css; z-index: 2 maps to the later child drawing on top */
 /* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは置き場・大きさのつまみ・不足の字の色だけを当てる */
 /* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places both layers, passes the size knob and sets the lacking glyph color */
 .item-slot__shortage {

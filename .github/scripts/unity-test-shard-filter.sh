@@ -129,13 +129,11 @@ case "$shard_name" in
     use_assembly_filter='true'
     assembly_names="$client_test_assemblies"
     test_category="!IgnoreCI${excluded_dedicated_categories}"
-    needs_webui='true'
     ;;
   server-remainder)
     use_assembly_filter='true'
     assembly_names="$server_test_assemblies"
     test_category="!IgnoreCI${excluded_dedicated_categories}"
-    needs_webui='false'
     ;;
   *)
     # 専用shardはCategoryだけで選ぶ。assembly横断の重量fixtureを1箇所に集められる
@@ -151,11 +149,6 @@ case "$shard_name" in
     use_assembly_filter='false'
     assembly_names='all'
     test_category="!IgnoreCI;$(shard_category_name "$shard_name")"
-    if [[ "$shard_name" == client-* ]]; then
-      needs_webui='true'
-    else
-      needs_webui='false'
-    fi
     ;;
 esac
 
@@ -164,4 +157,3 @@ esac
 printf 'use_assembly_filter=%s\n' "$use_assembly_filter" >> "$GITHUB_OUTPUT"
 printf 'assembly_names=%s\n' "$assembly_names" >> "$GITHUB_OUTPUT"
 printf 'test_category=%s\n' "$test_category" >> "$GITHUB_OUTPUT"
-printf 'needs_webui=%s\n' "$needs_webui" >> "$GITHUB_OUTPUT"

@@ -1,7 +1,5 @@
-// 常駐 HUD（S2-hud）: Web ホスト無しで、ゲーム画面の HUD・採掘進捗・インベントリとポーズの幕を UITK で出して録画する
-// Resident HUDs (S2-hud): with no web host, show the game-screen HUDs, mining progress and the inventory and pause backdrops in UITK and record them
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+// 常駐 HUD（S2-hud）: ゲーム画面の HUD・採掘進捗・インベントリとポーズの幕を UITK で出して録画する
+// Resident HUDs (S2-hud): show the game-screen HUDs, mining progress and the inventory and pause backdrops in UITK and record them
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +16,6 @@ using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.Challenge.CurrentHud;
 using Client.Ui.State.Challenge;
 using Client.Ui.State.Text;
-using Client.WebUiHost.Boot;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -46,7 +43,6 @@ return PlaytestRunner.Run("uitk-hud", options, async p =>
     await p.Screenshot("00-blocking-skit");
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 
     // ゲーム画面: 一人称へ切り替え、クロスヘア・進行中チャレンジ・キーヒント・ヴィネットが出て、幕は出ない
     // Game screen: switch to first person; crosshair, current challenge, key hints and vignette show; no backdrop

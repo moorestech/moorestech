@@ -1,7 +1,5 @@
-// ラダー1 uitk-lifeline: Webホストを起動しない状態で、Esc→設定→バグ報告→セーブ→セーブして終了をUITKだけで通す
-// Ladder 1 uitk-lifeline: with no web host, go Esc -> settings -> bug report -> save -> save and quit using UITK alone
-// 実行前にPlayModeを止め、execute-dynamic-codeで UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ（全体スイッチの UITK 側。Web ホストを起動しない）
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh (UITK side of the global switch; no web host)
+// ラダー1 uitk-lifeline: Esc→設定→バグ報告→セーブ→セーブして終了をUITKだけで通す
+// Ladder 1 uitk-lifeline: go Esc -> settings -> bug report -> save -> save and quit using UITK alone
 // 受け口URLはDI登録時に1回だけ読まれるので、MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 もPlayMode起動前にEditorプロセスへ立てる
 // The receiver URL is read once at DI registration, so also set MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 in the Editor process before PlayMode starts
 // 最後の「セーブして終了」でPlayModeが止まるため、セーブして終了の結果（save.jsonの更新）は呼び出し側のシェルで確かめる
@@ -17,7 +15,6 @@ using Client.Playtest.Operations;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
-using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -42,7 +39,6 @@ return PlaytestRunner.Run("uitk-lifeline", options, async p =>
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 
     // Escでポーズを開く
     // Open the pause menu with Esc
@@ -73,14 +69,15 @@ return PlaytestRunner.Run("uitk-lifeline", options, async p =>
     await p.Until(() => ToastCount() > 0, 60f, "送信結果のトーストが出る");
     await p.Screenshot("04-bug-report-toast");
 
-    // 書かれた箱の manifest に CEF の生の値が入っていること
-    // The written bundle's manifest carries the raw CEF values
+    // 書かれた箱の manifest が v8 で、UI の例外の数を持ち CEF 停止の記録を持たないこと
+    // The written bundle's manifest is v8, carrying the UI exception count and no CEF-stall record
     var newBundle = ListBundles().Except(outboxBefore).OrderBy(d => d).LastOrDefault();
     p.Assert(newBundle != null, "新しいバグ報告の箱が outbox に書かれた");
     var manifest = File.ReadAllText(Path.Combine(newBundle, "manifest.json"));
     p.Note($"manifest: {newBundle}");
-    p.Assert(manifest.Contains("\"webUiHealth\""), "manifest に webUiHealth がある");
-    p.Assert(manifest.Contains("skippedByEditorSwitch"), "hostStartup は skippedByEditorSwitch");
+    p.Assert(!manifest.Contains("\"webUiHealth\""), "manifest に webUiHealth が無い（v8）");
+    p.Assert(manifest.Contains("\"gameUiExceptions\""), "manifest に gameUiExceptions がある（v8。A-244）");
+    p.Assert(manifest.Contains("\"schemaVersion\": 8") || manifest.Contains("\"schemaVersion\":8"), "manifest の schemaVersion が 8");
 
     // トップへ戻り、セーブ→セーブして終了
     // Back to the top page, then save and save-and-quit

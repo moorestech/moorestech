@@ -36,10 +36,39 @@ namespace Client.Tests.Ui.Screens.Settings
             }
         }
 
+        [TestCase(GraphicsQualityToggle.Shadows)]
+        [TestCase(GraphicsQualityToggle.Ssao)]
+        [TestCase(GraphicsQualityToggle.PostProcessing)]
+        [TestCase(GraphicsQualityToggle.Effects)]
+        [TestCase(GraphicsQualityToggle.MapObjects)]
+        [TestCase(GraphicsQualityToggle.Ocean)]
+        public void オンオフ行は名前どおりの項目を書き換える(GraphicsQualityToggle toggle)
+        {
+            var flipped = new GraphicsQualityToggleRow(toggle, default, "x").With(Medium, false);
+
+            Assert.IsFalse(ReadByName(flipped, toggle), $"{toggle} の名前の項目が書き換わっていない");
+        }
+
         [Test]
         public void 表は全てのオンオフ項目を1行ずつ持つ()
         {
             Assert.AreEqual(Enum.GetValues(typeof(GraphicsQualityToggle)).Length + 3, GraphicsQualityItemRows.All.Count);
+        }
+
+        // 行の実装でなく項目の名前から読む（行の読み書きが入れ替わっても気づける）
+        // Read by the item's name, not through the row, so a swapped read/write is caught
+        private static bool ReadByName(GraphicsQualitySettings settings, GraphicsQualityToggle toggle)
+        {
+            return toggle switch
+            {
+                GraphicsQualityToggle.Shadows => settings.ShadowsEnabled,
+                GraphicsQualityToggle.Ssao => settings.SsaoEnabled,
+                GraphicsQualityToggle.PostProcessing => settings.PostProcessingEnabled,
+                GraphicsQualityToggle.Effects => settings.EffectsEnabled,
+                GraphicsQualityToggle.MapObjects => settings.MapObjectsVisible,
+                GraphicsQualityToggle.Ocean => settings.OceanVisible,
+                _ => throw new ArgumentOutOfRangeException(nameof(toggle), toggle, null),
+            };
         }
 
         private static int DifferingItemCount(GraphicsQualitySettings a, GraphicsQualitySettings b)

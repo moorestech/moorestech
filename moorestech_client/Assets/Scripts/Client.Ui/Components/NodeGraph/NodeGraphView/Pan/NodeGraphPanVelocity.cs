@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// パンの慣性の定数と速度の計算（速度は px/ms）。web: moorestech_web/webui/src/shared/treeView/viewport/viewport.ts
-    /// Pan inertia constants and velocity math (px/ms); web: moorestech_web/webui/src/shared/treeView/viewport/viewport.ts
+    /// パンの慣性の定数と速度の計算（速度は px/ms）。web: web@6248097123/src/shared/treeView/viewport/viewport.ts
+    /// Pan inertia constants and velocity math (px/ms); web: web@6248097123/src/shared/treeView/viewport/viewport.ts
     /// </summary>
     /// <remarks>
     /// τ=325ms は iOS 系のスクロールの減衰の標準値。上限 3px/ms で最大の滑走は 3×325≒975px（Web のコメントのまま）

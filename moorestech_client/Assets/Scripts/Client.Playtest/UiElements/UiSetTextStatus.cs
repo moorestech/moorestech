@@ -4,8 +4,8 @@ namespace Client.Playtest.UiElements
     {
         Applied,
         NotFound,
-        // テキスト欄ではない（Webはinput/textarea、UITKはTextField以外）
-        // Not a text field (other than input/textarea on Web, TextField on UITK)
+        // TextField以外
+        // Not a TextField
         NotTextField,
         // 非表示・無効・読み取り専用で今は入力できない
         // Hidden, disabled, or read-only, so input is not possible now

@@ -12,7 +12,7 @@ namespace Client.Game.InGame.Tutorial
     {
         // 専用IDでmapObjectピンの掃除との干渉を防ぐ
         // A separate ID prevents map-object cleanup from removing the vein pin
-        private const string WebPinId = "vein-pin";
+        private const string WorldPinId = "vein-pin";
 
         private OutcropGameObjectDatastore _outcropGameObjectDatastore;
         private TutorialWorldPinVisibility _visibility;
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.Tutorial
             if (_currentTutorialParam == null) return;
 
             if (!TryTrackNearestOutcrop()) return;
-            PublishWebWorldPin();
+            PublishWorldPin();
 
             #region Internal
 
@@ -81,13 +81,13 @@ namespace Client.Game.InGame.Tutorial
                 RemoveWorldPin();
             }
 
-            void PublishWebWorldPin()
+            void PublishWorldPin()
             {
                 var camera = CameraManager.MainCamera.Camera;
                 if (!camera) return;
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
-                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+                WorldPinStateStore.Instance.SetPin(WorldPinId, _pinTutorialGuid, projection);
                 _publishing = true;
             }
 
@@ -112,7 +112,7 @@ namespace Client.Game.InGame.Tutorial
         private void RemoveWorldPin()
         {
             _publishing = false;
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            WorldPinStateStore.Instance.RemovePin(WorldPinId);
         }
 
         public string TutorialType => TutorialsElement.TutorialTypeConst.veinPin;

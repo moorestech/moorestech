@@ -15,11 +15,14 @@ case "\$*" in
     touch "\$out/../unity-build-mac.log" "\$out/build-started"
     [ "\${UNITY_MAC_EXIT:-0}" = "0" ] || exit "\${UNITY_MAC_EXIT}"
     app="\$out/moorestech.app"
-    helper="\$app/Contents/PlugIns/cef-unity-server.app/Contents/MacOS/cef-unity-server"
-    mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$out/game/mods" "\$(dirname "\$helper")"
-    touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt" "\$helper"
-    chmod +x "\$helper"
-    [ "\${MAC_HELPER_NOT_EXECUTABLE:-0}" = "0" ] || chmod -x "\$helper"
+    mkdir -p "\$app/Contents/MacOS" "\$app/Contents/Resources/Data/StreamingAssets" "\$out/game/mods"
+    touch "\$app/Contents/MacOS/moorestech" "\$app/Contents/MacOS/ffmpeg" "\$app/Contents/Resources/ffmpeg-LICENSE.txt"
+    # 反転した検査のため、指定されたときだけ CEF helper を残す
+    # Leave a CEF helper only when asked, to exercise the inverted check
+    if [ "\${MAC_LEAKS_CEF:-0}" != "0" ]; then
+      mkdir -p "\$app/Contents/PlugIns/cef-unity-server.app/Contents/MacOS"
+      touch "\$app/Contents/PlugIns/cef-unity-server.app/Contents/MacOS/cef-unity-server"
+    fi
     remove_after_write="\${MAC_MISSING_PATH:-}"
     [ "\${MAC_LEAKS_EVENT_SCRIPT:-0}" = "0" ] || touch "\$out/start-gamescom-loop.command"
     info="\$app/Contents/Resources/Data/StreamingAssets/build-info.json"
@@ -31,6 +34,10 @@ case "\$*" in
     remove_after_write=""
     mkdir -p "\$out/moorestech_Data/StreamingAssets" "\$out/game/mods"
     touch "\$out/moorestech.exe"
+    if [ "\${WINDOWS_LEAKS_CEF:-0}" != "0" ]; then
+      mkdir -p "\$out/moorestech_Data/Plugins/x86_64"
+      touch "\$out/moorestech_Data/Plugins/x86_64/libcef.dll"
+    fi
     info="\$out/moorestech_Data/StreamingAssets/build-info.json"
     target="\${BUILD_INFO_TARGET_WINDOWS:-StandaloneWindows64}"
     ;;
@@ -51,7 +58,6 @@ EOF
 echo "lipo \$*" >>"$sandbox/calls.log"
 case "\$*" in
   *'/Contents/MacOS/ffmpeg'*) echo "\${LIPO_FFMPEG_ARCHS:-\${LIPO_ARCHS:-arm64}}"; exit 0;;
-  *'cef-unity-server'*) echo "\${LIPO_HELPER_ARCHS:-\${LIPO_ARCHS:-arm64}}"; exit 0;;
 esac
 echo "\${LIPO_ARCHS:-arm64}"
 EOF

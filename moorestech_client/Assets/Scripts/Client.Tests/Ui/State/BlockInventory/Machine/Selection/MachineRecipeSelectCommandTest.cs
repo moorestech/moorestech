@@ -78,11 +78,11 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
         {
             // Web はどの拒否もトーストする（BENIGN_ERRORS に machine_recipe.select の項目は無い。D-38）
             // Web toasts every rejection (BENIGN_ERRORS has no machine_recipe.select entry; D-38)
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.BlockNotOpen));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.RecipeInvalid));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.RecipeLocked));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(UiCommandRejectReason.MachineRecipeRequestFailed));
-            Assert.AreEqual("machine_recipe_request_failed", UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.MachineRecipeRequestFailed));
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.BlockNotOpen).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.RecipeInvalid).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.RecipeLocked).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.MachineRecipeRequestFailed).IsBenign);
+            Assert.AreEqual("machine_recipe_request_failed", UiCommandRejectReasonTable.Get(UiCommandRejectReason.MachineRecipeRequestFailed).WireCode);
         }
 
         private void AssertRejected(Guid recipeGuid, UiCommandRejectReason reason, string wireCode)

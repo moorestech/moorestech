@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Challenge.Parts
 {
     /// <summary>
-    /// チャレンジのノードカード 1 枚。web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
-    /// One challenge node card; web: moorestech_web/webui/src/features/challenge/ChallengeNodeCard.tsx
+    /// チャレンジのノードカード 1 枚。web: web@6248097123/src/features/challenge/ChallengeNodeCard.tsx
+    /// One challenge node card; web: web@6248097123/src/features/challenge/ChallengeNodeCard.tsx
     /// </summary>
     /// <remarks>
     /// PaperSurface は sealed なので、根の PaperSurface を組み立てて Root で渡す。根は拾う（Ignore だと押下の対象がビューポートに変わる。C4-d）。指のカーソルは付けない（Web のカードに cursor: pointer もタップも無く、ビューポートの grab を継ぐ）

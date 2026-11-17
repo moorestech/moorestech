@@ -1,12 +1,9 @@
 // 研究ツリーを UITK（GameUi）で通す: 開いて注目点へ中央寄せ・全ノードのアンカー・HUD が遮られない・タップで詳細・ホバーのツールチップ・研究・視野の保持と選択の解除・右短押しと Tab
 // Runs the research tree on UITK (GameUi): open centered on focus, every node anchor, unblocked HUDs, tap for details, hover tooltips, research, kept viewport with cleared selection, right short press and Tab
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using System.Linq;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -27,8 +24,6 @@ using UnityEngine.UIElements;
 var tutorialNodes = new[] { "0d76f2e5-be1c-4ad4-b460-97a8aad0495f", "3bca3b97-14d7-4cc1-a661-2266670bb6cb", "48f75a7e-36f3-4845-a0bc-f8de8b3d7baf", "50372888-cd15-47c6-9986-adf50548d156", "858bcb10-b8ba-478e-9bc5-473ca61281a2", "b47c5e3c-1b58-42c5-a477-d485d2eae747", "bc5e7786-6759-4271-8095-836703b54490" };
 return PlaytestRunner.Run("uitk-research-tree", new PlaytestRunOptions { Record = true }, async p =>
 {
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
     // Ignore focus so injected input reaches a background Editor
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;

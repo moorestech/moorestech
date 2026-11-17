@@ -1,12 +1,9 @@
 // 清浄機 8 台の部屋で清浄機のパネルを UITK（GameUi）で開き、Game View の高さ 1080・600 で部屋欄の末尾とフィルタ枠へ届き、パネルが下の安全帯へ潜らないことを通す（S4-machine Task 11 の録画送り。D-15）
 // Opens the air-filter panel in a room of 8 purifiers on UITK (GameUi) and checks, at Game View heights 1080 and 600, the room list end and filter grid are reachable and the panel stays above the lower safe band (S4-machine Task 11 deferral, D-15)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -33,7 +30,6 @@ return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOpt
     Application.logMessageReceived += CountErrors;
     try
     {
-        p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}）");
         InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         SemanticInput.EnsureDevices();

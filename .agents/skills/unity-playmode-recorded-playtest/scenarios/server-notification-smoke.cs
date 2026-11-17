@@ -1,26 +1,24 @@
-// サーバー発通知基盤スモーク（GameUi〈UITK〉と Web の両方で通す）
+// サーバー発通知基盤スモーク
 // 1) 素材ゼロで研究完了を試みる→操作拒否（operationDenied）通知が出る
 // 2) 同一失敗を 3 秒以内に連打→クールダウンで 2 回目はワイヤに乗らない（通知は増えない）
 // 3) 素材を付与して研究を完了→実績（achievement）通知「研究完了: <研究名>」が出る
-// 研究はマスタから選ぶ（前提の研究が無く消費アイテムを持つ最初のノード）。GameUi のときは通知が背面の層に出たことと文言も確かめる
-// Server-notification smoke (run on both GameUi (UITK) and Web):
+// 研究はマスタから選ぶ（前提の研究が無く消費アイテムを持つ最初のノード）。通知が背面の層に出たことと文言も確かめる
+// Server-notification smoke:
 // (1) complete-research with no materials -> an operation-denied notification
 // (2) burst the same failure within 3s -> the cooldown suppresses the 2nd delivery
 // (3) grant the materials and complete -> an achievement notification "Research completed: <name>"
-// The research is picked from the master (the first node with no prerequisites and some consumed items); on GameUi it also checks the behind-stage layer and the text
+// The research is picked from the master (the first node with no prerequisites and some consumed items); it also checks the behind-stage layer and the text
 // 検証は「クライアント側でEventTagを購読して実ペイロードをassert」+「通知ホストの可視化Until」+「録画/スクショ」の3点で行う
 // Verification uses a client-side EventTag subscription (asserts the real payload) + notification-host visibility Until + video/screenshots
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
-using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
@@ -89,23 +87,19 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     ClientContext.VanillaApi.SendOnly.CompleteResearch(firstResearchGuid);
     await p.Until(() => achievementBefore < AchievementResearchCount(), 10f, "研究完了で実績通知(achievement.researchCompleted)がクライアントに届く");
 
-    // ワイヤ値は研究GUIDであり、表示名はWeb側が解決する
-    // The wire value is the research GUID; the web layer resolves its display name
+    // ワイヤ値は研究GUIDであり、表示名はクライアントの UI 側が解決する
+    // The wire value is the research GUID; the client UI resolves its display name
     var achievement = received.Last(n => n.Category == NotificationCategory.Achievement && n.MessageId == "achievement.researchCompleted");
     p.Assert(achievement.MessageParams.TryGetValue("research", out var researchParam) && researchParam == firstResearchGuid.ToString(), $"実績通知の研究GUIDが送信した研究と一致する 実際:{string.Join(",", achievement.MessageParams)}");
 
     await UntilHudVisible("notification-host", 10f);
 
-    // GameUi では通知が背面の層の実画面の族に居て、研究名の入った文言が出ていることを確かめる
-    // On GameUi, check the host sits in the viewport family of the behind-stage layer and shows the text with the research name
-    if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi)
-    {
-        p.Assert(WebUiHost.Hub == null, "GameUi の回は Web ホストが居ない");
-        var behindStage = GameUiRoot.Instance.GetLayer(UiLayer.BehindStage, UiFamily.Viewport);
-        p.Assert(behindStage.Q("notification-host") != null, "通知ホストは背面の層（BehindStage・Viewport）に居る");
-        var researchName = Localize.GetContent(ContentLocalizationKeys.ResearchName(firstResearchGuid));
-        await Client.Playtest.Operations.PlaytestUiElementOps.WaitUiTextContains("notification-host", researchName, 10f);
-    }
+    // 通知が背面の層の実画面の族に居て、研究名の入った文言が出ていることを確かめる
+    // Check the host sits in the viewport family of the behind-stage layer and shows the text with the research name
+    var behindStage = GameUiRoot.Instance.GetLayer(UiLayer.BehindStage, UiFamily.Viewport);
+    p.Assert(behindStage.Q("notification-host") != null, "通知ホストは背面の層（BehindStage・Viewport）に居る");
+    var researchName = Localize.GetContent(ContentLocalizationKeys.ResearchName(firstResearchGuid));
+    await Client.Playtest.Operations.PlaytestUiElementOps.WaitUiTextContains("notification-host", researchName, 10f);
 
     // 入場の動き（160ms）が終わってから撮る
     // Shoot after the enter motion (160ms) has finished

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Client.Tests.EditModeInPlayingTest.BlockInventory;
@@ -16,6 +15,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
 {
@@ -24,7 +24,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
     /// Walks the inventory, research, machine sets
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class Stage4ScreenSetGameUiTest : UiSystemPlayModeTestBase
+    public class Stage4ScreenSetGameUiTest
     {
         private const string MachineBlockName = "釜";
         private const string LeftPaddingCollapsedClass = "stage-columns--left-padding-collapsed";
@@ -33,7 +33,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
         [UnityTest]
         public IEnumerator 持ち物と研究と機械の画面を行き来しても各面が自分の列に1つだけ見え覆われない()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -55,7 +54,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage4
                 var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                 var root = GameUiRoot.Instance.GetRootElement();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
 
                 // 開幕スキットを飛ばしてゲーム画面から巡る（Stage2HudGameUiTest と同じ前段）
                 // Skip the opening skit and start from the game screen (same prelude as Stage2HudGameUiTest)

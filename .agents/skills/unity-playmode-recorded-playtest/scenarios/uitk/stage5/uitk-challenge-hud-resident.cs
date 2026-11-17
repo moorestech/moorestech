@@ -1,9 +1,6 @@
 // 進行中チャレンジ HUD の常駐を UITK（GameUi）で通す（Web challenge.spec「常駐HUDをインベントリ・メニュー・操作モードで維持する」の画面を跨ぐ部分。列車の入れ子ポーズは -train の 1 本）: ゲーム画面の位置のまま各画面とブロックインベントリで出続け、上の安全帯のあるメニューの中身より上、配置 HUD と横に分かれ、削除の帯より下、1024×576 でも同じ論理の位置
 // Runs the resident current-challenge HUD on UITK (GameUi) (cross-screen part of the Web challenge.spec resident HUD test; the train nested pause is the -train scenario): same position as the game screen everywhere including the block inventory, above menu content with an upper safe area, beside the placement HUD, below the delete band, same logical position at 1024x576
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -18,8 +15,6 @@ using UnityEngine.UIElements;
 var chestPosition = new Vector3Int(4, 32, 4);
 return PlaytestRunner.Run("uitk-challenge-hud-resident", new PlaytestRunOptions { Record = true }, async p =>
 {
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
     // Ignore focus so injected input reaches a background Editor
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;

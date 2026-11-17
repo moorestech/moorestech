@@ -36,8 +36,8 @@ namespace Client.Playtest.Operations.Ui
             }
             if (PlaytestUiOps.CurrentUiState() != UIStateEnum.BuildMenu) throw new TimeoutException($"Build menu did not open (current: {PlaytestUiOps.CurrentUiState()})");
 
-            // 描画系(CEF)の準備もここで待つため30秒。BlockGuid由来の安定testidで対象エントリを選択する
-            // 30s since this also covers renderer (CEF) readiness; select the entry by its stable BlockGuid-derived testid
+            // 画面の準備もここで待つため30秒。BlockGuid由来の安定testidで対象エントリを選択する
+            // 30s since this also covers screen readiness; select the entry by its stable BlockGuid-derived testid
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
             var entryTestid = BuildMenuBlockTestId(blockName);
             await PlaytestUiElementOps.WaitUiElement("build-menu-panel", 30f);

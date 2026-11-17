@@ -1,17 +1,15 @@
 // ラダー5 uitk-research-train: 研究を1つ完了→駅名を日本語で付ける（SetText）→時刻表を組んで自動運転を入れる（UITKだけ）
 // Ladder 5 uitk-research-train: finish one research -> name a station in Japanese (SetText) -> build a timetable and turn auto-run on (UITK only)
-// winunity play <branch> <このファイル> --ui-system GameUi で流す（全体スイッチは winunity が立てて Current を確かめる）
-// Run with winunity play <branch> <this file> --ui-system GameUi (winunity sets the whole-UI switch and checks Current)
+// winunity play <branch> <このファイル> で流す
+// Run with winunity play <branch> <this file>
 using System;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.WebUiHost.Boot;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -35,8 +33,6 @@ return PlaytestRunner.Run("uitk-research-train", options, async p =>
     // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
     await p.SkipOpeningSkitUntilLeftStory();
     await p.ExitToGameScreen();
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi（UITK側）");
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（UITK側）");
 
     // 研究素材を渡し、研究ツリーで原始研究1を完了する
     // Give research materials and finish primitive research 1 in the tree

@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// パン・ズーム・慣性つきのノードグラフ（研究ツリー・チャレンジ一覧）。web: moorestech_web/webui/src/shared/treeView/TreeView.tsx
-    /// Node graph with pan, zoom and inertia (research tree, challenge list); web: moorestech_web/webui/src/shared/treeView/TreeView.tsx
+    /// パン・ズーム・慣性つきのノードグラフ（研究ツリー・チャレンジ一覧）。web: web@6248097123/src/shared/treeView/TreeView.tsx
+    /// Node graph with pan, zoom and inertia (research tree, challenge list); web: web@6248097123/src/shared/treeView/TreeView.tsx
     /// </summary>
     /// <remarks>
     /// ビューポートは View の寿命で保たれる（Web の viewportStore がセッション内で保つのと同じ寿命）。一度でも視点が動いた後に非表示から戻すと、Web の復元と同じく初回の中央寄せと寸法の追従をしない。カードは押下を捕まえない・止めない（Button・Clickable を使わない）ので、カード上の押下もパンになり、タップは OnNodeTapped で受ける（Web TreeView.tsx と同じ）
@@ -102,11 +102,11 @@ namespace Client.Ui.Components.NodeGraph
             evt.StopPropagation();
             _pan.CancelGlide();
 
-            // カーソルを内容 box の座標へ直し、1 ノッチを Web の deltaY（WebWheelScale。A-71・A-118）へ換算してズームする（横成分は無視）
-            // Convert the cursor to content-box coordinates, scale one notch to the Web deltaY (WebWheelScale; A-71, A-118), and zoom (horizontal ignored)
+            // カーソルを内容 box の座標へ直し、1 ノッチをホイールの px（WheelNotchPixels。A-71・A-118）へ換算してズームする（横成分は無視）
+            // Convert the cursor to content-box coordinates, scale one notch to wheel pixels (WheelNotchPixels; A-71, A-118), and zoom (horizontal ignored)
             var cursor = this.WorldToLocal(evt.mousePosition) - contentRect.position;
-            var webDeltaY = evt.delta.y * WebWheelScale.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
-            SetViewport(NodeGraphViewportMath.ZoomAt(_viewport, cursor, webDeltaY));
+            var wheelPixelsY = evt.delta.y * WheelNotchPixels.PixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+            SetViewport(NodeGraphViewportMath.ZoomAt(_viewport, cursor, wheelPixelsY));
         }
 
         private void OnGeometryChanged(GeometryChangedEvent evt)

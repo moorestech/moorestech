@@ -25,8 +25,8 @@ namespace Client.ExternalProcess
             "SystemRoot", "windir", "APPDATA", "LOCALAPPDATA", "COMSPEC", "PATHEXT",
         };
 
-        // CEFヘルパー等のネイティブspawnはProcessStartInfoを通らないため、Unity自身のenvも起動時に浄化する
-        // Native spawns such as the CEF helper bypass ProcessStartInfo, so Unity's own env is scrubbed at startup
+        // ProcessStartInfoを通らないネイティブ側の子プロセス起動に備え、Unity自身のenvも起動時に浄化する
+        // Spawns from native code bypass ProcessStartInfo, so Unity's own env is scrubbed at startup as well
         [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void SanitizeCurrentProcess()
         {

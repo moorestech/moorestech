@@ -6,7 +6,7 @@ using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Screens.Recipe;
 using Client.Ui.Screens.Tutorial.Anchor;
-using Client.Ui.State.Tutorial.Logic;
+using Client.Ui.Screens.Tutorial.Overlay;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Screens.Recipe.RecipeScreenFixtures;

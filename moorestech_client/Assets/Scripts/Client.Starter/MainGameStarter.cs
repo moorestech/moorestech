@@ -25,7 +25,6 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.Skit;
-using Client.Input;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Starter.EventMode;
@@ -98,8 +97,8 @@ namespace Client.Starter
         [SerializeField] private GameObjectToolTipTargetController gameObjectToolTipTargetController;
 
         private IObjectResolver _resolver;
-        // GameUi の系でだけ DI より前に立てる土台。言語ゲートと DI の両方がこれを使う（S5-gate D-2）
-        // Foundation built before DI only in the GameUi system; both the language gate and DI use it (S5-gate D-2)
+        // DI より前に立てる土台。言語ゲートと DI の両方がこれを使う（S5-gate D-2）
+        // Foundation built before DI; both the language gate and DI use it (S5-gate D-2)
         private GameUiPreDiFoundation _gameUiFoundation;
 
         protected override void OnDestroy()
@@ -107,12 +106,10 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
 
-        // GameUi の系で DI 前に土台を立て、その上の言語ゲート画面を返す。Web の系は土台も画面も無く null
-        // Builds the pre-DI foundation in the GameUi system and returns the language-gate screen on it; the Web system has neither and gets null
+        // DI より前に土台（sRGB 合成・ロケールのクラス・倍率の見張り）を 1 本だけ立て、その上の言語ゲート画面を返す。出展モードか否かによらない
+        // Builds the single pre-DI foundation (sRGB composite, locale classes, scale watch) and returns the language-gate screen on it, exhibition mode or not
         internal IEventLanguageGateScreen PrepareUiBeforeDi()
         {
-            // silent-ok: Web の系は Client.Ui を立てず言語ゲートは hub が描く / 起動の系は UiSystemBootSelection がログに出している
-            if (UiInputExclusivity.ActiveUiSystem != UiSystem.GameUi) return null;
             _gameUiFoundation = new GameUiPreDiFoundation(gameUiRoot);
             _gameUiFoundation.Initialize();
             return new EventLanguageGateBootHost(gameUiRoot.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport), _gameUiFoundation.StageScale, LanguageCatalog.Languages);
@@ -127,9 +124,9 @@ namespace Client.Starter
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
             MainGameUiStateRegistration.Register(builder);
-            // 全体スイッチの分岐: Web の系では Client.Ui を 1 つも登録せず、GameUiRoot の層は空のまま残る。起動の系は UiSystemBootSelection がログに出している
-            // Global-switch branch: the Web system registers nothing from Client.Ui and the GameUiRoot layers stay empty; UiSystemBootSelection has logged the boot's system
-            if (UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi) MainGameUiRegistration.Register(builder, gameUiRoot, _gameUiFoundation);
+            // 描く系は UITK だけ。DI より前に立てた土台（sRGB 合成・倍率・ロケール）を作り済みのまま DI へ渡す
+            // UITK is the only drawing system; hand the foundation built before DI (sRGB composite, scale, locale) to DI as built
+            MainGameUiRegistration.Register(builder, gameUiRoot, _gameUiFoundation);
 
             
             //Hierarchy上にあるcomponent

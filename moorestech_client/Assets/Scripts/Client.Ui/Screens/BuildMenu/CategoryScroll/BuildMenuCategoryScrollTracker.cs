@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Ui.State.BuildMenu.Logic;
 using Client.Ui.State.BuildMenu.Session;
 using UniRx;
 using UnityEngine;
@@ -192,10 +191,7 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 
         private void RecomputeActiveCategory(float scrollTop)
         {
-            var offsets = new List<CategoryHeadingOffset>();
-            foreach (var categoryGuid in _visibleCategories)
-                if (_viewport.TryGetHeadingTop(categoryGuid, out var top)) offsets.Add(new CategoryHeadingOffset(categoryGuid, top));
-            _activeCategory.Value = BuildMenuScrollSpy.ActiveCategoryAtScroll(offsets, scrollTop);
+            _activeCategory.Value = BuildMenuScrollSpy.ActiveCategoryAtScroll(BuildMenuHeadingOffsetReader.Read(_viewport, _visibleCategories), scrollTop);
         }
     }
 }

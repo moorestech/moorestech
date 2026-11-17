@@ -12,7 +12,7 @@ namespace Client.Tests.Ui.Screens.Notification
     public class NotificationRowLifetimeTest
     {
         private const float Tolerance = 0.001f;
-        private static readonly NotificationRowTiming WebTiming = new(160f, 200f, 7000f, 12f);
+        private static readonly NotificationRowTiming ReferenceTiming = new(160f, 200f, 7000f, 12f);
         private VisualElement _row;
 
         [SetUp]
@@ -25,8 +25,8 @@ namespace Client.Tests.Ui.Screens.Notification
         [Test]
         public void 入場と退場の2本を持ち退場は生存尺から逆算した遅延で始まる()
         {
-            var enter = NotificationRowLifetime.CreateEnter(_row, WebTiming);
-            var exit = NotificationRowLifetime.CreateExit(_row, WebTiming);
+            var enter = NotificationRowLifetime.CreateEnter(_row, ReferenceTiming);
+            var exit = NotificationRowLifetime.CreateExit(_row, ReferenceTiming);
 
             // 入場の半ば（CSS ease-out で 0.6846）。退場は遅延中で何も書かない
             // Midway through the enter (0.6846 on CSS ease-out); the exit is still delayed and writes nothing
@@ -49,8 +49,8 @@ namespace Client.Tests.Ui.Screens.Notification
         [Test]
         public void 保持の間は入場の終わりの姿のまま退場を先取りしない()
         {
-            var enter = NotificationRowLifetime.CreateEnter(_row, WebTiming);
-            var exit = NotificationRowLifetime.CreateExit(_row, WebTiming);
+            var enter = NotificationRowLifetime.CreateEnter(_row, ReferenceTiming);
+            var exit = NotificationRowLifetime.CreateExit(_row, ReferenceTiming);
             foreach (var elapsed in new[] { 160f, 3000f, 6800f })
             {
                 Assert.IsFalse(AdvanceBoth(enter, exit, elapsed));

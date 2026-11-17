@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
-using Client.Localization;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
@@ -59,7 +58,7 @@ namespace Client.Tests.Ui.State
             // 送信手続きの失敗コードはそのまま返る
             // Submitter failure code is returned as is
             Assert.IsNotEmpty(rejected.ToWireCode());
-            Assert.AreNotEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.CaptureRefused), rejected.ToWireCode());
+            Assert.AreNotEqual(UiCommandRejectReasonTable.Get(UiCommandRejectReason.CaptureRefused).WireCode, rejected.ToWireCode());
             Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
         }
 
@@ -73,18 +72,6 @@ namespace Client.Tests.Ui.State
             commands.ShowPage(page);
 
             Assert.AreEqual(page, service.CurrentPage.Value);
-        }
-
-        [Test]
-        public void 良性の拒否理由は宣言した一覧と一致する()
-        {
-            // 選択済みの再送・持ち物の取りこぼし・特殊族の古い操作・空の掴みのフィルタ設定・閉じた後の選択・消えた BP の削除・受理外のホットバー選択・古いモーダル応答は利用者に知らせない（ログだけ）
-            // Resends, inventory misses, special-family stale operations, filter sets with an empty grab, selections after close, deletes of vanished blueprints, non-accepting hotbar taps and stale modal replies are not told to players (log only)
-            var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty, UiCommandRejectReason.SpecialBlockCommandStale, UiCommandRejectReason.FilterSplitterGrabEmpty, UiCommandRejectReason.BuildMenuNotOpen, UiCommandRejectReason.UnknownBuildMenuEntry, UiCommandRejectReason.BlueprintDeleteNotFound, UiCommandRejectReason.HotbarSelectNotAccepted, UiCommandRejectReason.ModalResponseStale };
-            foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
-            {
-                Assert.AreEqual(0 <= System.Array.IndexOf(benign, reason), UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
-            }
         }
 
         // 書き出し失敗だけを BundleWriteFailed に写し、確保セッションの拒否コードは CaptureRefused に畳む
@@ -103,22 +90,7 @@ namespace Client.Tests.Ui.State
         {
             // 理由表は Client.Game を参照しないので綴りを写している。送信手続き側の改名で黙ってずれないよう見張る
             // The reason table does not reference Client.Game and copies the spelling; guard it against a silent drift on the submitter side
-            Assert.AreEqual(BugReportSubmitResult.BundleWriteFailed, UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.BundleWriteFailed));
-        }
-
-        [Test]
-        public void どの拒否理由もトースト用の翻訳文を持つ()
-        {
-            // 単独実行でも辞書が引けるように初期化する
-            // Initialize the dictionary so the test also passes when run alone
-            Localize.Initialize();
-            foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
-            {
-                var text = Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(reason));
-                Assert.IsNotEmpty(text, reason.ToString());
-                StringAssert.DoesNotContain("_", text, $"{reason} の文言が失敗コードのまま");
-                StringAssert.DoesNotStartWith("[!", text, $"{reason} の翻訳キーが辞書に無い");
-            }
+            Assert.AreEqual(BugReportSubmitResult.BundleWriteFailed, UiCommandRejectReasonTable.Get(UiCommandRejectReason.BundleWriteFailed).WireCode);
         }
 
         private static UiCommandRejected AssertRejected(UiCommandResult result, UiCommandRejectReason expected)

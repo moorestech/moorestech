@@ -1,7 +1,5 @@
 // スキットの並べ比べ（S2-skit）: store を Web の mock と同じ値（Moore・Blocking message・Choose a route・Route A/B・Background message）で駆動し、参照キャプチャと同じ 5 状態を 1280×720 と 2560×1080 で、打ち出し中を 1280×720 で撮る
 // Skit comparison (S2-skit): drive the store with the Web mock values and capture the five reference states at 1280x720 and 2560x1080, plus mid-typing at 1280x720
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 // store を直接駆動するので IsPlayingSkit は偽のままで UIState はゲーム画面。ポーズはゲーム画面のポーズなので、入れ子ポーズに合わせて store の入力を止めてから撮る
 // The store is driven directly, so IsPlayingSkit stays false and the UI state is the game screen; the pause is the game-screen pause, so store input is suspended to match the nested pause
 using Client.Game.InGame.UI.UIState;
@@ -35,8 +33,6 @@ return PlaytestRunner.Run("uitk-skit-compare", options, async p =>
     InputSystem.EnableDevice(Keyboard.current);
     InputSystem.EnableDevice(Mouse.current);
 
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // 裏タブの Game View は描画されずスクショが空になるので表へ出す
     // A Game View behind another tab never renders and screenshots come out empty, so bring it to front
     PlaytestGameViewOps.BringToFront();

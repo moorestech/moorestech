@@ -11,19 +11,16 @@ using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
-using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.PauseMenu
 {
     /// <summary>
-    /// ポーズ画面の枠。ページは PauseMenuViewModel.Page だけで決め、表示のたびと変わるたびに中身を作り直す（Web の PauseMenuPanel）
-    /// The pause-menu frame; the page is decided only by PauseMenuViewModel.Page and rebuilt on every show and change (Web PauseMenuPanel)
+    /// ポーズ画面の枠。ページは PauseMenuViewModel.Page だけで決め、表示のたびと変わるたびに中身を作り直す。Model は購読せず Presenter が描く口を呼ぶ（Web の PauseMenuPanel）
+    /// The pause-menu frame; the page is decided only by PauseMenuViewModel.Page and rebuilt on every show and change; it never subscribes, the presenter calls its render ports (Web PauseMenuPanel)
     /// </summary>
     public sealed class PauseMenuView : VisualElement
     {
-        private readonly IReadOnlyReactiveProperty<PauseMenuViewModel> _model;
-        private readonly IReadOnlyReactiveProperty<SettingsViewModel> _settings;
         private readonly IPauseMenuCommands _commands;
         private readonly ISettingsCommands _settingsCommands;
         private readonly GameUiToastFeed _toasts;
@@ -32,14 +29,13 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly IUiOsCursor _osCursor;
         private readonly LocalizedLabel _title;
         private readonly VisualElement _pageHost;
-        private CompositeDisposable _subscriptions;
+        private bool _shown;
+        private SettingsViewModel _settings;
         private PauseMenuPage _shownPage;
         private IPauseMenuPage _currentPage;
 
-        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
+        public PauseMenuView(IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
         {
-            _model = model;
-            _settings = settings;
             _commands = commands;
             _settingsCommands = settingsCommands;
             _toasts = toasts;
@@ -78,45 +74,37 @@ namespace Client.Ui.Screens.PauseMenu
 
         public void SetShown(bool shown)
         {
-            if (shown == (_subscriptions != null)) return;
+            if (shown == _shown) return;
+            _shown = shown;
             UiDisplay.SetShown(this, shown);
-            if (!shown)
-            {
-                // 隠している間はモデルを購読しない
-                // Do not follow the models while hidden
-                _subscriptions.Dispose();
-                _subscriptions = null;
-                return;
-            }
-
-            // 最新値で 1 回描き直してから、変化だけを購読する
-            // Redraw once from the latest values, then subscribe to changes only
-            ShowPage(_model.Value);
-            UpdateLocaleMarker();
-            _subscriptions = new CompositeDisposable();
-            _model.Skip(1).Subscribe(OnPauseMenuChanged).AddTo(_subscriptions);
-            _settings.Skip(1).Subscribe(OnSettingsChanged).AddTo(_subscriptions);
-            Localize.OnLanguageChanged.Subscribe(_ => UpdateLocaleMarker()).AddTo(_subscriptions);
-
-            #region Internal
-
-            void UpdateLocaleMarker()
-            {
-                _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
-            }
-
-            #endregion
         }
 
-        private void OnPauseMenuChanged(PauseMenuViewModel model)
+        // 出た直後の 1 回描き。設定の値を控えてから頁を必ず作り直し、ロケール印を更新する
+        // The one draw right after showing: keep the settings value, always rebuild the page and refresh the locale marker
+        public void Redraw(PauseMenuViewModel pauseMenu, SettingsViewModel settings)
+        {
+            _settings = settings;
+            ShowPage(pauseMenu);
+            RenderLocaleMarker();
+        }
+
+        // 変化の反映は Redraw の後にだけ呼ぶ（頁が未作成のまま ApplyPauseMenu へ進まないため）
+        // Change ports are called only after Redraw (so ApplyPauseMenu never runs before a page exists)
+        public void RenderPauseMenu(PauseMenuViewModel model)
         {
             if (_shownPage != model.Page) ShowPage(model);
             _currentPage.ApplyPauseMenu(model);
         }
 
-        private void OnSettingsChanged(SettingsViewModel model)
+        public void RenderSettings(SettingsViewModel model)
         {
+            _settings = model;
             _currentPage.ApplySettings(model);
+        }
+
+        public void RenderLocaleMarker()
+        {
+            _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
         }
 
         private void ShowPage(PauseMenuViewModel model)
@@ -144,7 +132,7 @@ namespace Client.Ui.Screens.PauseMenu
             void BuildSettings()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
-                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toaster, _osCursor));
+                Show(new PauseMenuSettingsPage(_settings, _commands, _settingsCommands, _toaster, _osCursor));
             }
 
             void BuildBugReport()

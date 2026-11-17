@@ -23,10 +23,9 @@ namespace Client.Tests.Ui.Screens.BugReport
         [SetUp]
         public void MountBugReportPage()
         {
-            var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.BugReport));
-            var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
+            _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.BugReport), FakeSettingsModel.Default());
             Find<TextField>(_view, "bug-report-description").value = "body";
             simulate.FrameUpdate();
             simulate.FrameUpdate();

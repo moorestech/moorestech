@@ -1,7 +1,5 @@
 // 電気炉を UITK（GameUi）で開き、レシピを選び、main の Shift で素材を入れて、開いたまま進捗・状態・出力が変わり、ヘッダで選択へ戻ることを通す（S4-machine）
 // Opens an electric furnace on UITK (GameUi), selects a recipe, feeds materials via Shift on main, and checks progress, state and output update while open and the header returns to selection (S4-machine)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +8,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -49,7 +46,6 @@ return PlaytestRunner.Run("uitk-machine-ui", new PlaytestRunOptions { Record = t
     Application.logMessageReceived += CountErrors;
     try
     {
-        p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, $"全体スイッチが UITK（UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}）");
         InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         SemanticInput.EnsureDevices();

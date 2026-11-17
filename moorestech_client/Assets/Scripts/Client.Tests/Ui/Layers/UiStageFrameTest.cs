@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.Layers
         }
 
         [Test]
-        public void ProductionPanelSettingsScaleLikeTheWebUiScale()
+        public void ProductionPanelSettingsScaleLikeTheWebScale()
         {
             // Webのui-scaleと同式
             // Same formula as the Web ui-scale

@@ -1,7 +1,5 @@
 // 並べ比べの解像度切替: Game View を 2560×1080 にして UITK のパネル倍率 1.5 を確かめ、1280×720 に戻して 1.0 を確かめる
 // Resolution switch for comparisons: set the Game View to 2560x1080 and check the UITK panel scale 1.5, then back to 1280x720 and check 1.0
-// 実行前にPlayModeを止め、execute-dynamic-codeで UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Playtest;
 using Client.Playtest.Operations.Ui;

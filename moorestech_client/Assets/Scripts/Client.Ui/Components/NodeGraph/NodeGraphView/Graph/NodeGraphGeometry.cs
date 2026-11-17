@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Ui.Components.NodeGraph
 {
     /// <summary>
-    /// ツリー座標（Y 上向き）とキャンバス座標（Y 下向き）の写像。web: moorestech_web/webui/src/shared/treeView/treeGeometry.ts
-    /// Mapping between tree coordinates (Y up) and canvas coordinates (Y down); web: moorestech_web/webui/src/shared/treeView/treeGeometry.ts
+    /// ツリー座標（Y 上向き）とキャンバス座標（Y 下向き）の写像。web: web@6248097123/src/shared/treeView/treeGeometry.ts
+    /// Mapping between tree coordinates (Y up) and canvas coordinates (Y down); web: web@6248097123/src/shared/treeView/treeGeometry.ts
     /// </summary>
     internal static class NodeGraphGeometry
     {

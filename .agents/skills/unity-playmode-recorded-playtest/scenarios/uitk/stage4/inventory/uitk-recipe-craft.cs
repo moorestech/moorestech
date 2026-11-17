@@ -1,11 +1,8 @@
 // レシピ画面を UITK（GameUi）で通す: 開く・セルで選ぶ・掴みで選択が変わらない・マウス長押しクラフトと外れで止まる・Esc の選択解除・Tab の選択保持・Enter 長押し・解放と持ち物での組み直し
 // Runs the recipe screen on UITK (GameUi): open, select by cell, grab keeps the selection, mouse hold craft and stop on leave, Esc clears, Tab keeps, Enter hold, rebuild on unlock and inventory
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -24,8 +21,6 @@ using VContainer;
 
 return PlaytestRunner.Run("uitk-recipe-craft", new PlaytestRunOptions { Record = true }, async p =>
 {
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

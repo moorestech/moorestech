@@ -20,7 +20,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
     {
         private static readonly string[] SpecialSectionIds = { "gear-to-electric-section", "belt-throughput-section", "gear-section", "electric-network-section", "gear-network-section" };
 
-        private static readonly string[] WebSectionIds =
+        private static readonly string[] ReferenceSectionIds =
         {
             "machine-section", "miner-section", "generator-section", "gear-section", "electric-network-section", "gear-network-section",
             "chest-grid", "machine-fluid-slots", "miner-output-grid", "gear-miner-output-grid", "generator-fuel-grid",
@@ -104,7 +104,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             Assert.AreEqual(BlockInventoryBodyKind.FilterSplitter, BlockComponentRegistry.Resolve(BlockMasterElement.BlockTypeConst.FilterSplitter).Body);
             var root = MountFilterSplitter();
             Assert.IsTrue(IsShown(Find<VisualElement>(root, "filter-splitter")));
-            CollectionAssert.IsEmpty(WebSectionIds.Where(id => id != "filter-splitter" && root.Q(id) != null).ToArray());
+            CollectionAssert.IsEmpty(ReferenceSectionIds.Where(id => id != "filter-splitter" && root.Q(id) != null).ToArray());
         }
 
         private VisualElement MountStack(string blockType, SpecialBlockDetailViewModel detail)

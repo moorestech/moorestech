@@ -1,14 +1,13 @@
 // S5-crosscut T19 の撮り直し（HUD・ポーズ系）: トースト（フェード後）・バグ報告・長文 3 件のチャレンジ HUD・ホットバーで物を選んだ状態・照準の強調枠とラベルを日本語で 1280×720 と 2560×1080 に撮る（S5-ladder）
 // S5-crosscut T19 retake (HUD and pause): shoot the toast after its fade, bug report, three-long-objective challenge HUD, hotbar with an item selected and the crosshair outline with label in Japanese at 1280x720 and 2560x1080 (S5-ladder)
-// 実行は stage5/driver/winunity-scenario-run.sh <branch> GameUi normal <この .cs> <name> から。画面が出たことだけを主張し、見た目は主張しない
-// Run via stage5/driver/winunity-scenario-run.sh <branch> GameUi normal <this .cs> <name>; asserts only that each screen shows, never its looks
+// 実行は stage5/driver/winunity-scenario-run.sh <branch> normal <この .cs> <name> から。画面が出たことだけを主張し、見た目は主張しない
+// Run via stage5/driver/winunity-scenario-run.sh <branch> normal <this .cs> <name>; asserts only that each screen shows, never its looks
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -33,10 +32,8 @@ using Object = UnityEngine.Object;
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-s5-retake-hud", options, async p =>
 {
-    // 1. 系の記録・入力・ゲーム画面・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
-    // 1. Record the system, input, game screen and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi");
+    // 1. 入力・ゲーム画面・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
+    // 1. Input, game screen and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

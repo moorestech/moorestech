@@ -15,7 +15,7 @@ namespace Client.Tests.Input.ArrowKeys
     {
         public override void TearDown()
         {
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             base.TearDown();
         }
 
@@ -56,10 +56,10 @@ namespace Client.Tests.Input.ArrowKeys
             var pressed = new List<HorizontalArrowKey>();
             new InputSystemArrowKeyStream().OnArrowPressed.Subscribe(pressed.Add);
 
-            UiInputExclusivity.SetState(false, true);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
             Press(keyboard.rightArrowKey);
             Release(keyboard.rightArrowKey);
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             Press(keyboard.leftArrowKey);
 
             CollectionAssert.AreEqual(new[] { HorizontalArrowKey.Left }, pressed);

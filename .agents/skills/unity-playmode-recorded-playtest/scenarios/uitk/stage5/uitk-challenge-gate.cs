@@ -1,7 +1,7 @@
-// ラダー 6 uitk-challenge-gate: Web ホスト無しの UITK で、出展モードの言語ゲートを日本語で通り、チャレンジ一覧を T で開いて閉じる
-// Ladder 6 uitk-challenge-gate: on UITK with no web host, pass the exhibition language gate in Japanese, then open and close the challenge list with T
-// 実行は stage5/driver/winunity-scenario-run.sh <branch> GameUi exhibition <この .cs> <name> か、Mac の stage5/exhibition-mode-run.sh <project> GameUi <この .cs> から
-// Run via stage5/driver/winunity-scenario-run.sh <branch> GameUi exhibition <this .cs> <name>, or the Mac stage5/exhibition-mode-run.sh <project> GameUi <this .cs>
+// ラダー 6 uitk-challenge-gate: UITK で、出展モードの言語ゲートを日本語で通り、チャレンジ一覧を T で開いて閉じる
+// Ladder 6 uitk-challenge-gate: on UITK, pass the exhibition language gate in Japanese, then open and close the challenge list with T
+// 実行は stage5/driver/winunity-scenario-run.sh <branch> exhibition <この .cs> <name> か、Mac の stage5/exhibition-mode-run.sh <project> <この .cs> から
+// Run via stage5/driver/winunity-scenario-run.sh <branch> exhibition <this .cs> <name>, or the Mac stage5/exhibition-mode-run.sh <project> <this .cs>
 // ゲートは DI より前の 1 回きりで無操作はアプリ終了になりゲートへ戻らないので、plan §4.4 の語順どおりゲートを先に通る
 // The gate shows once before DI and idling quits the app instead of returning to it, so this passes the gate first, as plan §4.4 orders it
 using System.Collections.Generic;
@@ -11,14 +11,12 @@ using System.Text.RegularExpressions;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Challenge;
-using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -28,10 +26,8 @@ using VContainer;
 
 return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record = true }, async p =>
 {
-    // 1. 系の主張と、初期化の完了の購読
-    // 1. Assert the UI system and subscribe to initialization completion
-    p.Note($"系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが GameUi");
+    // 1. 初期化の完了の購読
+    // 1. Subscribe to initialization completion
     var initialized = false;
     var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => initialized = true);
 
@@ -72,14 +68,13 @@ return PlaytestRunner.Run("uitk-challenge-gate", new PlaytestRunOptions { Record
         await p.Until(() => initialized, 180f, "選択の後に初期化が完了する");
         p.Assert(Localize.GetCurrentLanguageCode() == "japanese", "日本語で始まる");
 
-        // 4. ゲーム画面まで進み、Web ホストが起きていないことを見る
-        // 4. Reach the game screen and check no web host started
+        // 4. ゲーム画面まで進む。非前面の Editor は Story を抜けるのが遅いので先に待つ
+        // 4. Reach the game screen; an unfocused Editor leaves Story slowly, so wait for it first
         await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
         // Game View を表へ出し、Story のままなら飛ばし直して Story を抜ける（回数は Driver が Note に残す）
         // Bring the Game View front and re-skip while in Story until it leaves (the Driver notes the rounds)
         await p.SkipOpeningSkitUntilLeftStory();
         await p.ExitToGameScreen();
-        p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
 
         // 5. 解放済みの先頭カテゴリと最初の進行中を源から引く（uitk-challenge-list と同じ引き方）
         // 5. Take the first unlocked category and its first current challenge from the source (same as uitk-challenge-list)

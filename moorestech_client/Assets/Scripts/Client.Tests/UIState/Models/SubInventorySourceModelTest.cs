@@ -6,6 +6,9 @@ using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
 using Client.Tests.Common;
+using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.Train.Inventory;
+using Core.Master;
 using Core.Item.Interface;
 using Game.Context;
 using Game.Train.Unit;
@@ -83,6 +86,27 @@ namespace Client.Tests.UIState.Models
 
             Assert.IsNull(source.LastOpenMessage);
             Assert.AreEqual(1, model.Count);
+        }
+
+        [Test]
+        public void 貨車の液体の応答はモデルに載り表示の液体枠へ写る()
+        {
+            var water = MasterHolder.FluidMaster.GetFluidId(System.Guid.Parse("00000000-0000-0000-1234-000000000001"));
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(1), _trainCarViewRegistry);
+            var response = new InventoryResponse(source.InventoryIdentifier, new List<IItemStack>(), new List<FluidMessagePack> { new(water, 300, 1000) }, InventoryRequestResult.Success);
+
+            var model = source.CreateModel(response);
+            Assert.AreEqual(1, model.Fluids.Count);
+            Assert.IsNull(source.LastOpenMessage);
+
+            // 表示の液体枠は応答の水・量・容量をそのまま持つ
+            // The display fluid slot carries the response's water, amount and capacity as-is
+            var slots = TrainCarFluidConversion.ToFluids(model.Fluids);
+            Assert.AreEqual(1, slots.Count);
+            var filled = (FilledBlockFluidSlotState)slots[0];
+            Assert.AreEqual(water, filled.FluidId);
+            Assert.AreEqual(300, filled.Amount, 0.001);
+            Assert.AreEqual(1000, filled.Capacity, 0.001);
         }
     }
 }

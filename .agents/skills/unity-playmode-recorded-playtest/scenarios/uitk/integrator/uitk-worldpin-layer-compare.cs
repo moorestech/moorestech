@@ -1,12 +1,9 @@
 // ワールドピンを電気炉のパネルの閉じるボタンと研究の詳細に重ね、ピンが前に出るか（Web と同じ層の前後か）を Game View の実画面で 1280×720・2560×1080 に撮る（I-fix5 R-7）
 // Overlays a world pin on the electric furnace panel's close button and the research detail, and shoots whether the pin draws in front (the Web layer order) on the real Game View at 1280x720 and 2560x1080 (I-fix5 R-7)
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -25,7 +22,6 @@ const string ProbePinId = "ifix5-layer-probe";
 var furnace = new Vector3Int(0, 32, 0);
 return PlaytestRunner.Run("uitk-worldpin-layer-compare", new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f }, async p =>
 {
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

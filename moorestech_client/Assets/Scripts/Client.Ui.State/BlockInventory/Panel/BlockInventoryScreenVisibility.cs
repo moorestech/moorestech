@@ -10,7 +10,14 @@ namespace Client.Ui.State.BlockInventory.Panel
     {
         public static bool IsShown(UiRoutingSnapshot snapshot, BlockInventoryPanelState state)
         {
-            return snapshot.Screen == UiScreen.SubInventory && !(state is ClosedBlockInventoryPanel);
+            return IsOnScreen(snapshot) && !(state is ClosedBlockInventoryPanel);
+        }
+
+        // 画面ルータの側の条件だけ。Presenter はこれが真の間だけパネルを購読する
+        // The router-side condition only; the presenter follows the panel only while this holds
+        public static bool IsOnScreen(UiRoutingSnapshot snapshot)
+        {
+            return snapshot.Screen == UiScreen.SubInventory;
         }
     }
 }

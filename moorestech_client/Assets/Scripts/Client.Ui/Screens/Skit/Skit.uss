@@ -1,7 +1,7 @@
 /* S/Client.Ui/Screens/Skit/Skit.uss */
-/* web: moorestech_web/webui/src/features/skit/style.module.css の .root・.window・.speaker・.body・.rule・.advanceMarker・.backgroundLine・.transition */
+/* web: web@6248097123/src/features/skit/style.module.css の .root・.window・.speaker・.body・.rule・.advanceMarker・.backgroundLine・.transition */
 /* スキットは実画面いっぱいの透明な置き場に乗り、入力を受けるのは会話窓の文の区画・選択肢・ツールだけ。暗転は SkitTransition 層の全画面 */
-/* web: moorestech_web/webui/src/features/skit/style.module.css .root, .window, .speaker, .body, .rule, .advanceMarker, .backgroundLine and .transition */
+/* web: web@6248097123/src/features/skit/style.module.css .root, .window, .speaker, .body, .rule, .advanceMarker, .backgroundLine and .transition */
 /* The skit rides a transparent full-screen host and only the window's text section, choices and tools take input; the blackout is a full-screen element on the SkitTransition layer */
 
 .skit-screen {

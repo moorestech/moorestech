@@ -57,8 +57,8 @@ namespace Client.Playtest
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
-                    // UI照会口を開き、CEF時のみ入力転送
-                    // Open the UI query entry; forward input only with CEF
+                    // UI照会口を開く
+                    // Open the UI query entry
                     PlaytestUiLocatorSession.Start();
 
                     // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す

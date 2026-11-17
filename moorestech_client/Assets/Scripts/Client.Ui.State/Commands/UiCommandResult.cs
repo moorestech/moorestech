@@ -25,12 +25,12 @@ namespace Client.Ui.State.Commands
     {
         public UiCommandRejectReason Reason { get; }
 
-        // Web へ返す失敗コード。無ければ空
-        // Failure code returned to Web instead; empty if none
+        // 表の既定に代えて使う失敗コード。無ければ空
+        // Failure code used instead of the table's default; empty if none
         private readonly string _wireCodeOverride;
 
         // 開発者ログだけの補足
-        // Developer-log detail only; never returned to Web
+        // Developer-log detail only; never part of the failure code
         public string Diagnostic { get; }
 
         private UiCommandRejected(UiCommandRejectReason reason, string wireCodeOverride, string diagnostic)
@@ -55,11 +55,11 @@ namespace Client.Ui.State.Commands
             return new UiCommandRejected(reason, string.Empty, diagnostic);
         }
 
-        // Web へ返す失敗コード。上書き優先
-        // Wire failure code; the override wins
+        // ログと録画の照合に使う失敗コード。上書き優先
+        // Failure code for logs and recording checks; the override wins
         public string ToWireCode()
         {
-            return 0 < _wireCodeOverride.Length ? _wireCodeOverride : UiCommandRejectReasonTraits.ToWireCode(Reason);
+            return 0 < _wireCodeOverride.Length ? _wireCodeOverride : UiCommandRejectReasonTable.Get(Reason).WireCode;
         }
 
         // 開発者ログの拒否の書き方。コードの後ろに診断を括弧で添える

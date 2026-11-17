@@ -1,13 +1,10 @@
 // 文字組みの並べ比べ撮影: GameUi（UITK）のポーズの題・設定の節の題・清浄機 30 台の部屋欄・回転発電機（停止）を日本語と英語で開き、Game View の実画面を 1280×720 と 2560×1080 で撮る
 // 部屋欄は参照（mock-host の cleanRoomAirFilter30Filters）と同じ中身（クラス ISO 5・濃度 1.2・換気 0.8・清浄機 30 台が電力 100%・5 個・50%）と題（電気機械）に差し替える。段組・色・寸法は本番のまま
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // Typography comparison shots: open the pause title, settings section titles, the 30-purifier room section and the stopped rotary generator on GameUi (UITK) in Japanese and English, and shoot the real Game View at 1280x720 and 2560x1080
 // The room section is swapped to the reference contents (mock-host cleanRoomAirFilter30Filters: class ISO 5, concentration 1.2, air changes 0.8, 30 purifiers at 100% / 5 / 50%) and title (電気機械); layout, colors and sizes stay production
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -32,7 +29,6 @@ var shootingLanguage = "japanese";
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
 {
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

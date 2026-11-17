@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/shared/ui/GamePanel/hudVariant.module.css（hud）と style.module.css の .skit（components.md §8.12） */
+/* web: web@6248097123/src/shared/ui/GamePanel/hudVariant.module.css（hud）と style.module.css の .skit（components.md §8.12） */
 /* 面だけのパネル。罫線・三角・グリップ・影を持たない。hud は文字色を継承し、skit は .panel の文字色を持つ */
-/* web: moorestech_web/webui/src/shared/ui/GamePanel/hudVariant.module.css (hud) and the .skit rule in style.module.css (components.md §8.12) */
+/* web: web@6248097123/src/shared/ui/GamePanel/hudVariant.module.css (hud) and the .skit rule in style.module.css (components.md §8.12) */
 /* Face-only panel without rules, triangles, grip or shadow; hud inherits its text color, skit keeps the .panel text color */
 
 .game-panel-surface {

@@ -1,6 +1,6 @@
-/* web: moorestech_web/webui/src/features/keyHint/keyHint.module.css（.keyHints・.hint） */
+/* web: web@6248097123/src/features/keyHint/keyHint.module.css（.keyHints・.hint） */
 /* 左下へ固定し、文字の様式は共有の key-hint-text が持つ。削除モードの底と行の高さは C# が足し算するので受け直す。字の自然な高さが行高 30px を超えるので、文言は固定の高さの中で縦の中央に置く（D-22） */
-/* web: moorestech_web/webui/src/features/keyHint/keyHint.module.css (.keyHints, .hint) */
+/* web: web@6248097123/src/features/keyHint/keyHint.module.css (.keyHints, .hint) */
 /* Fixed to the bottom-left with text style from the shared key-hint-text; C# adds the delete-mode bottom and row height, so those are re-declared; glyphs are naturally taller than the 30px line height, so the text is vertically centered in a fixed height (D-22) */
 
 .key-hint-hud {

@@ -27,8 +27,8 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             // UI 上判定の静的状態を固定し、先行テストの残りでスクロールが捨てられないようにする
             // Pin the static UI-hit state so leftovers from earlier tests cannot discard the scroll
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiPointerProbe(null);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             InputSystem.AddDevice<Keyboard>();
             _mouse = InputSystem.AddDevice<Mouse>();

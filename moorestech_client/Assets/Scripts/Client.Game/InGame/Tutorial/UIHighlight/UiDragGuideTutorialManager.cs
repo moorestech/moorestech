@@ -11,8 +11,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var param = (UiDragGuideTutorialParam)tutorial.TutorialParam;
 
-            // マスタのfrom/to anchorIdを無変換でWebオーバーレイへ渡す。DOMとの突き合わせはWeb側のみが行う
-            // Pass the master from/to anchorIds to the web overlay verbatim; DOM matching happens only on the web side
+            // マスタのfrom/to anchorIdを無変換でUITKオーバーレイへ渡す。要素との突き合わせはUITK側のみが行う
+            // Pass the master from/to anchorIds to the UITK overlay verbatim; element matching happens only on the UITK side
             return TutorialPresentationStateStore.Instance.AddDragGuide(param.FromAnchorId, param.ToAnchorId);
         }
     }

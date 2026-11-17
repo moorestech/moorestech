@@ -21,12 +21,12 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration
 {
-    // Client.Ui の登録口。全体スイッチの分岐は呼び手の MainGameStarter（composition root）にあり、Presenter・View・部品はスイッチを読まない（plan §3.3 R1、設計書 §4.4・[A-16]）
-    // Registration entry for Client.Ui; the global-switch branch lives in the caller MainGameStarter (composition root), and presenters, views and parts never read it (plan §3.3 R1, design §4.4, [A-16])
+    // Client.Ui の登録口。描く系は UITK だけなので常に全部を登録する（設計書 §4.4・[A-320]）
+    // Registration entry for Client.Ui; UITK is the only drawing system, so everything is always registered (design §4.4, [A-320])
     internal static class MainGameUiRegistration
     {
-        // GameUi の系でだけ呼ばれる。DI より前に立てた土台（sRGB 合成・倍率・ロケール）は作り済みのまま受け取る（S5-gate D-2）
-        // Called only in the GameUi system; the foundation built before DI (sRGB composite, scale, locale) arrives as built (S5-gate D-2)
+        // DI より前に立てた土台（sRGB 合成・倍率・ロケール）は作り済みのまま受け取る（S5-gate D-2）
+        // The foundation built before DI (sRGB composite, scale, locale) arrives as built (S5-gate D-2)
         public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, GameUiPreDiFoundation gameUiFoundation)
         {
             builder.RegisterComponent(gameUiRoot);

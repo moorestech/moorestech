@@ -249,7 +249,7 @@
                         "properties": {
                           "highLightAnchorId": {
                             "type": "string",
-                            "default": "web anchor id"
+                            "default": "anchor id"
                           },
                           "highLightText": {
                             "type": "string",

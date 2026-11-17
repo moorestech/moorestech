@@ -1,15 +1,12 @@
-// 字の周りの欠片と秒数の切れの撮影（I-fix5 Task 4）: GameUi でビルドメニューの題・キー操作ヒント、レシピ画面の一覧の題・先頭セルの個数のバッジ・レシピ行の秒数を、1280×720 と 2560×1080 の実画面で撮る
+// 字の周りの欠片と秒数の切れの撮影（I-fix5 Task 4）: ビルドメニューの題・キー操作ヒント、レシピ画面の一覧の題・先頭セルの個数のバッジ・レシピ行の秒数を、1280×720 と 2560×1080 の実画面で撮る
 // 各状態を USS のまま（-uss）・題とキー操作ヒントの影を消した（-noshadow）・その両方に題の旧値 0.3px 0.3px 0 rgb(0 0 0 / 35%) を付けた（-shadow03）の 3 枚で撮り、同じ atlas の状態で影の有無を比べる
 // 秒数は参照 4-recipe-selected-machine と同じ文（1 件目 10秒・2 件目 20秒）に差し替える。段組・色・寸法は本番のまま。要素の矩形（物理 px）を Note に残す
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Glyph-fragment and duration-clip shots (I-fix5 Task 4): on GameUi shoot the build menu title and key hints, plus the recipe screen's list title, first cell count badge and recipe-row durations, on the real screen at 1280x720 and 2560x1080
+// Glyph-fragment and duration-clip shots (I-fix5 Task 4): shoot the build menu title and key hints, plus the recipe screen's list title, first cell count badge and recipe-row durations, on the real screen at 1280x720 and 2560x1080
 // Each state is shot as the USS stands (-uss), with the title and key-hint shadows removed (-noshadow), and with both given the old title value 0.3px 0.3px 0 rgb(0 0 0 / 35%) (-shadow03), comparing shadows under one atlas state
 // Durations are swapped to the reference 4-recipe-selected-machine text (row 1 10秒, row 2 20秒); layout, colors and sizes stay production; element rects (device px) go to Notes
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -32,9 +29,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-glyph-fragments-compare", options, async p =>
 {
-    // 1. 系の主張と入力の準備（前例 uitk-stage3-compare）
-    // 1. Assert the UI system and prepare input (precedent uitk-stage3-compare)
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
+    // 1. 入力の準備（前例 uitk-stage3-compare）
+    // 1. Prepare input (precedent uitk-stage3-compare)
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
     InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
     SemanticInput.EnsureDevices();

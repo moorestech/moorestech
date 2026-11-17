@@ -55,33 +55,33 @@ namespace Client.Starter.Registration
             builder.Register<BlockNetworkInfoCache>(Lifetime.Singleton);
             builder.RegisterEntryPoint<OpenBlockDetailTracker>().AsSelf();
 
-            // 画面ルータ。両系共通
-            // Screen router; shared by both systems
+            // 画面ルータ
+            // Screen router
             builder.RegisterEntryPoint<UiRoutingState>().AsSelf();
 
-            // 遷移要求。Web の ui_state.request と GameUi の各画面が同じ要求の流れ（入れ子ポーズ・遷移表・拒否ログ）を通るので両方の系で登録する
-            // Transition requests; the Web ui_state.request and the GameUi screens share one request flow (nested pause, transition table, refusal log), so both systems register it
+            // 遷移要求。各画面が同じ要求の流れ（入れ子ポーズ・遷移表・拒否ログ）を通る
+            // Transition requests; every screen goes through one request flow (nested pause, transition table, refusal log)
             builder.Register<UiStateControlTransitionRequester>(Lifetime.Singleton).As<IUiStateTransitionRequester>();
 
-            // ポーズと設定の状態と型付きコマンド。Web のアダプタと GameUi の View が同じものを使うので両方の系で登録する
-            // Pause and settings state and typed commands; Web adapters and GameUi views share them, so both systems register them
+            // ポーズと設定の状態と型付きコマンド。View と Presenter が DI で受ける
+            // Pause and settings state and typed commands, received by views and presenters through DI
             builder.Register<PauseMenuCommands>(Lifetime.Singleton).As<IPauseMenuCommands>();
             builder.Register<SettingsCommands>(Lifetime.Singleton).As<ISettingsCommands>();
             builder.RegisterEntryPoint<PauseMenuModel>().AsSelf();
             builder.RegisterEntryPoint<SettingsModel>().AsSelf();
 
-            // スキットの store と型付きコマンド。Web の action と GameUi の View が同じ失敗の写しを通るので両方の系で登録する。提示 Model は GameUi だけが読むので SkitGameUiRegistration（S2-skit D-54・D-82）
-            // Skit store and typed commands; Web actions and GameUi views share one failure mapping, so both systems register them; the presentation model is read only by GameUi, so SkitGameUiRegistration owns it (S2-skit D-54, D-82)
+            // スキットの store と型付きコマンド。提示 Model は GameUi だけが読むので SkitGameUiRegistration（S2-skit D-54・D-82）
+            // Skit store and typed commands; the presentation model is read only by GameUi, so SkitGameUiRegistration owns it (S2-skit D-54, D-82)
             builder.RegisterInstance(SkitPresentationStateStore.Instance);
             builder.Register<SkitCommands>(Lifetime.Singleton).As<ISkitCommands>();
 
-            // レシピ一覧の判定と駅・PF のコマンド。Web ホストと GameUi の View が同じ判定を呼ぶので両方の系で登録する（DC-23 A・D-36）
-            // Recipe-list decision and station/platform commands; the Web host and GameUi views call the same decisions, so both systems register them (DC-23 A, D-36)
+            // レシピ一覧の判定と駅・PF のコマンドの State の型。画面の Presenter が DI で受ける（DC-23 A）
+            // State types for the recipe-list decision and station/platform commands, received by screen presenters through DI (DC-23 A)
             builder.Register<RecipeViewerItemCatalog>(Lifetime.Singleton);
             builder.Register<TrainBlockCommands>(Lifetime.Singleton).As<ITrainBlockCommands>();
 
-            // クラフトの操作。Web の craft.execute と GameUi のレシピ画面が同じ検査・送信・拒否ログを通るので両方の系で登録する
-            // Craft commands; the Web craft.execute and the GameUi recipe screen share one check, send and refusal log, so both systems register them
+            // クラフトの操作。レシピ画面が検査・送信・拒否ログをここで通す
+            // Craft commands; the recipe screen goes through this check, send and refusal log
             builder.Register<VanillaApiCraftRequestSender>(Lifetime.Singleton).As<ICraftRequestSender>();
             builder.Register<RecipeCommands>(Lifetime.Singleton).As<IRecipeCommands>();
         }

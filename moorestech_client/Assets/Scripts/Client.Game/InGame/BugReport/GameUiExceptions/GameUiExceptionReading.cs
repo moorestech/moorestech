@@ -17,8 +17,8 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
     /// </summary>
     public abstract class GameUiExceptionReading
     {
-        // JSON の判別子。綴りは webUiHealth と同じく欄の属性で camelCase に固定する（manifest の Settings は enum の変換器を持たない）
-        // The JSON discriminator; spelled camelCase by a per-field attribute as in webUiHealth (the manifest Settings carry no enum converter)
+        // JSON の判別子。綴りは欄の属性で camelCase に固定する（manifest の Settings は enum の変換器を持たない）
+        // The JSON discriminator; spelled camelCase by a per-field attribute (the manifest Settings carry no enum converter)
         [JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
         public readonly GameUiExceptionStatus Status;
 

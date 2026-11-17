@@ -98,6 +98,32 @@ namespace Client.Tests.Ui.State.Train.Timetable
             Assert.IsFalse(TrainTimetableViewState.IsSameState(first, TrainTimetableViewState.Loading));
         }
 
+        [Test]
+        public void 用意済みは列車IDと自動運転と現在の番号と端と座標と駅一覧をそのまま運ぶ()
+        {
+            // 北駅の前端と、駅の無い (9,0,0) の後端に停まる自動運転の列車
+            // An auto-run train stopping at the north station's front and at the station-less (9,0,0) back
+            var far = new Vector3Int(9, 0, 0);
+            var snapshot = new TrainTimetableSnapshot(TrainTestData.Unit1, true, 1, new[]
+            {
+                new TrainTimetableStop(TrainTestData.North.Position, StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, 20),
+                new TrainTimetableStop(far, StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, 20),
+            });
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found"));
+
+            Assert.IsTrue(new TrainTimetableReadyDataFactory().TryCreate(snapshot, Stations, out var data));
+
+            Assert.AreEqual(TrainTestData.Unit1, data.TrainUnitInstanceId);
+            Assert.IsTrue(data.IsAutoRun);
+            Assert.AreEqual(1, data.CurrentIndex);
+            Assert.AreEqual(StationNodeSide.Front, data.Stops[0].Side);
+            Assert.AreEqual(TrainTestData.North.Position, data.Stops[0].Position);
+            Assert.AreEqual("北駅", data.Stops[0].Name);
+            Assert.AreEqual(StationNodeSide.Back, data.Stops[1].Side);
+            Assert.AreEqual(far, data.Stops[1].Position);
+            Assert.AreSame(Stations, data.Stations);
+        }
+
         private static TrainTimetableStop StopAt(Vector3Int position)
         {
             return new TrainTimetableStop(position, StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, 20);

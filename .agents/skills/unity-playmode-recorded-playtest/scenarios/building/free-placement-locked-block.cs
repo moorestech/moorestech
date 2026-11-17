@@ -1,7 +1,7 @@
 using Game.Context;
 // 無料設置デバッグ検証: FreeBlockPlacementをONにすると、未解放かつ建設コストを1つも持たないブロックでも
 // 本番の設置プロトコル(va:placeBlock)経由で設置できることをE2E録画で確認する。
-// web UI移行でuGUIビルドメニューのスロット自動選択は駆動できないため、UIが送るのと同一のPlaceBlockパケットを直接送出し、
+// uGUIビルドメニューのスロット自動選択は使えないため、UIが送るのと同一のPlaceBlockパケットを直接送出し、
 // 修正対象のサーバー PlaceBlockProtocol を実経路で叩く（サーバー直挿入 PlaceBlockDirect ではなくプロトコル経路である点が重要）
 // Free-placement debug verification (recorded E2E): with FreeBlockPlacement ON, locked blocks with zero required items
 // are placed through the real placement protocol (va:placeBlock). We send the exact PlaceBlock packet the UI would send

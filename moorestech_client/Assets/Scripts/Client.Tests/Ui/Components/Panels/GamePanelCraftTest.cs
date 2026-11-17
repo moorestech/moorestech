@@ -23,9 +23,9 @@ namespace Client.Tests.Ui.Components.Panels
 
         // Web の .craft の inset 0 0 0 3.132px（暗い線）と 3.524px（明るい輪）、その値を整数の物理画素にする Web の倍率
         // The Web .craft inset 0 0 0 3.132px (dark line) and 3.524px (light ring), and the Web scale that makes them whole device pixels
-        private const float WebLineWidth = 3.132f;
-        private const float WebRimWidth = 3.524f;
-        private const float WebDevicePixelRatio = 10f / 3.913894f;
+        private const float ReferenceLineWidth = 3.132f;
+        private const float ReferenceRimWidth = 3.524f;
+        private const float ReferenceDevicePixelRatio = 10f / 3.913894f;
 
         private GamePanel _panel;
 
@@ -85,7 +85,7 @@ namespace Client.Tests.Ui.Components.Panels
         [TestCase(1f, 0f)]
         [TestCase(1.5f, 0f)]
         [TestCase(2f, 0f)]
-        [TestCase(WebDevicePixelRatio, 0f)]
+        [TestCase(ReferenceDevicePixelRatio, 0f)]
         [TestCase(1f, 0.4f)]
         [TestCase(1.5f, 0.4f)]
         [TestCase(1.5f, 0.7f)]
@@ -101,7 +101,7 @@ namespace Client.Tests.Ui.Components.Panels
 
             // 暗い線は Web の 3.132px を物理画素へ丸めた幅で、輪はその内縁から 1 物理画素
             // The dark line is the Web 3.132px snapped to device pixels; the ring is one device pixel from its inner edge
-            var lineWidth = Mathf.Round(WebLineWidth * scale) / scale;
+            var lineWidth = Mathf.Round(ReferenceLineWidth * scale) / scale;
             Assert.AreEqual(lineWidth, line.resolvedStyle.borderLeftWidth, 0.01f);
             Assert.AreEqual(line.worldBound.x + lineWidth, rim.worldBound.x, 0.01f, "left");
             Assert.AreEqual(line.worldBound.y + lineWidth, rim.worldBound.y, 0.01f, "top");
@@ -114,10 +114,10 @@ namespace Client.Tests.Ui.Components.Panels
         [Test]
         public void Webの倍率では暗い線と見える輪の幅がWebの値そのもの()
         {
-            pixelsPerPoint = WebDevicePixelRatio;
+            pixelsPerPoint = ReferenceDevicePixelRatio;
             simulate.FrameUpdate();
-            Assert.AreEqual(WebLineWidth, _panel.Q(className: "game-panel__craft-line").resolvedStyle.borderLeftWidth, 0.01f);
-            Assert.AreEqual(WebRimWidth - WebLineWidth, _panel.Q(className: "game-panel__craft-rim").resolvedStyle.borderLeftWidth, 0.01f);
+            Assert.AreEqual(ReferenceLineWidth, _panel.Q(className: "game-panel__craft-line").resolvedStyle.borderLeftWidth, 0.01f);
+            Assert.AreEqual(ReferenceRimWidth - ReferenceLineWidth, _panel.Q(className: "game-panel__craft-rim").resolvedStyle.borderLeftWidth, 0.01f);
         }
 
         [Test]

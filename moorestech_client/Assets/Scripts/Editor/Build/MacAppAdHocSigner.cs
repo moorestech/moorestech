@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Editor.Build
 {
     /// <summary>
-    /// 同梱を終えた.appをad-hoc署名し直す。ビルド後に入れたCEF helperとffmpegでUnityの署名の封印が崩れるため（ADR 0071）
-    /// Re-signs the bundled .app ad-hoc, because the CEF helper and ffmpeg added after the build break Unity's signature seal (ADR 0071)
+    /// 同梱を終えた.appをad-hoc署名し直す。ビルド後に入れたffmpegでUnityの署名の封印が崩れるため（ADR 0071）
+    /// Re-signs the bundled .app ad-hoc, because the ffmpeg added after the build breaks Unity's signature seal (ADR 0071)
     /// </summary>
     internal static class MacAppAdHocSigner
     {

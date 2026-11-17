@@ -8,8 +8,8 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi.Hud
 {
-    // スキットと全体非表示（GameUi）の登録。store とコマンドは両系の MainGameUiStateRegistration が登録済み（D-54）。提示 Model は Web が読まないのでここに置く（D-82）
-    // Registers the skit and whole-UI hiding (GameUi); the store and commands are registered for both systems by MainGameUiStateRegistration (D-54); the presentation model lives here as the Web never reads it (D-82)
+    // スキットと全体非表示（GameUi）の登録。store とコマンドは MainGameUiStateRegistration が登録済み（D-54）。提示 Model は State 側が読まないのでここに置く（D-82）
+    // Registers the skit and whole-UI hiding (GameUi); the store and commands are registered by MainGameUiStateRegistration (D-54); the presentation model lives here as the State side never reads it (D-82)
     internal static class SkitGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)

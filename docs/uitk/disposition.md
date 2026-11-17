@@ -37,6 +37,16 @@
 | 2026-11-15 | 3 | 4fc636d56d | 99 | 99 | 0 | 0 | 0 |
 | 2026-11-15 | 4 | 4fc636d56d | 457 | 434 | 23 | 0 | 0 |
 | 2026-11-15 | 5 | 4fc636d56d | 528 | 243 | 285 | 0 | 0 |
+| 2026-11-16 | 1 | 0beb563f74 | 66 | 57 | 9 | 0 | 0 |
+| 2026-11-16 | 2 | 0beb563f74 | 115 | 111 | 4 | 0 | 0 |
+| 2026-11-16 | 3 | 0beb563f74 | 99 | 99 | 0 | 0 | 0 |
+| 2026-11-16 | 4 | 0beb563f74 | 457 | 433 | 24 | 0 | 0 |
+| 2026-11-16 | 5 | 0beb563f74 | 528 | 235 | 293 | 0 | 0 |
+| 2026-11-16 | 1 | a4988176fb（--web-rev 6248097123） | 66 | 57 | 9 | 0 | 0 |
+| 2026-11-16 | 2 | a4988176fb（--web-rev 6248097123） | 115 | 111 | 4 | 0 | 0 |
+| 2026-11-16 | 3 | a4988176fb（--web-rev 6248097123） | 99 | 99 | 0 | 0 | 0 |
+| 2026-11-16 | 4 | a4988176fb（--web-rev 6248097123） | 457 | 433 | 24 | 0 | 0 |
+| 2026-11-16 | 5 | a4988176fb（--web-rev 6248097123） | 528 | 235 | 293 | 0 | 0 |
 
 ## 処遇
 
@@ -154,3 +164,12 @@
 | 5 | `src/shared/tutorialAnchor/tutorialAnchor.test.ts` | creates only the tutorial contract attribute | 捨てる | DOM の属性（data-tutorial-anchor 1 つだけ）の書式で、UITK はクラス名で印を付ける（`Client.Ui/Foundation/Anchor/TutorialAnchor.cs`。印付けは `TutorialAnchorRegistryTest.MarkedElementResolvesAsUnique` が見る） | #1674 |
 | 5 | `src/shared/tutorialAnchor/tutorialAnchor.test.ts` | builds a whitespace token match selector | 捨てる | CSS の属性セレクタ（`~=`）の組み立てで、UITK はクラス名の照会で解決しセレクタ文字列を作らない（`Client.Ui/Foundation/Anchor/TutorialAnchorRegistry.cs`） | #1674 |
 | 5 | `src/shared/ui/IconButton/index.test.ts` | aria-label、testId、tutorial向け残余propsをbuttonへ渡す | 捨てる | DOM の属性（aria-label・data-testid・残余 props・type=button）の受け渡しで、UITK の IconButton は残余の属性を受けない（testid の name と押下は `IconButtonTest.クリックで押下を1回流しキーと決定では押されずフォーカスを持たない` が見る） | #1674 |
+| 4 | `src/features/blockInventory/registry/blockComponentRegistry.test.ts` | 網羅e2eが参照する登録blockType一覧と実レジストリを一致させる | 捨てる | Web の registeredBlockTypes との照合。Web の撤去で相手が無くなる（UITK の登録の正しさは同じファイルの残りのテストと `BlockRegistryCoverageTest` が見る） | — |
+| 5 | `src/shared/tutorialAnchor/anchorIds.test.ts` | static IDs match the shared fixture exactly | 捨てる | Web の anchorIds.ts との照合。Web の撤去で相手が無くなる（一覧が `AnchorIds` の定数を過不足なく含むことは `AnchorIdsFormatTest.StaticIdsListEveryNonPrefixConstant` が見る） | — |
+| 5 | `src/shared/tutorialAnchor/anchorIds.test.ts` | dynamic ID prefixes match the shared fixture exactly | 捨てる | Web の anchorIds.ts との照合。Web の撤去で相手が無くなる（`AnchorIdsFormatTest.DynamicPrefixesListEveryPrefixConstant` が見る） | — |
+| 5 | `src/app/zLayerTokens.test.ts` | 通知が沈む背面層はディムより前・stageより後ろに立つ | 捨てる | Web の `--z-*` トークンの順との照合。Web の撤去で相手が無くなる（UITK の層の上下は `UiLayer` の宣言順で、`UiLayerStackTest.LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks` と `UiLayerStackTest.FrontLayerElementIsPickedOverBackLayerElement` が見る） | — |
+| 5 | `src/app/zLayerTokens.test.ts` | stageとディムの層序は生値でなくトークンを参照する | 捨てる | Web の `--z-*` トークンの順との照合。Web の撤去で相手が無くなる（UITK の層の上下は `UiLayer` の宣言順で、`UiLayerStackTest.LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks` と `UiLayerStackTest.FrontLayerElementIsPickedOverBackLayerElement` が見る） | — |
+| 5 | `src/app/zLayerTokens.test.ts` | 常駐HUD層はscreen層より前に立ち、ツールチップはさらに前に立つ | 捨てる | Web の `--z-*` トークンの順との照合。Web の撤去で相手が無くなる（UITK の層の上下は `UiLayer` の宣言順で、`UiLayerStackTest.LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks` と `UiLayerStackTest.FrontLayerElementIsPickedOverBackLayerElement` が見る） | — |
+| 5 | `src/app/zLayerTokens.test.ts` | ポーズメニューは.viewportOverlay一式より前・ツールチップより後ろに立つ | 捨てる | Web の `--z-*` トークンの順との照合。Web の撤去で相手が無くなる（UITK の層の上下は `UiLayer` の宣言順で、`UiLayerStackTest.LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks` と `UiLayerStackTest.FrontLayerElementIsPickedOverBackLayerElement` が見る） | — |
+| 5 | `src/app/zLayerTokens.test.ts` | モーダルはトーストより前に立つ | 捨てる | Web の `--z-*` トークンの順との照合。Web の撤去で相手が無くなる（UITK の層の上下は `UiLayer` の宣言順で、`UiLayerStackTest.LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks` と `UiLayerStackTest.FrontLayerElementIsPickedOverBackLayerElement` が見る） | — |
+| 5 | `src/app/zLayerTokens.test.ts` | 全画面ゲートは再接続オーバーレイより前に立つ | 捨てる | Web の `--z-*` トークンの順との照合。Web の撤去で相手が無くなる（UITK の層の上下は `UiLayer` の宣言順で、`UiLayerStackTest.LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks` と `UiLayerStackTest.FrontLayerElementIsPickedOverBackLayerElement` が見る） | — |

@@ -16,7 +16,7 @@ namespace Client.Tests.Ui.Components.Text
     /// </remarks>
     public class TooltipFaceLineHeightTest : UiTestHost
     {
-        private const float WebLinePitch = 27.9f;
+        private const float ReferenceLinePitch = 27.9f;
 
         // 320px で 3 行に折り返す文（D5 の実測で 3 行）
         // A sentence that wraps to three lines at 320px (three lines measured in D5)
@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.Components.Text
             var twoLines = LineHeight("Settings\nSettings");
             var threeLines = LineHeight("Settings\nSettings\nSettings");
 
-            Assert.AreEqual(WebLinePitch, threeLines - twoLines, 1f);
+            Assert.AreEqual(ReferenceLinePitch, threeLines - twoLines, 1f);
         }
 
         [Test]

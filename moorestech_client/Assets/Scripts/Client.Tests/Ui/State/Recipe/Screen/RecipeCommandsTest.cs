@@ -59,11 +59,11 @@ namespace Client.Tests.Ui.State.Recipe.Screen
             // 既存の機械レシピと共用の拒否理由・Web と同じ失敗コード・良性でない（D-39）
             // Existing reasons shared with machine recipes, Web-identical failure codes, non-benign (D-39)
             Assert.AreEqual(UiCommandRejectReason.RecipeInvalid, unknown.Reason);
-            Assert.AreEqual("invalid_recipe", UiCommandRejectReasonTraits.ToWireCode(unknown.Reason));
+            Assert.AreEqual("invalid_recipe", UiCommandRejectReasonTable.Get(unknown.Reason).WireCode);
             Assert.AreEqual(UiCommandRejectReason.RecipeLocked, lockedResult.Reason);
-            Assert.AreEqual("recipe_locked", UiCommandRejectReasonTraits.ToWireCode(lockedResult.Reason));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(unknown.Reason));
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(lockedResult.Reason));
+            Assert.AreEqual("recipe_locked", UiCommandRejectReasonTable.Get(lockedResult.Reason).WireCode);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(unknown.Reason).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(lockedResult.Reason).IsBenign);
             Assert.IsEmpty(sender.Sent);
         }
     }

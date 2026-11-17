@@ -1,7 +1,7 @@
 // 段階4のCPU時間: GameScreen・PlayerInventory・ResearchTree を各240フレーム、UIElements のパネル更新と描画の和を測る（録画しない）
 // Stage-4 CPU time: sum UIElements panel update and repaint over 240 frames each on GameScreen, PlayerInventory and ResearchTree (no recording)
-// winunity play <branch> <このファイル> --ui-system GameUi で流す（GUI Editor の PlayMode で測る）
-// Run with winunity play <branch> <this file> --ui-system GameUi (measured in the GUI Editor's PlayMode)
+// winunity play <branch> <このファイル> で流す（GUI Editor の PlayMode で測る）
+// Run with winunity play <branch> <this file> (measured in the GUI Editor's PlayMode)
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;

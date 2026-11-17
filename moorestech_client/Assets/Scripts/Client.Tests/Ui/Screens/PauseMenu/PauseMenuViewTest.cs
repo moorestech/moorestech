@@ -26,7 +26,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
     /// </summary>
     public class PauseMenuViewTest : ScreenTestHost
     {
-        private FakePauseMenuModel _model;
         private RecordingPauseMenuCommands _commands;
         private BugReportDraft _draft;
         private PauseMenuView _view;
@@ -34,29 +33,12 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         [SetUp]
         public void MountPauseMenu()
         {
-            _model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.Top));
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
-            var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(_commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
+            _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();
-        }
-
-        [Test]
-        public void 隠している間はモデルの変化を描かず表示すると最新値で描き直す()
-        {
-            _view.SetShown(false);
-            simulate.FrameUpdate();
-            Assert.AreEqual(DisplayStyle.None, _view.resolvedStyle.display);
-            _model.Set(FakePauseMenuModel.Page(PauseMenuPage.Settings));
-            Assert.IsNotNull(_view.Q("pause-menu-save"), "隠している間に設定のページへ描き直した");
-
-            _view.SetShown(true);
-            simulate.FrameUpdate();
-            Assert.AreEqual(DisplayStyle.Flex, _view.resolvedStyle.display);
-            Assert.IsNotNull(_view.Q("language-select"), "表示しても最新のページで描き直さない");
-            Assert.IsNull(_view.Q("pause-menu-save"));
         }
 
         /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">トップは4ボタンだけを出し、言語選択と報告欄を出さない</web-test>
@@ -118,7 +100,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             var line = Find<Label>(_view, "pause-menu-disconnected");
             Assert.IsFalse(IsShown(line));
 
-            _model.Set(new PauseMenuViewModel(PauseMenuPage.Top, true, FakePauseMenuModel.Capture(BugReportCaptureStatus.Ready), PlaytestDeliveryAllSent.Instance, PlaytestExportIdle.Instance));
+            _view.RenderPauseMenu(new PauseMenuViewModel(PauseMenuPage.Top, true, FakePauseMenuModel.Capture(BugReportCaptureStatus.Ready), PlaytestDeliveryAllSent.Instance, PlaytestExportIdle.Instance));
             simulate.FrameUpdate();
             Assert.IsTrue(IsShown(line));
             Assert.AreEqual("Disconnected from server", line.PlainText());
@@ -145,6 +127,9 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         {
             Assert.IsNotNull(_view.Q("pause-menu-locale-english"));
             Localize.TrySetChosenLanguage("japanese");
+            // 言語の購読は Presenter が持つ（PauseMenuScreenSubscriptionTest）ので、ここでは描く口を呼ぶ
+            // The presenter owns the language subscription (PauseMenuScreenSubscriptionTest), so call the render port here
+            _view.RenderLocaleMarker();
             Assert.IsNotNull(_view.Q("pause-menu-locale-japanese"));
             Assert.IsNull(_view.Q("pause-menu-locale-english"));
             Assert.AreEqual("ポーズメニュー", _view.Q<Label>(className: "pause-menu__title").PlainText());
@@ -170,7 +155,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         {
             // スクロールバーの出し入れで 2 回目のレイアウトが走るので、2 フレーム進めて落ち着かせる
             // Showing or hiding the scroller triggers a second layout, so advance two frames to settle
-            _model.Set(FakePauseMenuModel.Page(page));
+            _view.RenderPauseMenu(FakePauseMenuModel.Page(page));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
         }

@@ -185,11 +185,11 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         }
         var detail = Detail();
         var current = detail.GeneratedElectricPower.ToString("F0", CultureInfo.InvariantCulture);
-        p.Note($"server={detail.GenerationState}, RPM={detail.CurrentRpm:F1}, supplied={detail.GeneratedElectricPower:F1}; DOM={rows[0].Text} / {rows[1].Text}");
-        p.Assert(rows.All(row => row.IsFound), "状態・供給電力・歯車・両ネットワークのDOM行がある");
-        p.Assert(rows[0].Text == expectedState, $"DOM状態文字列: {expectedState}");
-        p.Assert(detail.GenerationState.ToString() == (expectedState == "発電中" ? "Generating" : expectedState == "待機中（需要なし）" ? "Idle" : "Stopped"), "DOM状態がサーバーenumと一致");
-        p.Assert(rows[1].Text == $"供給電力 {current} / 最大 100", "DOM供給量がサーバー値と一致");
+        p.Note($"server={detail.GenerationState}, RPM={detail.CurrentRpm:F1}, supplied={detail.GeneratedElectricPower:F1}; 要素={rows[0].Text} / {rows[1].Text}");
+        p.Assert(rows.All(row => row.IsFound), "状態・供給電力・歯車・両ネットワークの要素の行がある");
+        p.Assert(rows[0].Text == expectedState, $"要素の状態文字列: {expectedState}");
+        p.Assert(detail.GenerationState.ToString() == (expectedState == "発電中" ? "Generating" : expectedState == "待機中（需要なし）" ? "Idle" : "Stopped"), "要素の状態がサーバーenumと一致");
+        p.Assert(rows[1].Text == $"供給電力 {current} / 最大 100", "要素の供給量がサーバー値と一致");
         p.Assert(expectPositivePower ? detail.GeneratedElectricPower > 0f : Mathf.Approximately(detail.GeneratedElectricPower, 0f), "サーバー供給量");
         p.Assert(expectedState != "待機中（需要なし）" || rows[4].Text.Contains("需要なし"), $"待機電力網は需要なし: {rows[4].Text}");
         p.Assert(rows[0].ScreenRect.yMax > rows[1].ScreenRect.yMax && rows[1].ScreenRect.yMax > rows[2].ScreenRect.yMax && rows[2].ScreenRect.yMax > rows[3].ScreenRect.yMax &&

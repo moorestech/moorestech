@@ -20,9 +20,8 @@ namespace Client.Tests.UIState.BuildMenu
         public override void Setup()
         {
             base.Setup();
-            // 系の既定は Web なので GameUi にし、ESC の押下はテストから差し込む（前例 UiInputExclusivityEscapeLatchTest）
-            // The default system is Web, so switch to GameUi; ESC presses are injected (precedent UiInputExclusivityEscapeLatchTest)
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.GameUi);
+            // ESC の押下はテストから差し込む（前例 UiInputExclusivityEscapeLatchTest）
+            // ESC presses are injected from the test (precedent UiInputExclusivityEscapeLatchTest)
             TestReflection.ResetInputManagerCache();
             _state = new BuildMenuState(new BuildMenuSelection(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new RightShortPressInputService(new RightShortPressInput()));
             _state.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
@@ -33,7 +32,6 @@ namespace Client.Tests.UIState.BuildMenu
             InputManager.UI.CloseUI.SetKeyDownForTest(false);
             UiInputExclusivity.SetGameUiTextInputFocused(false);
             UiInputExclusivity.ClearEscapeLatchForTest();
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }

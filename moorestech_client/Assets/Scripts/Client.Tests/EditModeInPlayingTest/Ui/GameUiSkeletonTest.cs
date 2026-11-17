@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState;
@@ -9,8 +8,6 @@ using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Routing;
-using Client.WebUiHost.Cef;
-using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -22,6 +19,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
@@ -30,12 +28,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     /// Verifies the skeleton wiring on a UITK boot
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class GameUiSkeletonTest : UiSystemPlayModeTestBase
+    public class GameUiSkeletonTest
     {
         [UnityTest]
         public IEnumerator UITK側の骨組みが層を持ちWebホスト無しで入力素通しが実ゲームで効く()
         {
-            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -61,14 +58,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var gameUiRoot = GameUiRoot.Instance;
 
                 AssertAllLayersExist(gameUiRoot);
-
-                // UITK 起動に Web ホストと CEF は無い
-                // A UITK boot has no web host or CEF
-                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
-                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
-                Assert.IsTrue(Client.WebUiHost.Boot.WebUiHost.HostSkippedThisBoot, "Web ホストを飛ばした起動の状態が立っていない");
-                Assert.AreEqual(WebUiHostStartupState.SkippedByEditorSwitch, WebUiHealthRecorder.HostStartup, "診断記録にスイッチで飛ばしたことが残っていない");
-                Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsSortMode.None).Length, "CEF のブラウザ（RawImage と同じ GameObject）が有効のまま");
 
                 // ルータは UIState だけで画面を決める
                 // The router decides the screen from UIState alone
@@ -147,7 +136,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             var picked = panel.Pick(panelPosition);
             var isOverGameObject = EventSystem.current.IsPointerOverGameObject();
             var isOverAnyUi = UiPointerHitTest.IsPointerOverAnyUi();
-            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState} system={UiInputExclusivity.ActiveUiSystem}");
+            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState}");
             return (picked, isOverGameObject, isOverAnyUi);
         }
     }

@@ -32,10 +32,14 @@ namespace Client.Tests.BugReport
                 VideoSeconds = 0,
             };
             var json = JObject.Parse(manifest.ToJson());
-            foreach (var key in new[] { "schemaVersion", "createdAt", "description", "platform", "isEditor", "reportTick", "snapshotTicks", "snapshotFiles", "packetLogFiles", "repository", "masterData", "serverData", "clientState", "missing", "videoSeconds", "remoteExec", "webUiHealth" })
+            foreach (var key in new[] { "schemaVersion", "createdAt", "description", "platform", "isEditor", "reportTick", "snapshotTicks", "snapshotFiles", "packetLogFiles", "repository", "masterData", "serverData", "clientState", "missing", "videoSeconds", "remoteExec", "gameUiExceptions" })
             {
                 Assert.IsTrue(json.ContainsKey(key), $"キー {key} が無い");
             }
+            // v8 で webUiHealth を外した（UITK 切替で CEF と Web ホストを撤去）。gameUiExceptions は残る
+            // v8 removed webUiHealth (the UITK cutover removed CEF and the web host); gameUiExceptions stays
+            Assert.AreEqual(8, (int)json["schemaVersion"]);
+            Assert.IsFalse(json.ContainsKey("webUiHealth"), "v8 の manifest に webUiHealth が残っている");
             Assert.AreEqual("ffmpeg not found", (string)json["missing"][0]["reason"]);
             Assert.AreEqual("server_v8", (string)json["serverData"]["relativePath"]);
 

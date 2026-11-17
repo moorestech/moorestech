@@ -8,14 +8,14 @@ using VContainer.Unity;
 
 namespace Client.Starter.Registration.GameUi.Screens
 {
-    // ビルドメニュー（GameUi）の登録。Model・コマンド・セッションは GameUi の系だけが使うので画面と一緒にここで登録する（Web の系は橋が同じ規則で動く）
-    // Registers the GameUi build menu; only the GameUi system uses the model, commands and session, so they are registered here with the screen (the Web system runs the bridge with the same rules)
+    // ビルドメニュー（GameUi）の登録。Model・コマンド・セッションは画面だけが使うので画面と一緒にここで登録する
+    // Registers the GameUi build menu; only the screen uses the model, commands and session, so they are registered here with the screen
     internal static class BuildMenuGameUiRegistration
     {
         public static void Register(ContainerBuilder builder)
         {
-            // セッションはメニューを閉じても残す（Web の module 変数と同じ寿命）
-            // The session outlives each close (same lifetime as the Web module variable)
+            // セッションはメニューを閉じても残す
+            // The session outlives each close
             builder.Register<BuildMenuSessionStore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BuildMenuModel>().AsSelf();
 

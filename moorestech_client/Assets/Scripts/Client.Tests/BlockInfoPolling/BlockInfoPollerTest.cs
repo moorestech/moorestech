@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Game.InGame.CleanRoom;
-using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;
 using Server.Protocol.PacketResponse;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;

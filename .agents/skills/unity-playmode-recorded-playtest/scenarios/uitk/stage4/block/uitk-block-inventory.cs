@@ -1,13 +1,10 @@
 // ブロックインベントリ（S4-alpha）を UITK（GameUi）で開き、左掴み・右分割・ダブル集め・Shift 移動が実在庫に効くことを通す
 // Opens the block inventory (S4-alpha) on UITK (GameUi) and checks left pick, right split, double-click collect and Shift move against real stock
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -41,8 +38,6 @@ return PlaytestRunner.Run("uitk-block-inventory", new PlaytestRunOptions { Recor
     try
     {
         p.Assert(Localize.TrySetChosenLanguage("japanese"), "言語を japanese にできる");
-        p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
-        p.Note($"UiInputExclusivity.ActiveUiSystem={UiInputExclusivity.ActiveUiSystem}");
 
         // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
         // Ignore focus so injected input reaches a background Editor

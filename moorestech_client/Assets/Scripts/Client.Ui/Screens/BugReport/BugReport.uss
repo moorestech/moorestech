@@ -1,6 +1,6 @@
-/* バグ報告の欄。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .description / .status / .fieldLabel を写す */
+/* バグ報告の欄。寸法は web@6248097123/src/features/pauseMenu/style.module.css の .description / .status / .fieldLabel を写す */
 /* Web は欄の各行を子画面の Stack gap=md に直に並べるので、行の間はどれも 16px */
-/* Bug-report form; sizes copy .description / .status / .fieldLabel in moorestech_web/webui/src/features/pauseMenu/style.module.css */
+/* Bug-report form; sizes copy .description / .status / .fieldLabel in web@6248097123/src/features/pauseMenu/style.module.css */
 /* The Web lays every row straight into the sub-page Stack gap=md, so each row is 16px apart */
 
 .bug-report {

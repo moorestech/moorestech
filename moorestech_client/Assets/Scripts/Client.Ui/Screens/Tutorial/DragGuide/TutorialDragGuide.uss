@@ -1,5 +1,5 @@
-/* web: W/features/tutorial/overlay/style.module.css（.dragGuide・.dragGuide svg・@keyframes drag-guide-loop） */
-/* web: W/features/tutorial/overlay/style.module.css (.dragGuide, .dragGuide svg, @keyframes drag-guide-loop) */
+/* web: web@6248097123/src/features/tutorial/overlay/style.module.css（.dragGuide・.dragGuide svg・@keyframes drag-guide-loop） */
+/* web: web@6248097123/src/features/tutorial/overlay/style.module.css (.dragGuide, .dragGuide svg, @keyframes drag-guide-loop) */
 .tutorial-drag-guide {
     position: absolute;
     --tutorial-drag-guide-view-size: var(--tutorial-drag-guide-size);

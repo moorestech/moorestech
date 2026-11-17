@@ -4,17 +4,15 @@ using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.Submit;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Playtest.Progress;
-using Client.WebUiHost.Health;
 using VContainer;
 using VContainer.Unity;
 
 namespace Client.Starter.Registration
 {
     /// <summary>
-    /// バグ報告の確保と進行記録の登録。集めない起動（リモート接続・WebUI無し）では記録を取る側を一切登録しない。
-    /// Registers bug-report capture and the progress record; boots that collect nothing (remote connection, no web UI) register none of the recording side.
+    /// バグ報告の確保と進行記録の登録。集めない起動（リモート接続）では記録を取る側を一切登録しない。
+    /// Registers bug-report capture and the progress record; boots that collect nothing (remote connection) register none of the recording side.
     /// </summary>
     internal static class PlaytestRecordRegistration
     {
@@ -45,7 +43,6 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameUiExceptionTally>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
-            builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();

@@ -23,20 +23,6 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
-        public void 探索帯がWebUiのKestrel帯とVite帯に重ならない()
-        {
-            // ポート帯の台帳は2アセンブリに割れるので、重ならないことを機械で固定する
-            // The port bands live in two assemblies, so their disjointness is pinned mechanically
-            var start = RemoteExecHttpListener.BasePort;
-            var end = start + RemoteExecHttpListener.PortSearchRange;
-            foreach (var otherStart in new[] { Client.WebUiHost.Common.WebUiPortConfig.KestrelBasePort, Client.WebUiHost.Common.WebUiPortConfig.ViteBasePort })
-            {
-                var otherEnd = otherStart + Client.WebUiHost.Common.WebUiPortConfig.PortSearchRange;
-                Assert.IsTrue(end <= otherStart || otherEnd <= start, $"遠隔実行の帯 {start}..{end - 1} が {otherStart}..{otherEnd - 1} と重なる");
-            }
-        }
-
-        [Test]
         public void 基準ポートが使用中なら次のポートで開く()
         {
             var blocker = new TcpListener(IPAddress.Loopback, RemoteExecHttpListener.BasePort);

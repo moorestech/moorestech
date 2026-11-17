@@ -5,12 +5,12 @@ using VContainer.Unity;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// GameUi の系でだけパネルを sRGB 合成の RT へ描かせ、画面の大きさを追う（A-180・A-183）
-    /// Only in the GameUi system, draws the panel into the sRGB composite RT and follows the screen size (A-180, A-183)
+    /// パネルを sRGB 合成の RT へ描かせ、画面の大きさを追う（A-180・A-183）
+    /// Draws the panel into the sRGB composite RT and follows the screen size (A-180, A-183)
     /// </summary>
     /// <remarks>
-    /// Web の系では作られないので RT も合成パスも無い。GameUi の系では DI より前に GameUiPreDiFoundation が作って Initialize し、DI へは ITickable として渡す（S5-gate D-2）。パネルを差し替えるので root.panel を控える入口より先に立つ
-    /// Never built in the Web system, so neither the RT nor the composite passes exist; in the GameUi system GameUiPreDiFoundation builds and initializes it before DI and hands it to DI as an ITickable (S5-gate D-2); it swaps the panel, so it starts before entry points that keep root.panel
+    /// DI より前に GameUiPreDiFoundation が作って Initialize し、DI へは ITickable として渡す（S5-gate D-2）。パネルを差し替えるので root.panel を控える入口より先に立つ
+    /// GameUiPreDiFoundation builds and initializes it before DI and hands it to DI as an ITickable (S5-gate D-2); it swaps the panel, so it starts before entry points that keep root.panel
     /// </remarks>
     public sealed class GameUiSrgbCompositeInstaller : IInitializable, ITickable
     {

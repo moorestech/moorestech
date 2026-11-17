@@ -35,18 +35,13 @@ namespace Client.Tests.Ui.TestHost
             panelSize = GameUiPanelSize;
         }
 
-        // UITK の部品と画面は GameUi の系で動く。入力の裁きを GameUi の系にして試し、終わったら既定の Web へ戻す（plan §3.3 R2）
-        // UITK parts and screens run in the GameUi system; arbitrate input as GameUi during the test and restore the default Web afterwards (plan §3.3 R2)
-        [SetUp]
-        public void SelectGameUiSystemForUiTest()
-        {
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.GameUi);
-        }
-
+        // 入力占有は静的に残るので、部品と画面のテストの後に GameUi の文字入力と probe を戻す
+        // Input occupancy is static, so restore the GameUi text focus and probe after each part and screen test
         [TearDown]
-        public void RestoreWebUiSystemAfterUiTest()
+        public void ResetGameUiInputAfterUiTest()
         {
-            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
+            UiInputExclusivity.SetGameUiPointerProbe(null);
         }
     }
 }

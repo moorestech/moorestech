@@ -1,6 +1,6 @@
-/* 設定の各節（言語・走り・画質）。並びは moorestech_web/webui/src/features/settings/*.tsx の素の並びで、間隔は無い */
+/* 設定の各節（言語・走り・画質）。並びは web@6248097123/src/features/settings/*.tsx の素の並びで、間隔は無い */
 /* 見出し・項目名・注記の字と行は SettingsSectionParts が付ける Typography のクラス（Title order=2・Text）、色はポーズの枠から継ぐ */
-/* Settings sections (language, sprint, graphics); they copy the plain, gapless layout of moorestech_web/webui/src/features/settings/*.tsx */
+/* Settings sections (language, sprint, graphics); they copy the plain, gapless layout of web@6248097123/src/features/settings/*.tsx */
 /* Heading, caption and notice text come from the Typography classes SettingsSectionParts attaches (Title order=2, Text); color is inherited from the pause frame */
 .settings-section {
     flex-direction: column;

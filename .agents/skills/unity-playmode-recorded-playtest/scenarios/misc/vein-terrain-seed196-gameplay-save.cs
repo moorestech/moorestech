@@ -1,15 +1,14 @@
 // seed196のrevision5 worldで 手掘り→採掘機→ポンプ→範囲表示→保存 を通し、再ロード照合用の期待値を書き出す
 // tourと同じPLAYTEST_WORLD_DIRECTORYで2回目に起動する。期待値は <world>.vtg-expect.json(world直下を汚さない兄弟ファイル)へ置く
-// 録画・スクショは全てプレイヤー視点(Camera.main)。CEF不調時はWeb UI経路を[env-workaround]の非UI経路へ置き換える
+// 録画・スクショは全てプレイヤー視点(Camera.main)。UI を通さない近道の手順は[env-workaround]と記す
 // On the seed-196 revision-5 world, run hand mining -> miner -> pump -> range display -> save, then write reload expectations.
 // Boot second with the same PLAYTEST_WORLD_DIRECTORY as the tour; expectations go to the sibling file <world>.vtg-expect.json.
-// Every frame is the player view (Camera.main); while CEF is down, Web UI steps are swapped for non-UI paths noted as [env-workaround].
+// Every frame is the player view (Camera.main); steps that bypass the UI are noted as [env-workaround].
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using CefUnity.Runtime;
 using Client.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
@@ -31,7 +30,6 @@ using Newtonsoft.Json;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using VContainer;
 var ironVeinGuid = "fe3ccb53-4902-4191-a4bd-c8fe1f8a086d";
 var waterVeinGuid = "ca978c1e-4ce9-4096-849b-ffbf277206dc";
@@ -41,7 +39,6 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     await BringGameViewToFront();
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 20f, "GameScreenに到達");
-    await HideDeadCefOverlay();
     var inputSettings = InputSystem.settings;
     var (savedBackground, savedEditorInput) = (inputSettings.backgroundBehavior, inputSettings.editorInputBehaviorInPlayMode);
     // 非前面Editorでは既定設定がキーボードを無効化しF/数字キー注入が届かない。シナリオ中だけ全入力をGame Viewへ通す(終了時に戻す)
@@ -86,7 +83,7 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     var pump = await PlaceOnVein("歯車ポンプ", NearestVein(waterVeinGuid), "04-pump");
     // 4: ポーズメニューの「セーブ」と同じGameSaveRequester.Save()を呼び、save.jsonの更新を待つ
     // 4: Call GameSaveRequester.Save(), the very request the pause-menu Save button sends, and wait for save.json
-    p.Note("[env-workaround] CEF不調でポーズメニュー(Web UI)が出ないため、セーブボタンと同じGameSaveRequester.Save()を直接呼ぶ");
+    p.Note("[env-workaround] ポーズメニューを開かず、セーブボタンと同じGameSaveRequester.Save()を直接呼ぶ");
     var savedBefore = File.Exists(world.SaveJsonFilePath) ? File.GetLastWriteTimeUtc(world.SaveJsonFilePath) : DateTime.MinValue;
     ClientDIContext.DIContainer.DIContainerResolver.Resolve<GameSaveRequester>().Save();
     await p.Until(() => File.Exists(world.SaveJsonFilePath) && savedBefore < File.GetLastWriteTimeUtc(world.SaveJsonFilePath), 60f, "セーブ要求でsave.jsonが書き出された");
@@ -129,7 +126,7 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
         p.Note($"[pv] {blockName}を鉱脈{vein.VeinGuid} ({vein.MinX},{vein.MinY},{vein.MinZ})-({vein.MaxX},{vein.MaxY},{vein.MaxZ}) に置く groundY={ground:F4}");
         p.WarpPlayer(new Vector3(standPoint.x, SampleTerrain(standPoint.x, standPoint.z) + 1.5f, standPoint.z));
         await p.WaitSeconds(1f);
-        p.Note("[env-workaround] CEF不調でビルドメニュー(Web UI)が出ないため、同じ設置対象カタログのホットバー割当→数字キーで持つ");
+        p.Note("[env-workaround] ビルドメニューを開かず、同じ設置対象カタログのホットバー割当→数字キーで持つ");
         await p.Hotbar.AssignHotbar(0, blockName);
         await p.Hotbar.EnterBuildMode(0);
         await p.Until(() => RangeBoxes().Count > 0, 10f, $"{blockName}保持中に鉱脈範囲ボックスが表示される");
@@ -174,17 +171,6 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
         return owner == null ? float.NaN : owner.SampleHeight(new Vector3(x, 0f, z)) + owner.transform.position.y;
     }
     string Sha256(string path) => BitConverter.ToString(SHA256.Create().ComputeHash(File.ReadAllBytes(path))).Replace("-", "").ToLowerInvariant();
-    async UniTask HideDeadCefOverlay()
-    {
-        // GameScreen到達後3秒でもCEFが一度も描画しないとき(既知 moorestech-wsnf)だけ、全画面の白RawImageをシナリオ側で隠して実プレイ視点を録る
-        // Only when CEF has not painted once 3 s after GameScreen (known moorestech-wsnf), hide the white full-screen RawImage scenario-side
-        var (cef, deadline) = (CefUnityBrowserSample.DiagnosticsInstance, Time.realtimeSinceStartup + 3f);
-        while (cef != null && cef.DiagnosticsTexturesApplied == 0 && Time.realtimeSinceStartup < deadline) await UniTask.Yield();
-        var overlay = cef == null ? null : cef.GetComponentInChildren<RawImage>(true);
-        if (overlay == null || 0 < cef.DiagnosticsTexturesApplied || !overlay.isActiveAndEnabled) { p.Note($"[env] CEFは描画中かオーバーレイ無し textures={(cef == null ? 0 : cef.DiagnosticsTexturesApplied)}"); return; }
-        overlay.enabled = false;
-        p.Note("[env] CEF起動失敗(既知 moorestech-wsnf)のため白オーバーレイを非表示にした");
-    }
     async UniTask BringGameViewToFront()
     {
         // Game Viewが裏タブだとRecorderがtimeScale=0で固まるため表へ出す(pause-menu-hierarchy.csと同じ手当て)

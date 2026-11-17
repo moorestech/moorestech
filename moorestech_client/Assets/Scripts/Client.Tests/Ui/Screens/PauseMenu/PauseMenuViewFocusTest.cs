@@ -34,11 +34,10 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             var container = new VisualElement();
             rootVisualElement.Add(container);
             GameUiInputRules.Attach(container);
-            var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.BugReport));
-            var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            var view = new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
+            var view = new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             container.Add(view);
             view.SetShown(true);
+            view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.BugReport), FakeSettingsModel.Default());
             simulate.FrameUpdate();
             Find<TextField>(view, "bug-report-description").Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused, "前提: 入力欄にフォーカスが入っている");

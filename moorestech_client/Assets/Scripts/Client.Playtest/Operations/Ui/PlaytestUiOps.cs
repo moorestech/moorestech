@@ -109,7 +109,6 @@ namespace Client.Playtest.Operations.Ui
 
         public static async UniTask ClickPlace()
         {
-            await WaitPointerLeaveWebUi();
             await SemanticInput.Click();
         }
 
@@ -118,7 +117,6 @@ namespace Client.Playtest.Operations.Ui
             // 始点で押下→終点へ移動→解放。設置はボタン解放（GetKeyUp）で確定する
             // Press at the start, move to the end, release; placement commits on button release (GetKeyUp)
             await AimAtWorldPosition(fromWorldPosition);
-            await WaitPointerLeaveWebUi();
             SemanticInput.MouseButtonDown(0);
             await UniTask.DelayFrame(3);
             var endScreenPosition = Camera.main.WorldToScreenPoint(toWorldPosition);
@@ -128,23 +126,6 @@ namespace Client.Playtest.Operations.Ui
             await UniTask.DelayFrame(3);
         }
 
-        private static async UniTask WaitPointerLeaveWebUi()
-        {
-            // Web UIの被覆判定はページからのWS通知で非同期更新されるため、直前のUIクリックの「UI上」状態が
-            // 解除されるのを待ってから設置クリックする（待たないと押下がIsPointerOverAnyUiに弾かれるレースになる）
-            // The Web UI pointer-over state updates asynchronously via WS notifications from the page, so wait for the
-            // previous UI click's over-UI state to clear before place clicks (otherwise IsPointerOverAnyUi eats the press)
-            var deadline = Time.realtimeSinceStartup + 2f;
-            while (Client.Input.UiInputExclusivity.IsPointerOverWebUi)
-            {
-                if (deadline < Time.realtimeSinceStartup)
-                {
-                    Debug.LogWarning("[Playtest] pointer still over Web UI before a place click; proceeding anyway");
-                    return;
-                }
-                await UniTask.Yield();
-            }
-        }
 #if UNITY_EDITOR
         // OS の前面を取らずに注入入力を受ける形へ整える。EditorWindow.Focus は Editor を前面へ出し、並走する別 Editor のフォーカスも奪う
         // Prepare injected input without taking the OS foreground; EditorWindow.Focus raises the Editor and steals focus from a parallel Editor

@@ -1,8 +1,8 @@
 // 時刻表UI経路の通し検証: 駅2基・レール・機関車を置き、Fで車両を開き時刻表タブから1駅ずつ追加し、時刻表に載るのを待つ→自動運転ON→走行→OFF→停止。
-// 駅名はサーバー直で付け、時刻表タブの表示に名前が出ることを確認する（CEFへキー入力は転送されないため入力欄の打鍵はしない）。
+// 駅名はサーバー直で付け、時刻表タブの表示に名前が出ることを確認する（入力欄の打鍵はしない）。
 // 時刻表の取得は列車インベントリを開いただけでは起きず、時刻表タブを選んだときに1回だけ起き、開き直すと再取得されることも確かめる。
 // Timetable UI end-to-end: place two stations, rails and a locomotive, open the car with F, add the stations one at a time waiting until each lands in the timetable, turn auto-run on, watch it move, turn it off and watch it stop.
-// Station names are set server-side and verified in the tab (keystrokes are not forwarded to CEF, so the name input is not typed).
+// Station names are set server-side and verified in the tab (the name input is not typed).
 // It also checks that opening the train inventory alone does not fetch the timetable, selecting the tab fetches it once, and reopening fetches it again.
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +49,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
         UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>().SetActive(false);
         // ===== 駅2基とレール =====
         // ===== Two stations and rails =====
-        p.Note($"駅2基を直設置し、A出口→B入口、B出口→A入口を結線する（描画系={Client.Input.UiInputExclusivity.ActiveUiSystem}）");
+        p.Note($"駅2基を直設置し、A出口→B入口、B出口→A入口を結線する");
         var stationAPos = new Vector3Int(10, 32, 4);
         var stationBPos = new Vector3Int(10, 32, 64);
         await p.PlaceBlockDirect("蒸気機関車駅", stationAPos, BlockDirection.South);
@@ -171,8 +171,8 @@ return PlaytestRunner.Run("train-timetable-via-ui", new PlaytestRunOptions { Rec
     void CountWarnings(string condition, string stackTrace, LogType type)
     {
         if (condition.Contains("Hash mismatch detected")) mismatchCount++;
-        // Web 系の拒否と UITK 系の拒否の Warning を同じ数え方で数え、両系で 0 件を主張する
-        // Count Web-side and UITK-side rejection warnings the same way so both systems assert zero
+        // 編集の拒否と UITK のコマンド結果の Warning を数え、0 件を主張する
+        // Count edit-rejection and UITK command-result warnings so the scenario asserts zero
         if (condition.Contains("[TrainScheduleEdit] rejected") || condition.Contains("[SetTrainStationName] rejected") || condition.Contains("[UiCommandResultToaster] train_")) rejectCount++;
         if (condition.Contains("[TrainTimetableFetcher] requesting timetable")) timetableRequestCount++;
     }

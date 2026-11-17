@@ -1,7 +1,7 @@
 // 半透明の合成方式のフレーム時間とピッキング（I-blend）: sRGB 合成（新）と Linear 合成（旧）を交互に 3 回ずつ、1280×720 と 2560×1080 で測る
-// 実行前に PlayMode を止め、UiSystemEditorSwitch.Set(UiSystem.GameUi) を立て、Editor を前面に出してから run-scenario.sh を呼ぶ
+// 実行前に PlayMode を止め、Editor を前面に出してから run-scenario.sh を呼ぶ
 // Frame time and picking of the blend methods (I-blend): sRGB blending (new) and Linear blending (old) alternated three times each at 1280x720 and 2560x1080
-// Stop PlayMode, set UiSystemEditorSwitch.Set(UiSystem.GameUi) and focus the Editor before run-scenario.sh
+// Stop PlayMode and focus the Editor before run-scenario.sh
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;

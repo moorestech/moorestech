@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.State.BuildMenu
 
             Assert.AreEqual("invalid_state", closed.ToWireCode());
             Assert.AreEqual("unknown_entry", unknown.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(closed.Reason));
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(unknown.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(closed.Reason).IsBenign);
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(unknown.Reason).IsBenign);
             Assert.IsFalse(_selection.TryConsumeSelectedTarget(out _));
         }
 
@@ -87,15 +87,20 @@ namespace Client.Tests.Ui.State.BuildMenu
             var result = (UiCommandRejected)CreateCommands(deleteResult).DeleteBlueprint(Guid.NewGuid()).GetAwaiter().GetResult();
 
             Assert.AreEqual(wireCode, result.ToWireCode());
-            Assert.AreEqual(benign, UiCommandRejectReasonTraits.IsBenign(result.Reason));
+            Assert.AreEqual(benign, UiCommandRejectReasonTable.Get(result.Reason).IsBenign);
         }
 
         [Test]
-        public void BP削除の成功は受理になる()
+        public void BP削除の成功は受理になり受けたGuidをそのまま削除へ渡す()
         {
-            var result = CreateCommands(BlueprintDeleteResult.Success).DeleteBlueprint(Guid.NewGuid()).GetAwaiter().GetResult();
+            var blueprintGuid = Guid.NewGuid();
+            var deleteService = new BlueprintDeleteServiceStub(BlueprintDeleteResult.Success);
+            var commands = new BuildMenuCommands(_routing, _requester, _resolver, _selection, deleteService);
+
+            var result = commands.DeleteBlueprint(blueprintGuid).GetAwaiter().GetResult();
 
             Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(blueprintGuid, deleteService.LastDeletedGuid);
         }
 
         [Test]
@@ -119,7 +124,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             Assert.IsEmpty(_requester.Requested);
             Assert.AreEqual(UiCommandRejectReason.BuildMenuNotOpen, closed.Reason);
             Assert.AreEqual("invalid_state", closed.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(closed.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(closed.Reason).IsBenign);
         }
 
         [Test]
@@ -135,7 +140,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, _requester.Requested);
             Assert.AreEqual(UiCommandRejectReason.ScreenCloseRefused, refused.Reason);
             Assert.AreEqual("transition_not_allowed", refused.ToWireCode());
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(refused.Reason));
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(refused.Reason).IsBenign);
         }
 
         private BuildMenuCommands CreateCommands(BlueprintDeleteResult deleteResult)
@@ -165,6 +170,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         private sealed class BlueprintDeleteServiceStub : IBlueprintDeleteService
         {
             private readonly BlueprintDeleteResult _result;
+            public Guid LastDeletedGuid { get; private set; }
 
             public BlueprintDeleteServiceStub(BlueprintDeleteResult result)
             {
@@ -173,6 +179,7 @@ namespace Client.Tests.Ui.State.BuildMenu
 
             public UniTask<BlueprintDeleteResult> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
             {
+                LastDeletedGuid = blueprintGuid;
                 return UniTask.FromResult(_result);
             }
         }

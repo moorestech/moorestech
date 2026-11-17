@@ -1,5 +1,6 @@
 using Client.PlaytestReceiver.Recovery;
 using Client.Game.InGame.Presenter.PauseMenu;
+using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +13,6 @@ using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.PlaytestReceiver;
-using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
@@ -21,8 +21,8 @@ using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.Util
 {
-    // ポーズメニュー確保→送信→増えた箱を取るまでの手順。確保の打ち切り時間とハンドラの引数はここ1箇所で追う
-    // The capture-to-submit-to-new-bundle steps; the capture timeout and the handler's arguments are tracked in this one place
+    // ポーズメニュー確保→送信→増えた箱を取るまでの手順。確保の打ち切り時間と命令の引数はここ1箇所で追う
+    // The capture-to-submit-to-new-bundle steps; the capture timeout and the command arguments are tracked in this one place
     public static class BugReportSubmitUtil
     {
         public static async UniTask<BugReportCaptureSession> OpenPauseMenuAndWaitCapture(IObjectResolver resolver)
@@ -42,8 +42,8 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "20秒以内に送信できる状態にならない");
         }
 
-        // 種別はwebuiのトグルが必ず載せる契約値で、欠けた要求は invalid_kind で拒否される
-        // The kind is a contract value the webui toggle always sends; a request without it is refused as invalid_kind
+        // 種別は UITK のポーズメニューの命令が受け取り、箱の manifest の kind に載る
+        // The UITK pause menu command takes the kind, which lands in the bundle manifest as kind
         public static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, PlaytestReportKind kind, IReadOnlyCollection<string> before)
         {
             var uploadRequester = new RecordingUploadRequester();
@@ -52,10 +52,13 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 resolver.Resolve<BugReportCaptureSession>(),
                 resolver.Resolve<IPlaytestProgressSink>(),
                 uploadRequester);
-            var handler = new BugReportSubmitActionHandler(new PauseMenuCommands(resolver.Resolve<GameSaveRequester>(), resolver.Resolve<SaveAndQuitPresenter>(), resolver.Resolve<PauseMenuStateService>(), submitter, resolver.Resolve<PlaytestOutboxRecovery>()));
+            var commands = new PauseMenuCommands(resolver.Resolve<GameSaveRequester>(), resolver.Resolve<SaveAndQuitPresenter>(), resolver.Resolve<PauseMenuStateService>(), submitter, resolver.Resolve<PlaytestOutboxRecovery>());
             var kindText = PlaytestReportKindText.ToContractText(kind);
-            var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kindText });
-            Assert.IsTrue(result.Ok, result.Error);
+
+            // UITK のポーズメニューの命令で送る
+            // Submit through the UITK pause menu command
+            var result = await commands.SubmitBugReport(description, kind);
+            Assert.IsInstanceOf<UiCommandAccepted>(result, $"bug report submit was rejected: {result}");
             Assert.AreEqual(1, uploadRequester.RequestCount, "書けた箱は送信の押し場を必ず1回押す");
 
             // 起動時の退避が kind=crash の箱を同じoutboxへ足すため、増えた箱を数えるだけでは偽陽性になる。種別で絞る

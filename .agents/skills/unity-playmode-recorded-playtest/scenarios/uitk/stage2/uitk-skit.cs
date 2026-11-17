@@ -1,15 +1,11 @@
-// スキット（S2-skit）: Web ホスト無しで、会話窓のクリック・Enter・自動送り・UI 非表示と復帰・選択肢・Ctrl+U とカットシーンの全体非表示を UITK で動かして録画する
-// Skit (S2-skit): with no web host, drive the window click, Enter, auto-advance, hide/restore UI, choices and Ctrl+U/cutscene whole-UI hiding in UITK and record them
-// 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
+// スキット（S2-skit）: 会話窓のクリック・Enter・自動送り・UI 非表示と復帰・選択肢・Ctrl+U とカットシーンの全体非表示を UITK で動かして録画する
+// Skit (S2-skit): drive the window click, Enter, auto-advance, hide/restore UI, choices and Ctrl+U/cutscene whole-UI hiding in UITK and record them
 using Client.Game.InGame.UI.UIState;
-using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Skit.UI;
 using Client.Ui.Foundation.Root;
-using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UniRx;
@@ -30,14 +26,11 @@ return PlaytestRunner.Run("uitk-skit", options, async p =>
     InputSystem.EnableDevice(Keyboard.current);
     InputSystem.EnableDevice(Mouse.current);
 
-    p.Note($"全体スイッチ 系={UiInputExclusivity.ActiveUiSystem}");
-    p.Assert(UiInputExclusivity.ActiveUiSystem == UiSystem.GameUi, "全体スイッチが UITK（GameUi）");
     // Game View が裏タブだと描画されず、Recorder が初回フレーム待ちで timeScale=0 に固定してスキットの scaled Delay が返らないため表へ出す（vq8w・iefh）
     // A Game View behind another tab never renders, so the Recorder pins timeScale=0 and the skit's scaled delays never return; bring it to front (vq8w, iefh)
     Client.Playtest.Operations.Ui.PlaytestGameViewOps.BringToFront();
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-    p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（hostless）");
     var store = SkitPresentationStateStore.Instance;
     var skitManager = Object.FindFirstObjectByType<Client.Game.Skit.SkitManager>(FindObjectsInactive.Include);
     var backgroundSkit = Object.FindFirstObjectByType<Client.Game.InGame.BackgroundSkit.BackgroundSkitManager>(FindObjectsInactive.Include);

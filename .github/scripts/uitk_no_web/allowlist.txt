@@ -1,0 +1,46 @@
+# G4 の許可リスト。1 行 1 件: `path <glob>  # 理由` か `line <glob> <regex>  # 理由`。glob の * は / も跨ぐ
+# 何も許していない行はゲートを落とす（腐った行を残さない）
+path .github/scripts/uitk_no_web/* # G4 自身（検出する語を書く）
+path .github/scripts/check-uitk-no-web.py # G4 の入口
+path .github/scripts/tests/test_uitk_no_web.py # G4 のテスト（検出する語を入力に使う）
+path .github/scripts/uitk_web_follow/* # G1（切替 PR まで要る。X-cleanup が消す）
+path .github/scripts/tests/test_uitk_web_follow_* # G1 のテスト
+path tools/uitk/testNameParity/* # テスト名の突き合わせ（X-cleanup まで）
+path docs/uitk/TODO.md # 台帳（X-cleanup が消す）
+path docs/uitk/disposition.md # 写さない Web テストの処遇（X-cleanup が消す）
+path docs/adr/* # ADR は経緯を残す
+path .decisions/* # 裁定の原文
+path docs/archive/* # 撤去前の文書
+path docs/superpowers/* # 過去の計画・設計書
+path docs/plans/* # 過去の計画
+path docs/uitk-migration/* # 移行の設計書（経緯）
+path docs/research/* # 調査の記録
+path docs/performance/* # 計測の記録
+path .agents/skills/moores-code-review/tests/s5_shape/fixtures/* # 過去の実行記録の写し（テストの入力）
+path scripts/playtest/lib/release-artifact.sh # 配布物に CEF のファイルが 0 であることの検査（統合計画 §5.1-1。X-5b）
+path scripts/playtest/tests/test-release-playtest-mac.sh # 配布物に CEF のファイルが 0 であることの検査の契約テスト（Mac。統合計画 §5.1-1。X-5b）
+path scripts/playtest/tests/test-release-playtest.sh # 配布物に CEF のファイルが 0 であることの検査の契約テスト（Windows。統合計画 §5.1-1。X-5b）
+path scripts/playtest/tests/lib/release-playtest-build-stubs.sh # 配布物に CEF のファイルが 0 であることの検査の契約テストのスタブ（統合計画 §5.1-1。X-5b）
+line scripts/playtest/README.md release_require_no_cef_files # 配布物に CEF のファイルが 0 であることの検査の説明（統合計画 §5.1-1。X-5b）
+path moorestech_client/Assets/Scripts/Editor/Build/PreRemovalStreamingAssetsCleaner.cs # 撤去前のビルドが残した StreamingAssets/WebUi をビルド前に消す（X-5a 最終レビュー D2）
+line .gitignore ^moorestech_client/Assets/StreamingAssets/WebUi(/|\.meta)$ # 撤去前の作業コピーに残る dist と .meta を無視する行（X-5c が残す。消すと untracked に戻り git add -A で入る。X-cleanup が .gitignore の行と同じ PR で消す）
+line .gitignore ^/moorestech_web/$ # 撤去前の作業コピーに残る node・dist の残骸を無視する行（X-5c が足す。X-cleanup が .gitignore の行と同じ PR で消す）
+line .gitignore 撤去前の作業コピーに残る残骸を無視する # 上の 3 行の見出しの日本語のコメント（X-5c が書く。X-cleanup が .gitignore の行と同じ PR で消す）
+line .agents/skills/ref-uitk-design/SKILL.md git show <sha10>:moorestech_web/webui/ # §5 の 6.: 既存の USS の出所コメント（web@<sha10>）を撤去前の Web 版から git show で読む方法（X-5e-docs の申し送り）
+line .agents/skills/ref-uitk-design/references/component-catalog.md git show <sha10>:moorestech_web/webui/ # 正本の行（:7）: カタログの web@<sha10> の出所を撤去前の Web 版から git show で読む方法（X-5e-docs の申し送り）
+line .agents/skills/ref-uitk-design/references/compare-procedure.md ^cd <master の worktree>/moorestech_web/webui && pnpm install$ # I-follow の参照キャプチャの撮り直し手順（切替 PR のマージまで master に Web 版がある間だけ要る。マージの後に手順ごと消す。X-5e-docs の申し送り）
+line .agents/skills/ref-uitk-design/references/compare-procedure.md git show 6248097123:moorestech_web/webui/public/mock-orange-gradient\.png # 合成撮影の地の画像を撤去前の Web 版（web@6248097123）から取り出す読み方（§5・:7 と同じ git show の読み方）
+line .agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-*.cs webUiHealth # v8 の manifest に webUiHealth（CEF 停止の記録）が無いことを確かめるシナリオの assert とコメント（X-5a Task 8 が書かせた。消すと v7 への逆戻りを捕まえられない）
+line .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs webUiHealth|CEF 停止の記録|CEF-stall record # v8 の manifest に webUiHealth（CEF 停止の記録）が無いことを確かめるラダー 1 の assert とコメント（X-5a Task 8 が書かせた）
+line moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/BugReportManifest.cs //\ v[68]: # manifest の版の履歴（v6 で足し v8 で外した webUiHealth の記録。D-55）
+line moorestech_client/Assets/Scripts/Client.Tests/BugReport/*Manifest*Test.cs webUiHealth # v8 の manifest（通常の箱・異常終了の箱）に webUiHealth が無いことを確かめるテスト（D-59。消すと v7 への逆戻りを捕まえられない）
+path scripts/playtest/dashboard/* # v6・v7 の報告の webUiHealth の欄を読む（過去の箱を読む読み手。X-5a 計画「やらないこと」・W6-12）
+line scripts/playtest/tests/test_dashboard.py webUiHealth # 同じ欄（過去の v6・v7 の報告の webUiHealth）の表示のテスト
+path docs/evidence/* # 過去の検証の証拠（撮影時点の記録。中身は書き換えない）
+path docs/pr-assets/* # 過去の PR の素材（当時の画面と説明。中身は書き換えない）
+path docs/qa/* # 日付つきの過去の QA の記録（中身は書き換えない）
+path docs/gamescom/* # 日付つきの過去のプレイテストの声の記録（中身は書き換えない）
+path docs/bug-report-system-open-questions.md # 当時の未決事項の記録（冒頭で「当時の記録」と断っている。中身は書き換えない）
+line scripts/playtest/README.md Steamworks\ Web\ UI # Steam の管理画面の名前（撤去した UI ではない）
+line docs/uitk/README.md (撤去した|docs/archive/) # 入口が撤去と archive を案内する（X-5e-docs の文書。次の文書の手直しで）
+line .agents/skills/moores-code-review/scripts/model_map.json knip\ ゲート撤去\(Web\ UI\ 撤去\) # ts/tsx の reviewer を戻さない理由の記録（X-5e-docs の文書。次の文書の手直しで）

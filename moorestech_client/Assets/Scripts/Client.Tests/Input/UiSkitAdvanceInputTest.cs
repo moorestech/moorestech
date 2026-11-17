@@ -22,7 +22,7 @@ namespace Client.Tests.Input
 
         public override void TearDown()
         {
-            UiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetGameUiTextInputFocused(false);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
@@ -59,7 +59,7 @@ namespace Client.Tests.Input
 
             // 抑止の判定とログは InputSuppressionFilter が持ち、画面は自前で判定しない（D-29）
             // InputSuppressionFilter owns the suppression decision and its log; the screen does not judge it itself (D-29)
-            UiInputExclusivity.SetState(false, true);
+            UiInputExclusivity.SetGameUiTextInputFocused(true);
             Press(keyboard.enterKey);
             InputSystem.Update();
             Assert.AreEqual(0, keyDowns);

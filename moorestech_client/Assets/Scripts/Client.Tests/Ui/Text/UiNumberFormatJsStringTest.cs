@@ -1,5 +1,4 @@
 using System.Globalization;
-using Client.WebUiHost.Common;
 using Client.Ui.State.Text;
 using NUnit.Framework;
 
@@ -11,9 +10,6 @@ namespace Client.Tests.Ui.Text
     /// </summary>
     public class UiNumberFormatJsStringTest
     {
-        private class FloatHolder { public float Value; }
-        private class DoubleHolder { public double Value; }
-
         private CultureInfo _savedCulture;
 
         [SetUp]
@@ -62,10 +58,10 @@ namespace Client.Tests.Ui.Text
         }
 
         [Test]
-        public void サーバーfloatはWebUiJsonが書くRの表記のdoubleになり電力が長い桁で出ない()
+        public void サーバーfloatはRの表記のdoubleになり電力が長い桁で出ない()
         {
-            // float 33.333332f をそのまま double にすると 33.33333206176758、Web は WebUiJson が書く R 表記（Mono は G7 で往復しなければ G9）を読むので 33.3333321
-            // A raw double of 33.333332f is 33.33333206176758; the Web reads the R form WebUiJson writes (Mono: G7 if it round-trips, else G9), 33.3333321
+            // float 33.333332f をそのまま double にすると 33.33333206176758、撤去前の Web 版はホストの JSON が書く R 表記（Mono は G7 で往復しなければ G9）を読むので 33.3333321
+            // A raw double of 33.333332f is 33.33333206176758; the pre-removal Web read the R form its host JSON wrote (Mono: G7 if it round-trips, else G9), 33.3333321
             Assert.AreEqual("33.3333321", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(33.333332f)));
             Assert.AreEqual("0.1", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(0.1f)));
             Assert.AreEqual("-12.5", UiNumberFormat.JsString(UiNumberFormat.FromServerFloat(-12.5f)));
@@ -90,18 +86,6 @@ namespace Client.Tests.Ui.Text
             // 12.35f is 12.3 on Web (toFixed(1))
             Assert.AreEqual("12.4", UiNumberFormat.Fixed(12.35f, 1));
             Assert.AreEqual("12.3", UiNumberFormat.Fixed(UiNumberFormat.FromServerFloat(12.35f), 1));
-        }
-
-        [TestCase(100000.05f)]
-        [TestCase(33.333332f)]
-        [TestCase(12.35f)]
-        public void サーバーfloatはWebUiJsonのJSONをdoubleで読んだ値と一致する(float value)
-        {
-            // Web は WebUiJson が書いた float の表記を double で読むので、その値と FromServerFloat が同じになる
-            // The Web reads the float text WebUiJson wrote as a double, so FromServerFloat must equal that value
-            var json = WebUiJson.Serialize(new FloatHolder { Value = value });
-            var webValue = WebUiJson.Deserialize<DoubleHolder>(json).Value;
-            Assert.AreEqual(webValue, UiNumberFormat.FromServerFloat(value));
         }
 
         [Test]
