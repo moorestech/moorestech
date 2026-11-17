@@ -16,13 +16,13 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         [Test]
         public void クラスに届いた部屋はクラス名と濃度と換気回数と清浄機ごとの行を出す()
         {
-            var room = new CleanRoomSummary(CleanRoomHeadline.Class("A"), 0.12345, 2.5, new[] { new CleanRoomAirFilter(0.756, 5, 0.5) });
+            var room = new CleanRoomSummary(CleanRoomHeadline.Class("A"), 2.5, new[] { new CleanRoomAirFilter(0.756, 5, 0.5) });
             var view = CleanRoomLogic.Display(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None));
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomClass, new[] { "className", "A" }, view.Headline);
             Assert.IsFalse(view.HeadlineInsufficient);
             Assert.IsInstanceOf<EnclosedCleanRoomDisplay>(view);
             var enclosed = (EnclosedCleanRoomDisplay)view;
-            UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomAir, new[] { "concentration", "0.123", "airChangeRate", "2.500" }, enclosed.Air);
+            UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomAir, new[] { "airChangeRate", "2.500" }, enclosed.Air);
             Assert.AreEqual(1, enclosed.Filters.Count);
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomFilter, new[] { "index", "1", "power", "76", "count", "5", "remaining", "50" }, enclosed.Filters[0]);
             Assert.IsFalse(enclosed.ShowsNoFilter);
@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         [Test]
         public void Outの部屋は赤で示し清浄機が無ければその旨を出す()
         {
-            var outRoom = new CleanRoomSummary(CleanRoomHeadline.ClassOut, 3, 0, new CleanRoomAirFilter[0]);
+            var outRoom = new CleanRoomSummary(CleanRoomHeadline.ClassOut, 0, new CleanRoomAirFilter[0]);
             var view = CleanRoomLogic.Display(CleanRoomFetchedDetail.Enclosed(outRoom, CleanRoomHaltReason.ClassOut));
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut, view.Headline);
             Assert.IsTrue(view.HeadlineInsufficient);

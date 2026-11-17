@@ -31,7 +31,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         private FakeBlockContextModel _context;
         private FakeMachineSectionModel _machine;
 
-        private static readonly CleanRoomSummary Room = new(CleanRoomHeadline.Class("ISO 5"), 1, 1, new[] { new CleanRoomAirFilter(1, 1, 1) });
+        private static readonly CleanRoomSummary Room = new(CleanRoomHeadline.Class("ISO 5"), 1, new[] { new CleanRoomAirFilter(1, 1, 1) });
 
         [SetUp]
         public void SetUpModels()

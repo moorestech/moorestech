@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         public void 密閉済みの部屋は見出し空気清浄機停止理由の順()
         {
             var filters = new[] { new CleanRoomAirFilter(1, 2, 0.5), new CleanRoomAirFilter(0.5, 1, 0.25) };
-            var summary = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 100, 20, filters);
+            var summary = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 20, filters);
             var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.ClassOut)));
 
             CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-air-filter-1", "clean-room-halt-reason" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         [Test]
         public void 清浄機が無い部屋はその旨を赤で出す()
         {
-            var summary = new CleanRoomSummary(CleanRoomHeadline.Class("A"), 0, 0, new CleanRoomAirFilter[0]);
+            var summary = new CleanRoomSummary(CleanRoomHeadline.Class("A"), 0, new CleanRoomAirFilter[0]);
             var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.None)));
 
             CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air", "clean-room-no-filter" }, ShownNames(view.Q<VisualElement>("clean-room-section")));

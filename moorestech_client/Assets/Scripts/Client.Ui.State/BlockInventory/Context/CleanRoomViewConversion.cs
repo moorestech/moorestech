@@ -81,7 +81,7 @@ namespace Client.Ui.State.BlockInventory.Context
                 var filters = new List<CleanRoomAirFilter>();
                 foreach (var filter in room.AirFilters) filters.Add(new CleanRoomAirFilter(filter.PowerRatio, filter.FilterItemCount, filter.FilterRemainingRatio));
                 var headline = room.TryGetClass(out var className, out _) ? CleanRoomHeadline.Class(className) : CleanRoomHeadline.ClassOut;
-                return new CleanRoomSummary(headline, room.Concentration, room.AirChangeRate, filters);
+                return new CleanRoomSummary(headline, room.AirChangeRate, filters);
             }
 
             #endregion

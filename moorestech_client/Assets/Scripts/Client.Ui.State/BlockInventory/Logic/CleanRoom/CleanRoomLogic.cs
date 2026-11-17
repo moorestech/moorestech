@@ -59,7 +59,6 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                     : new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut);
                 var air = new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomAir, new[]
                 {
-                    new LocalizationTextParam("concentration", UiNumberFormat.Fixed(room.Concentration, 3)),
                     new LocalizationTextParam("airChangeRate", UiNumberFormat.Fixed(room.AirChangeRate, 3)),
                 });
                 return new EnclosedCleanRoomDisplay(headline, room.Headline is ClassOutCleanRoomHeadline, air, filters, haltReason);

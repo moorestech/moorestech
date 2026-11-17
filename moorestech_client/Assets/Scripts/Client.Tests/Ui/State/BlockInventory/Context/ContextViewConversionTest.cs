@@ -27,7 +27,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         private static CleanRoomSummaryMessagePack Room(bool classified)
         {
             var filters = new List<CleanRoomAirFilterMessagePack> { new(new Vector3IntMessagePack(0, 0, 0), 0.5, 3, 2, 0.25) };
-            return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 1.5, 2.5, 10, filters) : CleanRoomSummaryMessagePack.CreateOut(1.5, 2.5, 10, filters);
+            return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 2.5, 10, filters) : CleanRoomSummaryMessagePack.CreateOut(2.5, 10, filters);
         }
 
         private static T PresentValue<T>(SectionContent<T> entry)
@@ -53,7 +53,6 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 
             var enclosed = (EnclosedCleanRoomDetail)Machined(new CleanRoomEnclosedView(Room(true)), CleanRoomOperability.Operable);
             Assert.AreEqual("ISO5", ((ClassCleanRoomHeadline)enclosed.Room.Headline).ClassName);
-            Assert.AreEqual(1.5, enclosed.Room.Concentration);
             Assert.AreEqual(2.5, enclosed.Room.AirChangeRate);
             Assert.AreEqual(1, enclosed.Room.AirFilters.Count);
             Assert.AreEqual(2, enclosed.Room.AirFilters[0].FilterItemCount);

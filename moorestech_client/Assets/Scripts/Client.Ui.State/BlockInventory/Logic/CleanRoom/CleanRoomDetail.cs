@@ -61,14 +61,12 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     public sealed class CleanRoomSummary
     {
         public CleanRoomHeadline Headline { get; }
-        public double Concentration { get; }
         public double AirChangeRate { get; }
         public IReadOnlyList<CleanRoomAirFilter> AirFilters { get; }
 
-        public CleanRoomSummary(CleanRoomHeadline headline, double concentration, double airChangeRate, IReadOnlyList<CleanRoomAirFilter> airFilters)
+        public CleanRoomSummary(CleanRoomHeadline headline, double airChangeRate, IReadOnlyList<CleanRoomAirFilter> airFilters)
         {
             Headline = headline;
-            Concentration = concentration;
             AirChangeRate = airChangeRate;
             AirFilters = airFilters;
         }
