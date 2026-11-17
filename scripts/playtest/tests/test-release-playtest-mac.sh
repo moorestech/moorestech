@@ -90,7 +90,7 @@ grep -Fqx "$(printf '\t"contentroot" "%s/build-mac"' "$special_run")" "$special_
 FAILURE_CASES=("mac-build UNITY_MAC_EXIT=1" "codesign CODESIGN_EXIT=1" "universal LIPO_ARCHS=x86_64_arm64" \
     "intel LIPO_ARCHS=x86_64" "ffmpeg-architecture LIPO_FFMPEG_ARCHS=x86_64" \
     "event-script MAC_LEAKS_EVENT_SCRIPT=1" "mac-target BUILD_INFO_TARGET_MAC=StandaloneWindows64" \
-    "mac-leaks-cef MAC_LEAKS_CEF=1")
+    "mac-leaks-cef MAC_LEAKS_CEF=1" "mac-not-executable MAC_NOT_EXECUTABLE=1")
 for required_path in "${MAC_REQUIRED_RELATIVE_PATHS[@]}"; do
     FAILURE_CASES+=("missing-$required_path MAC_MISSING_PATH=$required_path")
 done

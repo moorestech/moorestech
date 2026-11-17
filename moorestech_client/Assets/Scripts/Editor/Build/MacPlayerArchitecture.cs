@@ -1,34 +1,48 @@
+using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace Client.Editor.Build
 {
     /// <summary>
-    /// arm64固定の結果（ホスト都合の不能とビルド失敗を呼び出し側が区別できるようにする）
-    /// The pinning result, so callers can tell a host limitation apart from a build failure
+    /// arm64固定の結果（Mac Build Support の欠落とビルド失敗を呼び出し側が区別できるようにする）
+    /// The pinning result, so callers can tell a missing Mac Build Support apart from a build failure
     /// </summary>
     internal enum MacArchitecturePinResult
     {
         Pinned,
-        UnsupportedHost,
+        MacBuildSupportMissing,
     }
 
     /// <summary>
     /// Mac Playerをarm64専用に固定する（Mac版はApple Silicon専用。同梱ffmpegもmacos-arm64版だけ。ADR 0071）
     /// Pins the Mac player to arm64 only; the Mac build is Apple Silicon only and bundles a macos-arm64 ffmpeg (ADR 0071)
+    /// OSXStandalone.UserBuildSettings.architecture と同じ保存先を文字列APIで触る。型はMacホストでしかコンパイルに入らないが、設定はMac Build Supportがあればどのホストでも効く
+    /// It writes the same storage as OSXStandalone.UserBuildSettings.architecture through the string API; the type compiles only on Mac hosts, but the setting works on any host that has Mac Build Support
     /// </summary>
     internal static class MacPlayerArchitecture
     {
-        public const string UnsupportedHostReason =
-            "[MacPlayerArchitecture] 非Macホストではarm64へ固定できず、macos-arm64版だけを同梱したffmpegの録画が動かない可能性があります";
+        public const string MacBuildSupportMissingReason =
+            "[MacPlayerArchitecture] このEditorにMac Build Supportが入っていないため、Mac Playerをarm64へ固定できません（Unity HubでMac Build Supportを追加してください）";
 
-#if UNITY_EDITOR_OSX
-        private static UnityEditor.Build.OSArchitecture _architectureBeforePin;
+        // UserBuildSettings.architecture が読み書きする保存先（値は OSArchitecture の名前）
+        // The storage UserBuildSettings.architecture reads and writes; the value is an OSArchitecture name
+        private const string ArchitectureSettingName = "Architecture";
+
+        private static string _architectureBeforePin;
         private static bool _isPinned;
-#endif
+
+        private static string MacPlatformName => UnityEditor.BuildPipeline.GetBuildTargetName(BuildTarget.StandaloneOSX);
 
         public static MacArchitecturePinResult PinAppleSilicon()
         {
-#if UNITY_EDITOR_OSX
+            // 設定の保存先はMac Build Supportが無いと効かないので、モジュールの有無で止める
+            // The setting has no effect without Mac Build Support, so gate on the module being installed
+            if (!UnityEditor.BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX))
+            {
+                return MacArchitecturePinResult.MacBuildSupportMissing;
+            }
+
             // 復元されないまま再固定すると元の値を失うため、上書きせず漏れを表明する
             // Re-pinning without a restore would lose the original value, so keep it and report the leak
             if (_isPinned)
@@ -39,28 +53,21 @@ namespace Client.Editor.Build
             {
                 // Editor設定を書き換えるため、他のビルドへ持ち越さないよう元の値を控える
                 // This rewrites an Editor-wide setting, so keep the old value and never leak it into other builds
-                _architectureBeforePin = UnityEditor.OSXStandalone.UserBuildSettings.architecture;
+                _architectureBeforePin = EditorUserBuildSettings.GetPlatformSettings(MacPlatformName, ArchitectureSettingName);
                 _isPinned = true;
             }
-            UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.ARM64;
-            Debug.Log("[MacPlayerArchitecture] macOS player architecture pinned to ARM64");
+            EditorUserBuildSettings.SetPlatformSettings(MacPlatformName, ArchitectureSettingName, OSArchitecture.ARM64.ToString());
+            Debug.Log($"[MacPlayerArchitecture] macOS player architecture pinned to {EditorUserBuildSettings.GetPlatformSettings(MacPlatformName, ArchitectureSettingName)}");
             return MacArchitecturePinResult.Pinned;
-#else
-            // 設定型はMacホスト専用
-            // The setting type exists only on Mac hosts
-            return MacArchitecturePinResult.UnsupportedHost;
-#endif
         }
 
         public static void RestoreArchitectureBeforePin()
         {
-#if UNITY_EDITOR_OSX
             if (!_isPinned) return;
 
-            UnityEditor.OSXStandalone.UserBuildSettings.architecture = _architectureBeforePin;
+            EditorUserBuildSettings.SetPlatformSettings(MacPlatformName, ArchitectureSettingName, _architectureBeforePin);
             _isPinned = false;
-            Debug.Log("[MacPlayerArchitecture] macOS player architecture restored");
-#endif
+            Debug.Log($"[MacPlayerArchitecture] macOS player architecture restored to '{_architectureBeforePin}'");
         }
     }
 }

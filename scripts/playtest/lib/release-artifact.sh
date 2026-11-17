@@ -96,6 +96,14 @@ release_require_mac_artifact() {
     done
 
     release_require_no_cef_files "$build_dir"
+    # Windows で焼いた成果物は実行権を持ち帰りで付け直す。付いていなければ Steam 経由で起動できない
+    # A Windows-baked artifact gets its executable bits restored on fetch; without them it cannot launch through Steam
+    for executable in "$app/Contents/MacOS/moorestech" "$app/Contents/MacOS/ffmpeg"; do
+        if [ ! -x "$executable" ]; then
+            echo "ERROR: Mac成果物の実行ファイルに実行権がありません: ${executable}" >&2
+            exit 4
+        fi
+    done
     # 展示会用の再起動ループが混ざっていたら用途の取り違え
     # An exhibition restart loop means the build purpose was mixed up
     if [ -e "$build_dir/start-gamescom-loop.command" ]; then
