@@ -16,9 +16,6 @@ namespace Client.Game.Common
         private static readonly Subject<ShutdownFlushResult> _onShutdownFlushed = new();
         private static readonly List<IGameShutdownParticipant> _participants = new();
         private static bool _fired;
-        private static bool _quitDeferralInstalled;
-        private static bool _quitInProgress;
-        private static bool _quitAllowed;
 
         // 終了理由つきで発火するイベント。終了の意思が表明された時点で飛び、書き出しの完了は待たない
         // Event carrying the shutdown reason; it fires when the intent to exit is declared, without waiting for any flush
@@ -34,17 +31,14 @@ namespace Client.Game.Common
         {
             _fired = false;
             _participants.Clear();
+            ApplicationQuitGate.ResetForNewSession();
         }
 
         // ウィンドウを閉じる等のOS由来の終了要求を一度止め、書き出しを待つ正規の終了口へ流す。止めないと完了前にプロセスが消える
         // Holds OS-originated quit requests (closing the window) and routes them through the awaiting exit; otherwise the process dies before the flush
         public static void InstallApplicationQuitDeferral()
         {
-            // Editorの終了要求を止めるとEditor自体が閉じられなくなる。Editorでの停止は待たずに InstallUnannouncedExitNotice の保険が記録する
-            // Holding the Editor's own quit would keep the Editor from closing; an Editor stop is instead recorded, without waiting, by InstallUnannouncedExitNotice
-            if (Application.isEditor || _quitDeferralInstalled) return;
-            _quitDeferralInstalled = true;
-            Application.wantsToQuit += OnApplicationWantsToQuit;
+            ApplicationQuitGate.InstallDeferral();
         }
 
         // 終了の意思表明が誰からも出ないまま終わる経路の保険。シーンの生存に依らず初期化途中やゲート待ちも扱う
@@ -78,19 +72,6 @@ namespace Client.Game.Common
             Debug.Log("終了の意思表明が無いまま終了要求が来たため、待てない終了として記録します（エディタのPlay停止・OS由来の終了）");
             FireGameShutdown(GameShutdownReason.UnawaitableExit);
             return true;
-        }
-
-        private static bool OnApplicationWantsToQuit()
-        {
-            if (_quitAllowed) return true;
-            if (_quitInProgress)
-            {
-                Debug.Log("終了処理の書き出し中のため、重ねて来た終了要求は保留します");
-                return false;
-            }
-            Debug.Log("終了要求を保留し、書き出しの完了を待ってから終了します");
-            QuitApplicationAsync().Forget(LogShutdownFailure);
-            return false;
         }
 
         // 終了時に書き出しを終わらせる相手を登録する。待ち上限は参加者自身が持つ
@@ -142,29 +123,11 @@ namespace Client.Game.Common
 
         // 意図的な終了の口。アプリの終了はこれと下の初期化の失敗の口だけが行い、どちらも書き出しを待ってから落とす
         // The deliberate-exit entry; only this and the initialization-failure entry below quit the app, both after the flush
-        public static UniTask QuitApplicationAsync() => QuitAfterFlushAsync(GameShutdownReason.IntentionalExit);
+        public static UniTask QuitApplicationAsync() => ApplicationQuitGate.QuitAfterFlushAsync(GameShutdownReason.IntentionalExit);
 
         // 初期化の失敗で止めて終了する口。理由を InitializationFailed で流し、正常終了として記録させない
         // Exit after a failed initialization; the reason travels as InitializationFailed so it is never recorded as a clean exit
-        public static UniTask QuitApplicationAfterInitializationFailureAsync() => QuitAfterFlushAsync(GameShutdownReason.InitializationFailed);
-
-        private static async UniTask QuitAfterFlushAsync(GameShutdownReason reason)
-        {
-            _quitInProgress = true;
-            var flushResult = await FireGameShutdownAsync(reason);
-            if (flushResult == ShutdownFlushResult.FlushTimedOut)
-                Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
-            if (flushResult == ShutdownFlushResult.SaveAbandoned)
-                Debug.LogError("セーブの書き出しを諦めたため、世界が保存されないままアプリを終了します");
-            if (flushResult == ShutdownFlushResult.FlushFailed)
-                Debug.LogError("終了時の書き出しが例外で失敗したため、何が保存されたか分からないままアプリを終了します");
-
-            _quitAllowed = true;
-            Application.Quit();
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
-        }
+        public static UniTask QuitApplicationAfterInitializationFailureAsync() => ApplicationQuitGate.QuitAfterFlushAsync(GameShutdownReason.InitializationFailed);
 
         // 参加者の書き出しはディスクという外部資源に触れる。1人の例外を隔離しないと、後続の参加者（ワールドのセーブ）が起動すらせず Application.Quit にも到達しない
         // A participant's flush touches the disk, an external resource; without isolation one exception keeps later participants (the world save) from even starting and strands Application.Quit
@@ -181,7 +144,7 @@ namespace Client.Game.Common
             }
         }
 
-        private static void LogShutdownFailure(Exception exception)
+        internal static void LogShutdownFailure(Exception exception)
         {
             Debug.LogError($"終了処理が失敗しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
         }
