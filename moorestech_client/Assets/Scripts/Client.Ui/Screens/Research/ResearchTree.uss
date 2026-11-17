@@ -26,26 +26,34 @@
 
 /* ノードカード: 名前・アイコン・状態ラベルの縦積み。中心をノードの点に据える */
 /* Node card: name, icon and state label stacked; centered on the node point */
+/* 面・枠・余白は群（PixelFilterGroup）の中身の要素 __card-face が持ち、カード自身は幅と中心合わせだけ（A-222・A-226） */
+/* Face, border and padding live on the group's content element __card-face; the card itself only holds width and centering (A-222, A-226) */
 .research-tree__card {
     width: 132px;
+    flex-direction: column;
+    translate: -50% -50%;
+}
+
+.research-tree__card-face {
     flex-direction: column;
     align-items: center;
     padding: 8px 6px;
     background-color: var(--research-node-face);
     border-width: 1px;
     border-color: var(--research-node-border);
-    translate: -50% -50%;
 }
 
-.research-tree__card--locked {
-    opacity: var(--research-node-locked-opacity);
+/* Web の opacity はノード全体を 1 枚にして掛かる。要素の opacity は子ごとに掛かりアイコンの白面が明るく残るので、群の filter で写す */
+/* The Web opacity fades the node as one layer; element opacity applies per child and leaves the icon face bright, so port it as the group filter */
+.research-tree__card--locked > .pixel-filter-group {
+    filter: opacity(var(--research-node-locked-opacity));
 }
 
-.research-tree__card--ready {
+.research-tree__card--ready .research-tree__card-face {
     border-color: var(--select-cyan);
 }
 
-.research-tree__card--completed {
+.research-tree__card--completed .research-tree__card-face {
     border-color: var(--text-default);
 }
 
