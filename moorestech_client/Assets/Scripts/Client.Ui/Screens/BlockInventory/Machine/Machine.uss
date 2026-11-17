@@ -41,6 +41,12 @@
     margin-left: 16px;
 }
 
+/* 矢印は Web の auto の列で中身の幅のまま。左右が縮むときも潰れない */
+/* The arrow is the Web auto column and stays content-wide, never squeezed when the sides shrink */
+.machine-process-row > .progress-arrow-glyph {
+    flex-shrink: 0;
+}
+
 /* Web の grid の項目は min-width: auto で中身より縮まない。帯の格子を縮めず、測った幅を各側の min-width にする（MachineProcessRow） */
 /* Web grid items keep min-width: auto and never shrink below content; keep the band grids unshrunk so their measured width feeds each side's min-width (MachineProcessRow) */
 .machine-process-row__input > *,
