@@ -200,6 +200,44 @@
 | 5 | 1095cab8bf | 捨てた | 旧 R1 の休止解除時の入力状態の送り直し。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
 | 5 | 05b9bdefa8 | 捨てた | Web が休止・カットシーンから描画を再開するときの stage 倍率の測り直しで、Web 自身の描画再開にだけ要る。UITK 側に写すものが無い |
 | 5 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
+| 1 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
+| 1 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 1 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |
+| 1 | a4988176fb | 捨てた | X-5c の撤去（裁定 2026-11-06 一気切替の日に CEF と Web を同時に撤去する）。moorestech_web/ を丸ごと消した。束 1 の画面は UITK が描く |
+| 1 | a96b7244ae | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert の revert） |
+| 1 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 1 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 1 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
+| 2 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
+| 2 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 2 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |
+| 2 | a4988176fb | 捨てた | X-5c の撤去（裁定 2026-11-06 一気切替の日に CEF と Web を同時に撤去する）。moorestech_web/ を丸ごと消した。束 2 の画面は UITK が描く |
+| 2 | a96b7244ae | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert の revert） |
+| 2 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 2 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 2 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
+| 3 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
+| 3 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 3 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |
+| 3 | a4988176fb | 捨てた | X-5c の撤去（裁定 2026-11-06 一気切替の日に CEF と Web を同時に撤去する）。moorestech_web/ を丸ごと消した。束 3 の画面は UITK が描く |
+| 3 | a96b7244ae | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert の revert） |
+| 3 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 3 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 3 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
+| 4 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
+| 4 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 4 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |
+| 4 | 9cc4b942e3 | 写した | I-follow（X-switch-pr Task 2）で Client.Ui.State の CleanRoomSummary・CleanRoomLogic・CleanRoomViewConversion から濃度を外した b497c3c6a2。文言は同じコミットの localization.csv の ui.blockInventory.cleanRoomAir |
+| 4 | a4988176fb | 捨てた | X-5c の撤去（裁定 2026-11-06 一気切替の日に CEF と Web を同時に撤去する）。moorestech_web/ を丸ごと消した。束 4 の画面は UITK が描く |
+| 4 | a96b7244ae | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert の revert） |
+| 4 | bbb442bbeb | 捨てた | Web のテスト cleanRoomLogic.test.ts のコメントだけの直し。UITK に写すものが無い |
+| 4 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 4 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
+| 5 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
+| 5 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 5 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |
+| 5 | 9cc4b942e3 | 写した | I-follow（X-switch-pr Task 2）で Client.Ui.State の CleanRoomSummary・CleanRoomLogic・CleanRoomViewConversion から濃度を外した b497c3c6a2。文言は同じコミットの localization.csv の ui.blockInventory.cleanRoomAir |
+| 5 | a4988176fb | 捨てた | X-5c の撤去（裁定 2026-11-06 一気切替の日に CEF と Web を同時に撤去する）。moorestech_web/ を丸ごと消した。束 5 の画面は UITK が描く |
+| 5 | a96b7244ae | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert の revert） |
+| 5 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
+| 5 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
 
 ## 参照キャプチャ
 
