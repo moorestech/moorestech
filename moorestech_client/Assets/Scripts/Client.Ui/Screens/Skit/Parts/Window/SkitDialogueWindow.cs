@@ -88,8 +88,7 @@ namespace Client.Ui.Screens.Skit.Parts.Window
         public void SetInteractive(bool interactive)
         {
             _section.pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
-            if (interactive) _sectionHover.Resume();
-            else _sectionHover.Suspend();
+            _sectionHover.SetPressable(interactive);
         }
 
         private static LocalizedLabel CreateText(string testid, string className)

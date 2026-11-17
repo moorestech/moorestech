@@ -126,8 +126,7 @@ namespace Client.Ui.Components.Controls
                 // Web の無効の選択肢は pointer-events: none（ModeSwitch/style.module.css:50-53）。UITK の無効の要素はポインタの事象を受け続けるので、拾わず指も外し、戻したとき乗っていれば出し直す
                 // Web disabled options are pointer-events: none (ModeSwitch/style.module.css:50-53); stop picking and drop the hand, re-requesting it on restore when hovered
                 _buttons[i].pickingMode = enabled ? PickingMode.Position : PickingMode.Ignore;
-                if (enabled) _hovers[i].Resume();
-                else _hovers[i].Suspend();
+                _hovers[i].SetPressable(enabled);
             }
         }
 

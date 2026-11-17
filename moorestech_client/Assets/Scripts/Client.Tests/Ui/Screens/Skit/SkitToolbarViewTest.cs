@@ -17,13 +17,17 @@ namespace Client.Tests.Ui.Screens.Skit
     public class SkitToolbarViewTest : ScreenTestHost
     {
         private RecordingSkitCommands _commands;
+        private FakeUiOsCursorApplier _cursorApplier;
+        private FakeUiScreenPointer _pointer;
         private SkitToolbar _toolbar;
 
         [SetUp]
         public void MountToolbar()
         {
             _commands = new RecordingSkitCommands();
-            _toolbar = Mount(new SkitToolbar(_commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _cursorApplier = new FakeUiOsCursorApplier();
+            _pointer = new FakeUiScreenPointer(1f);
+            _toolbar = Mount(new SkitToolbar(_commands, new UiOsCursorRequestStack(_cursorApplier, _pointer)));
         }
 
         [Test]
@@ -74,6 +78,26 @@ namespace Client.Tests.Ui.Screens.Skit
             simulate.Click(Find<IconButton>(_toolbar, "skit-tool-auto"));
             simulate.Click(Find<IconButton>(_toolbar, "skit-tool-skip"));
             Assert.AreEqual(0, _commands.Issued.Count);
+        }
+
+        [Test]
+        public void 無効のツールは乗っても指を出さず乗ったまま有効に戻すと指を出す()
+        {
+            // Web の .toolButton:disabled は cursor: default（SkitToolbar.module.css:52-54）
+            // Web .toolButton:disabled is cursor: default (SkitToolbar.module.css:52-54)
+            _toolbar.Render(SkitTestData.Controls(5, true, false, false, true, false, new[] { "skip" }));
+            simulate.FrameUpdate();
+            var auto = Find<IconButton>(_toolbar, "skit-tool-auto");
+            simulate.MouseMove(auto.worldBound.center);
+            _pointer.SetCurrent(auto.worldBound.center);
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "無効の自動に乗って指が出た");
+
+            // 乗ったまま許可が戻ると Enter を待たずに指を出す
+            // When allowance returns while hovered, the hand shows without waiting for an Enter
+            _toolbar.Render(SkitTestData.Controls(6, true, false, true, false, false, SkitTestData.TextIntents));
+            simulate.FrameUpdate();
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "有効に戻しても指が出ない");
         }
 
         [Test]

@@ -47,9 +47,17 @@ namespace Client.Ui.Foundation.Input.OsCursor
             _request = null;
         }
 
+        // 押せるかを指の要求へ揃える。押せない間は乗っても指を出さない
+        // Align the hand request with pressability; while unpressable, hovering never shows the hand
+        public void SetPressable(bool pressable)
+        {
+            if (pressable) Resume();
+            else Suspend();
+        }
+
         // 押せなくしたときに呼ぶ。要求を外す
         // Call when unpressable: withdraw the request
-        public void Suspend()
+        private void Suspend()
         {
             _isSuspended = true;
             Release();
@@ -57,7 +65,7 @@ namespace Client.Ui.Foundation.Input.OsCursor
 
         // 押せる戻しで呼ぶ。拾わない間の移動は事象で届かないので、その時点の実位置が要素の上なら指を出し直す
         // Call when pressable again: moves while unpickable send no event, so re-request the hand when the actual position is over the element now
-        public void Resume()
+        private void Resume()
         {
             // silent-ok: 押せるままの重ね呼びは何もしない / 正常系
             if (!_isSuspended) return;
@@ -79,6 +87,8 @@ namespace Client.Ui.Foundation.Input.OsCursor
         {
             // silent-ok: 子の出入りの事象は無視する / 中に居る間の正常系
             if (evt.target != _element) return;
+            // silent-ok: 押せない間（無効で拾うままの部品）は指を出さないのが正常 / 押せる戻しの Resume が出し直す
+            if (_isSuspended) return;
             Hold();
         }
 
