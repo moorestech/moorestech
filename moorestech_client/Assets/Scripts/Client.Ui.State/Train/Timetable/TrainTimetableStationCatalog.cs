@@ -7,8 +7,8 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 時刻表へ入れられる駅一覧の唯一の組み立て。駅ブロックから読み、x → z → y で並べる（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ。DC-23 A）
-    /// The single builder of the stations a timetable can add: read from station blocks and ordered by x, then z, then y (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder; DC-23 A)
+    /// 時刻表へ入れられる駅一覧の唯一の組み立て。駅ブロックから読み、x → z → y で並べる（TrainTimetableReadyDataFactory が呼ぶ）
+    /// The single builder of the stations a timetable can add: read from station blocks and ordered by x, then z, then y (called by TrainTimetableReadyDataFactory)
     /// </summary>
     public static class TrainTimetableStationCatalog
     {

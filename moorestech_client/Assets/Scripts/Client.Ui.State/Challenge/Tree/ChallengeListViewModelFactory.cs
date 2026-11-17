@@ -19,7 +19,7 @@ namespace Client.Ui.State.Challenge.Tree
             var categories = new List<ChallengeCategoryViewModel>();
             foreach (var response in responses)
             {
-                // silent-ok: 未解放のカテゴリを出さないのは Web の橋と同じ仕様 / L0 ChallengeListViewModelFactoryTest が固定する
+                // silent-ok: 未解放のカテゴリを出さない仕様 / L0 ChallengeListViewModelFactoryTest が固定する
                 if (!response.IsUnlocked) continue;
                 categories.Add(ChallengeCategoryViewModel.Create(response.Category.CategoryGuid, BuildNodes(response)));
             }

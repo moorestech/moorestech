@@ -5,8 +5,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Ui.State.BlockInventory.Common
 {
     /// <summary>
-    /// 歯車の状態とマスタの param から歯車駆動の種類を読む 1 か所（族・機械の Model、特殊族の Reader、Web ホストの DTO が共有する）。純関数で、異常はログでなく結果に載せ、どう縮退するかは呼び手が決める
-    /// The single reader of the gear-drive kind from the gear state and master param (shared by family/machine models, the special reader and the Web host DTO); pure: an anomaly is returned in the result and each caller chooses its fallback
+    /// 歯車の状態とマスタの param から歯車駆動の種類を読む 1 か所（族・機械の Model、特殊族の Reader が共有する）。純関数で、異常はログでなく結果に載せ、どう縮退するかは呼び手が決める
+    /// The single reader of the gear-drive kind from the gear state and master param (shared by family/machine models and the special reader); pure: an anomaly is returned in the result and each caller chooses its fallback
     /// </summary>
     public static class GearDriveConversion
     {

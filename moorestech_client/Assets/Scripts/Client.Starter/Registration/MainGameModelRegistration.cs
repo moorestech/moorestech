@@ -57,8 +57,8 @@ namespace Client.Starter.Registration
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
 
-            // Web用の論理モデルを登録
-            // Register the logical models for the web UI
+            // UI が読む論理モデルを登録
+            // Register the logical models the UI reads
             builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
             builder.Register<GameSaveRequester>(Lifetime.Singleton);
 

@@ -92,6 +92,8 @@ namespace Client.Playtest.UiElements.GameUi
         private static List<VisualElement> VisibleMatches(VisualElement root, string testid)
         {
             var matches = root.Query<VisualElement>(name: testid).ToList();
+            // 同名の隠れた要素と見える要素の併存を Ambiguous にしないため、非表示を除く
+            // Drop hidden elements so a hidden and a visible element of the same name are not reported as Ambiguous
             matches.RemoveAll(element => !IsVisible(element));
             return matches;
         }

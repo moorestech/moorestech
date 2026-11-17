@@ -11,8 +11,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.Train.TimetableEdit.Send
 {
     /// <summary>
-    /// 時刻表の取得依頼・置換・自動運転をサーバーへ送る（Web ホスト TrainTimetableActions と同じ規則。Web の wire は失敗理由を添え train_not_open を返すので付け替えない。D-17）
-    /// Sends timetable fetch requests, replaces and auto-run toggles to the server (same rules as the Web host TrainTimetableActions; not rerouted because the Web wire suffixes failure reasons and returns train_not_open; D-17)
+    /// 時刻表の取得依頼・置換・自動運転をサーバーへ送る（規則は Web の TrainTimetableActions の写し）
+    /// Sends timetable fetch requests, replaces and auto-run toggles to the server (rules are a port of Web TrainTimetableActions)
     /// </summary>
     public sealed class TrainTimetableCommands : ITrainTimetableCommands
     {
@@ -29,8 +29,8 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
 
         public void RequestOpen()
         {
-            // 列車が引けなければ「列車なしで開いた」と記録する（Web ホスト TrainTimetableOpenActionHandler と同じ State の口）
-            // Without a resolvable train, record the tab as opened without one (the same State calls as the Web host TrainTimetableOpenActionHandler)
+            // 列車が引けなければ「列車なしで開いた」と記録する（Web の TrainTimetableOpenActionHandler の写し）
+            // Without a resolvable train, record the tab as opened without one (port of Web TrainTimetableOpenActionHandler)
             if (OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) _fetcher.RequestForOpenedTab(trainUnitId);
             else _fetcher.MarkTabOpenedWithoutTrain();
         }
@@ -51,8 +51,8 @@ namespace Client.Ui.State.Train.TimetableEdit.Send
         {
             if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _cache, out var trainUnitId)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
 
-            // 受理されても求めた値で適用されていなければ拒否（Web ホストと同じ照合）
-            // Even when accepted, refuse if the applied value differs from the request (same check as the Web host)
+            // 受理されても求めた値で適用されていなければ拒否（Web の写しの照合）
+            // Even when accepted, refuse if the applied value differs from the request (check ported from Web)
             var request = TrainScheduleEditProtocol.TrainScheduleEditRequest.CreateSetAutoRunRequest(trainUnitId, enabled);
             var response = await ClientContext.VanillaApi.Response.Train.SendTrainScheduleEdit(request, CancellationToken.None);
             if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainAutoRunFailed, response == null ? "no response" : response.FailureReason.ToString());

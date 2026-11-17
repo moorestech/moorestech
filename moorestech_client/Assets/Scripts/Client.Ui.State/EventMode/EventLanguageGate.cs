@@ -15,8 +15,8 @@ namespace Client.Ui.State.EventMode
         private readonly UniTaskCompletionSource _selectionSource = new();
         private readonly Subject<Unit> _onWaitingChanged = new();
 
-        // 待機状態と選択の受付は描く側（Webのtopic・action、将来のUITK）が触る。ゲームのDIより前に要るのでDIには載せず、開始側が作って描く側へ渡す
-        // Presenters (the web topic/action, later UITK) touch the waiting state and selection intake; it is needed before the game DI, so the starter builds it and hands it to presenters instead of registering it in DI
+        // 待機状態と選択の受付は描く側（EventLanguageGateView）が触る。ゲームのDIより前に要るのでDIには載せず、開始側が作って描く側へ渡す
+        // The presenter (EventLanguageGateView) touches the waiting state and selection intake; it is needed before the game DI, so the starter builds it and hands it to the presenter instead of registering it in DI
         public bool IsWaitingSelection { get; private set; }
         public IObservable<Unit> OnWaitingChanged => _onWaitingChanged;
 
@@ -37,7 +37,7 @@ namespace Client.Ui.State.EventMode
         // Already selected returns a benign rejection
         public UiCommandResult SelectLanguage(string languageCode)
         {
-            // silent-ok: 拒否は結果で返す / Web action が already_selected・unknown_locale を応答し、UITK は EventLanguageGateView が Toaster と同じ書式で LogWarning する
+            // silent-ok: 拒否は結果で返す / EventLanguageGateView が Toaster と同じ書式で LogWarning する（気づく経路はそこだけ）
             if (!IsWaitingSelection) return UiCommandRejected.Of(UiCommandRejectReason.LanguageAlreadySelected);
             if (!Localize.TrySetChosenLanguage(languageCode)) return UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage);
 

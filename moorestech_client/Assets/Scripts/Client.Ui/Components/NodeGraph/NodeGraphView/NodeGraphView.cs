@@ -28,7 +28,9 @@ namespace Client.Ui.Components.NodeGraph
         private readonly NodeGraphPointerFeedback _pointerFeedback;
         private readonly Subject<string> _onNodeTapped = new();
         private bool _viewportHeld;
-        private bool _hasEmittedViewport;
+        // 視点が一度でも動いた（初回の自動の中央寄せも含む）。隠れた後に保持へ移す判定の元
+        // Whether the view has moved at least once (the initial auto-centering included); the basis for holding it after being hidden
+        private bool _hasMovedViewport;
         private NodeGraphViewport _viewport;
         private NodeGraphFocus _initialFocus = NodeGraphFocus.None;
         private bool _hasCentered;
@@ -112,14 +114,14 @@ namespace Client.Ui.Components.NodeGraph
         private void OnGeometryChanged(GeometryChangedEvent evt)
         {
             // 隠す前に視点が動いていなければ、寸法の変化で中央に見えていた点を保つ（0 からの初回は動かさない。Web useKeepViewCenterOnResize）
-            // Only when not restored, keep the centered point across size changes (not from zero; the Web useKeepViewCenterOnResize)
+            // Unless the view moved before hiding (_viewportHeld), keep the centered point across size changes (not from zero; the Web useKeepViewCenterOnResize)
             var size = contentRect.size;
             // 0 へ縮む回（display: none の祖先）は PointerLeave が来ないので手のカーソルを放し、追従も記録もしない。視点が動いていれば保持し、開き直しても寸法に追従しない（Web の復元は寸法に追従しない）
             // A shrink to 0 (display: none ancestor) sends no PointerLeave, so release the hand cursor and neither follow nor record; a moved view is held and does not follow the size on reopen (the Web restore never follows)
             if (size.x <= 0f || size.y <= 0f)
             {
                 _pointerFeedback.ReleaseAll();
-                _viewportHeld |= _hasEmittedViewport;
+                _viewportHeld |= _hasMovedViewport;
                 return;
             }
             var keepsCenter = !_viewportHeld && _hasClipInset && 0f < _lastContentSize.x && 0f < _lastContentSize.y && size != _lastContentSize;
@@ -156,7 +158,7 @@ namespace Client.Ui.Components.NodeGraph
         private void SetViewport(NodeGraphViewport viewport)
         {
             _viewport = viewport;
-            _hasEmittedViewport = true;
+            _hasMovedViewport = true;
             ApplyViewport();
         }
 

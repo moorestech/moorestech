@@ -5,8 +5,8 @@ using Game.UnlockState;
 namespace Client.Ui.State.Recipe.Commands
 {
     /// <summary>
-    /// クラフトのレシピを送ってよいかの唯一の判定。解放表に無い→RecipeInvalid、未解放→RecipeLocked、送ってよい→null（RecipeCommands が呼び、Web の craft.execute も RecipeCommands を通す。DC-23 A）
-    /// The single decision on whether a craft recipe may be sent: absent from the unlock table → RecipeInvalid, locked → RecipeLocked, sendable → null (called by RecipeCommands, which the Web craft.execute also goes through; DC-23 A)
+    /// クラフトのレシピを送ってよいかの唯一の判定。解放表に無い→RecipeInvalid、未解放→RecipeLocked、送ってよい→null（RecipeCommands が呼ぶ）
+    /// The single decision on whether a craft recipe may be sent: absent from the unlock table → RecipeInvalid, locked → RecipeLocked, sendable → null (called by RecipeCommands)
     /// </summary>
     public static class CraftRecipeUnlockCheck
     {

@@ -51,10 +51,12 @@ namespace Client.Playtest
                 // The Runner sets this before the scenario so injected input reaches the Game View even in a background Editor (no reliance on a previous run's leftovers)
                 InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
                 InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-                SemanticInput.EnsureDevices();
-                var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                 try
                 {
+                    // 例外でも走行中フラグと入力設定の復元を通すため try の中で準備する
+                    // Prepare inside the try so an exception still reaches the running-flag and settings restore
+                    SemanticInput.EnsureDevices();
+                    var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
                     // UI照会口を開く

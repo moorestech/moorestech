@@ -9,8 +9,8 @@ namespace Client.Ui.State.BuildMenu.Entries
     /// </summary>
     public static class BuildMenuEntryKindName
     {
-        // Web の橋 BuildMenuEntryDtoFactory.ResolveKind と同じ値（BuildMenuEntryFactoryTest が突き合わせる）
-        // Same values as the Web bridge BuildMenuEntryDtoFactory.ResolveKind (BuildMenuEntryFactoryTest cross-checks)
+        // Web の橋 BuildMenuEntryDtoFactory.ResolveKind から写した値（BuildMenuEntryFactoryTest が突き合わせる）
+        // Values ported from the Web bridge BuildMenuEntryDtoFactory.ResolveKind (BuildMenuEntryFactoryTest cross-checks)
         public static string Of(PlacementTargetKind kind)
         {
             return kind switch

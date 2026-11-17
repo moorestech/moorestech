@@ -37,16 +37,20 @@ namespace Client.Input.Pointer
             if (!Mouse.current.scroll.ReadValueFromEvent(eventPtr, out var scroll)) return;
             if (scroll.y == 0f) return;
             _onWheelNotchesScrolled.OnNext((scroll.y, PositionAtEvent(eventPtr)));
-        }
 
-        private static Vector2 PositionAtEvent(InputEventPtr eventPtr)
-        {
-            // onEvent はイベントをデバイスへ書き込む前に呼ばれるので、デバイスの今の値はこのイベントの移動を含まない。位置はイベントから読む
-            // onEvent runs before the event is written to the device, so the device value lacks this event's move; read the position from the event
-            if (Mouse.current.position.ReadValueFromEvent(eventPtr, out var position)) return position;
-            // 位置を含まないのはスクロールだけの DeltaStateEvent。このイベントは位置を動かさず、先のイベントは書き込み済みなので、デバイスの今の値がこのイベントの後の位置と同じ
-            // Only a scroll-only DeltaStateEvent lacks position; it does not move the pointer and earlier events are already written, so the device value equals the position after this event
-            return Mouse.current.position.ReadValue();
+            #region Internal
+
+            Vector2 PositionAtEvent(InputEventPtr positionEventPtr)
+            {
+                // onEvent はイベントをデバイスへ書き込む前に呼ばれるので、デバイスの今の値はこのイベントの移動を含まない。位置はイベントから読む
+                // onEvent runs before the event is written to the device, so the device value lacks this event's move; read the position from the event
+                if (Mouse.current.position.ReadValueFromEvent(positionEventPtr, out var position)) return position;
+                // 位置を含まないのはスクロールだけの DeltaStateEvent。このイベントは位置を動かさず、先のイベントは書き込み済みなので、デバイスの今の値がこのイベントの後の位置と同じ
+                // Only a scroll-only DeltaStateEvent lacks position; it does not move the pointer and earlier events are already written, so the device value equals the position after this event
+                return Mouse.current.position.ReadValue();
+            }
+
+            #endregion
         }
     }
 }

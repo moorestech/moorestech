@@ -42,8 +42,8 @@ namespace Client.Ui.State.BuildMenu.Source
 
         public void Initialize()
         {
-            // 開いたときは BP ライブラリを取り直してから組む（Web の橋 BuildMenuTopic.OnStateChanged と同じ）
-            // On open, refresh the blueprint library and rebuild (same as the Web bridge BuildMenuTopic.OnStateChanged)
+            // 開いたときは BP ライブラリを取り直してから組む（Web の橋 BuildMenuTopic.OnStateChanged の写し）
+            // On open, refresh the blueprint library and rebuild (port of the Web bridge BuildMenuTopic.OnStateChanged)
             _routing.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Where(shown => shown).Subscribe(_ =>
             {
                 _blueprintLibrary.Refresh(CancellationToken.None).Forget();

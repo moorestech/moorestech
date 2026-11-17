@@ -62,8 +62,8 @@ namespace Client.Ui.State.Train.TimetableEdit
             #endregion
         }
 
-        // 時刻表が開いていない操作は送らず、Web ホストが train_not_open を返してトーストするのと同じく拒否をトーストへ（D-32）
-        // An operation without an open timetable is not sent and its refusal is toasted, as the Web host's train_not_open is (D-32)
+        // 時刻表が開いていない操作は送らず、拒否はトーストへ出す（D-32）
+        // An operation without an open timetable is not sent and its refusal is toasted (D-32)
         private void NotOpen(string commandName)
         {
             var rejected = UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);

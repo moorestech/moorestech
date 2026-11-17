@@ -63,6 +63,18 @@ namespace Client.Ui.Foundation.Tooltip
             // 捕捉の終わりで最後の座標から対象を引き直す（離上後は移動が来ず、動かすまでツールチップが戻らないため）
             // Re-pick from the last coordinate when capture ends (no move follows a release, so the tooltip would stay hidden until the pointer moves)
             pointerRoot.RegisterCallback<PointerCaptureOutEvent>(_ => RepickAfterCapture(), TrickleDown.TrickleDown);
+
+            #region Internal
+
+            void RepickAfterCapture()
+            {
+                // 座標がまだ無ければ対象なしのまま。_dismissed は触らない（スクロールの引っ込めを捕捉で解かない）
+                // With no coordinate yet there is no target; _dismissed stays untouched (capture must not clear a scroll retraction)
+                var hasPointer = !float.IsNaN(_lastPointer.x);
+                Point(hasPointer ? _layer.panel.Pick(_lastPointer) : null);
+            }
+
+            #endregion
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
@@ -77,14 +89,6 @@ namespace Client.Ui.Foundation.Tooltip
             // While captured (press or drag) there is no target; entries can still reach elements underneath (ledger), so decide by capture
             var panel = _layer.panel;
             Point(panel.GetCapturingElement(evt.pointerId) == null ? panel.Pick(pointer) : null);
-        }
-
-        private void RepickAfterCapture()
-        {
-            // 座標がまだ無ければ対象なしのまま。_dismissed は触らない（スクロールの引っ込めを捕捉で解かない）
-            // With no coordinate yet there is no target; _dismissed stays untouched (capture must not clear a scroll retraction)
-            var hasPointer = !float.IsNaN(_lastPointer.x);
-            Point(hasPointer ? _layer.panel.Pick(_lastPointer) : null);
         }
 
         private void ForgetPointed()

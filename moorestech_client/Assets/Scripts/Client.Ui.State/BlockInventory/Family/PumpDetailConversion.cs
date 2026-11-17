@@ -61,17 +61,17 @@ namespace Client.Ui.State.BlockInventory.Family
             _anomaly = anomaly;
         }
 
-        public static PumpDetailReading Built(PumpDetail detail)
+        internal static PumpDetailReading Built(PumpDetail detail)
         {
             return new PumpDetailReading(detail, null);
         }
 
-        public static PumpDetailReading Waiting()
+        internal static PumpDetailReading Waiting()
         {
             return new PumpDetailReading(null, null);
         }
 
-        public static PumpDetailReading Anomalous(string anomaly)
+        internal static PumpDetailReading Anomalous(string anomaly)
         {
             return new PumpDetailReading(null, anomaly);
         }

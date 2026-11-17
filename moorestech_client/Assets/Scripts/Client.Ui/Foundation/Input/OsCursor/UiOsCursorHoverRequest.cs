@@ -67,7 +67,10 @@ namespace Client.Ui.Foundation.Input.OsCursor
             var panel = _element.panel;
             if (panel == null) return;
             var onPanel = _pointer.ScreenToPanel(panel, _pointer.CurrentPointerOnScreen());
-            if (_element.worldBound.Contains(onPanel)) Hold();
+            // 覆われていれば Hold せず UITK の Enter を待つ（覆いの下の要素へ指を取らない）
+            // When covered, do not Hold and wait for UITK's Enter (never take the hand for an element underneath a cover)
+            var picked = panel.Pick(onPanel);
+            if (picked != null && (picked == _element || _element.Contains(picked))) Hold();
         }
 
         private void OnPointerEnter(PointerEnterEvent evt)

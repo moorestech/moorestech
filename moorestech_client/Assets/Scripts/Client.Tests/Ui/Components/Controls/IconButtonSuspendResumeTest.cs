@@ -5,6 +5,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input.OsCursor;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Components.Controls
 {
@@ -73,6 +74,35 @@ namespace Client.Tests.Ui.Components.Controls
             _screenPointer.SetCurrent(button.worldBound.center);
             button.SetInteractive(true);
             Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "載せ直した後に乗ったまま戻しても指が出ない");
+        }
+
+        [Test]
+        public void 押せない間に覆いが被さった所へ戻しても指を出さず覆いが外れた後は出す()
+        {
+            var button = AddButton();
+            Hover(button);
+            button.SetInteractive(false);
+
+            // ボタンの全面を覆う拾う要素を重ね、乗ったまま戻しても覆いの下なので指を取らない
+            // Cover the whole button with a picking element; restoring while the pointer is over it must not take the hand
+            var cover = new VisualElement { pickingMode = PickingMode.Position };
+            cover.style.position = Position.Absolute;
+            cover.style.left = button.worldBound.xMin - 4f;
+            cover.style.top = button.worldBound.yMin - 4f;
+            cover.style.width = button.worldBound.width + 8f;
+            cover.style.height = button.worldBound.height + 8f;
+            rootVisualElement.Add(cover);
+            simulate.FrameUpdate();
+            button.SetInteractive(true);
+            Assert.AreEqual(UiOsCursorShape.Default, _cursorApplier.Current, "覆われているのに戻すと指が出る");
+
+            // 覆いを外してからの押せなくする・戻すは乗ったままなら指を出す
+            // After removing the cover, unpressable and restore while hovered request the hand again
+            cover.RemoveFromHierarchy();
+            simulate.FrameUpdate();
+            button.SetInteractive(false);
+            button.SetInteractive(true);
+            Assert.AreEqual(UiOsCursorShape.Pointer, _cursorApplier.Current, "覆いが外れたのに戻しても指が出ない");
         }
 
         private IconButton AddButton()

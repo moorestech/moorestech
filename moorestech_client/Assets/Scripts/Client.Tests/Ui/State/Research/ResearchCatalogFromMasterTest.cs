@@ -5,7 +5,6 @@ using Client.Ui.State.Research.Catalog;
 using Client.Ui.State.Research.Logic;
 using Core.Master;
 using Game.Block.Interface.MachineUpgrade;
-using Game.Research;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;

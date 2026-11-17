@@ -17,8 +17,8 @@ namespace Client.Ui.State.BlockInventory.Special.Text
             // The supply rate rounds .5 up like JS Math.round
             var rate = UiNumberFormat.Integer(UiNumberFormat.RoundHalfUp(network.PowerRate * 100));
             return With(LocalizationKeys.Ui.BlockInventory.ElectricNetworkSummary,
-                Param("generated", JsNumberText.Fixed0(network.TotalGeneratePower)),
-                Param("required", JsNumberText.Fixed0(network.TotalRequiredPower)),
+                Param("generated", UiNumberFormat.Fixed(network.TotalGeneratePower, 0)),
+                Param("required", UiNumberFormat.Fixed(network.TotalRequiredPower, 0)),
                 Param("count", network.ConsumerCount.ToString()),
                 Param("rate", rate));
         }
@@ -26,15 +26,15 @@ namespace Client.Ui.State.BlockInventory.Special.Text
         public static UiText GearNetworkSummary(GearNetworkDetail network)
         {
             return With(LocalizationKeys.Ui.BlockInventory.GearNetworkSummary,
-                Param("generated", JsNumberText.Fixed0(network.TotalGenerateGearPower)),
-                Param("required", JsNumberText.Fixed0(network.TotalRequiredGearPower)));
+                Param("generated", UiNumberFormat.Fixed(network.TotalGenerateGearPower, 0)),
+                Param("required", UiNumberFormat.Fixed(network.TotalRequiredGearPower, 0)));
         }
 
         public static UiText GearToElectricSuppliedPower(GearToElectricDetail detail)
         {
             return With(LocalizationKeys.Ui.BlockInventory.GearToElectricSuppliedPower,
-                Param("current", JsNumberText.PositivePower(detail.SuppliedPower)),
-                Param("max", JsNumberText.PositivePower(detail.MaxGeneratedPower)));
+                Param("current", UiNumberFormat.PositivePower(detail.SuppliedPower)),
+                Param("max", UiNumberFormat.PositivePower(detail.MaxGeneratedPower)));
         }
 
         public static UiText ElectricToGearOutputMode(ElectricToGearOutputMode mode)
@@ -47,7 +47,7 @@ namespace Client.Ui.State.BlockInventory.Special.Text
 
         public static UiText ElectricToGearConsumedPower(ElectricToGearDetail detail)
         {
-            return With(LocalizationKeys.Ui.BlockInventory.ElectricToGearConsumedPower, Param("power", JsNumberText.Fixed0(detail.ConsumedElectricPower)));
+            return With(LocalizationKeys.Ui.BlockInventory.ElectricToGearConsumedPower, Param("power", UiNumberFormat.Fixed(detail.ConsumedElectricPower, 0)));
         }
 
         // 方向は 1 始まりで見せる

@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Ui.State.Train.Timetable
 {
     /// <summary>
-    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む唯一の口（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ。DC-23 A）
-    /// The single builder of the ready timetable from a snapshot and the station list (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder; DC-23 A)
+    /// 時刻表のスナップショットと駅一覧から用意済みの時刻表を組む唯一の口（TrainTimetableModel が呼ぶ）
+    /// The single builder of the ready timetable from a snapshot and the station list (called by TrainTimetableModel)
     /// </summary>
     public sealed class TrainTimetableReadyDataFactory
     {
@@ -21,8 +21,8 @@ namespace Client.Ui.State.Train.Timetable
         private readonly Dictionary<TrainUnitInstanceId, AnomalyReportGate> _unknownSideGates = new();
         private readonly TrainTimetableMissingCarReport _missingCarReport = new();
 
-        // 開いている貨車の時刻表の状態の唯一の優先順（UITK の TrainTimetableModel と Web ホストの TrainTimetableDtoBuilder が呼ぶ）。列車不明>不可>取得中>無>用意済
-        // The single priority order of the open car's timetable state (called by the UITK TrainTimetableModel and the Web host TrainTimetableDtoBuilder): no train, unavailable, in flight, no cache, ready
+        // 開いている貨車の時刻表の状態の唯一の優先順（TrainTimetableModel が呼ぶ）。列車不明>不可>取得中>無>用意済
+        // The single priority order of the open car's timetable state (called by TrainTimetableModel): no train, unavailable, in flight, no cache, ready
         public TrainTimetableViewState Build(long trainCarInstanceId, TrainUnitClientCache cache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher, BlockGameObjectDataStore blocks)
         {
             if (!OpenTrainUnitResolver.TryResolveOwningTrain(trainCarInstanceId, cache, out var trainUnitInstanceId))

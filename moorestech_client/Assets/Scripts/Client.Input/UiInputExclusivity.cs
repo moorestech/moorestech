@@ -27,8 +27,8 @@ namespace Client.Input
             TextInputFocusedProperty.Value = focused;
         }
 
-        // null で解除。null は DI が登録する前と破棄の後だけ
-        // Pass null to unregister; null only means before DI registers the probe or after it is disposed
+        // null で解除。null は DI が登録する前だけ
+        // Pass null to unregister; null only means before DI registers the probe
         public static void SetGameUiPointerProbe(IGameUiPointerProbe probe)
         {
             _gameUiPointerProbe = probe;
@@ -37,7 +37,7 @@ namespace Client.Input
         public static bool IsPointerOverGameUi(Vector2 screenPosition)
         {
             var probe = _gameUiPointerProbe;
-            // silent-ok: DI の前と破棄の後は UITK のパネルが無く乗り得ない / 登録漏れは GameUiPointerWiringChecks（L3）が実ゲームで落とす
+            // silent-ok: DI の前は UITK のパネルが無く乗り得ない / 登録漏れは GameUiPointerWiringChecks（L3）が実ゲームで落とす
             if (probe == null) return false;
             return probe.IsPointerOverGameUi(screenPosition);
         }

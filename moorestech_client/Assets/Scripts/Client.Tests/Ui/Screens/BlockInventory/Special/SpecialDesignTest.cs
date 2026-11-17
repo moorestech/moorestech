@@ -8,7 +8,6 @@ using Client.Ui.Screens.BlockInventory.Special.Energy;
 using Client.Ui.Screens.BlockInventory.Special.FilterSplitter;
 using Client.Ui.Screens.BlockInventory.Special.Network;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
-using Client.Ui.State.BlockInventory.Special.Details;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;

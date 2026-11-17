@@ -9,8 +9,8 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Ui.State.Train.Platform
 {
     /// <summary>
-    /// 駅・プラットフォームの駅名・移送モード・スロットの有無の唯一の判定（UITK の TrainPlatformBodyModel と Web ホストの TrainPlatformDetailDtoBuilder が呼ぶ。DC-23 A）
-    /// The single decision on a station/platform's name, transfer mode and slot presence (called by the UITK TrainPlatformBodyModel and the Web host TrainPlatformDetailDtoBuilder; DC-23 A)
+    /// 駅・プラットフォームの駅名・移送モード・スロットの有無の唯一の判定（UITK の TrainPlatformBodyModel が呼ぶ）
+    /// The single decision on a station/platform's name, transfer mode and slot presence (called by the UITK TrainPlatformBodyModel)
     /// </summary>
     public static class TrainPlatformDetailReader
     {
@@ -26,21 +26,16 @@ namespace Client.Ui.State.Train.Platform
 
             // スロットは移送の状態があり、かつ品物の PF・駅のときだけ
             // Item slots only with a transfer state on an item platform or station
-            var hasItemSlots = transfer != null && TryReadItemSlotCount(param, out _);
+            var hasItemSlots = transfer != null && HasItemSlots(param);
             var slotsPart = hasItemSlots ? SectionContent<IReadOnlyList<SlotItem>>.Present(itemSlots) : SectionContent<IReadOnlyList<SlotItem>>.Absent;
             return new OpenTrainPlatformBody(namePart, slotsPart, fluids, mode);
         }
 
-        // スロットを持つ型の唯一の列挙。数はマスタの値で、品物 PF と駅だけが持つ
-        // The single list of slot-bearing types; the count is the master value, held only by item platforms and stations
-        public static bool TryReadItemSlotCount(IBlockParam param, out int count)
+        // スロットを持つ型の唯一の列挙。品物 PF と駅だけが持つ
+        // The single list of slot-bearing types; only item platforms and stations hold slots
+        private static bool HasItemSlots(IBlockParam param)
         {
-            switch (param)
-            {
-                case TrainItemPlatformBlockParam item: count = item.ItemSlotCount; return true;
-                case TrainStationBlockParam station: count = station.ItemSlotCount; return true;
-                default: count = 0; return false;
-            }
+            return param is TrainItemPlatformBlockParam || param is TrainStationBlockParam;
         }
     }
 }

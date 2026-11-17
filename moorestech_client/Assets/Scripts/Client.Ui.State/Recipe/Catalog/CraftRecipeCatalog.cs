@@ -7,8 +7,8 @@ using Game.UnlockState;
 namespace Client.Ui.State.Recipe.Catalog
 {
     /// <summary>
-    /// 解放済みのクラフトレシピを State のデータへ写す（Web CraftingRecipesTopic の源）
-    /// Copies unlocked craft recipes into State data (source of the Web CraftingRecipesTopic)
+    /// 解放済みのクラフトレシピを State のデータへ写す（Web の CraftingRecipesTopic の源の写し）
+    /// Copies unlocked craft recipes into State data (port of the source of Web CraftingRecipesTopic)
     /// </summary>
     public static class CraftRecipeCatalog
     {
@@ -18,7 +18,7 @@ namespace Client.Ui.State.Recipe.Catalog
             var result = new List<CraftRecipeData>();
             foreach (var recipe in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
             {
-                // silent-ok: 解放表に無いレシピはロック扱い（Web の topic もこの Catalog を通る） / 一覧に出ないことを CraftRecipeCatalogTest と録画 uitk-recipe-craft が見る
+                // silent-ok: 解放表に無いレシピはロック扱い / 一覧に出ないことを CraftRecipeCatalogTest と録画 uitk-recipe-craft が見る
                 if (!infos.TryGetValue(recipe.CraftRecipeGuid, out var info) || !info.IsUnlocked) continue;
 
                 // 素材と結果を ItemId へ引き直す

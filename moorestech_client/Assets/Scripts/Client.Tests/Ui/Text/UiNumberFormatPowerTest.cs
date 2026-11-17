@@ -1,13 +1,13 @@
-using Client.Ui.State.BlockInventory.Special.Text;
+using Client.Ui.State.Text;
 using NUnit.Framework;
 
-namespace Client.Tests.Ui.State.BlockInventory.Special
+namespace Client.Tests.Ui.Text
 {
     /// <summary>
     /// JS の数値書式を Web と同じ文字にする
     /// Format numbers like JS toFixed/toPrecision
     /// </summary>
-    public class JsNumberTextTest
+    public class UiNumberFormatPowerTest
     {
         [TestCase(0d, "0")]
         [TestCase(0.1d, "0.10")]
@@ -20,7 +20,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [TestCase(100d, "100")]
         public void 正の微小値は有効2桁で残し他は整数に丸める(double power, string expected)
         {
-            Assert.AreEqual(expected, JsNumberText.PositivePower(power));
+            Assert.AreEqual(expected, UiNumberFormat.PositivePower(power));
         }
 
         [TestCase(0.000123d, "0.00012")]
@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [TestCase(150d, "1.5e+2")]
         public void 有効2桁はJSのtoPrecisionと同じ表記(double value, string expected)
         {
-            Assert.AreEqual(expected, JsNumberText.Precision2(value));
+            Assert.AreEqual(expected, UiNumberFormat.Precision2(value));
         }
     }
 }

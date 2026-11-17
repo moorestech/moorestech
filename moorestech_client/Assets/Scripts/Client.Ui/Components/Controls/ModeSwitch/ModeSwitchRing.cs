@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,6 +13,8 @@ namespace Client.Ui.Components.Controls
     {
         private const string BevelProperty = "--mode-switch-ring-width";
 
+        private readonly StageScaleReadGuard _scaleReadGuard = new();
+
         public ModeSwitchRing()
         {
             pickingMode = PickingMode.Ignore;
@@ -25,13 +28,13 @@ namespace Client.Ui.Components.Controls
 
             void ApplyRingGeometry()
             {
-                // 読めないときは前の形のまま（LogError は Reader が出す）
-                // Keep the previous shape when unreadable (the Reader logs the error)
+                // 読めないときは前の形のまま（LogError は Reader と Guard が出す）
+                // Keep the previous shape when unreadable (the Reader and Guard log the error)
                 if (!UssCustomStyleReader.TryReadPixels(customStyle, BevelProperty, out var bevel)) return;
+                if (!_scaleReadGuard.TryRead(panel, "ModeSwitchRing", "the ring keeps its previous shape", out var pixelsPerPoint)) return;
 
                 // UITK の枠線は物理画素の整数に丸まり全面で塗られる。Web は端数の幅を部分被覆で描くので、幅を物理画素へ揃え、足りない被覆を不透明度で写す
                 // UITK borders round to whole physical pixels and paint fully; the Web paints the fractional width as partial coverage, so snap the width and carry the missing coverage as opacity
-                var pixelsPerPoint = scaledPixelsPerPoint;
                 var physicalWidth = bevel * pixelsPerPoint;
                 var snappedPixels = Mathf.Max(1f, Mathf.Round(physicalWidth));
                 var width = snappedPixels / pixelsPerPoint;

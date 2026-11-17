@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Selectors;
+using Client.Ui.State.Items;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -34,7 +38,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
 
         public void Attach(OpenBlockInventoryPanel panel)
         {
-            SpecialDetailStream.Of(_panels, _model, panel)
+            DetailStream()
                 .Subscribe(pair =>
                 {
                     // 出すかは描く前に selector で決め、描いてから IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
@@ -44,6 +48,26 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
                     _isApplicable.Value = shows;
                 })
                 .AddTo(_subscriptions);
+
+            #region Internal
+
+            // 同じパネルの枠と特殊族の詳細の流れ。同じパネルの枠の変化と、パネルの組み直しの外で届く詳細（網の集約・ベルトの統計）の両方で描き直す
+            // The same panel's slots joined with the special detail; redraw on both slot changes of the same panel and details arriving outside panel rebuilds (network totals, belt stats)
+            IObservable<(IReadOnlyList<SlotItem> slots, SpecialBlockDetailViewModel detail)> DetailStream()
+            {
+                return _panels.Current
+                    .Where(IsSamePanel)
+                    .Select(current => ((OpenBlockInventoryPanel)current).ItemSlots)
+                    .CombineLatest(_model.Current, (slots, detail) => (slots, detail));
+            }
+
+            bool IsSamePanel(BlockInventoryPanelState current)
+            {
+                // silent-ok: 別のパネルへ替わる途中の値は描かない / alpha の BodyHost が同じフレームで Detach して新しい部分を作る（前例 alpha の SectionStackItemGridSection）
+                return current is OpenBlockInventoryPanel open && open.IsSamePanel(panel);
+            }
+
+            #endregion
         }
 
         public void Detach()

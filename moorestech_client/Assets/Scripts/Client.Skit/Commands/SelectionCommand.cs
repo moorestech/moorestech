@@ -40,8 +40,8 @@ namespace CommandForgeGenerator.Command
                 choices.Add(CreateChoice(label));
             }
 
-            // WebはchoiceIdだけを返し、Unity側で同じindexのjumpを確定する
-            // Web returns only a choiceId; Unity resolves the jump at the matching index
+            // UITKはchoiceIdだけを返し、Unity側で同じindexのjumpを確定する
+            // UITK returns only a choiceId; Unity resolves the jump at the matching index
             var store = SkitPresentationStateStore.Instance;
             store.PresentChoices(choices.ToArray());
             var choiceId = await store.WaitForSelectionAsync();

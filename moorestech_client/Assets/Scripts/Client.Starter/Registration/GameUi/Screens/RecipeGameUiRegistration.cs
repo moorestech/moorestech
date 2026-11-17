@@ -12,8 +12,8 @@ namespace Client.Starter.Registration.GameUi.Screens
     {
         public static void Register(ContainerBuilder builder)
         {
-            // State: 選択・モデル（カタログとクラフトの操作は Web と共有で MainGameUiStateRegistration）。モデルは Initialize で購読するので entry point（前例 ResearchTreeModel）
-            // State: selection and model (the catalog and craft commands are shared with Web, in MainGameUiStateRegistration); the model subscribes in Initialize, so it is an entry point (precedent ResearchTreeModel)
+            // State: 選択・モデル（カタログとクラフトの操作は MainGameUiStateRegistration）。モデルは Initialize で購読するので entry point（前例 ResearchTreeModel）
+            // State: selection and model (the catalog and craft commands are in MainGameUiStateRegistration); the model subscribes in Initialize, so it is an entry point (precedent ResearchTreeModel)
             builder.Register<RecipeItemSelection>(Lifetime.Singleton);
             builder.RegisterEntryPoint<RecipeScreenModel>().AsSelf();
 

@@ -8,8 +8,8 @@ namespace Client.Input.KeyPress
     /// Ports through which screens receive an InputKey; each carries only the one reading its receiver uses, and text-field suppression plus the ESC latch live in the InputKey's InputSuppressionFilter (A-246)
     /// </summary>
     /// <remarks>
-    /// DI の鍵になるキーごとの型（前例 IUiCloseKeyProbe・IHorizontalArrowKeySource）。両方の読み方は実装の基底 InputKeyPressSource だけが持つ
-    /// Per-key types that serve as DI keys (precedent IUiCloseKeyProbe, IHorizontalArrowKeySource); only the implementation base InputKeyPressSource has both readings
+    /// DI の鍵になるキーごとの型（前例 IHorizontalArrowKeySource）。両方の読み方は実装の基底 InputKeyPressSource だけが持つ
+    /// Per-key types that serve as DI keys (precedent IHorizontalArrowKeySource); only the implementation base InputKeyPressSource has both readings
     /// </remarks>
     public interface ISkitAdvanceKeyPressSource
     {

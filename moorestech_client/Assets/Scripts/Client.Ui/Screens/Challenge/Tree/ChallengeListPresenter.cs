@@ -22,6 +22,7 @@ namespace Client.Ui.Screens.Challenge.Tree
         private readonly UiRoutingState _routing;
         private readonly IChallengeListCommands _commands;
         private readonly IUiOsCursor _osCursor;
+        private readonly SerialDisposable _modelSubscription = new();
 
         public ChallengeListPresenter(GameUiRoot gameUiRoot, ChallengeListModel model, UiRoutingState routing, IChallengeListCommands commands, IUiOsCursor osCursor)
         {
@@ -39,8 +40,19 @@ namespace Client.Ui.Screens.Challenge.Tree
             var view = new ChallengeListView(_commands, _osCursor);
             view.Render(_model.Current.Value);
             _gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(view);
-            _routing.Current.Subscribe(snapshot => view.SetShown(ChallengeScreenVisibility.IsShown(snapshot)));
-            _model.Current.Subscribe(view.Render);
+            _routing.Current.Select(ChallengeScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown);
+
+            #region Internal
+
+            // 表示中だけモデルを購読する（前例 ResearchTreePresenter。購読した時に最新値で 1 回描く）
+            // Follow the model only while shown (precedent ResearchTreePresenter; subscribing draws once from the latest)
+            void SetShown(bool shown)
+            {
+                view.SetShown(shown);
+                _modelSubscription.Disposable = shown ? _model.Current.Subscribe(view.Render) : Disposable.Empty;
+            }
+
+            #endregion
         }
     }
 }

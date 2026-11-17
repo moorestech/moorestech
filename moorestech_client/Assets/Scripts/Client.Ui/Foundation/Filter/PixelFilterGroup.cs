@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Stage.ScaleReading;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -22,6 +23,7 @@ namespace Client.Ui.Foundation.Filter
         private const string FlowUssClassName = "pixel-filter-group--flow";
 
         private readonly VisualElement _content;
+        private readonly StageScaleReadGuard _scaleReadGuard = new();
         private float _appliedPixelsPerPoint;
 
         public override VisualElement contentContainer => _content;
@@ -45,17 +47,12 @@ namespace Client.Ui.Foundation.Filter
         {
             // silent-ok: パネルに載る前は倍率が無い / 載った時の AttachToPanelEvent でここへ戻る
             if (panel == null) return;
-            var pixelsPerPoint = scaledPixelsPerPoint;
+            // 読めない倍率は物理画素へ揃えられないので、Guard が開発者へ知らせ、等倍のまま描く（ぼけるだけで位置は正しい）
+            // An unreadable scale cannot align to physical pixels, so the Guard tells the developer and the group draws at unit scale (only blurs; positions stay right)
+            if (!_scaleReadGuard.TryRead(panel, "PixelFilterGroup", "drawing the group at unit scale", out var pixelsPerPoint)) pixelsPerPoint = 1f;
             // silent-ok: 倍率が同じなら付け直さない（付け直すとスタイルの解決が回り続ける） / 倍率が変われば次の解決で付け直す
             if (Mathf.Approximately(pixelsPerPoint, _appliedPixelsPerPoint)) return;
 
-            // 読めない倍率は物理画素へ揃えられないので、開発者へ知らせて等倍のまま描く（ぼけるだけで位置は正しい）
-            // An unreadable scale cannot align to physical pixels, so tell the developer and draw at unit scale (only blurs; positions stay right)
-            if (pixelsPerPoint <= 0f)
-            {
-                Debug.LogError($"[PixelFilterGroup] scaledPixelsPerPoint is {pixelsPerPoint}; drawing the group at unit scale: {parent?.name}");
-                pixelsPerPoint = 1f;
-            }
             _appliedPixelsPerPoint = pixelsPerPoint;
             style.scale = new Scale(new Vector2(1f / pixelsPerPoint, 1f / pixelsPerPoint));
             _content.style.scale = new Scale(new Vector2(pixelsPerPoint, pixelsPerPoint));

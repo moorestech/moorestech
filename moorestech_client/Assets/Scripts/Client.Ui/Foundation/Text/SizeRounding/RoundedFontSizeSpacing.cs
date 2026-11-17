@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Client.Ui.Foundation.Stage.ScaleReading;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,6 +24,7 @@ namespace Client.Ui.Foundation.Text.SizeRounding
         private static readonly string CountingTag = $"<cspace={CountingSpacingPixels.ToString(CultureInfo.InvariantCulture)}px>";
 
         private readonly TextElement _element;
+        private readonly StageScaleReadGuard _scaleReadGuard = new();
         private bool _hasLastInput;
         private string _lastText;
         private float _lastPixelsPerPoint;
@@ -40,7 +42,9 @@ namespace Client.Ui.Foundation.Text.SizeRounding
         {
             // silent-ok: パネルに載る前は倍率が無い / 載った後のスタイルの解決で LocalizedLabel が問い直す
             if (_element.panel == null) return string.Empty;
-            var pixelsPerPoint = _element.scaledPixelsPerPoint;
+            // 倍率が読めなければ送りの印は付けない（Guard が入口で 1 回知らせる）
+            // Add no spacing tag when the scale is unreadable (the Guard logs once on entry)
+            if (!_scaleReadGuard.TryRead(_element.panel, "RoundedFontSizeSpacing", "no spacing tag is added", out var pixelsPerPoint)) return string.Empty;
             var style = TextLayoutStyleSnapshot.Read(_element);
             if (_hasLastInput && text == _lastText && Mathf.Approximately(pixelsPerPoint, _lastPixelsPerPoint) && style.SameAs(_lastStyle)) return _lastTag;
 

@@ -102,7 +102,7 @@ namespace Client.Ui.State.BlockInventory.Machine
                 // Report gear anomaly once while it persists
                 var gear = GearDriveConversion.Read(block, param);
                 var anomaly = gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
-                if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MachineSectionModel] {anomaly}; treated as electric like the Web host");
+                if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MachineSectionModel] {anomaly}; treated as electric");
                 return MachineDetailConversion.TryBuild(common, machine, param, gear.IsGearDriven, out detail);
             }
 

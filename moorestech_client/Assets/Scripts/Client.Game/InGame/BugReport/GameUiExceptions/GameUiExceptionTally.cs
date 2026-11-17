@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
     /// </summary>
     public sealed class GameUiExceptionTally : IInitializable
     {
-        public const int SampleLimit = 5;
+        internal const int SampleLimit = 5;
 
         // スタックの行に載る UI の名前空間の頭（Client.Ui. は Client.Ui.State. も含む）
         // The UI namespace prefix found on stack lines (Client.Ui. also covers Client.Ui.State.)
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.BugReport.GameUiExceptions
 
         // UI の例外かの唯一の判定。見つかれば最初の UI のフレームの行を返す。行頭（呼ばれたメソッドの型）だけを見て、引数の型に UI の型が載る行を数えない
         // The single test for a UI exception; when found, returns the first UI frame line. Only the line head (the called method's type) counts, so a line merely taking a UI type as an argument does not
-        public static bool TryFindFirstUiFrame(string stackTrace, out string frame)
+        internal static bool TryFindFirstUiFrame(string stackTrace, out string frame)
         {
             // 例外ログの stackTrace は外部値で空もありうる。空は UI のフレーム無しとして数えない
             // The exception log's stackTrace is an external value and may be empty; empty means no UI frame

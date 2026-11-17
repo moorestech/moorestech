@@ -121,24 +121,28 @@ namespace Client.Ui.Foundation.Text
                 if (1 < ticksLeft) AfterTicks(ticksLeft - 1);
                 else ApplyMeasuredBreaks();
             });
-        }
 
-        private void ApplyMeasuredBreaks()
-        {
-            var lineEnds = _measurer.ReadLineEndIndices(LineEndPunctuationTrim.CountPresentedGlyphs(_source));
-            _measurer.End();
-            // silent-ok: normal 以外の文は原文のまま（nowrap は行末で折れず、pre-wrap は詰めない） / pre-wrap の差は台帳 LX-180 が例外として持つ
-            if (_whiteSpace.Wanted != WhiteSpace.Normal)
+            #region Internal
+
+            void ApplyMeasuredBreaks()
             {
-                _phase = TrimPhase.Plain;
-                return;
+                var lineEnds = _measurer.ReadLineEndIndices(LineEndPunctuationTrim.CountPresentedGlyphs(_source));
+                _measurer.End();
+                // silent-ok: normal 以外の文は原文のまま（nowrap は行末で折れず、pre-wrap は詰めない） / pre-wrap の差は台帳 LX-180 が例外として持つ
+                if (_whiteSpace.Wanted != WhiteSpace.Normal)
+                {
+                    _phase = TrimPhase.Plain;
+                    return;
+                }
+
+                // 測った折返しで改行を入れ自動折返しを止める
+                // Put newlines at the measured breaks and stop auto wrap so line-end marks may overhang
+                _phase = TrimPhase.Displayed;
+                _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, lineEnds);
+                _whiteSpace.Hold(WhiteSpaceHoldReason.LineEndTrim);
             }
 
-            // 測った折返しで改行を入れ自動折返しを止める
-            // Put newlines at the measured breaks and stop auto wrap so line-end marks may overhang
-            _phase = TrimPhase.Displayed;
-            _label.text = _prefix + LineEndPunctuationTrim.Apply(_source, lineEnds);
-            _whiteSpace.Hold(WhiteSpaceHoldReason.LineEndTrim);
+            #endregion
         }
 
         private void OnGeometryChanged()

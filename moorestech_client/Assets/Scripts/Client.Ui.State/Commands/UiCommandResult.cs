@@ -31,7 +31,7 @@ namespace Client.Ui.State.Commands
 
         // 開発者ログだけの補足
         // Developer-log detail only; never part of the failure code
-        public string Diagnostic { get; }
+        private string Diagnostic { get; }
 
         private UiCommandRejected(UiCommandRejectReason reason, string wireCodeOverride, string diagnostic)
         {

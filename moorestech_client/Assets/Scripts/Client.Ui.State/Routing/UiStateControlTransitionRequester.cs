@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Ui.State.Routing
 {
     /// <summary>
-    /// 遷移要求を UIStateControl へ渡す本番実装。入れ子ポーズの画面では入れ子だけを閉じ、表に無い遷移は拒む（Web ホストと同じ順）
-    /// Production requester forwarding to UIStateControl; on nested-pause screens it closes only the nested pause, and refuses transitions outside the table (same order as the Web host)
+    /// 遷移要求を UIStateControl へ渡す本番実装。入れ子ポーズの画面では入れ子だけを閉じ、表に無い遷移は拒む
+    /// Production requester forwarding to UIStateControl; on nested-pause screens it closes only the nested pause, and refuses transitions outside the table
     /// </summary>
     public sealed class UiStateControlTransitionRequester : IUiStateTransitionRequester
     {

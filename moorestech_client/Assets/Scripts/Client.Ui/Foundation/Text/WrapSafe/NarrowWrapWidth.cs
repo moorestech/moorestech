@@ -18,7 +18,7 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     {
         // TextCore の既定の禁則（PanelTextSettings の leadingCharacters＝行末に置けない字）から空白を除いた写し。NarrowWrapWidthTest が既定の設定と照合する
         // Copy of TextCore's default no-break-after set (PanelTextSettings leadingCharacters) minus the space; NarrowWrapWidthTest checks it against the default settings
-        public const string NoBreakAfterCharacters = "([｛〔〈《「『【〘〖〝‘“｟«$—…‥〳〴〵\\［（{£¥\"々〇＄￥￦#";
+        internal const string NoBreakAfterCharacters = "([｛〔〈《「『【〘〖〝‘“｟«$—…‥〳〴〵\\［（{£¥\"々〇＄￥￦#";
         private const float SafetyMarginPixels = 1f;
 
         // 固まる並びが無ければ 0

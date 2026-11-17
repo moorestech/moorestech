@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Challenge
 {
     /// <summary>
-    /// 全カテゴリの進行中チャレンジを受信順に平らにし、完了と blocking スキットの変化で作り直す（Web の challenge.current topic）
-    /// Flattens every category's current challenges in received order and rebuilds on completions and blocking-skit changes (Web challenge.current topic)
+    /// 全カテゴリの進行中チャレンジを受信順に平らにし、完了と blocking スキットの変化で作り直す（Web の challenge.current topic の写し）
+    /// Flattens every category's current challenges in received order and rebuilds on completions and blocking-skit changes (port of Web challenge.current topic)
     /// </summary>
     public sealed class CurrentChallengeHudModel : IInitializable
     {
@@ -46,8 +46,8 @@ namespace Client.Ui.State.Challenge
 
         private CurrentChallengeHudViewModel Build()
         {
-            // カテゴリ順×受信順（ChallengeDtoBuilder.BuildCurrent と同じ並び）。題はマスタの内容キー
-            // Category order times received order (same as ChallengeDtoBuilder.BuildCurrent); titles are master content keys
+            // カテゴリ順×受信順（Web の ChallengeDtoBuilder.BuildCurrent の並びの写し）。題はマスタの内容キー
+            // Category order times received order (port of the Web ChallengeDtoBuilder.BuildCurrent order); titles are master content keys
             var objectives = new List<UiText>();
             foreach (var category in _progressState.Categories)
             foreach (var challenge in category.CurrentChallenges)

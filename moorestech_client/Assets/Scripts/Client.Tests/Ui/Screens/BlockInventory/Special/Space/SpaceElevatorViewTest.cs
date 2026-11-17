@@ -1,6 +1,5 @@
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Parts;
-using Client.Ui.Screens.BlockInventory.Special;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;

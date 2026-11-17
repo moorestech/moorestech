@@ -137,8 +137,8 @@ namespace Client.Skit.UI
             PublishControlState(_actionController.IsAuto, _actionController.IsSkip, hidden);
             return SkitIntentResult.Success();
         }
-        // Unity側screen commandも完全snapshotへ統合し、Web表示を復元可能にする
-        // Fold Unity screen commands into the complete snapshot so the Web view remains restorable
+        // Unity側screen commandも完全snapshotへ統合し、表示を復元可能にする
+        // Fold Unity screen commands into the complete snapshot so the view remains restorable
         public void SetTextAreaVisible(bool visible)
         {
             PublishScreenState(visible, _current.PresentationState.TransitionVisible);

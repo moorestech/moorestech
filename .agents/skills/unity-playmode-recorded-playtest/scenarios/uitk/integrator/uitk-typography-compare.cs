@@ -140,7 +140,7 @@ return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
     void MatchReferenceRoom()
     {
         var filters = Enumerable.Range(0, FilterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
-        var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 1.2, 0.8, filters);
+        var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 0.8, filters);
         Root().Q<CleanRoomSectionView>().Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None)));
         var title = Root().Q("block-inventory").Q<LocalizedLabel>(className: "game-panel__title");
         title.SetText(UiText.FromVerbatim(shootingLanguage == "japanese" ? "電気機械" : "Electric Machine"));

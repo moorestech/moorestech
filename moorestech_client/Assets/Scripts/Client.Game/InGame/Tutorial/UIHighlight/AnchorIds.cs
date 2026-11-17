@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
-    // チュートリアルアンカーIDのC#側の唯一の正本。共存中はWebのanchorIds.tsと突き合わせる
-    // C# single source of truth for tutorial anchor IDs; cross-checked against Web's anchorIds.ts while both coexist
+    // チュートリアルアンカーIDのC#側の唯一の正本。UITK側はこの定数を参照する
+    // C# single source of truth for tutorial anchor IDs; referenced by the UITK side
     public static class AnchorIds
     {
         public const string PlacementHud = "placement.hud";
@@ -62,8 +62,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 
         public static string EquipmentSlot(int index) => Validate($"{EquipmentSlotPrefix}{index}");
 
-        // 空白入りIDはクラス名トークンとして解決しない。Webの実機と同じく警告してそのまま返す（開発者はこのログで気づく）
-        // A whitespace-bearing ID never resolves as a class token; like Web's shipped behavior, log and return it as is (developers notice via this log)
+        // 空白入りIDはクラス名トークンとして解決しない。警告してそのまま返す（開発者はこのログで気づく）
+        // A whitespace-bearing ID never resolves as a class token; log and return it as is (developers notice via this log)
         private static string Validate(string anchorId)
         {
             foreach (var character in anchorId)

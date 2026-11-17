@@ -10,8 +10,8 @@ namespace Client.Skit.UI
         public const string NoneMode = "none";
         public const string BackgroundMode = "background";
 
-        // 許可 intent と表示方式の綴り。Web の wire と同じで、store・UITK・Playtest が読む
-        // Spellings of the allowed intents and reveal modes; same as the Web wire, read by the store, UITK and Playtest
+        // 許可 intent と表示方式の綴り。store・UITK・Playtest が読む
+        // Spellings of the allowed intents and reveal modes; read by the store, UITK and Playtest
         public const string AdvanceIntent = "advance";
         public const string SelectIntent = "select";
         public const string SetAutoIntent = "set-auto";

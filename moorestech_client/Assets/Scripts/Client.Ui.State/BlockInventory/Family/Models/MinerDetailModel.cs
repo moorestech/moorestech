@@ -60,7 +60,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // Report gear anomaly once while it persists
             var gear = GearDriveConversion.Read(block, param);
             var anomaly = gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
-            if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MinerDetailModel] {anomaly}; treated as electric like the Web host");
+            if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MinerDetailModel] {anomaly}; treated as electric");
             _current.Value = SectionContent<MinerDetail>.Present(FamilyDetailConversion.Miner(miner, common, minerParam, gear.IsGearDriven));
         }
     }

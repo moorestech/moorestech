@@ -54,6 +54,13 @@ namespace Client.Ui.State.Train.TimetableEdit
 
             #region Internal
 
+            bool HasSameStopOrder(TrainTimetableReadyData previous, TrainTimetableReadyData next)
+            {
+                // 並びだけを見る。自動運転・走行位置は編集の結果ではなく、その公開で保留が解けると古い並びへ戻るため
+                // Compare only the stop order; auto-run and position are not edit results, and releasing on them would revert to the old order
+                return TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
+            }
+
             void ReleaseForPublication()
             {
                 // 受理の後なら解き、送信中なら受理の時点で解くために記録する
@@ -129,13 +136,6 @@ namespace Client.Ui.State.Train.TimetableEdit
         {
             _closed = true;
             BackToIdle();
-        }
-
-        private static bool HasSameStopOrder(TrainTimetableReadyData previous, TrainTimetableReadyData next)
-        {
-            // 並びだけを見る。自動運転・走行位置は編集の結果ではなく、その公開で保留が解けると古い並びへ戻るため
-            // Compare only the stop order; auto-run and position are not edit results, and releasing on them would revert to the old order
-            return TimetableEditLogic.SameStopOrder(previous.Stops, next.Stops);
         }
 
         private void BackToIdle()

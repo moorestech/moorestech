@@ -147,7 +147,10 @@ namespace Client.Editor.Build
 
         public static void LinuxBuildFromGithubAction()
         {
-            BuildFromGithubAction(BuildTarget.StandaloneLinux64);
+            // Linuxクライアントは配布対象外のため、メニューと同じく意図的に失敗させる（.decisions/2026-08-02）
+            // The Linux client is not distributed, so fail on purpose like the menu entry (.decisions/2026-08-02)
+            Debug.LogError("[BuildPipeline] LinuxBuildFromGithubAction は配布対象外のため意図的に失敗させました（再開は統合計画 §5.2 で別に判断する）");
+            EditorApplication.Exit(1);
         }
 
         private static void BuildFromGithubAction(BuildTarget buildTarget)

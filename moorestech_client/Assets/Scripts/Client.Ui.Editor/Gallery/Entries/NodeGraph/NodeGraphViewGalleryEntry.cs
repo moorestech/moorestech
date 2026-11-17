@@ -1,6 +1,5 @@
 using Client.Ui.Components.NodeGraph;
 using Client.Ui.Components.Panels;
-using Client.Ui.Foundation.Input.OsCursor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;

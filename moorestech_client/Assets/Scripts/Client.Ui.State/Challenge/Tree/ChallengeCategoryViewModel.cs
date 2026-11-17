@@ -26,13 +26,13 @@ namespace Client.Ui.State.Challenge.Tree
             var keys = new HashSet<Guid>();
             foreach (var node in nodes) keys.Add(node.Guid);
 
-            // 別カテゴリの前提は線にしない（Web も描かない。NodeGraphView はグラフに無い親を LogError にするので渡す前に除く。C4-d D-5）
-            // Prerequisites in other categories get no edge (the Web draws none; NodeGraphView logs an error for a missing parent, so drop them first; C4-d D-5)
+            // 別カテゴリの前提は線にしない（NodeGraphView はグラフに無い親を LogError にするので渡す前に除く。C4-d D-5）
+            // Prerequisites in other categories get no edge (NodeGraphView logs an error for a missing parent, so drop them first; C4-d D-5)
             var linked = new List<ChallengeNodeCardViewModel>(nodes.Count);
             foreach (var node in nodes)
             {
                 var previous = new List<Guid>(node.PreviousGuids.Count);
-                // silent-ok: 別カテゴリの前提に線を引かないのは Web と同じ仕様 / L0 ChallengeListViewModelFactoryTest が除くことを固定する
+                // silent-ok: 別カテゴリの前提に線を引かない仕様 / L0 ChallengeListViewModelFactoryTest が除くことを固定する
                 foreach (var previousGuid in node.PreviousGuids) if (keys.Contains(previousGuid)) previous.Add(previousGuid);
                 linked.Add(new ChallengeNodeCardViewModel(node.Guid, node.TreePosition, node.Scale, previous, node.State));
             }

@@ -11,8 +11,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Ui.State.BuildMenu.Commands
 {
     /// <summary>
-    /// 前提（ビルドメニュー中・解放済み）を確かめて実行する。拒否は Web の橋と同じ失敗コードの理由で返す
-    /// Checks the preconditions (menu open, unlocked) and executes; rejections carry reasons with the Web bridge failure codes
+    /// 前提（ビルドメニュー中・解放済み）を確かめて実行する。拒否は失敗コードを持つ理由で返す
+    /// Checks the preconditions (menu open, unlocked) and executes; rejections carry reasons with failure codes
     /// </summary>
     public sealed class BuildMenuCommands : IBuildMenuCommands
     {
@@ -43,8 +43,8 @@ namespace Client.Ui.State.BuildMenu.Commands
 
         public async UniTask<UiCommandResult> DeleteBlueprint(Guid blueprintGuid)
         {
-            // 削除の結果を Web の橋と同じ失敗コードの理由へ写す
-            // Map the delete result to reasons carrying the Web bridge failure codes
+            // 削除の結果を失敗コードを持つ理由へ写す
+            // Map the delete result to reasons carrying failure codes
             var result = await _blueprintDeleteService.DeleteBlueprint(blueprintGuid, CancellationToken.None);
             return result switch
             {

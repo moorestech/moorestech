@@ -3,7 +3,6 @@ using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Detail;
-using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using UnityEngine.UIElements;
 

@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Skit.UI
 {
     /// <summary>
-    ///     背景スキットの音声再生。文字表示は Web が SkitPresentationStateStore 経由で描く
-    ///     Voice playback for background skits; the web renders the text through SkitPresentationStateStore
+    ///     背景スキットの音声再生。文字表示は UITK が SkitPresentationStateStore 経由で描く
+    ///     Voice playback for background skits; UITK renders the text through SkitPresentationStateStore
     /// </summary>
     public class BackgroundSkitVoicePlayer : MonoBehaviour
     {

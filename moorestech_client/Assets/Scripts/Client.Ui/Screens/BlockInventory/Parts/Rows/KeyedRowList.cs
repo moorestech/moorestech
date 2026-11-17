@@ -27,23 +27,27 @@ namespace Client.Ui.Screens.BlockInventory.Parts.Rows
         // Empties the rows and returns true only when the key sequence changed (callers rebuild only on true; avoids forgetting to clear and piling up keys)
         public bool ClearIfKeysChanged(IReadOnlyList<TKey> keys)
         {
-            if (HasSameKeys(keys)) return false;
+            if (HasSameKeys()) return false;
             _keys.Clear();
             _rows.Clear();
             return true;
-        }
 
-        // 件数と添字ごとの鍵で比べる
-        // Compare by count and per-index key
-        private bool HasSameKeys(IReadOnlyList<TKey> keys)
-        {
-            if (keys.Count != _keys.Count) return false;
-            var comparer = EqualityComparer<TKey>.Default;
-            for (var i = 0; i < keys.Count; i++)
+            #region Internal
+
+            // 件数と添字ごとの鍵で比べる
+            // Compare by count and per-index key
+            bool HasSameKeys()
             {
-                if (!comparer.Equals(keys[i], _keys[i])) return false;
+                if (keys.Count != _keys.Count) return false;
+                var comparer = EqualityComparer<TKey>.Default;
+                for (var i = 0; i < keys.Count; i++)
+                {
+                    if (!comparer.Equals(keys[i], _keys[i])) return false;
+                }
+                return true;
             }
-            return true;
+
+            #endregion
         }
 
         public void Add(TKey key, TRow row)

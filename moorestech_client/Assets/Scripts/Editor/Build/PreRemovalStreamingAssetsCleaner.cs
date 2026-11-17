@@ -1,5 +1,5 @@
-using System;
 using System.IO;
+using Client.Build.Policy;
 using UnityEngine;
 
 namespace Client.Editor.Build
@@ -18,26 +18,14 @@ namespace Client.Editor.Build
         // Does nothing when absent; returns false when removal fails so the caller stops the build
         internal static bool RemoveLeftovers()
         {
-            var leftoverMeta = LeftoverDirectory + ".meta";
-            var hasDirectory = Directory.Exists(LeftoverDirectory);
-            var hasMeta = File.Exists(leftoverMeta);
-            if (!hasDirectory && !hasMeta) return true;
-
-            // 作業コピーのディスク IO は他プロセスのロック・権限で失敗しうる外部境界なので隔離する
-            // Working-copy disk IO is an external boundary that can fail on locks or permissions, so isolate it
-            try
+            if (LeftoverDirectoryRemoval.TryRemove(LeftoverDirectory, out var removedAnything, out var hadMeta, out var failureReason))
             {
-                if (hasDirectory) Directory.Delete(LeftoverDirectory, true);
-                if (hasMeta) File.Delete(leftoverMeta);
-            }
-            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
-            {
-                Debug.LogError($"[PreRemovalStreamingAssetsCleaner] 撤去前の Web UI の成果物を消せないためビルドを止めます。手で消してから焼き直してください: {LeftoverDirectory} ({e.Message})");
-                return false;
+                if (removedAnything) Debug.Log($"[PreRemovalStreamingAssetsCleaner] 撤去前のビルドが残した Web UI の成果物を消しました: {LeftoverDirectory}（.meta {(hadMeta ? "あり" : "なし")}）");
+                return true;
             }
 
-            Debug.Log($"[PreRemovalStreamingAssetsCleaner] 撤去前のビルドが残した Web UI の成果物を消しました: {LeftoverDirectory}（.meta {(hasMeta ? "あり" : "なし")}）");
-            return true;
+            Debug.LogError($"[PreRemovalStreamingAssetsCleaner] 撤去前の Web UI の成果物を消せないためビルドを止めます。手で消してから焼き直してください: {LeftoverDirectory} ({failureReason})");
+            return false;
         }
     }
 }

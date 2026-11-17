@@ -37,27 +37,31 @@ namespace Client.Ui.State.Hotbar
         public void Drop(HotbarDragSource source, HotbarDropTarget target)
         {
             Apply(HotbarDropResolver.Resolve(source, target));
-        }
 
-        private void Apply(HotbarDropAction action)
-        {
-            switch (action)
+            #region Internal
+
+            void Apply(HotbarDropAction action)
             {
-                case HotbarAssignAction assign:
-                    _datastore.RequestAssign(assign.SlotIndex, assign.TargetId);
-                    return;
-                case HotbarSwapAction swap:
-                    _datastore.RequestSwap(swap.FromSlotIndex, swap.ToSlotIndex);
-                    return;
-                case HotbarClearAction clear:
-                    _datastore.RequestClear(clear.SlotIndex);
-                    return;
-                case HotbarNoDropAction:
-                    // silent-ok: 自分自身・列の隙間への落とし・ビルドメニューの枠外への落としは Web と同じく何も変えない / HotbarDropResolverTest が組を固定する
-                    return;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, $"未対応のホットバーの落としの結果: {action.GetType().FullName}");
+                switch (action)
+                {
+                    case HotbarAssignAction assign:
+                        _datastore.RequestAssign(assign.SlotIndex, assign.TargetId);
+                        return;
+                    case HotbarSwapAction swap:
+                        _datastore.RequestSwap(swap.FromSlotIndex, swap.ToSlotIndex);
+                        return;
+                    case HotbarClearAction clear:
+                        _datastore.RequestClear(clear.SlotIndex);
+                        return;
+                    case HotbarNoDropAction:
+                        // silent-ok: 自分自身・列の隙間への落とし・ビルドメニューの枠外への落としは Web と同じく何も変えない / HotbarDropResolverTest が組を固定する
+                        return;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(action), action, $"未対応のホットバーの落としの結果: {action.GetType().FullName}");
+                }
             }
+
+            #endregion
         }
     }
 }
