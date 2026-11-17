@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Ui.State.CursorTooltip
+namespace Client.Ui.Screens.CursorTooltip
 {
     /// <summary>
     /// ツールチップの左上位置を決める（端で押し戻す）

@@ -1,8 +1,8 @@
-using Client.Ui.State.CursorTooltip;
+using Client.Ui.Screens.CursorTooltip;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.Ui.State.CursorTooltip
+namespace Client.Tests.Ui.Screens.CursorTooltip
 {
     /// <summary>
     /// 右下 12px に置き、端で内側へ押し戻す（L0）
