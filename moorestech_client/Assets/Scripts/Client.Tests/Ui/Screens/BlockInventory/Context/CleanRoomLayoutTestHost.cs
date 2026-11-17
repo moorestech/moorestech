@@ -59,8 +59,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         // The large interior machine; negative filterCount means no room
         protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount)
         {
-            var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), 4).ToArray();
-            var detail = MachineTestDetails.Detail(MachineRecipeSelection.Selected(MachineTestDetails.RecipeA), MachineTestDetails.Unbound(new MachineSlotLayout(2, 1, 1)), 0.42f);
+            return OpenCleanRoomMachine(filterCount, new MachineSlotLayout(2, 1, 1));
+        }
+
+        // 枠の数を指定した室内機械
+        // The interior machine with the given slot layout
+        protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount, MachineSlotLayout layout)
+        {
+            var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), layout.Input + layout.Output + layout.Module).ToArray();
+            var detail = MachineTestDetails.Detail(MachineRecipeSelection.Selected(MachineTestDetails.RecipeA), MachineTestDetails.Unbound(layout), 0.42f);
             var fluids = new[] { BlockFluidSlotState.Filled(Water, 50, 100), BlockFluidSlotState.Empty(100) };
             var panel = MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, slots);
             var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, MachineTestDetails.Catalog(MachineTestDetails.RecipeA, MachineTestDetails.RecipeB), 1);
