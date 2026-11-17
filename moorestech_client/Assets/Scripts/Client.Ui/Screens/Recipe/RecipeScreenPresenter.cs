@@ -4,7 +4,6 @@ using Client.Ui.Screens.Recipe.Parts;
 using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Recipe.Screen;
 using Client.Ui.State.Routing;
-using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
 
@@ -23,12 +22,12 @@ namespace Client.Ui.Screens.Recipe
         private readonly ItemListView _itemList;
         private readonly SerialDisposable _modelSubscription = new();
 
-        public RecipeScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, RecipeScreenModel model, GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection)
+        public RecipeScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, RecipeScreenModel model, GameContentPresentation content, IRecipeCommands commands, RecipeItemSelection selection)
         {
             _columns = columns;
             _routing = routing;
             _model = model;
-            var context = new RecipeEntryPartsContext(content, commands, toaster, selection);
+            var context = new RecipeEntryPartsContext(content, commands, selection);
             _viewer = new RecipeViewerView(context);
             _itemList = new ItemListView(content, selection);
         }

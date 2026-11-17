@@ -101,7 +101,7 @@ namespace Client.Tests.Ui.Screens.Inventory
 
         private HotbarHudView MountHotbarHud()
         {
-            var hotbar = new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(), Toaster);
+            var hotbar = new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create());
             _viewport.Add(hotbar);
             hotbar.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
@@ -112,7 +112,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         private EquipmentHudView MountEquipmentHud()
         {
             var empty = new SlotItem(ItemMaster.EmptyItemId, 0);
-            var hud = new EquipmentHudView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands(), Toaster), new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
+            var hud = new EquipmentHudView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands()), new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
             _viewport.Add(hud);
             hud.SetShown(true);
             hud.Render(new PlayerInventoryViewModel(new[] { empty }, new[] { empty, empty, empty }, 0, new System.Collections.Generic.Dictionary<int, string>()));

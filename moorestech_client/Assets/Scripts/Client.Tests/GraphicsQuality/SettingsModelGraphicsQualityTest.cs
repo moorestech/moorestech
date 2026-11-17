@@ -2,6 +2,7 @@ using Client.Game.InGame.GraphicsQuality;
 using Client.Ui.State.Settings;
 using NUnit.Framework;
 using UnityEngine;
+using Client.Tests.Ui.State.Toast;
 
 namespace Client.Tests.GraphicsQuality
 {
@@ -16,7 +17,7 @@ namespace Client.Tests.GraphicsQuality
         {
             var model = new SettingsModel();
             model.Initialize();
-            var commands = new SettingsCommands();
+            var commands = new SettingsCommands(new RecordingUiCommandResultToaster());
             var medium = model.Current.Value.Graphics;
 
             // 画面の行と同じく、毎回いまの設定に 1 項目だけ重ねて 9 項目を変える

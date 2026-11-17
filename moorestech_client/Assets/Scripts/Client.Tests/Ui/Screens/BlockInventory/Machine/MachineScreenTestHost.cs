@@ -70,7 +70,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         // Build view and presenter, attach, push the value and mount
         protected MachineSectionView MountSection(MachineSectionViewModel viewModel, bool fillsPanelHeight)
         {
-            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, Toaster, OsCursor, RecipeSelect);
+            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, OsCursor, RecipeSelect);
             var presenter = new MachineSectionPresenter(view, MachineModel, ContextModel);
             presenter.Attach(MachineScreenViewModels.Panel());
             SetMachine(viewModel);

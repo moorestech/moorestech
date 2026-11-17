@@ -7,29 +7,25 @@ using Client.Ui.State.Research.Tree;
 namespace Client.Ui.Screens.Research.Parts
 {
     /// <summary>
-    /// ノードカードをGUIDで使い回す
-    /// Reuses node cards by GUID
+    /// ノードカードをGUIDで使い回す。中身を渡し直すかの判定は State の ResearchTreeViewModel.HasSameGraphAs が持つ（並びの比較をここに置かない）
+    /// Reuses node cards by GUID; whether to hand content over again is decided by State's ResearchTreeViewModel.HasSameGraphAs (no order comparison here)
     /// </summary>
     public sealed class ResearchNodeCardSet
     {
         private readonly GameContentPresentation _content;
         private readonly Dictionary<Guid, ResearchNodeCard> _cards = new();
-        private readonly List<Guid> _order = new();
 
         public ResearchNodeCardSet(GameContentPresentation content)
         {
             _content = content;
         }
 
-        // 全カードを描き直し、ノードの並びが前回と違えば true
-        // Redraw every card and return true when the node order differs from last time
-        public bool RenderCards(IReadOnlyList<ResearchNodeCardViewModel> nodes)
+        // 全カードを描き直す（無いカードは作る）
+        // Redraw every card, creating missing ones
+        public void RenderCards(IReadOnlyList<ResearchNodeCardViewModel> nodes)
         {
-            var orderChanged = nodes.Count != _order.Count;
-            for (var i = 0; i < nodes.Count; i++)
+            foreach (var node in nodes)
             {
-                var node = nodes[i];
-                if (!orderChanged && _order[i] != node.Guid) orderChanged = true;
                 if (!_cards.TryGetValue(node.Guid, out var card))
                 {
                     card = new ResearchNodeCard(node.Guid);
@@ -37,10 +33,6 @@ namespace Client.Ui.Screens.Research.Parts
                 }
                 card.Render(node, _content);
             }
-            if (!orderChanged) return false;
-            _order.Clear();
-            foreach (var node in nodes) _order.Add(node.Guid);
-            return true;
         }
 
         public NodeGraphContent BuildContent(IReadOnlyList<ResearchNodeCardViewModel> nodes, NodeGraphFocus focus)

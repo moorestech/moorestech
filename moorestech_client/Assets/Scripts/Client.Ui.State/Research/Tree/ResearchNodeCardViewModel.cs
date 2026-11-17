@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Ui.State.Research.Logic;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
@@ -30,6 +31,13 @@ namespace Client.Ui.State.Research.Tree
             CardState = cardState;
             StateLabelKey = stateLabelKey;
             Selected = selected;
+        }
+
+        // グラフへ渡す置き方が同じか（チャレンジの HasSameGraphPlacementAs と同じ基準）
+        // Whether the placement handed to the graph matches (same criteria as the challenge HasSameGraphPlacementAs)
+        public bool HasSameGraphPlacementAs(ResearchNodeCardViewModel other)
+        {
+            return Guid == other.Guid && TreePosition == other.TreePosition && PreviousGuids.SequenceEqual(other.PreviousGuids);
         }
     }
 }

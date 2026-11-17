@@ -3,14 +3,15 @@ using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.ItemMove;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Player;
+using Client.Ui.State.Toast;
 using Core.Item.Interface;
 using UnityEngine;
 
 namespace Client.Ui.State.SlotCommands.Block
 {
     /// <summary>
-    /// ブロックの枠の押下を操作の瞬間の在庫で計画し実行する（Web useBlockSlotGestures の写し）
-    /// Plans and runs block-slot presses from the inventory at gesture time (port of Web useBlockSlotGestures)
+    /// ブロックの枠の押下を操作の瞬間の在庫で計画し実行し、結果をトーストへ渡す（Web useBlockSlotGestures の写し）
+    /// Plans and runs block-slot presses from the inventory at gesture time and hands results to the toaster (port of Web useBlockSlotGestures)
     /// </summary>
     public sealed class BlockSlotCommands : IBlockSlotCommands
     {
@@ -20,16 +21,43 @@ namespace Client.Ui.State.SlotCommands.Block
         private readonly IPlayerInventoryOperations _player;
         private readonly PlannedItemActionRunner _runner;
         private readonly IItemStackLevelLookup _stackLevels;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public BlockSlotCommands(IBlockInventoryOperations block, IPlayerInventoryOperations player, PlannedItemActionRunner runner, IItemStackLevelLookup stackLevels)
+        public BlockSlotCommands(IBlockInventoryOperations block, IPlayerInventoryOperations player, PlannedItemActionRunner runner, IItemStackLevelLookup stackLevels, IUiCommandResultToaster toaster)
         {
             _block = block;
             _player = player;
             _runner = runner;
             _stackLevels = stackLevels;
+            _toaster = toaster;
         }
 
-        public UiCommandResult LeftDown(int blockSlot, bool shift)
+        public void LeftDown(int blockSlot, bool shift)
+        {
+            _toaster.Report(CommandName, PlanAndRunLeftDown(blockSlot, shift));
+        }
+
+        public void RightDown(int blockSlot)
+        {
+            if (!TryReadSlot(blockSlot, out var slot))
+            {
+                _toaster.Report(CommandName, Unavailable(blockSlot));
+                return;
+            }
+            _toaster.Report(CommandName, _runner.Execute(BlockSlotPlanner.PlanRightClick(blockSlot, slot, _player.ReadGrab().Count)));
+        }
+
+        public void DoubleClick(int blockSlot)
+        {
+            if (!TryReadSlot(blockSlot, out _))
+            {
+                _toaster.Report(CommandName, Unavailable(blockSlot));
+                return;
+            }
+            _toaster.Report(CommandName, _runner.Execute(BlockSlotPlanner.PlanDoubleClick(blockSlot)));
+        }
+
+        private UiCommandResult PlanAndRunLeftDown(int blockSlot, bool shift)
         {
             if (!TryReadSlot(blockSlot, out var slot)) return Unavailable(blockSlot);
             var player = _player.ReadSnapshot();
@@ -44,18 +72,6 @@ namespace Client.Ui.State.SlotCommands.Block
                 return UiCommandAccepted.Instance;
             }
             return _runner.Execute(plan.Actions);
-        }
-
-        public UiCommandResult RightDown(int blockSlot)
-        {
-            if (!TryReadSlot(blockSlot, out var slot)) return Unavailable(blockSlot);
-            return _runner.Execute(BlockSlotPlanner.PlanRightClick(blockSlot, slot, _player.ReadGrab().Count));
-        }
-
-        public UiCommandResult DoubleClick(int blockSlot)
-        {
-            if (!TryReadSlot(blockSlot, out _)) return Unavailable(blockSlot);
-            return _runner.Execute(BlockSlotPlanner.PlanDoubleClick(blockSlot));
         }
 
         // 計画の入力は押下の瞬間に読む（描画時の写しを混ぜない）

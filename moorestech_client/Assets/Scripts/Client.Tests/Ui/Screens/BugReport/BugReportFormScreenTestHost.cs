@@ -31,7 +31,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             // Mount after the base SetUp
             Commands = new RecordingPauseMenuCommands();
             Draft = new BugReportDraft();
-            View = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), Commands, Toasts, Toaster, Draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            View = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), Commands, Toasts, Draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
         }
 
         protected static PauseMenuViewModel Model(string captureKind, params string[] missing)

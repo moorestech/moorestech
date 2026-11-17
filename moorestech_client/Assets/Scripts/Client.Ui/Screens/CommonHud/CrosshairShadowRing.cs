@@ -20,6 +20,10 @@ namespace Client.Ui.Screens.CommonHud
         private static readonly float[] DistancesInSigma = { 0f, 0.5f, 1f, 1.5f, 2f, 2.5f, 3f };
         private const int Segments = 32;
 
+        // 頂点は帯の巻き向きを決めるために読み戻すので、描き直しで割り当てない固定長の配列に置く
+        // Vertices are read back to decide band winding, so they live in a fixed array that redraws never reallocate
+        private readonly Vertex[] _vertices = new Vertex[Segments * DistancesInSigma.Length];
+
         private float _blurRadius;
         private Color _shadowColor;
         private bool _hasTokens;
@@ -52,9 +56,12 @@ namespace Client.Ui.Screens.CommonHud
 
             var sigma = _blurRadius / 2f;
             var rings = DistancesInSigma.Length;
-            var mesh = context.Allocate(Segments * rings, Segments * (rings - 1) * 6);
             WriteVertices();
-            WriteIndices();
+            var mesh = context.Allocate(_vertices.Length, Segments * (rings - 1) * 6);
+            mesh.SetAllVertices(_vertices);
+            // 輪の結びは共有口が画面座標（y 下向き）で時計回りに張る
+            // The shared writer joins the rings clockwise in screen space (y down)
+            ShadowRingMeshWriter.WriteBands(mesh, _vertices, rings - 1, Segments);
 
             #region Internal
 
@@ -71,29 +78,8 @@ namespace Client.Ui.Screens.CommonHud
                     {
                         var angle = segment * Mathf.PI * 2f / Segments;
                         var position = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * (radius + distance);
-                        mesh.SetNextVertex(new Vertex { position = new Vector3(position.x, position.y, Vertex.nearZ), tint = tint });
+                        _vertices[ring * Segments + segment] = new Vertex { position = new Vector3(position.x, position.y, Vertex.nearZ), tint = tint };
                     }
-                }
-            }
-
-            // GamePanelFace と同じく画面座標（y 下向き）で時計回りに張る。角度 0 で外周は右・次の角度は下
-            // Wind clockwise in screen space (y down) like GamePanelFace; at angle 0 outer is right and next is down
-            void WriteIndices()
-            {
-                for (var ring = 0; ring < rings - 1; ring++)
-                for (var segment = 0; segment < Segments; segment++)
-                {
-                    var next = (segment + 1) % Segments;
-                    var inner = (ushort)(ring * Segments + segment);
-                    var innerNext = (ushort)(ring * Segments + next);
-                    var outer = (ushort)((ring + 1) * Segments + segment);
-                    var outerNext = (ushort)((ring + 1) * Segments + next);
-                    mesh.SetNextIndex(inner);
-                    mesh.SetNextIndex(outerNext);
-                    mesh.SetNextIndex(innerNext);
-                    mesh.SetNextIndex(inner);
-                    mesh.SetNextIndex(outer);
-                    mesh.SetNextIndex(outerNext);
                 }
             }
 

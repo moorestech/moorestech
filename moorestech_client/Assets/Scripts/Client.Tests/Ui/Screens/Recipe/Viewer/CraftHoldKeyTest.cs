@@ -49,7 +49,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void クリックで乗ったフォーカスが規則の下でも残りSpaceでは何もせずEnterを保持する間クラフトが続く()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
 
             // クリックでフォーカスが乗り（Web のボタンもクリックで乗る）、規則の次のスケジュールでも外れない
@@ -79,7 +79,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void Tabのナビゲーションは打ち消されフォーカスは動かず長押しも切れない()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
             simulate.Click(button.worldBound.center);
             SendKeyDown(button, KeyCode.Return);
@@ -95,7 +95,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void Enterで長押し中にフォーカスが外れると止まる()
         {
-            var view = MountInRules(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 1, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 1, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
             var emptySpot = new Vector2(1200, 700);
             simulate.Click(button.worldBound.center);
@@ -119,7 +119,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void Enterの保持中に作れなくなり無効のまま離しても補充後のEnterで長押しが始まる()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
             simulate.Click(button.worldBound.center);
             SendKeyDown(button, KeyCode.Return);

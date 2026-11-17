@@ -9,19 +9,18 @@ namespace Client.Ui.State.Train.Timetable
     /// </summary>
     public sealed class TrainTimetableMissingCarReport
     {
-        private readonly AnomalyReportGate _gate = new();
+        private readonly AnomalyReportGate _gate = new("[TrainTimetableModel] Missing car snapshot: ", "", LogType.Warning);
 
         public void ReportMissing(long trainCarInstanceId)
         {
-            var message = $"[TrainTimetableModel] Missing car snapshot: {trainCarInstanceId}";
-            if (_gate.ShouldReport(message)) Debug.LogWarning(message);
+            _gate.Observe(trainCarInstanceId.ToString());
         }
 
         // 欠けが解けたら旗を戻し再警告に備える
         // Clear flag on recovery so it warns again
         public void Clear()
         {
-            _gate.Clear();
+            _gate.Observe(null);
         }
     }
 }

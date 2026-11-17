@@ -6,7 +6,6 @@ using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Panel;
 using Client.Ui.State.Routing;
 using Client.Ui.State.SlotCommands.Player;
-using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
 
@@ -24,12 +23,12 @@ namespace Client.Ui.Screens.Inventory.Equipment
         private readonly EquipmentHudView _view;
         private readonly SerialDisposable _modelSubscription = new();
 
-        public EquipmentHudPresenter(GameUiRoot root, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, GameContentPresentation content, UiCommandResultToaster toaster)
+        public EquipmentHudPresenter(GameUiRoot root, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, GameContentPresentation content)
         {
             _root = root;
             _routing = routing;
             _model = model;
-            _view = new EquipmentHudView(new PlayerSlotGestureRouter(commands, toaster), content);
+            _view = new EquipmentHudView(new PlayerSlotGestureRouter(commands), content);
         }
 
         public void Initialize()

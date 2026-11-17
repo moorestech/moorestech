@@ -1,6 +1,7 @@
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using Client.Tests.Ui.Screens;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Toast;
@@ -17,6 +18,7 @@ namespace Client.Tests.Ui.State.Skit
     public class SkitCommandsTest : ScreenTestHost
     {
         private SkitPresentationStateStore _store;
+        private RecordingUiCommandResultToaster _recorded;
         private SkitCommands _commands;
 
         [SetUp]
@@ -25,14 +27,17 @@ namespace Client.Tests.Ui.State.Skit
             _store = new SkitPresentationStateStore();
             _store.BeginBlocking(new SkitActionContext());
             _store.PresentBlockingText("Moore", "Blocking message");
-            _commands = new SkitCommands(_store);
+            _recorded = new RecordingUiCommandResultToaster();
+            _commands = new SkitCommands(_store, _recorded);
         }
 
         [Test]
         public void 受け付けた操作は受理を返す()
         {
             var current = _store.GetCurrent();
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.SetAuto(current.SessionId, current.SceneRevision, true));
+            _commands.SetAuto(current.SessionId, current.SceneRevision, true);
+            Assert.AreEqual(SkitCommands.SetAutoCommandName, _recorded.Reports[0].CommandName);
+            Assert.IsInstanceOf<UiCommandAccepted>(_recorded.Reports[0].Result);
             Assert.IsTrue(_store.GetCurrent().PresentationState.AutoEnabled);
         }
 
@@ -40,9 +45,10 @@ namespace Client.Tests.Ui.State.Skit
         public void 古い版の操作は会話の拒否で返り失敗コードはstoreの理由になる()
         {
             var current = _store.GetCurrent();
-            var result = _commands.Advance(current.SessionId, current.SceneRevision - 1);
+            _commands.Advance(current.SessionId, current.SceneRevision - 1);
 
-            var rejected = (UiCommandRejected)result;
+            Assert.AreEqual(SkitCommands.AdvanceCommandName, _recorded.Reports[0].CommandName);
+            var rejected = (UiCommandRejected)_recorded.Reports[0].Result;
             Assert.AreEqual(UiCommandRejectReason.SkitIntentRejected, rejected.Reason);
             Assert.AreEqual("stale_revision", rejected.ToWireCode());
         }
@@ -52,7 +58,7 @@ namespace Client.Tests.Ui.State.Skit
         {
             var current = _store.GetCurrent();
             LogAssert.Expect(LogType.Warning, "[UiCommandResultToaster] skit.select failed: intent_not_allowed");
-            Toaster.Report("skit.select", _commands.Select(current.SessionId, current.SceneRevision, "route-a"));
+            new SkitCommands(_store, Toaster).Select(current.SessionId, current.SceneRevision, "route-a");
 
             Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.SkitIntentRejected).IsBenign);
             Assert.AreEqual(1, ShownToasts.Count);

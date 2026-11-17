@@ -3,18 +3,18 @@ using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Core.Master;
 using Server.Protocol.PacketResponse;
-using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 抽選と搬入停止の照会を欄へ写す
-    /// Maps the draw-detail and stall queries onto entries, as the Web host's builders
+    /// 抽選と搬入停止の照会を欄へ写す。未知の型は異常の文面を返し、ログは呼び手の AnomalyReportGate が継続中 1 回だけ出す
+    /// Maps the draw-detail and stall queries onto entries; an unknown view returns the anomaly text, logged once while it persists by the caller's AnomalyReportGate
     /// </summary>
     public static class ContextViewConversion
     {
-        public static SectionContent<CleanRoomYieldFetched> Yield(BlockInfoFetchState fetchState, CleanRoomYieldView view)
+        public static SectionContent<CleanRoomYieldFetched> Yield(BlockInfoFetchState fetchState, CleanRoomYieldView view, out string anomaly)
         {
+            anomaly = null;
             if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<CleanRoomYieldFetched>.Unavailable(fetchState);
             switch (view)
             {
@@ -35,7 +35,7 @@ namespace Client.Ui.State.BlockInventory.Context
 
             // 未知の型は欄を出さず開発者へ知らせる（購読の中で投げると購読ごと止まる。D-6）
             // An unknown view hides the entry and tells developers (throwing inside the subscription would kill it; D-6)
-            Debug.LogError($"[ContextViewConversion] unsupported yield view: {view.GetType().Name}");
+            anomaly = $"[ContextViewConversion] unsupported yield view: {view.GetType().Name}";
             return SectionContent<CleanRoomYieldFetched>.Absent;
 
             #region Internal
@@ -47,8 +47,9 @@ namespace Client.Ui.State.BlockInventory.Context
             #endregion
         }
 
-        public static SectionContent<MachineInputStall> Stall(BlockInfoFetchState fetchState, MachineInputStallView view)
+        public static SectionContent<MachineInputStall> Stall(BlockInfoFetchState fetchState, MachineInputStallView view, out string anomaly)
         {
+            anomaly = null;
             if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<MachineInputStall>.Unavailable(fetchState);
             switch (view)
             {
@@ -60,7 +61,7 @@ namespace Client.Ui.State.BlockInventory.Context
 
             // 未知の型は欄を出さず開発者へ知らせる（D-6）
             // An unknown view hides the entry and tells developers (D-6)
-            Debug.LogError($"[ContextViewConversion] unsupported stall view: {view.GetType().Name}");
+            anomaly = $"[ContextViewConversion] unsupported stall view: {view.GetType().Name}";
             return SectionContent<MachineInputStall>.Absent;
         }
     }

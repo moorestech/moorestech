@@ -96,7 +96,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
             var factories = new ISectionStackSectionFactory[]
             {
                 new ContextSectionFactory(content, context, machine),
-                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), Toaster, content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))),
+                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))),
                 new MinerSectionFactory(content, miner),
                 new PumpSectionFactory(content, pump),
                 new GeneratorSectionFactory(generator),

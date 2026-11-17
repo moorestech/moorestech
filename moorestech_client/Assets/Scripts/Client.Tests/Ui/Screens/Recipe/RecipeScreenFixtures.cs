@@ -6,7 +6,6 @@ using Client.Ui.Content;
 using Client.Ui.Screens.Recipe.Parts;
 using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Screen;
-using Client.Ui.State.Toast;
 using Core.Master;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -20,13 +19,13 @@ namespace Client.Tests.Ui.Screens.Recipe
     /// </summary>
     public static class RecipeScreenFixtures
     {
-        public static RecipeEntryPartsContext Context(UiCommandResultToaster toaster, RecordingRecipeCommands commands, RecipeItemSelection selection)
+        public static RecipeEntryPartsContext Context(RecordingRecipeCommands commands, RecipeItemSelection selection)
         {
             // 名前は ID からマスタで引くのでテスト用 mod を読む。絵は無くても ID の字で代わりに出る
             // Names resolve through the master, so load the test mod; without a texture the ID text stands in
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var content = new GameContentPresentation(new FakeContentTextureSource(null, null, null));
-            return new RecipeEntryPartsContext(content, commands, toaster, selection);
+            return new RecipeEntryPartsContext(content, commands, selection);
         }
 
         public static RecipeViewerItemSelected Selected(int itemId, params RecipeEntryViewModel[] entries)

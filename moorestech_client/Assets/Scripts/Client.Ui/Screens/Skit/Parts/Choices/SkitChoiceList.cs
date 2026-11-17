@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Skit;
-using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -15,17 +14,15 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
     public sealed class SkitChoiceList : VisualElement
     {
         private readonly ISkitCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly IUiOsCursor _osCursor;
         private readonly List<SkitChoiceButton> _buttons = new();
         private IReadOnlyList<SkitChoiceItem> _shownChoices = new List<SkitChoiceItem>();
         private SkitViewModel _model = SkitViewModel.Empty;
         private bool _interactive = true;
 
-        public SkitChoiceList(ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public SkitChoiceList(ISkitCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
-            _toaster = toaster;
             _osCursor = osCursor;
             AddToClassList("skit-choices");
             pickingMode = PickingMode.Ignore;
@@ -51,7 +48,7 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
                     var choiceId = choices[i].ChoiceId;
                     var button = new SkitChoiceButton(choices[i], i == 0, _osCursor);
                     button.SetInteractive(_interactive);
-                    button.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SelectCommandName, _commands.Select(_model.SessionId, _model.SceneRevision, choiceId)));
+                    button.OnClicked.Subscribe(_ => _commands.Select(_model.SessionId, _model.SceneRevision, choiceId));
                     _buttons.Add(button);
                     Add(button);
                 }

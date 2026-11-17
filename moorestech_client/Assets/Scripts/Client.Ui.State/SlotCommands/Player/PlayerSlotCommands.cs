@@ -5,6 +5,7 @@ using Client.Ui.State.Inventory.Drag;
 using Client.Ui.State.Inventory.Logic;
 using Client.Ui.State.Items;
 using Client.Ui.State.ItemMove;
+using Client.Ui.State.Toast;
 using UnityEngine;
 
 namespace Client.Ui.State.SlotCommands.Player
@@ -22,34 +23,45 @@ namespace Client.Ui.State.SlotCommands.Player
         private readonly PlannedItemActionRunner _runner;
         private readonly PlayerSlotContextReader _context;
         private readonly ShiftMoveRefusalNotifier _refusals;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public PlayerSlotCommands(IPlayerInventoryOperations player, IPlayerSlotDragCommands drag, PlannedItemActionRunner runner, PlayerSlotContextReader context, ShiftMoveRefusalNotifier refusals)
+        public PlayerSlotCommands(IPlayerInventoryOperations player, IPlayerSlotDragCommands drag, PlannedItemActionRunner runner, PlayerSlotContextReader context, ShiftMoveRefusalNotifier refusals, IUiCommandResultToaster toaster)
         {
             _player = player;
             _drag = drag;
             _runner = runner;
             _context = context;
             _refusals = refusals;
+            _toaster = toaster;
         }
 
-        public UiCommandResult LeftDown(PlayerSlotRef slot, bool shift)
+        public void LeftDown(PlayerSlotRef slot, bool shift)
         {
-            // 全入力を押下の瞬間に読む（D-11）
-            // Read every input at gesture time (D-11)
-            var inventory = _player.ReadSnapshot();
-            if (!inventory.TryResolveSlot(slot.ToItemMoveSlotRef(), out var clicked)) return Ignore(new StaleSlotIgnoredPlan(slot.ToItemMoveSlotRef()));
-            var plan = PlayerSlotActionPlanner.PlanLeftDown(_context.Read(inventory, clicked.ItemId, shift), slot.ToItemMoveSlotRef(), shift);
-            return Apply(plan, slot, clicked);
+            _toaster.Report(CommandName, Plan());
+
+            #region Internal
+
+            UiCommandResult Plan()
+            {
+                // 全入力を押下の瞬間に読む（D-11）
+                // Read every input at gesture time (D-11)
+                var inventory = _player.ReadSnapshot();
+                if (!inventory.TryResolveSlot(slot.ToItemMoveSlotRef(), out var clicked)) return Ignore(new StaleSlotIgnoredPlan(slot.ToItemMoveSlotRef()));
+                var plan = PlayerSlotActionPlanner.PlanLeftDown(_context.Read(inventory, clicked.ItemId, shift), slot.ToItemMoveSlotRef(), shift);
+                return Apply(plan, slot, clicked);
+            }
+
+            #endregion
         }
 
-        public UiCommandResult RightDown(PlayerSlotRef slot)
+        public void RightDown(PlayerSlotRef slot)
         {
-            return Apply(PlayerSlotActionPlanner.PlanRightDown(_player.ReadSnapshot(), slot.ToItemMoveSlotRef()), slot, default);
+            _toaster.Report(CommandName, Apply(PlayerSlotActionPlanner.PlanRightDown(_player.ReadSnapshot(), slot.ToItemMoveSlotRef()), slot, default));
         }
 
-        public UiCommandResult DoubleClick(PlayerSlotRef slot)
+        public void DoubleClick(PlayerSlotRef slot)
         {
-            return Apply(PlayerSlotActionPlanner.PlanDoubleClick(_player.ReadSnapshot(), slot.ToItemMoveSlotRef()), slot, default);
+            _toaster.Report(CommandName, Apply(PlayerSlotActionPlanner.PlanDoubleClick(_player.ReadSnapshot(), slot.ToItemMoveSlotRef()), slot, default));
         }
 
         public void LeftEnter(PlayerSlotRef slot)
@@ -57,9 +69,11 @@ namespace Client.Ui.State.SlotCommands.Player
             _drag.EnterWithLeftButton(slot);
         }
 
-        public UiCommandResult RightEnter(PlayerSlotRef slot)
+        // 右ボタンの進入の結果は分割ドラッグ側がトーストへ渡す
+        // The split-drag side hands the right-button enter result to the toaster
+        public void RightEnter(PlayerSlotRef slot)
         {
-            return _drag.EnterWithRightButton(slot);
+            _drag.EnterWithRightButton(slot);
         }
 
         private UiCommandResult Apply(PlayerSlotActionPlan plan, PlayerSlotRef slot, SlotItem clicked)

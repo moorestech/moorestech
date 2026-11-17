@@ -34,7 +34,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Overlay
             pointerRoot.StretchToParentSize();
             rootVisualElement.Add(pointerRoot);
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-            _viewer = new RecipeViewerView(Context(Toaster, new RecordingRecipeCommands(), Selection));
+            _viewer = new RecipeViewerView(Context(new RecordingRecipeCommands(), Selection));
             _list = new ItemListView(ContentPresentation, Selection);
             row.Add(_viewer);
             row.Add(_list);

@@ -9,8 +9,6 @@ using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Selection;
 using Client.Ui.State.SlotCommands.Block;
-using Client.Ui.State.Toast;
-using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -33,7 +31,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         private readonly MachineInventoryBody _body;
         private readonly MachineSectionFooter _footer = new();
         private readonly IMachineRecipeSelectCommand _selectCommand;
-        private readonly UiCommandResultToaster _toaster;
         private bool _contextHasAny;
         private bool _showsSelection;
 
@@ -41,22 +38,21 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         public IObservable<Unit> OnChangeRecipeRequested => _header.OnPressed;
         public IObservable<Guid> OnRecipeRowPressed => _selectionList.OnRowPressed;
 
-        public MachineSectionView(bool fillsPanelHeight, GameContentPresentation content, IBlockSlotCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor, IMachineRecipeSelectCommand selectCommand)
+        public MachineSectionView(bool fillsPanelHeight, GameContentPresentation content, IBlockSlotCommands commands, IUiOsCursor osCursor, IMachineRecipeSelectCommand selectCommand)
         {
             // 枠の押下とレシピ行の押下は View が直接コマンドへ渡す（設計書 §4.2 A-8・D-33。Presenter は中継しない）
             // Slot and recipe-row presses go straight from the view to the commands (design §4.2 A-8, D-33; no presenter relay)
             _selectCommand = selectCommand;
-            _toaster = toaster;
             _root.pickingMode = PickingMode.Ignore;
             _inventoryContent.pickingMode = PickingMode.Ignore;
             _context = new BlockContextSectionsView(content);
             _header = new SelectedRecipeHeader(content, osCursor);
-            _body = new MachineInventoryBody(content, commands, toaster);
+            _body = new MachineInventoryBody(content, commands);
             _selectionList = new MachineRecipeSelectionList(content, osCursor);
             StackInventoryContent();
             _inventoryContent.SetItemShown(_context, false);
             _inventoryContent.SetItemShown(_header, false);
-            _selectionList.OnRowPressed.Subscribe(guid => SelectAsync(guid).Forget());
+            _selectionList.OnRowPressed.Subscribe(guid => _selectCommand.Select(guid));
 
             // 大型面の本文はスクロール器に入れる
             // On the large panel the body sits in a container-height scroller so it never overlaps the footer
@@ -73,14 +69,6 @@ namespace Client.Ui.Screens.BlockInventory.Machine
                 scroll.AddToClassList("machine-section__inventory-scroll");
                 scroll.Add(inventoryContent);
                 return scroll;
-            }
-
-            async UniTaskVoid SelectAsync(Guid recipeGuid)
-            {
-                // 送るか・受理かの判断はコマンド（State）が持つ。拒否は非良性なので Web と同じくトーストする（D-38）
-                // The command (State) decides whether to send or accept; rejections are non-benign and toast like the Web (D-38)
-                var result = await _selectCommand.Select(recipeGuid);
-                _toaster.Report(MachineRecipeSelectCommand.CommandName, result);
             }
 
             #endregion

@@ -5,7 +5,6 @@ using Client.Ui.Screens.Inventory.Parts;
 using Client.Ui.State.Inventory.Panel;
 using Client.Ui.State.Routing;
 using Client.Ui.State.SlotCommands.Player;
-using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
 
@@ -23,12 +22,12 @@ namespace Client.Ui.Screens.Inventory.Panel
         private readonly InventoryView _view;
         private readonly SerialDisposable _modelSubscription = new();
 
-        public InventoryScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public InventoryScreenPresenter(StageColumnsLayout columns, UiRoutingState routing, PlayerInventoryPanelModel model, IPlayerSlotCommands commands, IInventorySortCommands sort, GameContentPresentation content, IUiOsCursor osCursor)
         {
             _columns = columns;
             _routing = routing;
             _model = model;
-            _view = new InventoryView(new PlayerSlotGestureRouter(commands, toaster), sort, content, toaster, osCursor);
+            _view = new InventoryView(new PlayerSlotGestureRouter(commands), sort, content, osCursor);
 
         }
 

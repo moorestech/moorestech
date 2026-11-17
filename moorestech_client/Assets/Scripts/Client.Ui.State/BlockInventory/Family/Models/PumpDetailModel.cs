@@ -15,7 +15,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
     public sealed class PumpDetailModel : IPumpDetailModel, IInitializable
     {
         private readonly OpenBlockDetailTracker _tracker;
-        private readonly AnomalyReportGate _conversionAnomalyGate = new();
+        private readonly AnomalyReportGate _conversionAnomalyGate = new("", "", LogType.Error);
         private readonly ReactiveProperty<SectionContent<PumpDetail>> _current = new(SectionContent<PumpDetail>.Absent);
 
         public IReadOnlyReactiveProperty<SectionContent<PumpDetail>> Current => _current;
@@ -38,7 +38,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
             if (block == null)
             {
-                _conversionAnomalyGate.Clear();
+                _conversionAnomalyGate.Observe(null);
                 _current.Value = SectionContent<PumpDetail>.Absent;
                 return;
             }
@@ -47,7 +47,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
             if (pump == null)
             {
-                _conversionAnomalyGate.Clear();
+                _conversionAnomalyGate.Observe(null);
                 _current.Value = SectionContent<PumpDetail>.Absent;
                 return;
             }
@@ -56,8 +56,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // The reason for false comes back as an anomaly, reported once while it persists (a false without anomaly is the conversion's silent-ok wait)
             var common = block.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
             var reading = PumpDetailConversion.Build(pump, block.BlockMasterElement.BlockParam, common);
-            var anomaly = reading.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
-            if (_conversionAnomalyGate.ShouldReport(anomaly)) Debug.LogError(anomaly);
+            _conversionAnomalyGate.Observe(reading.TryGetAnomaly(out var anomalyText) ? anomalyText : null);
             _current.Value = reading.TryGetDetail(out var detail) ? SectionContent<PumpDetail>.Present(detail) : SectionContent<PumpDetail>.Absent;
         }
     }

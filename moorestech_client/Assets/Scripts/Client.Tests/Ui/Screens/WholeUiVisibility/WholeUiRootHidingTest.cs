@@ -124,7 +124,7 @@ namespace Client.Tests.Ui.Screens.WholeUiVisibility
             GameUiInputRules.Attach(modalLayer);
             _stack.SetAllLayersVisible(false);
             simulate.FrameUpdate();
-            var view = new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Toaster, Observable.Never<Unit>());
+            var view = new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Observable.Never<Unit>());
             var flagRaisedByHiddenFocus = false;
             view.RegisterCallback<FocusInEvent>(_ => flagRaisedByHiddenFocus |= UiInputExclusivity.IsTextInputFocused);
             modalLayer.Add(view);

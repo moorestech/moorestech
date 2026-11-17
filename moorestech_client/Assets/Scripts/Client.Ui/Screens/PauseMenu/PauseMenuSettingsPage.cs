@@ -2,7 +2,6 @@ using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Settings;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
-using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.PauseMenu
@@ -18,10 +17,10 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly SprintModeSelectView _sprint;
         private readonly GraphicsQualitySettingsView _graphics;
 
-        public PauseMenuSettingsPage(SettingsViewModel settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public PauseMenuSettingsPage(SettingsViewModel settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, IUiOsCursor osCursor)
         {
             _subPage = new PauseMenuSubPageView(commands, osCursor);
-            _language = new LanguageSelectView(settings, settingsCommands, toaster, osCursor);
+            _language = new LanguageSelectView(settings, settingsCommands, osCursor);
             _sprint = new SprintModeSelectView(settings, settingsCommands, osCursor);
             _graphics = new GraphicsQualitySettingsView(settings, settingsCommands, osCursor);
 

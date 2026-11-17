@@ -26,7 +26,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         [SetUp]
         public void MountBugReportPage()
         {
-            _view = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.BugReport), FakeSettingsModel.Default());
             simulate.FrameUpdate();

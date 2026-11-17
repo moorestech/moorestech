@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         [SetUp]
         public void MountHotbar()
         {
-            _view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(), Toaster));
+            _view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create()));
             _view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
         }

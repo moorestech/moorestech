@@ -8,7 +8,6 @@ using Client.Ui.Screens.Research.Parts;
 using Client.Ui.State.Research.Commands;
 using Client.Ui.State.Research.Tree;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
@@ -26,11 +25,9 @@ namespace Client.Ui.Screens.Research
         private readonly ResearchNodeCardSet _cards;
         private readonly VisualElement _detailHost;
         private readonly ResearchDetailPane _detailPane;
-        private bool _hasGraph;
-        private bool _hasFocus;
-        private Vector2 _focus;
+        private ResearchTreeViewModel _shown;
 
-        public ResearchTreeView(IResearchTreeCommands commands, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public ResearchTreeView(IResearchTreeCommands commands, GameContentPresentation content, IUiOsCursor osCursor)
         {
             name = "research-tree";
             AddToClassList("research-tree");
@@ -55,24 +52,21 @@ namespace Client.Ui.Screens.Research
             _detailHost = new VisualElement { pickingMode = PickingMode.Ignore };
             _detailHost.AddToClassList("research-tree__detail-host");
             Add(_detailHost);
-            _detailPane = new ResearchDetailPane(commands, content, toaster);
+            _detailPane = new ResearchDetailPane(commands, content);
             _cards = new ResearchNodeCardSet(content);
         }
 
         public void Render(ResearchTreeViewModel model)
         {
-            // 並びか注目点の変化時だけ組み直す
-            // Rebuild only when order or focus changes
-            var orderChanged = _cards.RenderCards(model.Nodes);
-            var hasFocus = model.TryGetInitialFocus(out var focus);
-            var focusChanged = hasFocus != _hasFocus || (hasFocus && focus != _focus);
-            if (!_hasGraph || orderChanged || focusChanged)
+            // カードは毎回描き直し、グラフの形（並び・座標・前提・注目点）が変わったときだけ渡し直す
+            // Cards are redrawn every time; content is handed over only when the graph shape changes (order, positions, edges, focus)
+            _cards.RenderCards(model.Nodes);
+            if (_shown == null || !model.HasSameGraphAs(_shown))
             {
+                var hasFocus = model.TryGetInitialFocus(out var focus);
                 _graph.SetGraph(_cards.BuildContent(model.Nodes, hasFocus ? NodeGraphFocus.At(focus) : NodeGraphFocus.None));
-                _hasGraph = true;
-                _hasFocus = hasFocus;
-                _focus = focus;
             }
+            _shown = model;
 
             // 詳細は選択の有無で出し分ける
             // Details show or hide by the selection

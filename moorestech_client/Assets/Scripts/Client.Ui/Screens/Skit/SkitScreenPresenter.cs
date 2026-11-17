@@ -5,7 +5,6 @@ using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Skit;
-using Client.Ui.State.Toast;
 using Client.Ui.State.WholeUiVisibility;
 using UniRx;
 using VContainer.Unity;
@@ -23,18 +22,16 @@ namespace Client.Ui.Screens.Skit
         private readonly SkitPresentationModel _model;
         private readonly WholeUiVisibilityModel _wholeUiVisibility;
         private readonly ISkitCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly IUiOsCursor _osCursor;
         private readonly ISkitAdvanceKeyPressSource _skitAdvance;
 
-        public SkitScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, SkitPresentationModel model, WholeUiVisibilityModel wholeUiVisibility, ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor, ISkitAdvanceKeyPressSource skitAdvance)
+        public SkitScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, SkitPresentationModel model, WholeUiVisibilityModel wholeUiVisibility, ISkitCommands commands, IUiOsCursor osCursor, ISkitAdvanceKeyPressSource skitAdvance)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
             _model = model;
             _wholeUiVisibility = wholeUiVisibility;
             _commands = commands;
-            _toaster = toaster;
             _osCursor = osCursor;
             _skitAdvance = skitAdvance;
         }
@@ -43,7 +40,7 @@ namespace Client.Ui.Screens.Skit
         {
             // 会話は SkitStage、暗転は SkitTransition の実画面族へ載せる（Web の viewportOverlay と Portal）。View は先に載せる（最初の Render を復元として全文で出すため）
             // The skit goes on SkitStage and the blackout on SkitTransition, both in the viewport family (Web viewportOverlay and portal); mount the view first so the first Render is a restore shown whole
-            var view = new SkitScreenView(_commands, _toaster, _osCursor);
+            var view = new SkitScreenView(_commands, _osCursor);
             _gameUiRoot.GetLayer(UiLayer.SkitStage, UiFamily.Viewport).Add(view);
             var transition = new SkitTransitionView();
             _gameUiRoot.GetLayer(UiLayer.SkitTransition, UiFamily.Viewport).Add(transition);

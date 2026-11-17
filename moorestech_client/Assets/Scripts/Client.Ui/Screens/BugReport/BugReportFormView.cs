@@ -23,11 +23,8 @@ namespace Client.Ui.Screens.BugReport
     /// </summary>
     public sealed class BugReportFormView : VisualElement
     {
-        private const string SubmitCommandName = "bug_report.submit";
-
         private readonly IPauseMenuCommands _commands;
         private readonly GameUiToastFeed _toasts;
-        private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly ModeSwitch<PlaytestReportKind> _kindSwitch;
         private readonly GameTextField _description;
@@ -38,11 +35,10 @@ namespace Client.Ui.Screens.BugReport
         private BugReportCaptureStatus _capture;
         private bool _sending;
 
-        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
+        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, BugReportDraft draft, IUiOsCursor osCursor)
         {
             _commands = commands;
             _toasts = toasts;
-            _toaster = toaster;
             _draft = draft;
             AddToClassList("bug-report");
 
@@ -126,9 +122,8 @@ namespace Client.Ui.Screens.BugReport
             var outcome = await _commands.SubmitBugReport(_draft.Description.Trim(), kind);
             _sending = false;
 
-            // トーストはToasterが決める
-            // The toaster decides the toast
-            _toaster.Report(SubmitCommandName, outcome);
+            // 拒否のトーストは SubmitBugReport が出し済み
+            // SubmitBugReport has already toasted a refusal
             if (outcome is UiCommandRejected)
             {
                 Refresh();

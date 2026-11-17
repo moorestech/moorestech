@@ -6,7 +6,6 @@ using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
-using Client.Ui.State.Toast;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
@@ -76,7 +75,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         {
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed));
             var content = new Client.Ui.Content.GameContentPresentation(new Client.Tests.Ui.Content.FakeContentTextureSource(null, null, null));
-            var grids = new BlockItemGridFactory(new RecordingBlockSlotCommands(), content, new UiCommandResultToaster(new GameUiToastFeed()));
+            var grids = new BlockItemGridFactory(new RecordingBlockSlotCommands(), content);
             LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("区画の登録が無い"));
             return new SectionStackBodyFactory(grids, new SectionStackSlotRegistry(new ISectionStackSectionFactory[0]), source);
         }

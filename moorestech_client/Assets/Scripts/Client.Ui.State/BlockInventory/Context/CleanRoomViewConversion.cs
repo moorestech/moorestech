@@ -7,26 +7,28 @@ using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Server.Protocol.PacketResponse;
-using UnityEngine;
 
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
     /// 部屋の照会を入力型へ写す
     /// Maps the room query onto L0-s4b's input type, as the Web host's CleanRoomDetailDtoBuilder
+    /// 未知の型・値は異常の文面を返し、ログは呼び手の AnomalyReportGate が継続中 1 回だけ出す
+    /// An unknown view or value returns the anomaly text, logged once while it persists by the caller's AnomalyReportGate
     /// </summary>
     public static class CleanRoomViewConversion
     {
         // 部屋欄を状態詳細から決める静的関数
         // Decides the room entry from target kind, fetch state and operability; static function split from the model
-        public static SectionContent<CleanRoomFetchedDetail> Build(CleanRoomDetailTarget target, BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomOperabilityStateDetail operability)
+        public static SectionContent<CleanRoomFetchedDetail> Build(CleanRoomDetailTarget target, BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomOperabilityStateDetail operability, out string anomaly)
         {
+            anomaly = null;
             if (target == CleanRoomDetailTarget.None) return SectionContent<CleanRoomFetchedDetail>.Absent;
 
             // 未取得は取得状態の 1 行
             // Not fetched yields the fetch-state line for any target, in the Web host's order
-            if (fetchState != BlockInfoFetchState.Fetched) return Convert(fetchState, view, CleanRoomHaltReason.None);
-            if (target == CleanRoomDetailTarget.AirFilter) return Convert(fetchState, view, CleanRoomHaltReason.None);
+            if (fetchState != BlockInfoFetchState.Fetched) return Convert(fetchState, view, CleanRoomHaltReason.None, out anomaly);
+            if (target == CleanRoomDetailTarget.AirFilter) return Convert(fetchState, view, CleanRoomHaltReason.None, out anomaly);
 
             // 室内機械の停止理由は状態詳細から
             // A fetched interior machine's halt reason comes from its state detail; no entry until present
@@ -34,33 +36,35 @@ namespace Client.Ui.State.BlockInventory.Context
             if (operability == null) return SectionContent<CleanRoomFetchedDetail>.Absent;
             if (!Enum.IsDefined(typeof(CleanRoomOperability), operability.Operability))
             {
-                Debug.LogWarning($"Unreadable clean-room operability: {operability.Operability}");
+                anomaly = $"Unreadable clean-room operability: {operability.Operability}";
                 return SectionContent<CleanRoomFetchedDetail>.Absent;
             }
-            if (!TryGetHaltReason(operability.Operability, out var haltReason)) return SectionContent<CleanRoomFetchedDetail>.Absent;
-            return Convert(fetchState, view, haltReason);
+            if (!TryGetHaltReason(operability.Operability, out var haltReason, out anomaly)) return SectionContent<CleanRoomFetchedDetail>.Absent;
+            return Convert(fetchState, view, haltReason, out anomaly);
         }
 
-        private static SectionContent<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason)
+        private static SectionContent<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason, out string anomaly)
         {
+            anomaly = null;
             if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<CleanRoomFetchedDetail>.Unavailable(fetchState);
             switch (view)
             {
                 case CleanRoomEnclosedView enclosed:
                     return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(Room(enclosed.Room), haltReason));
                 case CleanRoomNotEnclosedView notEnclosed:
-                    return Leak(notEnclosed.Leak);
+                    return Leak(notEnclosed.Leak, out anomaly);
             }
 
             // 未知の照会の型は欄を出さず開発者へ知らせる（購読の中で投げると購読ごと止まる。D-6）
             // An unknown query view hides the entry and tells developers (throwing inside the subscription would kill it; D-6)
-            Debug.LogError($"[CleanRoomViewConversion] unsupported room query view: {view.GetType().Name}");
+            anomaly = $"[CleanRoomViewConversion] unsupported room query view: {view.GetType().Name}";
             return SectionContent<CleanRoomFetchedDetail>.Absent;
 
             #region Internal
 
-            SectionContent<CleanRoomFetchedDetail> Leak(CleanRoomLeakView leak)
+            SectionContent<CleanRoomFetchedDetail> Leak(CleanRoomLeakView leak, out string leakAnomaly)
             {
+                leakAnomaly = null;
                 switch (leak)
                 {
                     case CleanRoomOpeningsLeakView openings:
@@ -72,7 +76,7 @@ namespace Client.Ui.State.BlockInventory.Context
                     case CleanRoomDetectionPendingLeakView _:
                         return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Detecting(haltReason));
                 }
-                Debug.LogError($"[CleanRoomViewConversion] unsupported leak kind: {leak.GetType().Name}");
+                leakAnomaly = $"[CleanRoomViewConversion] unsupported leak kind: {leak.GetType().Name}";
                 return SectionContent<CleanRoomFetchedDetail>.Absent;
             }
 
@@ -87,10 +91,11 @@ namespace Client.Ui.State.BlockInventory.Context
             #endregion
         }
 
-        // 列挙に無い稼働可否は偽（呼び手が欄を出さない）。新しい値の追加漏れを開発者へ知らせる（D-6）
-        // An operability outside the enum returns false (the caller hides the entry); tells developers about a missed new value (D-6)
-        public static bool TryGetHaltReason(CleanRoomOperability operability, out CleanRoomHaltReason haltReason)
+        // 列挙に無い稼働可否は偽（呼び手が欄を出さない）。新しい値の追加漏れは異常の文面で開発者へ知らせる（D-6）
+        // An operability outside the enum returns false (the caller hides the entry); a missed new value comes back as the anomaly text (D-6)
+        public static bool TryGetHaltReason(CleanRoomOperability operability, out CleanRoomHaltReason haltReason, out string anomaly)
         {
+            anomaly = null;
             switch (operability)
             {
                 case CleanRoomOperability.NotEnclosed:
@@ -103,7 +108,7 @@ namespace Client.Ui.State.BlockInventory.Context
                     haltReason = CleanRoomHaltReason.None;
                     return true;
             }
-            Debug.LogError($"[CleanRoomViewConversion] unsupported operability: {operability}");
+            anomaly = $"[CleanRoomViewConversion] unsupported operability: {operability}";
             haltReason = CleanRoomHaltReason.None;
             return false;
         }

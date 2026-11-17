@@ -4,30 +4,35 @@ using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.PlaytestReceiver.Recovery;
 using Client.Ui.State.Commands;
+using Client.Ui.State.Toast;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Client.Ui.State.PauseMenu
 {
     /// <summary>
-    /// ポーズ・バグ報告の判断を持つ型付きコマンド。表示は知らず結果だけ返す
-    /// Typed commands owning the pause and bug-report decisions; they return results and know nothing of display
+    /// ポーズ・バグ報告の判断を持つ型付きコマンド。送信の結果はトーストへ渡したうえで呼び手にも返す
+    /// Typed commands owning the pause and bug-report decisions; the send result goes to the toaster and is also returned to the caller
     /// </summary>
     public sealed class PauseMenuCommands : IPauseMenuCommands
     {
+        public const string SubmitCommandName = "bug_report.submit";
+
         private readonly GameSaveRequester _saveRequester;
         private readonly SaveAndQuitPresenter _saveAndQuitPresenter;
         private readonly PauseMenuStateService _pauseMenuStateService;
         private readonly BugReportSubmitter _submitter;
         private readonly PlaytestOutboxRecovery _recovery;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public PauseMenuCommands(GameSaveRequester saveRequester, SaveAndQuitPresenter saveAndQuitPresenter, PauseMenuStateService pauseMenuStateService, BugReportSubmitter submitter, PlaytestOutboxRecovery recovery)
+        public PauseMenuCommands(GameSaveRequester saveRequester, SaveAndQuitPresenter saveAndQuitPresenter, PauseMenuStateService pauseMenuStateService, BugReportSubmitter submitter, PlaytestOutboxRecovery recovery, IUiCommandResultToaster toaster)
         {
             _saveRequester = saveRequester;
             _saveAndQuitPresenter = saveAndQuitPresenter;
             _pauseMenuStateService = pauseMenuStateService;
             _submitter = submitter;
             _recovery = recovery;
+            _toaster = toaster;
         }
 
         public void Save()
@@ -45,9 +50,18 @@ namespace Client.Ui.State.PauseMenu
             _pauseMenuStateService.ShowPage(page);
         }
 
+        // 結果はトーストへ渡し、フォームが書きかけの扱いを決められるよう呼び手にも返す
+        // The result goes to the toaster and is also returned so the form can decide what to do with the draft
+        public async UniTask<UiCommandResult> SubmitBugReport(string description, PlaytestReportKind kind)
+        {
+            var result = await Submit(description, kind);
+            _toaster.Report(SubmitCommandName, result);
+            return result;
+        }
+
         // 記録と説明文を outbox へ書き、送れたらトップへ戻す（ADR 0069）
         // Writes records and the description to the outbox and returns to the top on success (ADR 0069)
-        public async UniTask<UiCommandResult> SubmitBugReport(string description, PlaytestReportKind kind)
+        private async UniTask<UiCommandResult> Submit(string description, PlaytestReportKind kind)
         {
             // 種別を本文より先に見る。クラッシュは前回異常終了の箱だけが作り、ポーズからは送らせない
             // Check the kind before the body; only the previous-crash box creates crash, so the pause menu must not send it

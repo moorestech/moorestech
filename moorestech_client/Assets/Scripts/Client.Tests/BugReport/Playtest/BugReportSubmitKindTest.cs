@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.State.Commands;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Client.Tests.Ui.State.Toast;
 
 namespace Client.Tests.BugReport
 {
@@ -35,7 +36,7 @@ namespace Client.Tests.BugReport
         {
             // 送れない種別なら本文が空でも種別で拒否し、送れる種別なら空の本文で拒否する
             // An unsubmittable kind is refused by kind even with a blank description; a submittable kind is refused for the blank description
-            var commands = PauseMenuCommandsTestFactory.Create(new PauseMenuStateService());
+            var commands = PauseMenuCommandsTestFactory.Create(new PauseMenuStateService(), new RecordingUiCommandResultToaster());
 
             var crash = (UiCommandRejected)commands.SubmitBugReport("  ", PlaytestReportKind.Crash).GetAwaiter().GetResult();
             Assert.AreEqual(UiCommandRejectReason.UnsubmittableReportKind, crash.Reason);

@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
         [Test]
         public void ホットバーのアイコンは枠の中央に描かれる()
         {
-            var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(), Toaster));
+            var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create()));
             view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             simulate.FrameUpdate();
@@ -47,7 +47,7 @@ namespace Client.Tests.Ui.Screens.Hotbar
             // BP の絵は参照の等価なので、Model が組み直した VM は撮り直しのたびに配られる。ここでは配られた VM で絵が替わることを見る（計画 D-19）
             // A blueprint icon has reference equality, so the model's rebuilt VM is pushed on each recapture; here we check the pushed VM swaps the picture (plan D-19)
             var thumbnails = HotbarTestPresentation.CreateThumbnails();
-            var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(thumbnails), Toaster));
+            var view = Mount(new HotbarHudView(new RecordingHotbarCommands(), HotbarTestPresentation.Create(thumbnails)));
             view.Render(HotbarViewModelSamples.ReferenceFixture());
             simulate.FrameUpdate();
             thumbnails.TryGet(HotbarTestPresentation.PicturedBlueprintId, out var first);

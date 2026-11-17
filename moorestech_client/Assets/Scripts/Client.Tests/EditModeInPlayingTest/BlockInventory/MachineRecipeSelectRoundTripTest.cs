@@ -5,7 +5,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Client.Ui.State.BlockInventory.Machine.Selection;
-using Client.Ui.State.Commands;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.Machine;
@@ -99,8 +98,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     // レシピ選択コマンドで1件目を選ぶ
                     // Select the first recipe via the recipe-select command
                     var targetGuid = blockRecipes[0].MachineRecipeGuid;
-                    var setResult = await ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineRecipeSelectCommand>().Select(targetGuid);
-                    Assert.IsInstanceOf<UiCommandAccepted>(setResult, $"select command was rejected: {(setResult as UiCommandRejected)?.ToLogText()}");
+                    await MachineRecipeSelectAwaiter.SelectAndWait(targetGuid);
                     Assert.AreEqual(targetGuid, processor.SelectedRecipeGuid, "selected recipe did not reach the server");
 
                     // 解除は Web の画面も送らず（送り手は set だけ）、UITK にも口が無い

@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         {
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             _commands = new RecordingPlayerSlotCommands();
-            _view = new EquipmentHudView(new PlayerSlotGestureRouter(_commands, Toaster), new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
+            _view = new EquipmentHudView(new PlayerSlotGestureRouter(_commands), new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
             UiLayerStack.Build(rootVisualElement).GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_view);
             _view.SetShown(true);
         }

@@ -1,21 +1,17 @@
-using System.Text.RegularExpressions;
 using Client.Ui.Components.Controls;
 using Client.Ui.Content;
 using Client.Ui.Screens.Research.Parts;
-using Client.Ui.State.Commands;
-using Client.Ui.State.Toast;
 using Game.Research;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using Kit = Client.Tests.Ui.Screens.Research.ResearchScreenTestKit;
 
 namespace Client.Tests.Ui.Screens.Research
 {
     /// <summary>
-    /// 研究結果は View がトースト係へ渡す（A-262）
-    /// The view hands the result to the toaster (A-262)
+    /// 研究ボタンは操作を呼ぶだけで、結果のトーストは Commands が出す
+    /// The research button only calls the operation; the commands toast the result
     /// </summary>
     public class ResearchDetailActionsToastTest : ScreenTestHost
     {
@@ -38,22 +34,10 @@ namespace Client.Tests.Ui.Screens.Research
         }
 
         [Test]
-        public void 研究が拒否されると研究失敗のトーストを1回出す()
+        public void 研究ボタンは研究完了を1回呼びViewはトーストを出さない()
         {
-            _commands.SetCompleteResult(UiCommandRejected.Of(UiCommandRejectReason.ResearchFailed));
-            MountPane();
-
-            LogAssert.Expect(LogType.Warning, new Regex(@"^\[UiCommandResultToaster\] research\.complete failed: research_failed$"));
-            ClickResearchButton();
-
-            CollectionAssert.AreEqual(new[] { $"complete:{Kit.Researchable}" }, _commands.Issued);
-            Assert.AreEqual(1, ShownToasts.Count);
-            Assert.AreEqual(GameUiToastVariant.Error, ShownToasts[0].Variant);
-        }
-
-        [Test]
-        public void 研究が受理されるとトーストを出さない()
-        {
+            // 結果のトーストは ResearchTreeCommands が出すので、View は呼ぶだけ
+            // ResearchTreeCommands toasts the result, so the view only calls it
             MountPane();
 
             ClickResearchButton();
@@ -68,7 +52,7 @@ namespace Client.Tests.Ui.Screens.Research
         {
             // キーの無いラベルを載せないよう、描いてから載せる
             // Render before mounting so no keyless label is attached
-            var pane = new ResearchDetailPane(_commands, _content, Toaster);
+            var pane = new ResearchDetailPane(_commands, _content);
             pane.Render(Kit.Detail(ResearchNodeState.Researchable, 3, 0, Kit.NoUnlocks()));
             Mount(pane);
             simulate.FrameUpdate();

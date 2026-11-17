@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Rendering;
 using Client.Ui.Foundation.Theme;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -59,17 +60,12 @@ namespace Client.Ui.Screens.Recipe.Parts
                 mesh.SetNextVertex(new Vertex { position = new Vector3(x, top + 1f, Vertex.nearZ), tint = tint });
             }
 
-            // 画面座標（y 下向き）で時計回りに 2 枚ずつ張る（前例 CrosshairShadowRing）
-            // Wind two triangles per span clockwise in screen space (y down; precedent CrosshairShadowRing)
+            // 色止め間の四角を共有口の並び（画面座標 y 下向きで時計回り）で張る。頂点 a は左上・a+1 は左下・a+2 は右上・a+3 は右下
+            // Write each span quad with the shared clockwise order (y down); vertex a is top-left, a+1 bottom-left, a+2 top-right, a+3 bottom-right
             for (var i = 0; i < Stops.Length - 1; i++)
             {
                 var a = (ushort)(i * 2);
-                mesh.SetNextIndex(a);
-                mesh.SetNextIndex((ushort)(a + 2));
-                mesh.SetNextIndex((ushort)(a + 1));
-                mesh.SetNextIndex((ushort)(a + 1));
-                mesh.SetNextIndex((ushort)(a + 2));
-                mesh.SetNextIndex((ushort)(a + 3));
+                new GridQuadIndices(a, (ushort)(a + 2), (ushort)(a + 3), (ushort)(a + 1)).WriteTo(mesh);
             }
         }
     }

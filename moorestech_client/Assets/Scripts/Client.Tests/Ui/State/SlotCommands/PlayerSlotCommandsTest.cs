@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.Notification;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Inventory;
 using Client.Tests.Ui.State.ItemMove;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
 using Client.Ui.State.Commands;
@@ -38,6 +39,7 @@ namespace Client.Tests.Ui.State.SlotCommands
         private ReactiveProperty<BlockInventoryPanelState> _panel;
         private ClientLocalNotificationSource _notifications;
         private PlayerSlotCommands _commands;
+        private RecordingUiCommandResultToaster _toaster;
         private ItemId _wood;
         private FixedMaxStackLookup _stackLevels;
 
@@ -54,7 +56,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             _stackLevels = new FixedMaxStackLookup(64);
             var runner = new PlannedItemActionRunner(new PlayerItemActionExecutor(_player), new BlockItemActionExecutor(_block, _player));
             var reader = new PlayerSlotContextReader(new FakePanelSource(_panel), _block, new BlockSlotRestrictionInputBuilder(Array.Empty<IBlockSlotRestrictionContributor>()), _stackLevels);
-            _commands = new PlayerSlotCommands(_player, _drag, runner, reader, new ShiftMoveRefusalNotifier(_notifications));
+            _toaster = new RecordingUiCommandResultToaster();
+            _commands = new PlayerSlotCommands(_player, _drag, runner, reader, new ShiftMoveRefusalNotifier(_notifications), _toaster);
         }
 
         /// <web-test file="e2e/tests/block/blockInventoryGestures.spec.ts">block 開時は main の Shift+クリックが block へ配分移動する</web-test>
@@ -112,17 +115,19 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void 未知のItemIdの枠のShift押下はエラーログと拒否で止め通常の左押下は掴む()
         {
-            // D-65: 計画器が配分の腕でだけ断る。断った時は拒否を返しトーストで知らせる
-            // D-65: the planner refuses only in the allocation arm; a refusal returns a rejection the toast reports
+            // D-65: 計画器が配分の腕でだけ断る。断った時は拒否をトースト口へ渡す
+            // D-65: the planner refuses only in the allocation arm; a refusal is handed to the toaster
             var unknown = new ItemId(9999);
             _stackLevels.SetUnknown(unknown);
             _panel.Value = BlockInventoryTestPanels.ChestWithSlots(new SlotItem(default, 0), new SlotItem(default, 0));
             _player.SetMain(1, new SlotItem(unknown, 5));
             LogAssert.Expect(LogType.Error, new Regex(@"\[PlayerSlotCommands\] unknown ItemId"));
-            var shifted = _commands.LeftDown(PlayerSlotRef.Main(1), true);
-            Assert.AreEqual(UiCommandRejectReason.ItemUnknownInSlot, ((UiCommandRejected)shifted).Reason);
+            _commands.LeftDown(PlayerSlotRef.Main(1), true);
+            Assert.AreEqual(UiCommandRejectReason.ItemUnknownInSlot, ((UiCommandRejected)_toaster.Reports[0].Result).Reason);
+            Assert.AreEqual(PlayerSlotCommands.CommandName, _toaster.Reports[0].CommandName);
             CollectionAssert.IsEmpty(_block.Moves);
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), false));
+            _commands.LeftDown(PlayerSlotRef.Main(1), false);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports[1].Result);
             CollectionAssert.AreEqual(new[] { $"{PlayerSlotRef.Main(1)}->Grab x5" }, _player.Moves);
         }
 
@@ -134,7 +139,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             var unknown = new ItemId(9999);
             _stackLevels.SetUnknown(unknown);
             _player.SetMain(1, new SlotItem(unknown, 5));
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), true));
+            _commands.LeftDown(PlayerSlotRef.Main(1), true);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports[0].Result);
             CollectionAssert.IsEmpty(_player.Moves);
             LogAssert.NoUnexpectedReceived();
         }
@@ -147,7 +153,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             _panel.Value = BlockInventoryTestPanels.Train(BlockInventoryPanelError.ContainerMissing);
             _block.Open = false;
             _player.SetMain(1, new SlotItem(_wood, 5));
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(PlayerSlotRef.Main(1), false));
+            _commands.LeftDown(PlayerSlotRef.Main(1), false);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports[0].Result);
             CollectionAssert.AreEqual(new[] { $"{PlayerSlotRef.Main(1)}->Grab x5" }, _player.Moves);
             LogAssert.NoUnexpectedReceived();
         }
@@ -172,13 +179,16 @@ namespace Client.Tests.Ui.State.SlotCommands
             _commands.RightEnter(PlayerSlotRef.Main(3));
             Assert.AreEqual(PlayerSlotRef.Main(2), _drag.LeftEntered[0]);
             Assert.AreEqual(PlayerSlotRef.Main(3), _drag.RightEntered[0]);
+            // 右ボタンの進入の結果は分割ドラッグ側が渡すので、ここでは二重に渡さない
+            // The split-drag side reports the right-button enter, so it is not reported twice here
+            Assert.IsEmpty(_toaster.Reports);
         }
 
         [Test]
         public void 減った後の古い枠の押下は警告して何もしない()
         {
-            var result = _commands.LeftDown(PlayerSlotRef.Main(99), false);
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            _commands.LeftDown(PlayerSlotRef.Main(99), false);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports[0].Result);
             CollectionAssert.IsEmpty(_player.Moves);
         }
     }

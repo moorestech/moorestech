@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Drag;
 
@@ -16,10 +15,6 @@ namespace Client.Tests.Ui.State.SlotCommands
         public void BeginSplitDrag(PlayerSlotRef slot) => Begun.Add(slot);
         public void EnterWithLeftButton(PlayerSlotRef slot) => LeftEntered.Add(slot);
 
-        public UiCommandResult EnterWithRightButton(PlayerSlotRef slot)
-        {
-            RightEntered.Add(slot);
-            return UiCommandAccepted.Instance;
-        }
+        public void EnterWithRightButton(PlayerSlotRef slot) => RightEntered.Add(slot);
     }
 }

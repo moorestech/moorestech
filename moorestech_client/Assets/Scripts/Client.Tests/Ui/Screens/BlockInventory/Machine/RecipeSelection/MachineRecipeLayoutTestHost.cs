@@ -82,7 +82,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             // Plug machine and context factories and the large rule, as the real GameUi
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
-            var factory = new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, content, RecipeSelect, OsCursor);
+            var factory = new MachineSectionFactory(MachineModel, ContextModel, Commands, content, RecipeSelect, OsCursor);
 
             // 外殻は閉じたまま先に載り、値は既に届く
             // The shell mounts closed first and the machine value is already there on open

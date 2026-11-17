@@ -6,7 +6,6 @@ using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Selection;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Recipe.Data;
 using Client.Ui.State.Recipe.Source;
 using Client.Ui.State.Research.Catalog;
@@ -71,8 +70,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 // 手の届く所に機械を置いてFで開き、画面の行と同じ UITK のコマンドで継承レシピを選ぶ
                 // Place the machine within reach, open it with F, then select the inheritance recipe through the UITK command the screen's row uses
                 await InteractKeyBlockOpener.PlaceNearPlayerAndOpen(MachineBlockName);
-                var select = await Resolver().Resolve<IMachineRecipeSelectCommand>().Select(InheritRecipeGuid);
-                Assert.IsInstanceOf<UiCommandAccepted>(select, $"select command was rejected: {(select as UiCommandRejected)?.ToLogText()}");
+                await MachineRecipeSelectAwaiter.SelectAndWait(InheritRecipeGuid);
 
                 // 研究前: スロット上限3・製作上限Lv1・継承元スロットは3変種を受け付ける
                 // Before research: slot limit 3, craft cap Lv1, and the source slot accepts all three variants

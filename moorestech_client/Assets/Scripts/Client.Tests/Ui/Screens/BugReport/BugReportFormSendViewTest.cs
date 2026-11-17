@@ -121,8 +121,9 @@ namespace Client.Tests.Ui.Screens.BugReport
             simulate.Click(SendButton());
             Commands.CompleteSubmit(UiCommandRejected.Of(UiCommandRejectReason.CaptureRefused));
 
-            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.CaptureRefused), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
-            Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
+            // 拒否のトーストは PauseMenuCommands が出す（PauseMenuCommandsTest が見る）。View は成功通知も出さない
+            // PauseMenuCommands raises the refusal toast (checked by PauseMenuCommandsTest); the view shows no success notice either
+            Assert.IsEmpty(ShownToasts);
             Assert.AreEqual("nice", Draft.Description);
             Assert.AreEqual(PlaytestReportKind.Feedback, Draft.Kind);
             Assert.IsTrue(SendButton().enabledSelf);

@@ -5,7 +5,6 @@ using Client.Ui.Foundation.DragDrop;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Hotbar.Parts
@@ -21,16 +20,14 @@ namespace Client.Ui.Screens.Hotbar.Parts
         private readonly int _slotIndex;
         private readonly IHotbarCommands _commands;
         private readonly PlacementTargetIcons _icons;
-        private readonly UiCommandResultToaster _toaster;
         private readonly SlotFrame _frame;
         private readonly PlacementTargetFace _face;
 
-        public HotbarCell(int slotIndex, IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster)
+        public HotbarCell(int slotIndex, IHotbarCommands commands, PlacementTargetIcons icons)
         {
             _slotIndex = slotIndex;
             _commands = commands;
             _icons = icons;
-            _toaster = toaster;
             pickingMode = PickingMode.Ignore;
             AddToClassList("hotbar-hud__cell");
             EnableInClassList("hotbar-hud__cell--first", slotIndex == 0);
@@ -61,7 +58,7 @@ namespace Client.Ui.Screens.Hotbar.Parts
 
             // 源の値を差し替える（2 度目の MarkSource は値だけを替える）
             // Replace the source value (a second MarkSource only swaps the payload)
-            UiDragDrop.MarkSource<IHotbarDropReceiver>(_frame, new HotbarSlotDragPayload(_slotIndex, slot, _commands, _toaster));
+            UiDragDrop.MarkSource<IHotbarDropReceiver>(_frame, new HotbarSlotDragPayload(_slotIndex, slot, _commands));
 
             #region Internal
 

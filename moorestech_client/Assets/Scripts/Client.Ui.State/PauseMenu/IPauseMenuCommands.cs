@@ -6,8 +6,8 @@ using Cysharp.Threading.Tasks;
 namespace Client.Ui.State.PauseMenu
 {
     /// <summary>
-    /// ポーズ画面の操作。Web のアダプタと GameUi の View が同じ口を呼ぶ
-    /// Pause-menu operations; the Web adapters and the GameUi views call the same entry points
+    /// ポーズ画面の操作。バグ報告の送信は結果をトーストへ渡したうえで、書きかけの扱いのため呼び手にも返す
+    /// Pause-menu operations; a bug-report send hands its result to the toaster and also returns it so the caller can handle the draft
     /// </summary>
     public interface IPauseMenuCommands
     {

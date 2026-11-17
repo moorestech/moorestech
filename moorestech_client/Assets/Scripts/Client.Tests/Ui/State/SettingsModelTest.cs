@@ -2,6 +2,7 @@ using Client.Input;
 using Client.Ui.State.Settings;
 using NUnit.Framework;
 using UnityEngine;
+using Client.Tests.Ui.State.Toast;
 
 namespace Client.Tests.Ui.State
 {
@@ -35,7 +36,7 @@ namespace Client.Tests.Ui.State
             model.Initialize();
             Assert.AreEqual(SprintInputMode.Toggle, model.Current.Value.SprintMode);
 
-            new SettingsCommands().SetSprintInputMode(SprintInputMode.Hold);
+            new SettingsCommands(new RecordingUiCommandResultToaster()).SetSprintInputMode(SprintInputMode.Hold);
 
             Assert.AreEqual(SprintInputMode.Hold, model.Current.Value.SprintMode);
             Assert.AreEqual(SprintInputMode.Hold.ToString(), PlayerPrefs.GetString(SprintInputModePreference.PreferenceKey));

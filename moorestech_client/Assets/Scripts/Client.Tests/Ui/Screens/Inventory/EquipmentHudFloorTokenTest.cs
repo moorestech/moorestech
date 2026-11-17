@@ -56,7 +56,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         public void 装備の列はホットバーと同じ床と枠の大きさで右下に立つ()
         {
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
-            var view = new EquipmentHudView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands(), Toaster), new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
+            var view = new EquipmentHudView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands()), new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture)));
             var layer = UiLayerStack.Build(rootVisualElement).GetLayer(UiLayer.Chrome, UiFamily.Viewport);
             layer.Add(view);
             var empty = new SlotItem(ItemMaster.EmptyItemId, 0);

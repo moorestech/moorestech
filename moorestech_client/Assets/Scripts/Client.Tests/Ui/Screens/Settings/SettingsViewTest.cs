@@ -7,9 +7,7 @@ using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.Settings;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -34,7 +32,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 言語は配信順のoptionsを縦に並べ現在値を選択する()
         {
-            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             var expected = LanguageCatalog.Languages.Select(language => $"language-select-option-{language.Code}").ToArray();
             CollectionAssert.AreEqual(expected, Find<VisualElement>(view, "language-select").Query<Button>().ToList().Select(button => button.name));
             Assert.IsTrue(Find<VisualElement>(view, "language-select").ClassListContains("mode-switch--vertical"));
@@ -43,17 +41,13 @@ namespace Client.Tests.Ui.Screens.Settings
         }
 
         [Test]
-        public void 言語を選ぶとSetLanguageを出し拒否ならエラーのトーストを出す()
+        public void 言語を選ぶとSetLanguageを出す()
         {
-            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            // 拒否のトーストは SettingsCommands が出す（SettingsCommandsTest が見る）
+            // The refusal toast is raised by SettingsCommands (checked by SettingsCommandsTest)
+            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             simulate.Click(Find<Button>(view, "language-select-option-japanese"));
             Assert.AreEqual("japanese", _commands.Issued.Single().LanguageCode);
-            Assert.IsEmpty(ShownToasts);
-
-            _commands.SetLanguageResult(UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage));
-            simulate.Click(Find<Button>(view, "language-select-option-japanese"));
-            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.UnknownLanguage), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
-            Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
         }
 
         /// <web-test file="src/features/settings/SprintModeSelect.test.ts">topicの現在値を選択する</web-test>

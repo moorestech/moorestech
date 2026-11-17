@@ -1,6 +1,7 @@
 using System;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Inventory;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Commands;
@@ -17,8 +18,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
     /// <summary>
-    /// 特殊族の操作の判定と結果写像を確かめる
-    /// Verifies special-family command checks and outcome mapping
+    /// 特殊族の操作の判定と結果写像を、トーストへ渡した結果で確かめる
+    /// Verifies special-family command checks and outcome mapping through the results handed to the toaster
     /// </summary>
     public class SpecialBlockCommandsTest
     {
@@ -27,6 +28,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         private ReactiveProperty<BlockInventoryPanelState> _open;
         private RecordingPlayerInventoryOperations _operations;
         private SpecialBlockCommands _commands;
+        private RecordingUiCommandResultToaster _toaster;
 
         [SetUp]
         public void SetUp()
@@ -36,13 +38,15 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             _operations = new RecordingPlayerInventoryOperations(36, 0);
             var grab = new PlayerGrabModel(_operations);
             grab.Initialize();
-            _commands = new SpecialBlockCommands(new FakePanelSource(_open), _sender, grab);
+            _toaster = new RecordingUiCommandResultToaster();
+            _commands = new SpecialBlockCommands(new FakePanelSource(_open), _sender, grab, _toaster);
         }
 
         [Test]
         public void 開いていなければ送らずに開いていない拒否を返す()
         {
-            var result = _commands.SetElectricToGearMode(0).GetAwaiter().GetResult() as UiCommandRejected;
+            _commands.SetElectricToGearMode(0);
+            var result = LastReported(SpecialBlockCommands.SetElectricToGearModeCommandName) as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.BlockNotOpen, result.Reason);
             Assert.AreEqual("block_not_open", result.ToWireCode());
             CollectionAssert.IsEmpty(_sender.Sent);
@@ -54,7 +58,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             // 開いているので「ブロックが開いていません」の文言を引かない（wire は Web と同じ invalid_block_type）
             // The block is open, so the "block is not open" message must not be picked (wire stays invalid_block_type as on the Web)
             Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
-            var result = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
+            _commands.SendRocketCommand(RocketCommand.Build);
+            var result = LastReported(SpecialBlockCommands.RocketCommandName) as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.BlockTypeMismatch, result.Reason);
             Assert.AreEqual("invalid_block_type", result.ToWireCode());
             Assert.AreNotEqual(UiCommandRejectReasonTable.Get(UiCommandRejectReason.BlockNotOpen).LocalizationKey.Key, UiCommandRejectReasonTable.Get(result.Reason).LocalizationKey.Key);
@@ -67,12 +72,15 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
             _operations.SetGrab(new SlotItem(new ItemId(4), 3));
-            Assert.AreSame(UiCommandAccepted.Instance, _commands.SetFilterItem(2, 1, false).GetAwaiter().GetResult());
-            Assert.AreSame(UiCommandAccepted.Instance, _commands.SetFilterItem(2, 1, true).GetAwaiter().GetResult());
+            _commands.SetFilterItem(2, 1, false);
+            Assert.AreSame(UiCommandAccepted.Instance, LastReported(SpecialBlockCommands.SetFilterItemCommandName));
+            _commands.SetFilterItem(2, 1, true);
+            Assert.AreSame(UiCommandAccepted.Instance, LastReported(SpecialBlockCommands.SetFilterItemCommandName));
             CollectionAssert.AreEqual(new[] { $"filter_item {Position} 77 2 1 4", $"filter_item {Position} 77 2 1 {ItemMaster.EmptyItemId.AsPrimitive()}" }, _sender.Sent);
 
             _operations.SetGrab(new SlotItem(ItemMaster.EmptyItemId, 0));
-            var noop = _commands.SetFilterItem(2, 1, false).GetAwaiter().GetResult() as UiCommandRejected;
+            _commands.SetFilterItem(2, 1, false);
+            var noop = LastReported(SpecialBlockCommands.SetFilterItemCommandName) as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.FilterSplitterGrabEmpty, noop.Reason);
             Assert.IsTrue(UiCommandRejectReasonTable.Get(noop.Reason).IsBenign);
             Assert.AreEqual(2, _sender.Sent.Count);
@@ -82,15 +90,20 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void モードと出力モードと接続と合図は位置とインスタンスを付けて送る()
         {
             Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
-            _commands.SetFilterMode(0, FilterSplitterMode.Blacklist).GetAwaiter().GetResult();
+            _commands.SetFilterMode(0, FilterSplitterMode.Blacklist);
             Open(BlockMasterElement.BlockTypeConst.ElectricToGearGenerator);
-            _commands.SetElectricToGearMode(1).GetAwaiter().GetResult();
+            _commands.SetElectricToGearMode(1);
             Open(BlockMasterElement.BlockTypeConst.SpaceElevatorBase);
-            _commands.ConnectSpaceElevator().GetAwaiter().GetResult();
+            _commands.ConnectSpaceElevator();
             Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
-            _commands.SendRocketCommand(RocketCommand.Launch).GetAwaiter().GetResult();
+            _commands.SendRocketCommand(RocketCommand.Launch);
 
             CollectionAssert.AreEqual(new[] { $"filter_mode {Position} 77 0 Blacklist", $"electric_to_gear {Position} 1", $"connect {Position} 77", $"rocket {Position} Launch 77" }, _sender.Sent);
+
+            // 操作ごとの名前で受理がトーストの係へ届く
+            // Each acceptance reaches the toaster under its own command name
+            CollectionAssert.AreEqual(new[] { SpecialBlockCommands.SetFilterModeCommandName, SpecialBlockCommands.SetElectricToGearModeCommandName, SpecialBlockCommands.ConnectSpaceElevatorCommandName, SpecialBlockCommands.RocketCommandName }, ReportedNames());
+            foreach (var report in _toaster.Reports) Assert.AreSame(UiCommandAccepted.Instance, report.Result);
         }
 
         [Test]
@@ -98,13 +111,15 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
             _sender.SetNextOutcome(SpecialBlockRequestOutcome.Stale("rocket_command_not_awaiting_build"));
-            var stale = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
+            _commands.SendRocketCommand(RocketCommand.Build);
+            var stale = LastReported(SpecialBlockCommands.RocketCommandName) as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.SpecialBlockCommandStale, stale.Reason);
             Assert.IsTrue(UiCommandRejectReasonTable.Get(stale.Reason).IsBenign);
             Assert.AreEqual("rocket_command_not_awaiting_build", stale.ToWireCode());
 
             _sender.SetNextOutcome(SpecialBlockRequestOutcome.Failed("rocket_command_missing_materials"));
-            var failed = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
+            _commands.SendRocketCommand(RocketCommand.Build);
+            var failed = LastReported(SpecialBlockCommands.RocketCommandName) as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.SpecialBlockRequestFailed, failed.Reason);
             Assert.IsFalse(UiCommandRejectReasonTable.Get(failed.Reason).IsBenign);
             Assert.AreEqual("rocket_command_missing_materials", failed.ToWireCode());
@@ -119,6 +134,22 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             Assert.IsTrue(VanillaSpecialBlockRequestSender.IsStillOpen(same, sent));
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(other, sent));
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(BlockInventoryPanelState.Closed, sent));
+        }
+
+        // 最後にトーストへ渡った結果（名前も確かめる）
+        // The last result handed to the toaster, checking its command name too
+        private UiCommandResult LastReported(string expectedCommandName)
+        {
+            var last = _toaster.Reports[_toaster.Reports.Count - 1];
+            Assert.AreEqual(expectedCommandName, last.CommandName);
+            return last.Result;
+        }
+
+        private string[] ReportedNames()
+        {
+            var names = new string[_toaster.Reports.Count];
+            for (var i = 0; i < names.Length; i++) names[i] = _toaster.Reports[i].CommandName;
+            return names;
         }
 
         private void Open(string blockType)

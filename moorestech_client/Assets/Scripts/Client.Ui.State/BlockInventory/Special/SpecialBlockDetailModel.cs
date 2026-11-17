@@ -22,8 +22,8 @@ namespace Client.Ui.State.BlockInventory.Special
         private readonly BlockNetworkInfoCache _networkCache;
         private readonly BeltTransportClientCache _beltCache;
         private readonly ReactiveProperty<SpecialBlockDetailViewModel> _current = new(SpecialBlockDetailViewModel.Empty);
-        private readonly AnomalyReportGate _mismatchGate = new();
-        private readonly AnomalyReportGate _gearAnomalyGate = new();
+        private readonly AnomalyReportGate _mismatchGate = new("[SpecialBlockDetailModel] ", "", LogType.Warning);
+        private readonly AnomalyReportGate _gearAnomalyGate = new("[SpecialBlockDetailModel] ", "; gear rows are omitted", LogType.Error);
 
         public IReadOnlyReactiveProperty<SpecialBlockDetailViewModel> Current => _current;
 
@@ -56,25 +56,20 @@ namespace Client.Ui.State.BlockInventory.Special
                 var open = _panels.Current.Value as OpenBlockInventoryPanel;
                 var opened = open is { Error: BlockInventoryPanelError.None } && block != null;
                 var matches = opened && block.BlockInstanceId.Equals(open.BlockInstanceId);
-                ReportMismatch(opened && !matches ? $"panel {open.BlockInstanceId} != tracked {block.BlockInstanceId}" : null);
+                // 開いたパネルと追跡ブロックの食い違いは、組み合わせが変わったときだけ警告する（集約の更新ごとに出さない）
+                // Warn only when the panel/tracked mismatch pair changes, not on every aggregate update
+                _mismatchGate.Observe(opened && !matches ? $"panel {open.BlockInstanceId} != tracked {block.BlockInstanceId}" : null);
                 if (!matches)
                 {
-                    // silent-ok: 閉じている間・開閉と差し替えの途中（どちらかが null・エラー）は空にする（区画は出ず本文は取得待ち） / 両方そろって食い違う場合は ReportMismatch が警告ログに出す
-                    _gearAnomalyGate.Clear();
+                    // silent-ok: 閉じている間・開閉と差し替えの途中（どちらかが null・エラー）は空にする（区画は出ず本文は取得待ち） / 両方そろって食い違う場合は _mismatchGate が警告ログに出す
+                    _gearAnomalyGate.Observe(null);
                     _current.Value = SpecialBlockDetailViewModel.Empty;
                     return;
                 }
                 _current.Value = SpecialBlockDetailReader.Read(block, _networkCache, _beltCache, out var gearAnomaly);
                 // 歯車のマスタの食い違いは、同じ間は 1 回だけ出す（状態更新のたびに組み直すので連打しない）
                 // Report the gear master mismatch once while it persists (rebuilt on every state update, so no spam)
-                if (_gearAnomalyGate.ShouldReport(gearAnomaly)) Debug.LogError($"[SpecialBlockDetailModel] {gearAnomaly}; gear rows are omitted");
-
-                void ReportMismatch(string mismatch)
-                {
-                    // 開いたパネルと追跡ブロックの食い違いは、組み合わせが変わったときだけ警告する（集約の更新ごとに出さない）
-                    // Warn only when the panel/tracked mismatch pair changes, not on every aggregate update
-                    if (_mismatchGate.ShouldReport(mismatch)) Debug.LogWarning($"[SpecialBlockDetailModel] {mismatch}");
-                }
+                _gearAnomalyGate.Observe(gearAnomaly);
             }
 
             #endregion

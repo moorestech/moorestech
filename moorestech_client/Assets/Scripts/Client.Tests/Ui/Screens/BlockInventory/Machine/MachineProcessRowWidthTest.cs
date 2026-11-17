@@ -107,7 +107,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             rule.Initialize();
             var panel = MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, Enumerable.Repeat(new SlotItem(FirstItem, 1), slotCount).ToArray());
             var context = new ContextSectionFactory(Content, ContextModel, MachineModel);
-            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, RecipeSelect, OsCursor);
+            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor);
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), rule, context, machine);
             simulate.FrameUpdate();
             simulate.FrameUpdate();

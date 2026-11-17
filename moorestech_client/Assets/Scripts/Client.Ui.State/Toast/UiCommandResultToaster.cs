@@ -8,7 +8,7 @@ namespace Client.Ui.State.Toast
     /// コマンド結果のトースト振り分け口
     /// Routes command results to toasts
     /// </summary>
-    public sealed class UiCommandResultToaster
+    public sealed class UiCommandResultToaster : IUiCommandResultToaster
     {
         private const string CodeParamName = "code";
 

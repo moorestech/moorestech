@@ -48,7 +48,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         {
             _commands = new RecordingPauseMenuCommands();
             _settingsCommands = new RecordingSettingsCommands();
-            _view = Mount(new PauseMenuView(_commands, _settingsCommands, Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(_commands, _settingsCommands, Toasts, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();

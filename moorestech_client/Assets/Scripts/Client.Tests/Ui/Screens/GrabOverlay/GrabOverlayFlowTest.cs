@@ -98,8 +98,8 @@ namespace Client.Tests.Ui.Screens.GrabOverlay
         {
             PressLeft(PlayerSlotRef.Main(0));
 
-            Toaster.Report("inventory.move_item", _commands.EnterWithRightButton(PlayerSlotRef.Main(3)));
-            Toaster.Report("inventory.move_item", _commands.EnterWithRightButton(PlayerSlotRef.Main(4)));
+            _commands.EnterWithRightButton(PlayerSlotRef.Main(3));
+            _commands.EnterWithRightButton(PlayerSlotRef.Main(4));
             simulate.FrameUpdate();
 
             Assert.AreEqual(new[] { "Grab->Main:3 x1", "Grab->Main:4 x1" }, _operations.Moves.Skip(_operations.Moves.Count - 2).ToArray());

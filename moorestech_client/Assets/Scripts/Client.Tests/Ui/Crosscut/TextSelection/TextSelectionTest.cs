@@ -40,11 +40,11 @@ namespace Client.Tests.Ui.Crosscut.TextSelection
             var cursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
             OpenMenu(BuildMenuSamples.Create());
 
-            _inventory = Mount(new InventoryView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands(), Toaster), new RecordingInventorySortCommands(), Content, Toaster, cursor));
+            _inventory = Mount(new InventoryView(new PlayerSlotGestureRouter(new RecordingPlayerSlotCommands()), new RecordingInventorySortCommands(), Content, cursor));
             _inventory.SetShown(true);
             _inventory.Render(InventoryWithWood());
 
-            _pauseMenu = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), cursor));
+            _pauseMenu = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, new BugReportDraft(), cursor));
             _pauseMenu.SetShown(true);
             _pauseMenu.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();

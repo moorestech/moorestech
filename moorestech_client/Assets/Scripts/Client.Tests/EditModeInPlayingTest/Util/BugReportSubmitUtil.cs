@@ -2,6 +2,7 @@ using Client.PlaytestReceiver.Recovery;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Toast;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,7 +53,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 resolver.Resolve<BugReportCaptureSession>(),
                 resolver.Resolve<IPlaytestProgressSink>(),
                 uploadRequester);
-            var commands = new PauseMenuCommands(resolver.Resolve<GameSaveRequester>(), resolver.Resolve<SaveAndQuitPresenter>(), resolver.Resolve<PauseMenuStateService>(), submitter, resolver.Resolve<PlaytestOutboxRecovery>());
+            var commands = new PauseMenuCommands(resolver.Resolve<GameSaveRequester>(), resolver.Resolve<SaveAndQuitPresenter>(), resolver.Resolve<PauseMenuStateService>(), submitter, resolver.Resolve<PlaytestOutboxRecovery>(), resolver.Resolve<IUiCommandResultToaster>());
             var kindText = PlaytestReportKindText.ToContractText(kind);
 
             // UITK のポーズメニューの命令で送る

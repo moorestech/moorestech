@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
 
@@ -14,10 +13,9 @@ namespace Client.Tests.Ui.Screens.Hotbar
     {
         public readonly List<string> Calls = new();
 
-        public UiCommandResult Select(int slotIndex)
+        public void Select(int slotIndex)
         {
             Calls.Add($"select:{slotIndex}");
-            return UiCommandAccepted.Instance;
         }
 
         public void Drop(HotbarDragSource source, HotbarDropTarget target)

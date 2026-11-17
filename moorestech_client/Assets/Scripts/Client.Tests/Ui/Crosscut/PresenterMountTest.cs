@@ -141,7 +141,7 @@ namespace Client.Tests.Ui.Crosscut
                 // Same assembly as InventoryScreenVisibilityTest's SetUp
                 var model = new PlayerInventoryPanelModel(inventory, new FakeEquipmentSelectionPort(3));
                 model.Initialize();
-                new InventoryScreenPresenter(_columns, _routing, model, new RecordingPlayerSlotCommands(), new RecordingInventorySortCommands(), content, Toaster, osCursor).Initialize();
+                new InventoryScreenPresenter(_columns, _routing, model, new RecordingPlayerSlotCommands(), new RecordingInventorySortCommands(), content, osCursor).Initialize();
             }
 
             void MountRecipe()
@@ -150,7 +150,7 @@ namespace Client.Tests.Ui.Crosscut
                 // The presenter only reads the model's initial values; the model is never initialized, so the unlock, machine-recipe and event sources stay unread
                 var selection = new RecipeItemSelection();
                 var model = new RecipeScreenModel(null, null, null, null, inventory, selection, _routing);
-                new RecipeScreenPresenter(_columns, _routing, model, content, new RecordingRecipeCommands(), Toaster, selection).Initialize();
+                new RecipeScreenPresenter(_columns, _routing, model, content, new RecordingRecipeCommands(), selection).Initialize();
             }
 
             void MountBlockInventory()
@@ -163,7 +163,7 @@ namespace Client.Tests.Ui.Crosscut
                 LogAssert.Expect(LogType.Log, new Regex("区画の登録が無い"));
                 var standard = new SectionStackBodyFactory(BlockInventoryTestBodies.Grids(), new SectionStackSlotRegistry(Array.Empty<ISectionStackSectionFactory>()), source);
                 var parts = new BlockInventoryPartRegistry(Array.Empty<IBlockInventoryBodyFactory>(), Array.Empty<IBlockInventoryTitleActionFactory>(), Array.Empty<ITrainInventoryBodyFactory>(), standard);
-                new BlockInventoryScreenPresenter(_columns, _routing, layout, parts, new RecordingPanelCommands(), Toaster, osCursor).Initialize();
+                new BlockInventoryScreenPresenter(_columns, _routing, layout, parts, new RecordingPanelCommands(), osCursor).Initialize();
             }
 
             #endregion

@@ -1,6 +1,5 @@
 using Client.Game.InGame.GraphicsQuality;
 using Client.Input;
-using Client.Ui.State.Commands;
 
 namespace Client.Ui.State.Settings
 {
@@ -13,6 +12,6 @@ namespace Client.Ui.State.Settings
         void ApplyGraphicsPreset(GraphicsQualityPreset preset);
         void SetGraphicsQuality(GraphicsQualitySettings settings);
         void SetSprintInputMode(SprintInputMode mode);
-        UiCommandResult SetLanguage(string languageCode);
+        void SetLanguage(string languageCode);
     }
 }

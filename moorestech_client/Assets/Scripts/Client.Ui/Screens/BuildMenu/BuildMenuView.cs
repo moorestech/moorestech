@@ -7,8 +7,6 @@ using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Session;
 using Client.Ui.State.Hotbar;
-using Client.Ui.State.Routing;
-using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -31,7 +29,7 @@ namespace Client.Ui.Screens.BuildMenu
         private string _query;
         private bool _shown;
 
-        public BuildMenuView(IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker, IUiOsCursor osCursor)
+        public BuildMenuView(IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, BuildMenuSessionStore session, BuildMenuCategoryScrollTracker tracker, IUiOsCursor osCursor)
         {
             _session = session;
             _tracker = tracker;
@@ -43,7 +41,7 @@ namespace Client.Ui.Screens.BuildMenu
             // Build the three columns' parts and lay them on the skeleton
             _sidebar = new BuildMenuCategorySidebar(osCursor);
             var detail = new BuildMenuDetailSidebar(content, icons);
-            _actions = new BuildMenuEntryActions(commands, toaster, session, detail);
+            _actions = new BuildMenuEntryActions(commands, session, detail);
             _list = new BuildMenuCategoryList(content, icons, _actions, hotbarCommands);
             _skeleton = new BuildMenuPanelSkeleton(_sidebar, _list, detail, osCursor);
 
@@ -52,7 +50,7 @@ namespace Client.Ui.Screens.BuildMenu
 
             // 閉じる・検索・押下・現在地の追従
             // Close, search, category presses and following the current category
-            _skeleton.CloseButton.OnClicked.Subscribe(_ => toaster.Report(UiStateTransitionRules.RequestCommandName, commands.Close()));
+            _skeleton.CloseButton.OnClicked.Subscribe(_ => commands.Close());
             _skeleton.Search.OnValueChanged.Subscribe(OnQueryChanged);
             _sidebar.OnCategorySelected.Subscribe(tracker.JumpTo);
             tracker.ActiveCategory.Subscribe(_sidebar.SetActive);

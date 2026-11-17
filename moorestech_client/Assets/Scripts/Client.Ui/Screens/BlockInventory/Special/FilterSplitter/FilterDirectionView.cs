@@ -20,8 +20,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
     /// </summary>
     public sealed class FilterDirectionView : VisualElement
     {
-        public const string SetModeCommandName = "filter_splitter.set_mode";
-        private const string SetItemCommandName = "filter_splitter.set_filter_item";
         private static readonly FilterSplitterMode[] Modes = { FilterSplitterMode.Default, FilterSplitterMode.Whitelist, FilterSplitterMode.Blacklist };
 
         private readonly SpecialViewKit _kit;
@@ -45,7 +43,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
             foreach (var mode in Modes) options.Add(new ModeSwitchOption<FilterSplitterMode>($"filter-mode-{directionIndex}-{mode}", mode, new UiText(FilterSplitterLogic.ModeKey(mode))));
             _mode = new ModeSwitch<FilterSplitterMode>($"filter-mode-{directionIndex}", ModeSwitchOrientation.Horizontal, ModeSwitchRole.Group, options, kit.OsCursor);
 
-            _mode.OnOptionSelected.Subscribe(mode => _kit.Run(SetModeCommandName, _kit.Commands.SetFilterMode(_directionIndex, mode)));
+            _mode.OnOptionSelected.Subscribe(mode => _kit.Commands.SetFilterMode(_directionIndex, mode));
 
             stack.AddItem(output);
             stack.AddItem(_mode);
@@ -84,7 +82,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
                 // Left-down sets and right-down clears; an empty-grab set is benignly refused by the command (Web noop)
                 // silent-ok: 押下以外の身振り（ホバー・なぞり・ダブルクリック）はフィルタ枠の操作ではない / Web の ItemSlot も onLeftDown・onRightDown だけを渡す
                 if (kind != SlotGestureKind.LeftDown && kind != SlotGestureKind.RightDown) return;
-                _kit.Run(SetItemCommandName, _kit.Commands.SetFilterItem(_directionIndex, slotIndex, kind == SlotGestureKind.RightDown));
+                _kit.Commands.SetFilterItem(_directionIndex, slotIndex, kind == SlotGestureKind.RightDown);
             }
 
             #endregion

@@ -1,5 +1,4 @@
 using Client.Tests.Ui.TestDoubles;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Skit;
 
 namespace Client.Tests.Ui.Screens.Skit
@@ -36,21 +35,15 @@ namespace Client.Tests.Ui.Screens.Skit
     }
 
     /// <summary>
-    /// 会話の操作の記録係。どれも受理を返す
-    /// Recorder of skit operations; every call returns accepted
+    /// 会話の操作の記録係
+    /// Recorder of skit operations
     /// </summary>
     public sealed class RecordingSkitCommands : CommandRecorder<SkitCommandRecord>, ISkitCommands
     {
-        public UiCommandResult Advance(string sessionId, int sceneRevision) => Accept(new SkitCommandRecord(SkitCommandKind.Advance, sessionId, sceneRevision, null, false));
-        public UiCommandResult Select(string sessionId, int sceneRevision, string choiceId) => Accept(new SkitCommandRecord(SkitCommandKind.Select, sessionId, sceneRevision, choiceId, false));
-        public UiCommandResult SetAuto(string sessionId, int sceneRevision, bool enabled) => Accept(new SkitCommandRecord(SkitCommandKind.SetAuto, sessionId, sceneRevision, null, enabled));
-        public UiCommandResult Skip(string sessionId, int sceneRevision) => Accept(new SkitCommandRecord(SkitCommandKind.Skip, sessionId, sceneRevision, null, false));
-        public UiCommandResult SetUiHidden(string sessionId, int sceneRevision, bool hidden) => Accept(new SkitCommandRecord(SkitCommandKind.SetUiHidden, sessionId, sceneRevision, null, hidden));
-
-        private UiCommandResult Accept(SkitCommandRecord record)
-        {
-            Record(record);
-            return UiCommandAccepted.Instance;
-        }
+        public void Advance(string sessionId, int sceneRevision) => Record(new SkitCommandRecord(SkitCommandKind.Advance, sessionId, sceneRevision, null, false));
+        public void Select(string sessionId, int sceneRevision, string choiceId) => Record(new SkitCommandRecord(SkitCommandKind.Select, sessionId, sceneRevision, choiceId, false));
+        public void SetAuto(string sessionId, int sceneRevision, bool enabled) => Record(new SkitCommandRecord(SkitCommandKind.SetAuto, sessionId, sceneRevision, null, enabled));
+        public void Skip(string sessionId, int sceneRevision) => Record(new SkitCommandRecord(SkitCommandKind.Skip, sessionId, sceneRevision, null, false));
+        public void SetUiHidden(string sessionId, int sceneRevision, bool hidden) => Record(new SkitCommandRecord(SkitCommandKind.SetUiHidden, sessionId, sceneRevision, null, hidden));
     }
 }

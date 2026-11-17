@@ -49,7 +49,7 @@ namespace Client.Tests.Ui.Screens.Research
             var model = new ResearchTreeModel(_catalog, _store, selection, new RecordingPlayerInventoryOperations(9, 2), routing);
             model.Initialize();
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            new ResearchTreePresenter(root, model, routing, new RecordingResearchTreeCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
+            new ResearchTreePresenter(root, model, routing, new RecordingResearchTreeCommands(), content, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             simulate.FrameUpdate();
         }
 

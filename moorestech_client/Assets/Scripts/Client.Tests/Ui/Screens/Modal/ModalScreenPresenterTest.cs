@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Screens.Modal
             var host = new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(StageScale)));
             host.Mount(_layer);
             _service = new ModalRequestService();
-            new ModalScreenPresenter(host, _service, new ModalCommands(_service), Toaster).Initialize();
+            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster)).Initialize();
             simulate.FrameUpdate();
         }
 

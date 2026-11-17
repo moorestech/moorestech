@@ -46,7 +46,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             layout.Initialize();
             var standard = new SectionStackBodyFactory(BlockInventoryTestBodies.Grids(), new SectionStackSlotRegistry(Array.Empty<ISectionStackSectionFactory>()), source);
             var parts = new BlockInventoryPartRegistry(Array.Empty<IBlockInventoryBodyFactory>(), Array.Empty<IBlockInventoryTitleActionFactory>(), Array.Empty<ITrainInventoryBodyFactory>(), standard);
-            new BlockInventoryScreenPresenter(columns, routing, layout, parts, new RecordingPanelCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
+            new BlockInventoryScreenPresenter(columns, routing, layout, parts, new RecordingPanelCommands(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             _view = columns.Q<BlockInventoryView>();
             simulate.FrameUpdate();
         }

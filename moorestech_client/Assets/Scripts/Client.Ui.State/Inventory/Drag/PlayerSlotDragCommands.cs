@@ -20,15 +20,18 @@ namespace Client.Ui.State.Inventory.Drag
     public sealed class PlayerSlotDragCommands : IPlayerSlotDragCommands, IInitializable, ILateTickable
     {
         private const string SplitDragCommandName = "inventory.split_drag";
+        // 右ボタンの進入は枠の操作の 1 つなので枠の操作と同じ名前でトーストへ渡す
+        // A right-button enter is one of the slot gestures, so it is reported under the slot-gesture name
+        private const string RightEnterCommandName = "inventory.slot";
 
         private readonly IPlayerInventoryOperations _operations;
         private readonly PlayerItemActionExecutor _executor;
         private readonly IPrimaryPointerButton _button;
-        private readonly UiCommandResultToaster _toaster;
+        private readonly IUiCommandResultToaster _toaster;
         private readonly SplitDragSession _session = new();
         private bool _commitPending;
 
-        public PlayerSlotDragCommands(IPlayerInventoryOperations operations, PlayerItemActionExecutor executor, IPrimaryPointerButton button, UiCommandResultToaster toaster)
+        public PlayerSlotDragCommands(IPlayerInventoryOperations operations, PlayerItemActionExecutor executor, IPrimaryPointerButton button, IUiCommandResultToaster toaster)
         {
             _operations = operations;
             _executor = executor;
@@ -81,17 +84,22 @@ namespace Client.Ui.State.Inventory.Drag
             else Debug.LogWarning($"[PlayerSlotDragCommands] split-drag enter ignored: {plan.GetType().Name} for {slot}");
         }
 
-        public UiCommandResult EnterWithRightButton(PlayerSlotRef slot)
+        public void EnterWithRightButton(PlayerSlotRef slot)
         {
-            var plan = PlayerSlotActionPlanner.PlanRightEnter(_operations.ReadSnapshot(), slot.ToItemMoveSlotRef());
-            if (plan is not ItemActionsPlan planned)
-            {
-                Debug.LogWarning($"[PlayerSlotDragCommands] right-button enter ignored: {plan.GetType().Name} for {slot}");
-                return UiCommandAccepted.Instance;
-            }
-            return _executor.Execute(ToPlayerActions(planned.Actions));
+            _toaster.Report(RightEnterCommandName, Execute());
 
             #region Internal
+
+            UiCommandResult Execute()
+            {
+                var plan = PlayerSlotActionPlanner.PlanRightEnter(_operations.ReadSnapshot(), slot.ToItemMoveSlotRef());
+                if (plan is not ItemActionsPlan planned)
+                {
+                    Debug.LogWarning($"[PlayerSlotDragCommands] right-button enter ignored: {plan.GetType().Name} for {slot}");
+                    return UiCommandAccepted.Instance;
+                }
+                return _executor.Execute(ToPlayerActions(planned.Actions));
+            }
 
             // 番地がプレイヤー側なので計画もプレイヤー側だけ。写せない計画は例外で開発者に気づかせる
             // The slot is player-side so plans are too; any unconvertible plan throws so the developer notices

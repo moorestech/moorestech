@@ -44,7 +44,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             _commands = new RecordingPlayerSlotCommands();
             _sort = new RecordingInventorySortCommands();
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
-            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_commands, Toaster), _sort, content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_commands), _sort, content, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
         }
 

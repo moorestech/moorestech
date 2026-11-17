@@ -2,7 +2,6 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.Skit;
-using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -19,17 +18,15 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
         private const string LeadToolUssClassName = "skit-toolbar__tool--lead";
 
         private readonly ISkitCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly IconButton _auto;
         private readonly IconButton _skip;
         private readonly IconButton _hideUi;
         private readonly IconButton _showUi;
         private SkitViewModel _model = SkitViewModel.Empty;
 
-        public SkitToolbar(ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public SkitToolbar(ISkitCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
-            _toaster = toaster;
             AddToClassList("skit-toolbar");
             pickingMode = PickingMode.Ignore;
 
@@ -42,10 +39,10 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
 
             // 押下時の session・版を付けて送る
             // Send with the session and revision at press
-            _auto.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SetAutoCommandName, _commands.SetAuto(_model.SessionId, _model.SceneRevision, !_model.AutoEnabled)));
-            _skip.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SkipCommandName, _commands.Skip(_model.SessionId, _model.SceneRevision)));
-            _hideUi.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SetUiHiddenCommandName, _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, true)));
-            _showUi.OnClicked.Subscribe(_ => _toaster.Report(SkitCommands.SetUiHiddenCommandName, _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, false)));
+            _auto.OnClicked.Subscribe(_ => _commands.SetAuto(_model.SessionId, _model.SceneRevision, !_model.AutoEnabled));
+            _skip.OnClicked.Subscribe(_ => _commands.Skip(_model.SessionId, _model.SceneRevision));
+            _hideUi.OnClicked.Subscribe(_ => _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, true));
+            _showUi.OnClicked.Subscribe(_ => _commands.SetUiHidden(_model.SessionId, _model.SceneRevision, false));
         }
 
         public void Render(SkitViewModel model)

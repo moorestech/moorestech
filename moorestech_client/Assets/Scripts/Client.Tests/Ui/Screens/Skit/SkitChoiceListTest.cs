@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.Screens.Skit
         {
             _commands = new RecordingSkitCommands();
             _cursorApplier = new FakeUiOsCursorApplier();
-            _choices = Mount(new SkitChoiceList(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f))));
+            _choices = Mount(new SkitChoiceList(_commands, new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f))));
             _choices.Render(SkitTestData.Choices(7, SkitTestData.ChoiceIntents));
             simulate.FrameUpdate();
         }

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.State.Recipe.Source;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Detail;
@@ -20,8 +21,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
 {
     /// <summary>
-    /// 送信の手前で返る分岐（選択中・未解放・未知・開いていない）。送信境界は録画が見る（D-40）
-    /// Branches that return before sending (already selected, locked, unknown, not open); the send boundary is covered by the recording (D-40)
+    /// 送信の手前で決まる分岐（選択中・未解放・未知・開いていない）をトーストへ渡す結果で見る。送信境界は録画が見る（D-40）
+    /// Branches decided before sending (already selected, locked, unknown, not open), seen through the result handed to the toaster; the send boundary is covered by the recording (D-40)
     /// </summary>
     public class MachineRecipeSelectCommandTest
     {
@@ -32,6 +33,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
         private FakeMachineSectionModel _machine;
         private FakeGameUnlockStateData _unlock;
         private MachineRecipeSelectCommand _command;
+        private RecordingUiCommandResultToaster _toaster;
 
         [SetUp]
         public void SetUp()
@@ -42,14 +44,18 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
             _machine = new FakeMachineSectionModel();
             _machine.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
             _unlock = new FakeGameUnlockStateData();
-            _command = new MachineRecipeSelectCommand(new FakePanelSource(_panel), _machine, _unlock);
+            _toaster = new RecordingUiCommandResultToaster();
+            _command = new MachineRecipeSelectCommand(new FakePanelSource(_panel), _machine, _unlock, _toaster);
         }
 
         [Test]
         public void 選択中と同じレシピは送らずに受理する()
         {
             _unlock.SetMachineRecipe(RecipeA, true);
-            Assert.AreSame(UiCommandAccepted.Instance, _command.Select(RecipeA).GetAwaiter().GetResult());
+            _command.Select(RecipeA);
+            Assert.AreEqual(1, _toaster.Reports.Count);
+            Assert.AreEqual(MachineRecipeSelectCommand.CommandName, _toaster.Reports[0].CommandName);
+            Assert.AreSame(UiCommandAccepted.Instance, _toaster.Reports[0].Result);
         }
 
         [Test]
@@ -88,7 +94,10 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
         private void AssertRejected(Guid recipeGuid, UiCommandRejectReason reason, string wireCode)
         {
             LogAssert.Expect(LogType.Warning, new Regex($"\\[{Regex.Escape(MachineRecipeSelectCommand.CommandName)}\\] rejected: {wireCode} recipe={recipeGuid}"));
-            var result = _command.Select(recipeGuid).GetAwaiter().GetResult();
+            _command.Select(recipeGuid);
+            Assert.AreEqual(1, _toaster.Reports.Count);
+            Assert.AreEqual(MachineRecipeSelectCommand.CommandName, _toaster.Reports[0].CommandName);
+            var result = _toaster.Reports[0].Result;
             Assert.IsInstanceOf<UiCommandRejected>(result);
             var rejected = (UiCommandRejected)result;
             Assert.AreEqual(reason, rejected.Reason);

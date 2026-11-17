@@ -24,7 +24,6 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly IPauseMenuCommands _commands;
         private readonly ISettingsCommands _settingsCommands;
         private readonly GameUiToastFeed _toasts;
-        private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly IUiOsCursor _osCursor;
         private readonly LocalizedLabel _title;
@@ -34,12 +33,11 @@ namespace Client.Ui.Screens.PauseMenu
         private PauseMenuPage _shownPage;
         private IPauseMenuPage _currentPage;
 
-        public PauseMenuView(IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
+        public PauseMenuView(IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, IUiOsCursor osCursor)
         {
             _commands = commands;
             _settingsCommands = settingsCommands;
             _toasts = toasts;
-            _toaster = toaster;
             _draft = draft;
             _osCursor = osCursor;
             AddToClassList("pause-menu");
@@ -132,13 +130,13 @@ namespace Client.Ui.Screens.PauseMenu
             void BuildSettings()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
-                Show(new PauseMenuSettingsPage(_settings, _commands, _settingsCommands, _toaster, _osCursor));
+                Show(new PauseMenuSettingsPage(_settings, _commands, _settingsCommands, _osCursor));
             }
 
             void BuildBugReport()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.BugReport);
-                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _toaster, _draft, _osCursor));
+                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _draft, _osCursor));
 
             }
 

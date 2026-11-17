@@ -35,13 +35,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         }
 
         [Test]
-        public void 左押下は設定を送り掴みが空なら操作の側で良性に断る()
+        public void 左押下は設定を送る()
         {
+            // 掴みが空の良性の断りは操作の側が決めてトーストへ渡す（SpecialBlockCommandsTest が見る）
+            // The benign empty-grab refusal is decided and toasted by the command (covered by SpecialBlockCommandsTest)
             var view = Render();
-            Commands.SetNextResult(Client.Ui.State.Commands.UiCommandRejected.Of(Client.Ui.State.Commands.UiCommandRejectReason.FilterSplitterGrabEmpty));
             simulate.Click(Find<VisualElement>(view, "filter-slot-1-0"), MouseButton.LeftMouse);
             CollectionAssert.AreEqual(new[] { "filter_splitter.set_filter_item 1 0 set" }, Commands.Issued);
-            CollectionAssert.IsEmpty(ShownToasts, "掴みが空は良性（Web の noop）");
         }
 
         /// <web-test file="e2e/tests/block/filterSplitter.spec.ts">last direction's filter slot is reachable by scrolling on a short window</web-test>

@@ -38,7 +38,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
-            builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
+            builder.Register<UiCommandResultToaster>(Lifetime.Singleton).As<IUiCommandResultToaster>().AsSelf();
             builder.Register<BlockingSkitPresence>(Lifetime.Singleton);
             FoundationGameUiRegistration.Register(builder);
             // ポインタの位置の流れは画面ポインタ（InputSystemUiScreenPointer）が読む

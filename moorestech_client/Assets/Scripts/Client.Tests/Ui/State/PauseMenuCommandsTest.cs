@@ -2,6 +2,8 @@ using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using System.Linq;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
 using NUnit.Framework;
@@ -17,11 +19,16 @@ namespace Client.Tests.Ui.State
         {
             var service = new PauseMenuStateService();
             service.ShowPage(PauseMenuPage.BugReport);
-            var commands = PauseMenuCommandsTestFactory.Create(service);
+            var toaster = new RecordingUiCommandResultToaster();
+            var commands = PauseMenuCommandsTestFactory.Create(service, toaster);
 
             LogAssert.Expect(LogType.Warning, new Regex("バグ報告の説明文が空"));
             var result = commands.SubmitBugReport("  \n\t ", PlaytestReportKind.Bug).GetAwaiter().GetResult();
 
+            // 返した結果と同じものをトーストへも渡す
+            // The same result is handed to the toaster as is returned
+            Assert.AreEqual(PauseMenuCommands.SubmitCommandName, toaster.Reports.Single().CommandName);
+            Assert.AreSame(result, toaster.Reports.Single().Result);
             var rejected = AssertRejected(result, UiCommandRejectReason.EmptyDescription);
             Assert.AreEqual("empty_description", rejected.ToWireCode());
             Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
@@ -32,7 +39,7 @@ namespace Client.Tests.Ui.State
         {
             var service = new PauseMenuStateService();
             service.ShowPage(PauseMenuPage.BugReport);
-            var commands = PauseMenuCommandsTestFactory.Create(service);
+            var commands = PauseMenuCommandsTestFactory.Create(service, new RecordingUiCommandResultToaster());
 
             LogAssert.Expect(LogType.Warning, new Regex("ポーズから送れない"));
             var result = commands.SubmitBugReport("説明", PlaytestReportKind.Crash).GetAwaiter().GetResult();
@@ -49,7 +56,7 @@ namespace Client.Tests.Ui.State
             // A session with no capture is refused by the submitter; its failure code becomes the Web contract value as is
             var service = new PauseMenuStateService();
             service.ShowPage(PauseMenuPage.BugReport);
-            var commands = PauseMenuCommandsTestFactory.Create(service);
+            var commands = PauseMenuCommandsTestFactory.Create(service, new RecordingUiCommandResultToaster());
 
             LogAssert.Expect(LogType.Warning, new Regex("確保セッションに拒否"));
             var result = commands.SubmitBugReport("説明", PlaytestReportKind.Feedback).GetAwaiter().GetResult();
@@ -67,7 +74,7 @@ namespace Client.Tests.Ui.State
         public void ShowPageで現在の画面が変わる(PauseMenuPage page)
         {
             var service = new PauseMenuStateService();
-            var commands = PauseMenuCommandsTestFactory.Create(service);
+            var commands = PauseMenuCommandsTestFactory.Create(service, new RecordingUiCommandResultToaster());
 
             commands.ShowPage(page);
 

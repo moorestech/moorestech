@@ -20,8 +20,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// </summary>
     public sealed class SpaceElevatorSectionView : VisualElement
     {
-        public const string CommandName = "space_elevator.connect";
-
         private readonly LocalizedLabel _loading = SpecialViewParts.Label("space-elevator-loading", UiTypographyClass.TextSm, UiTypographyClass.TextMuted);
         private readonly UiStack _section = new(UiGap.Px4) { name = "space-elevator-section" };
         private readonly LackHighlightText _status = new("space-elevator-status", LackHighlightTextSize.Sm);
@@ -34,7 +32,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             _connect = new PanelActionButton("space-elevator-connect", new UiText(LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect), kit.OsCursor);
 
             _loading.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading));
-            _connect.OnClicked.Subscribe(_ => kit.Run(CommandName, kit.Commands.ConnectSpaceElevator()));
+            _connect.OnClicked.Subscribe(_ => kit.Commands.ConnectSpaceElevator());
             _section.AddItem(_status);
             _section.AddItem(_pool);
             _section.AddItem(_progress);

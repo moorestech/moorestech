@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var factories = new ISectionStackSectionFactory[]
             {
-                new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))),
+                new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))),
                 new MinerSectionFactory(Content, _miner),
             };
             var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", factories);

@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void ヘッダの装飾線と菱形があり1件ならバーが出ずグリップは中身に重ならない()
         {
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 2, true, true, Material(1, 1, 3))));
             simulate.FrameUpdate();
 
@@ -61,7 +61,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         {
             // 本番の組み立てに機械を先に渡しても、列はクラフト 2 件 → 機械の順
             // Even with the machine passed first to the production factory, the list is two crafts then the machine
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             var crafts = new[] { RecipeFixtures.Craft(RecipeFixtures.RecipeGuid(1), 7, 1, 1, RecipeFixtures.Amount(1, 1)), RecipeFixtures.Craft(RecipeFixtures.RecipeGuid(2), 7, 1, 1, RecipeFixtures.Amount(1, 1)) };
             var machines = new[] { RecipeFixtures.Machine(RecipeFixtures.RecipeGuid(3), 7, 1, RecipeLevelInheritance.None) };
             view.Render(RecipeViewModelFactory.BuildViewer(RecipeSelection.Of(new ItemId(7)), crafts, machines, new Dictionary<ItemId, int>()));
@@ -74,7 +74,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void クラフトが複数でもアンカーは1件()
         {
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(Selected(7, ManyCrafts(3)));
             var resolved = TutorialAnchorRegistry.Resolve(view, AnchorIds.RecipeCraftButton);
             Assert.IsInstanceOf<TutorialAnchorResolution.Unique>(resolved);
@@ -85,13 +85,13 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void 溢れても視口の高さは同じで縦バーだけが出る()
         {
-            var one = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var one = Mount(new RecipeViewerView(Context(_commands, _selection)));
             one.Render(Selected(7, ManyCrafts(1)));
             simulate.FrameUpdate();
             var oneViewport = one.Q<GameScrollView>("recipe-entry-list-scroll").GetViewportHeight();
             one.RemoveFromHierarchy();
 
-            var many = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var many = Mount(new RecipeViewerView(Context(_commands, _selection)));
             many.Render(Selected(7, ManyCrafts(8)));
             simulate.FrameUpdate();
             var scroll = many.Q<GameScrollView>("recipe-entry-list-scroll");
@@ -104,7 +104,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void 未選択は案内で高さ300に戻り選択を変えるとスクロールが先頭に戻り同じGUIDの並びでは要素を作り直さない()
         {
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(RecipeViewerNoSelection.Instance);
             simulate.FrameUpdate();
             Assert.AreEqual(300f, view.Q<GamePanel>("recipe-viewer").resolvedStyle.height, 0.5f);
@@ -131,7 +131,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         {
             // Web は画面を出るとアンマウントするので、開き直すと長押しもスクロールも初期化される
             // Web unmounts on leaving the screen, so reopening resets the hold and the scroll
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(Selected(7, ManyCrafts(8)));
             var first = view.Q($"craft-recipe-entry-{RecipeFixtures.RecipeGuid(1)}");
             view.SetShown(false);
@@ -151,7 +151,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void 同じ選択のままレシピ0件から1件になると列が出る()
         {
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(Selected(7));
             Assert.IsNotNull(view.Q<Label>("recipe-viewer-no-recipes"));
             view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 2, true, false, Material(1, 1, 3))));
@@ -164,7 +164,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void 最初のエントリは見出しの装飾線の下にgapと列のbleedの分だけ空く()
         {
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(Selected(7, CraftVm(RecipeFixtures.RecipeGuid(1), 2, true, false, Material(1, 1, 3))));
             simulate.FrameUpdate();
             var ruleBottom = view.Q<ItemHeaderRule>().worldBound.yMax;
@@ -180,7 +180,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         {
             // 画面の USS が名前の既定の margin を 0 にし、Web <Stack gap={2}> の間隔だけが残る
             // The screen USS zeroes the name's default margin, leaving only the Web <Stack gap={2}> spacing
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             var guid = RecipeFixtures.RecipeGuid(4);
             var inheriting = RecipeLevelInheritance.Inherit(0, RecipeFixtures.Ids(1), 0, RecipeFixtures.Ids(2), 3);
             view.Render(Selected(7, new MachineRecipeEntryViewModel(RecipeFixtures.Machine(guid, 7, 1, inheriting))));

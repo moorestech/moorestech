@@ -1,6 +1,7 @@
 using Client.Tests.Ui.State.Inventory;
 using Client.Ui.State.Commands;
 using Client.Tests.Ui.State.ItemMove;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Items;
 using Client.Ui.State.ItemMove;
@@ -16,8 +17,8 @@ using Tests.Module.TestMod;
 namespace Client.Tests.Ui.State.SlotCommands
 {
     /// <summary>
-    /// ブロックの枠の押下を Web の useBlockSlotGestures と同じ計画で実行器へ渡す（L0）
-    /// Routes block-slot presses through the same plans as Web useBlockSlotGestures to the executors (L0)
+    /// ブロックの枠の押下を Web の useBlockSlotGestures と同じ計画で実行器へ渡し、結果をトーストへ渡す（L0）
+    /// Routes block-slot presses through the same plans as Web useBlockSlotGestures to the executors and hands results to the toaster (L0)
     /// </summary>
     public class BlockSlotCommandsTest
     {
@@ -26,6 +27,7 @@ namespace Client.Tests.Ui.State.SlotCommands
         private BlockSlotCommands _commands;
         private ItemId _wood;
         private FixedMaxStackLookup _stackLevels;
+        private RecordingUiCommandResultToaster _toaster;
 
         [SetUp]
         public void SetUp()
@@ -36,14 +38,16 @@ namespace Client.Tests.Ui.State.SlotCommands
             _block = new RecordingBlockInventoryOperations { Slots = new[] { new SlotItem(_wood, 7), new SlotItem(_wood, 3) } };
             var runner = new PlannedItemActionRunner(new PlayerItemActionExecutor(_player), new BlockItemActionExecutor(_block, _player));
             _stackLevels = new FixedMaxStackLookup(64);
-            _commands = new BlockSlotCommands(_block, _player, runner, _stackLevels);
+            _toaster = new RecordingUiCommandResultToaster();
+            _commands = new BlockSlotCommands(_block, _player, runner, _stackLevels, _toaster);
         }
 
         /// <web-test file="e2e/tests/block/blockInventory.spec.ts">filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る</web-test>
         [Test]
         public void 中身のある枠の左押下は全量を掴む()
         {
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(0, false));
+            _commands.LeftDown(0, false);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             Assert.AreEqual((ItemMoveSlotRef.Block(0), ItemMoveSlotRef.Grab, 7), _block.Moves[0]);
         }
 
@@ -51,7 +55,8 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void 空手の右押下は半分を掴む()
         {
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.RightDown(0));
+            _commands.RightDown(0);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             Assert.AreEqual((ItemMoveSlotRef.Block(0), ItemMoveSlotRef.Grab, 3), _block.Moves[0]);
         }
 
@@ -60,7 +65,8 @@ namespace Client.Tests.Ui.State.SlotCommands
         public void 掴み中の右押下は1個置く()
         {
             _player.SetGrab(new SlotItem(_wood, 7));
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.RightDown(1));
+            _commands.RightDown(1);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             Assert.AreEqual((ItemMoveSlotRef.Grab, ItemMoveSlotRef.Block(1), 1), _block.Moves[0]);
         }
 
@@ -68,9 +74,11 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void ダブルクリックは空手ならその枠へ掴み中なら持ち手へ集める()
         {
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.DoubleClick(1));
+            _commands.DoubleClick(1);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             _player.SetGrab(new SlotItem(_wood, 1));
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.DoubleClick(1));
+            _commands.DoubleClick(1);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             CollectionAssert.AreEqual(new[] { "block:1", "grab" }, _block.Collects);
         }
 
@@ -78,7 +86,8 @@ namespace Client.Tests.Ui.State.SlotCommands
         [Test]
         public void Shift押下はブロックからメインへ配分する()
         {
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(0, true));
+            _commands.LeftDown(0, true);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             Assert.AreEqual(ItemMoveSlotRef.Block(0), _block.Moves[0].From);
             Assert.AreEqual(ItemMoveArea.Main, _block.Moves[0].To.Area);
             Assert.AreEqual(7, _block.Moves[0].Count);
@@ -93,7 +102,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             _stackLevels.SetUnknown(unknown);
             _block.Slots = new[] { new SlotItem(unknown, 5), new SlotItem(_wood, 3) };
             LogAssert.Expect(LogType.Error, $"[BlockSlotCommands] unknown ItemId {unknown} reached the slot planner; the allocation is skipped (client and server masters may differ)");
-            var result = _commands.LeftDown(0, true);
+            _commands.LeftDown(0, true);
+            var result = LastReported();
             Assert.AreEqual(UiCommandRejectReason.ItemUnknownInSlot, ((UiCommandRejected)result).Reason);
             CollectionAssert.IsEmpty(_block.Moves);
         }
@@ -106,7 +116,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             var unknown = new ItemId(9999);
             _stackLevels.SetUnknown(unknown);
             _block.Slots = new[] { new SlotItem(unknown, 5), new SlotItem(_wood, 3) };
-            Assert.IsInstanceOf<UiCommandAccepted>(_commands.LeftDown(0, false));
+            _commands.LeftDown(0, false);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported());
             Assert.AreEqual((ItemMoveSlotRef.Block(0), ItemMoveSlotRef.Grab, 5), _block.Moves[0]);
         }
 
@@ -117,7 +128,8 @@ namespace Client.Tests.Ui.State.SlotCommands
             // D-10: with every main slot at the stack limit the allocation is empty; send nothing like the Web and only log
             for (var i = 0; i < 36; i++) _player.SetMain(i, new SlotItem(_wood, 64));
             LogAssert.Expect(LogType.Warning, $"[block_inventory.shift_move] not sent: destinationFull block slot=0 item={_wood}");
-            var result = _commands.LeftDown(0, true);
+            _commands.LeftDown(0, true);
+            var result = LastReported();
             Assert.IsInstanceOf<UiCommandAccepted>(result);
             CollectionAssert.IsEmpty(_block.Moves);
         }
@@ -142,9 +154,19 @@ namespace Client.Tests.Ui.State.SlotCommands
         {
             LogAssert.Expect(LogType.Warning, "[block_inventory.slot] rejected (block_slot_unavailable): block slot 0 is closed or out of range");
             _block.Open = false;
-            var result = _commands.LeftDown(0, false);
+            _commands.LeftDown(0, false);
+            var result = LastReported();
             Assert.AreEqual(UiCommandRejectReason.BlockSlotUnavailable, ((UiCommandRejected)result).Reason);
             CollectionAssert.IsEmpty(_block.Moves);
+        }
+
+        // 最後にトーストへ渡った結果（名前も確かめる）
+        // The last result handed to the toaster, checking its command name too
+        private UiCommandResult LastReported()
+        {
+            var last = _toaster.Reports[_toaster.Reports.Count - 1];
+            Assert.AreEqual(BlockSlotCommands.CommandName, last.CommandName);
+            return last.Result;
         }
     }
 }

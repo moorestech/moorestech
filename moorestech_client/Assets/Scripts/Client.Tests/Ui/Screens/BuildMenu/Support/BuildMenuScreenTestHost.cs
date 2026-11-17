@@ -51,7 +51,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Support
             HotbarCommands = new RecordingHotbarCommands();
             Session = new BuildMenuSessionStore();
             Tracker = new BuildMenuCategoryScrollTracker(Session);
-            View = Mount(new BuildMenuView(Commands, HotbarCommands, Content, BuildMenuSamples.Icons(Content), Toaster, Session, Tracker, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            View = Mount(new BuildMenuView(Commands, HotbarCommands, Content, BuildMenuSamples.Icons(Content), Session, Tracker, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
 
         }
 

@@ -11,7 +11,6 @@ using Client.Ui.State.Inventory.Actions;
 using Client.Ui.State.Inventory.Panel;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
@@ -36,7 +35,7 @@ namespace Client.Ui.Screens.Inventory.Panel
         private int _columns;
         private bool _columnsResolved;
 
-        public InventoryView(PlayerSlotGestureRouter gestures, IInventorySortCommands sort, GameContentPresentation content, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public InventoryView(PlayerSlotGestureRouter gestures, IInventorySortCommands sort, GameContentPresentation content, IUiOsCursor osCursor)
         {
             _gestures = gestures;
             _content = content;
@@ -49,7 +48,7 @@ namespace Client.Ui.Screens.Inventory.Panel
             panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
             var sortButton = new PanelActionButton("inventory-sort", new UiText(LocalizationKeys.Ui.Inventory.Sort), osCursor);
 
-            sortButton.OnClicked.Subscribe(_ => toaster.Report(InventorySortCommands.CommandName, sort.Sort()));
+            sortButton.OnClicked.Subscribe(_ => sort.Sort());
             panel.SetTitleAction(sortButton);
 
             _grid = new SlotGrid("main-grid", 1);

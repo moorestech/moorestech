@@ -4,8 +4,6 @@ using Client.Tests.Ui.TestDoubles;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Selection;
-using Client.Ui.State.Commands;
-using Cysharp.Threading.Tasks;
 
 namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
 {
@@ -22,7 +20,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
 
     /// <summary>
     /// 選んだ GUID を覚えるコマンドの偽物
-    /// Fake recipe-select command recording chosen GUIDs in order and accepting, for screen tests
+    /// Fake recipe-select command recording chosen GUIDs in order, for screen tests
     /// </summary>
     public sealed class RecordingRecipeSelectCommand : IMachineRecipeSelectCommand
     {
@@ -30,10 +28,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
 
         public IReadOnlyList<Guid> Selected => _selected;
 
-        public UniTask<UiCommandResult> Select(Guid recipeGuid)
+        public void Select(Guid recipeGuid)
         {
             _selected.Add(recipeGuid);
-            return UniTask.FromResult<UiCommandResult>(UiCommandAccepted.Instance);
         }
     }
 }

@@ -11,16 +11,13 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
     /// 標準の本文の項目グリッドの Presenter（Web の showItemGrid）。同じパネルのあいだ枠の変化を BlockItemGrid へ流す
     /// Presenter of the standard body's item grid (Web showItemGrid); streams slot changes into BlockItemGrid while the panel stays the same
     /// </summary>
-    public sealed class SectionStackItemGridSection : IBlockInventorySection
+    public sealed class SectionStackItemGridSection : BlockInventorySectionBase
     {
         private readonly SectionStackItemGrid _config;
         private readonly IBlockInventoryPanelSource _panels;
         private readonly BlockItemGrid _grid;
-        private readonly ReactiveProperty<bool> _isApplicable = new(false);
-        private readonly CompositeDisposable _subscriptions = new();
 
-        public VisualElement Root { get; private set; }
-        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;   // 型を狭める公開（前例 SettingsModel.Current）
+        public override VisualElement Root { get; }
 
         public SectionStackItemGridSection(SectionStackItemGrid config, BlockItemGridFactory grids, IBlockInventoryPanelSource panels)
         {
@@ -33,27 +30,20 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
             Root.Add(_grid);
         }
 
-        public void Attach(OpenBlockInventoryPanel panel)
+        public override void Attach(OpenBlockInventoryPanel panel)
         {
-            _panels.Current.Subscribe(current =>
+            AddSubscription(_panels.Current.Subscribe(current =>
             {
                 // silent-ok: 別のパネルへ替わる途中の値は描かず偽へ倒す / BodyHost が同じフレームで Detach して新しい区画を作る
                 if (!(current is OpenBlockInventoryPanel open) || !open.IsSamePanel(panel))
                 {
-                    _isApplicable.Value = false;
+                    SetApplicable(false);
                     return;
                 }
-                _isApplicable.Value = _config is ShownSectionStackItemGrid shown && (shown.RenderEmpty || 0 < open.ItemSlots.Count);
-                if (_isApplicable.Value) _grid.Render(open.ItemSlots, BlockDetailMath.AllSlotIndices(open.ItemSlots.Count));
-            }).AddTo(_subscriptions);
-        }
-
-        public void Detach()
-        {
-            // 外れたら偽へ戻す（前のパネルの適用可否を次のパネルへ持ち越さない）
-            // Reset to false when detached so the previous panel's applicability is not carried over
-            _subscriptions.Clear();
-            _isApplicable.Value = false;
+                var applicable = _config is ShownSectionStackItemGrid shown && (shown.RenderEmpty || 0 < open.ItemSlots.Count);
+                SetApplicable(applicable);
+                if (applicable) _grid.Render(open.ItemSlots, BlockDetailMath.AllSlotIndices(open.ItemSlots.Count));
+            }));
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Client.Tests.Ui.Screens.Skit
         public void MountToolbar()
         {
             _commands = new RecordingSkitCommands();
-            _toolbar = Mount(new SkitToolbar(_commands, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _toolbar = Mount(new SkitToolbar(_commands, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
         }
 
         [Test]

@@ -7,7 +7,6 @@ using Client.Ui.Screens.BlockInventory.Parts.Rows;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Block;
-using Client.Ui.State.Toast;
 using UniRx;
 
 namespace Client.Ui.Screens.BlockInventory.Machine.Slots
@@ -20,18 +19,16 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
     {
         private readonly string _slotTestidPrefix;
         private readonly IBlockSlotCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly GameContentPresentation _content;
         private readonly KeyedRowList<int, ItemSlot> _slots = new();
         private readonly CompositeDisposable _subscriptions = new();
 
         public SlotGrid Grid { get; }
 
-        public MachineSlotBand(string gridTestid, string slotTestidPrefix, IBlockSlotCommands commands, UiCommandResultToaster toaster, GameContentPresentation content)
+        public MachineSlotBand(string gridTestid, string slotTestidPrefix, IBlockSlotCommands commands, GameContentPresentation content)
         {
             _slotTestidPrefix = slotTestidPrefix;
             _commands = commands;
-            _toaster = toaster;
             _content = content;
             Grid = new SlotGrid(gridTestid, 1);
         }
@@ -62,7 +59,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine.Slots
                     // The slot testid is not on the Web (it picks children of the band by order); added as an aim for recordings and tests
                     var slot = new ItemSlot($"{_slotTestidPrefix}-{position}");
                     var blockSlot = bound[position].Index;
-                    slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, _toaster, blockSlot, gesture)).AddTo(_subscriptions);
+                    slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, blockSlot, gesture)).AddTo(_subscriptions);
                     Grid.AddItem(slot);
                     _slots.Add(blockSlot, slot);
                 }

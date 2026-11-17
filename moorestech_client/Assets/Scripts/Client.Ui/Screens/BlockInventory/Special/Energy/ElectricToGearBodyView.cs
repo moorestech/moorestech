@@ -20,8 +20,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
     /// </summary>
     public sealed class ElectricToGearBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
-        public const string CommandName = "electric_to_gear.set_output_mode";
-
         private readonly SpecialViewKit _kit;
         private readonly UiStack _stack = new(UiGap.Sm);
         private readonly VisualElement _modeHolder = new();
@@ -70,7 +68,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Energy
                 _modeHolder.Clear();
                 _modes = new ModeSwitch<int>("electric-to-gear-modes", ModeSwitchOrientation.Vertical, ModeSwitchRole.Group, options, _kit.OsCursor);
 
-                _modes.OnOptionSelected.Subscribe(index => _kit.Run(CommandName, _kit.Commands.SetElectricToGearMode(index)));
+                _modes.OnOptionSelected.Subscribe(index => _kit.Commands.SetElectricToGearMode(index));
                 _modeHolder.Add(_modes);
             }
 

@@ -2,7 +2,6 @@ using System;
 using Client.Ui.Components.Recipe;
 using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Recipe.Logic;
-using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Recipe.Parts
@@ -16,19 +15,17 @@ namespace Client.Ui.Screens.Recipe.Parts
         private readonly VisualElement _scheduleOwner;
         private readonly RecipeRow _row;
         private readonly IRecipeCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private Guid _recipeGuid;
         private double _craftTime;
         private bool _craftable;
         private double _elapsed;
         private IVisualElementScheduledItem _tick;
 
-        public CraftHoldDriver(VisualElement scheduleOwner, RecipeRow row, IRecipeCommands commands, UiCommandResultToaster toaster)
+        public CraftHoldDriver(VisualElement scheduleOwner, RecipeRow row, IRecipeCommands commands)
         {
             _scheduleOwner = scheduleOwner;
             _row = row;
             _commands = commands;
-            _toaster = toaster;
 
             // クラフトの矢印は常に進捗の形（Web は保持中でなければ 0 を渡し、静止表示にしない）
             // A craft arrow always shows progress (the Web passes 0 when not holding, never the static form)
@@ -69,7 +66,7 @@ namespace Client.Ui.Screens.Recipe.Parts
                 // While ticking it is always craftable (Start refuses otherwise and SetRecipe stops it), so the Web's unreachable idle branch is not ported
                 var step = HoldCraftLogic.Advance(_elapsed, delta, _craftTime);
                 _elapsed = step.Elapsed;
-                if (step.DidCraft) _toaster.Report(RecipeCommands.CommandName, _commands.Craft(_recipeGuid));
+                if (step.DidCraft) _commands.Craft(_recipeGuid);
                 _row.SetProgress((float)HoldCraftLogic.Progress(_elapsed, _craftTime));
             }
 

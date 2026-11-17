@@ -11,7 +11,6 @@ using Client.Ui.State.Recipe.Commands;
 using Client.Ui.State.Recipe.Logic;
 using Client.Ui.State.Recipe.Screen;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -50,7 +49,7 @@ namespace Client.Ui.Screens.Recipe.Parts
             // Only this instance takes focus for the Enter hold and is marked so the rules keep it (screen-side exception to the component default; D-31, D-32)
             _button.focusable = true;
             UiKeyFocusKeepMark.Mark(_button);
-            _hold = new CraftHoldDriver(this, row, context.Commands, context.Toaster);
+            _hold = new CraftHoldDriver(this, row, context.Commands);
             new CraftHoldInput(_button, _hold);
 
             // 素材と結果のスロットは件数が GUID で決まるので 1 回だけ作る
@@ -126,14 +125,12 @@ namespace Client.Ui.Screens.Recipe.Parts
     {
         public GameContentPresentation Content { get; }
         public IRecipeCommands Commands { get; }
-        public UiCommandResultToaster Toaster { get; }
         public RecipeItemSelection Selection { get; }
 
-        public RecipeEntryPartsContext(GameContentPresentation content, IRecipeCommands commands, UiCommandResultToaster toaster, RecipeItemSelection selection)
+        public RecipeEntryPartsContext(GameContentPresentation content, IRecipeCommands commands, RecipeItemSelection selection)
         {
             Content = content;
             Commands = commands;
-            Toaster = toaster;
             Selection = selection;
         }
     }

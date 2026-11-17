@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void クラフトと機械が同じGUIDでも両方を描き描き直しでも同じ要素を使う()
         {
-            var view = Mount(new RecipeViewerView(Context(Toaster, new RecordingRecipeCommands(), new RecipeItemSelection())));
+            var view = Mount(new RecipeViewerView(Context(new RecordingRecipeCommands(), new RecipeItemSelection())));
             var guid = RecipeFixtures.RecipeGuid(5);
             var machine = new MachineRecipeEntryViewModel(RecipeFixtures.Machine(guid, 7, 1, RecipeLevelInheritance.None));
             view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9)), machine));

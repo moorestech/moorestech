@@ -8,7 +8,6 @@ using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.Hotbar.Parts;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
-using Client.Ui.State.Toast;
 using Client.Ui.Foundation.Filter;
 using UnityEngine.UIElements;
 
@@ -24,17 +23,15 @@ namespace Client.Ui.Screens.Hotbar
 
         private readonly IHotbarCommands _commands;
         private readonly PlacementTargetIcons _icons;
-        private readonly UiCommandResultToaster _toaster;
         private readonly VisualElement _row;
         private readonly PixelFilterGroup _rowGroup;
         private readonly HotbarCalcKnobs _calcKnobs;
         private readonly List<HotbarCell> _cells = new();
 
-        public HotbarHudView(IHotbarCommands commands, PlacementTargetIcons icons, UiCommandResultToaster toaster)
+        public HotbarHudView(IHotbarCommands commands, PlacementTargetIcons icons)
         {
             _commands = commands;
             _icons = icons;
-            _toaster = toaster;
 
             // 帯は画面幅の空箱なので拾わず、実 UI の列だけが拾う（Web .hotbarArea の pointer-events: none）
             // The band is an empty full-width box and does not pick; only the real-UI row does (Web .hotbarArea pointer-events: none)
@@ -79,7 +76,7 @@ namespace Client.Ui.Screens.Hotbar
                 _cells.Clear();
                 for (var i = 0; i < count; i++)
                 {
-                    var cell = new HotbarCell(i, _commands, _icons, _toaster);
+                    var cell = new HotbarCell(i, _commands, _icons);
                     _cells.Add(cell);
                     _rowGroup.Add(cell);
                 }

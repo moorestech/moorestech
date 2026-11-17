@@ -1,4 +1,3 @@
-using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Panel;
 
 namespace Client.Tests.Ui.State.Inventory.Panel
@@ -7,10 +6,9 @@ namespace Client.Tests.Ui.State.Inventory.Panel
     {
         public int SortCount { get; private set; }
 
-        public UiCommandResult Sort()
+        public void Sort()
         {
             SortCount++;
-            return UiCommandAccepted.Instance;
         }
     }
 }

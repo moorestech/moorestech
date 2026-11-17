@@ -45,7 +45,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         public void 機械の区画はDetachで偽へ戻る()
         {
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModelWithModules(0, 0f, 1)));
-            AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Toaster, Content, RecipeSelect, OsCursor).Create(Mount("ElectricMachine")), "ElectricMachine");
+            AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor).Create(Mount("ElectricMachine")), "ElectricMachine");
         }
 
         [Test]

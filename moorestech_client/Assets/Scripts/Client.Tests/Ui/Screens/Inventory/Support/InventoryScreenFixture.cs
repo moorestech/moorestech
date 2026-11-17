@@ -45,7 +45,7 @@ namespace Client.Tests.Ui.Screens.Inventory.Support
             var block = new RecordingBlockInventoryOperations();
             var runner = new PlannedItemActionRunner(executor, new BlockItemActionExecutor(block, Operations));
             var reader = new PlayerSlotContextReader(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed)), block, new BlockSlotRestrictionInputBuilder(Array.Empty<IBlockSlotRestrictionContributor>()), new FixedMaxStackLookup(64));
-            Commands = new PlayerSlotCommands(Operations, Drag, runner, reader, new ShiftMoveRefusalNotifier(new ClientLocalNotificationSource()));
+            Commands = new PlayerSlotCommands(Operations, Drag, runner, reader, new ShiftMoveRefusalNotifier(new ClientLocalNotificationSource()), toaster);
 
             // 置く・移すは記録係が合図を流す。装備の選択の Fake は本番と同じく同じ 1 本の合図へ繋ぐ（本番は LocalPlayerEquipment の合図が中身と選択の両方を流す）
             // The recorder signals puts and moves; the selection fake joins the same single signal as in production (LocalPlayerEquipment signals both)

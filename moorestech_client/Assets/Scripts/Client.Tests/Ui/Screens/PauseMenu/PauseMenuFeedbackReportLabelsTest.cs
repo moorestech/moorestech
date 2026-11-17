@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             // 言語の選択は本物の SettingsCommands に通し、Localize の言語を実際に切り替える
             // Language choices go through the real SettingsCommands so Localize actually switches
             _commands = new RecordingPauseMenuCommands();
-            _view = Mount(new PauseMenuView(_commands, new SettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(_commands, new SettingsCommands(Toaster), Toasts, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
             simulate.FrameUpdate();

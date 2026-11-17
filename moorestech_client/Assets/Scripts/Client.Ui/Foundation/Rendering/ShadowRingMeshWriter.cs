@@ -27,12 +27,22 @@ namespace Client.Ui.Foundation.Rendering
             for (var ring = 0; ring < ringCount; ring++)
             for (var corner = 0; corner < cornersPerRing; corner++)
             {
-                var innerFrom = (ushort)(ring * cornersPerRing + corner);
-                var innerTo = (ushort)(ring * cornersPerRing + (corner + 1) % cornersPerRing);
-                var outerFrom = (ushort)(innerFrom + cornersPerRing);
-                var outerTo = (ushort)(innerTo + cornersPerRing);
-                WriteClockwise(vertices, indices, ref cursor, innerFrom, outerTo, innerTo);
-                WriteClockwise(vertices, indices, ref cursor, innerFrom, outerFrom, outerTo);
+                var band = BandQuad(ring, corner, cornersPerRing);
+                WriteClockwise(vertices, indices, ref cursor, band.InnerFrom, band.OuterTo, band.InnerTo);
+                WriteClockwise(vertices, indices, ref cursor, band.InnerFrom, band.OuterFrom, band.OuterTo);
+            }
+        }
+
+        // MeshWriteData へ直接書く口。頂点は読み戻せないので、巻き向きは呼び手が同じ並びで渡す vertices から決める
+        // Direct MeshWriteData writer; the mesh cannot be read back, so winding is decided from the caller's vertices in the same layout
+        public static void WriteBands(MeshWriteData mesh, Vertex[] vertices, int ringCount, int cornersPerRing)
+        {
+            for (var ring = 0; ring < ringCount; ring++)
+            for (var corner = 0; corner < cornersPerRing; corner++)
+            {
+                var band = BandQuad(ring, corner, cornersPerRing);
+                WriteClockwise(mesh, vertices, band.InnerFrom, band.OuterTo, band.InnerTo);
+                WriteClockwise(mesh, vertices, band.InnerFrom, band.OuterFrom, band.OuterTo);
             }
         }
 
@@ -40,13 +50,48 @@ namespace Client.Ui.Foundation.Rendering
         {
             // 反時計回りなら b と c を入れ替える
             // Swap b and c when counter-clockwise
-            var pa = vertices[a].position;
-            var pb = vertices[b].position;
-            var pc = vertices[c].position;
-            var clockwise = 0f < (pb.x - pa.x) * (pc.y - pa.y) - (pb.y - pa.y) * (pc.x - pa.x);
+            var clockwise = IsClockwise(vertices, a, b, c);
             indices[cursor++] = a;
             indices[cursor++] = clockwise ? b : c;
             indices[cursor++] = clockwise ? c : b;
+        }
+
+        private static void WriteClockwise(MeshWriteData mesh, Vertex[] vertices, ushort a, ushort b, ushort c)
+        {
+            var clockwise = IsClockwise(vertices, a, b, c);
+            mesh.SetNextIndex(a);
+            mesh.SetNextIndex(clockwise ? b : c);
+            mesh.SetNextIndex(clockwise ? c : b);
+        }
+
+        private static bool IsClockwise(Vertex[] vertices, ushort a, ushort b, ushort c)
+        {
+            var pa = vertices[a].position;
+            var pb = vertices[b].position;
+            var pc = vertices[c].position;
+            return 0f < (pb.x - pa.x) * (pc.y - pa.y) - (pb.y - pa.y) * (pc.x - pa.x);
+        }
+
+        // 輪 ring の角 corner から次の角への辺と、1 つ外の輪の同じ辺。両方の書き口が使う唯一の並び
+        // The side from corner to the next on ring, and the same side one ring out; the single layout both writers use
+        private static RingBandQuad BandQuad(int ring, int corner, int cornersPerRing)
+        {
+            var innerFrom = (ushort)(ring * cornersPerRing + corner);
+            var innerTo = (ushort)(ring * cornersPerRing + (corner + 1) % cornersPerRing);
+            return new RingBandQuad(innerFrom, innerTo, (ushort)(innerFrom + cornersPerRing), (ushort)(innerTo + cornersPerRing));
+        }
+
+        private readonly struct RingBandQuad
+        {
+            public readonly ushort InnerFrom, InnerTo, OuterFrom, OuterTo;
+
+            public RingBandQuad(ushort innerFrom, ushort innerTo, ushort outerFrom, ushort outerTo)
+            {
+                InnerFrom = innerFrom;
+                InnerTo = innerTo;
+                OuterFrom = outerFrom;
+                OuterTo = outerTo;
+            }
         }
     }
 }

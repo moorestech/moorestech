@@ -3,9 +3,7 @@ using Client.Ui.State.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Components.Controls;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine.UIElements;
@@ -18,16 +16,12 @@ namespace Client.Ui.Screens.Settings
     /// </summary>
     public sealed class LanguageSelectView : VisualElement
     {
-        private const string SetLocaleCommandName = "localization.setLocale";
-
         private readonly ISettingsCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly ModeSwitch<string> _languages;
 
-        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
-            _toaster = toaster;
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Language));
 
@@ -54,11 +48,9 @@ namespace Client.Ui.Screens.Settings
             _languages.SetSelected(model.LanguageCode);
         }
 
-        // トーストはToasterが決める
-        // The toaster decides the toast
         private void OnLanguageSelected(string languageCode)
         {
-            _toaster.Report(SetLocaleCommandName, _commands.SetLanguage(languageCode));
+            _commands.SetLanguage(languageCode);
         }
     }
 }

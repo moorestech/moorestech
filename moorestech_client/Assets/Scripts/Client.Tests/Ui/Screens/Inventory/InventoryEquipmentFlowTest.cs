@@ -43,9 +43,9 @@ namespace Client.Tests.Ui.Screens.Inventory
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             _fixture = new InventoryScreenFixture(36, 3, Toaster);
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
-            var gestures = new PlayerSlotGestureRouter(_fixture.Commands, Toaster);
+            var gestures = new PlayerSlotGestureRouter(_fixture.Commands);
             var layers = UiLayerStack.Build(rootVisualElement);
-            _inventory = new InventoryView(gestures, new RecordingInventorySortCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
+            _inventory = new InventoryView(gestures, new RecordingInventorySortCommands(), content, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             layers.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_inventory);
             _equipment = new EquipmentHudView(gestures, content);
             layers.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_equipment);

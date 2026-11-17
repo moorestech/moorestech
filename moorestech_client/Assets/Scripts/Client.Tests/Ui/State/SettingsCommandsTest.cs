@@ -1,4 +1,6 @@
+using System.Linq;
 using Client.Localization;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
 using NUnit.Framework;
@@ -38,9 +40,11 @@ namespace Client.Tests.Ui.State
             var changes = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => changes++);
 
-            var result = new SettingsCommands().SetLanguage("japanese");
+            var toaster = new RecordingUiCommandResultToaster();
+            new SettingsCommands(toaster).SetLanguage("japanese");
 
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(SettingsCommands.SetLocaleCommandName, toaster.Reports.Single().CommandName);
+            Assert.IsInstanceOf<UiCommandAccepted>(toaster.Reports.Single().Result);
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
             Assert.AreEqual("japanese", PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
             Assert.AreEqual(1, changes);
@@ -53,10 +57,11 @@ namespace Client.Tests.Ui.State
         {
             var before = Localize.GetCurrentLanguageCode();
 
-            var result = new SettingsCommands().SetLanguage(languageCode);
+            var toaster = new RecordingUiCommandResultToaster();
+            new SettingsCommands(toaster).SetLanguage(languageCode);
 
-            Assert.IsInstanceOf<UiCommandRejected>(result);
-            var rejected = (UiCommandRejected)result;
+            Assert.IsInstanceOf<UiCommandRejected>(toaster.Reports.Single().Result);
+            var rejected = (UiCommandRejected)toaster.Reports.Single().Result;
             Assert.AreEqual(UiCommandRejectReason.UnknownLanguage, rejected.Reason);
             Assert.AreEqual("unknown_locale", rejected.ToWireCode());
             Assert.AreEqual(before, Localize.GetCurrentLanguageCode());

@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.Ui.Screens.Inventory.Support;
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Routing;
@@ -32,6 +33,7 @@ namespace Client.Tests.Ui.State.BuildMenu
         private FakeRequester _requester;
         private BuildMenuSelection _selection;
         private PlacementTargetResolver _resolver;
+        private RecordingUiCommandResultToaster _toaster;
 
         [SetUp]
         public void SetUp()
@@ -41,6 +43,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             _routing = UiRoutingStateTestFactory.CreateSwitchable(_controlObject, UIStateEnum.GameScreen, new[] { UIStateEnum.GameScreen, UIStateEnum.BuildMenu }, out _control);
             _requester = new FakeRequester();
             _selection = new BuildMenuSelection();
+            _toaster = new RecordingUiCommandResultToaster();
             _resolver = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), new ClientBlueprintLibrary(), new AllPlacementTargetsUnlocked());
         }
 
@@ -56,9 +59,10 @@ namespace Client.Tests.Ui.State.BuildMenu
             SetState(UIStateEnum.BuildMenu);
             var entry = _resolver.CreateUnlockedTargets().First();
 
-            var result = CreateCommands(BlueprintDeleteResult.Success).SelectEntry(entry.Id);
+            CreateCommands(BlueprintDeleteResult.Success).SelectEntry(entry.Id);
 
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(BuildMenuCommands.SelectCommandName, _toaster.Reports.Single().CommandName);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports.Single().Result);
             Assert.IsTrue(_selection.TryConsumeSelectedTarget(out var selected));
             Assert.AreEqual(entry.Id, selected.Id);
         }
@@ -67,9 +71,11 @@ namespace Client.Tests.Ui.State.BuildMenu
         public void 閉じた後と未知のエントリの選択は良性の拒否になる()
         {
             SetState(UIStateEnum.GameScreen);
-            var closed = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).SelectEntry(Guid.NewGuid());
+            CreateCommands(BlueprintDeleteResult.Success).SelectEntry(Guid.NewGuid());
             SetState(UIStateEnum.BuildMenu);
-            var unknown = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).SelectEntry(Guid.NewGuid());
+            CreateCommands(BlueprintDeleteResult.Success).SelectEntry(Guid.NewGuid());
+            var closed = (UiCommandRejected)_toaster.Reports[0].Result;
+            var unknown = (UiCommandRejected)_toaster.Reports[1].Result;
 
             Assert.AreEqual("invalid_state", closed.ToWireCode());
             Assert.AreEqual("unknown_entry", unknown.ToWireCode());
@@ -84,7 +90,9 @@ namespace Client.Tests.Ui.State.BuildMenu
         [TestCase(BlueprintDeleteResult.Unknown, "blueprint_delete_unknown", false)]
         public void BP削除の失敗はWebと同じ失敗コードと良性の別に写る(BlueprintDeleteResult deleteResult, string wireCode, bool benign)
         {
-            var result = (UiCommandRejected)CreateCommands(deleteResult).DeleteBlueprint(Guid.NewGuid()).GetAwaiter().GetResult();
+            CreateCommands(deleteResult).DeleteBlueprint(Guid.NewGuid());
+            Assert.AreEqual(BuildMenuCommands.DeleteCommandName, _toaster.Reports.Single().CommandName);
+            var result = (UiCommandRejected)_toaster.Reports.Single().Result;
 
             Assert.AreEqual(wireCode, result.ToWireCode());
             Assert.AreEqual(benign, UiCommandRejectReasonTable.Get(result.Reason).IsBenign);
@@ -95,11 +103,11 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             var blueprintGuid = Guid.NewGuid();
             var deleteService = new BlueprintDeleteServiceStub(BlueprintDeleteResult.Success);
-            var commands = new BuildMenuCommands(_routing, _requester, _resolver, _selection, deleteService);
+            var commands = new BuildMenuCommands(_routing, _requester, _resolver, _selection, deleteService, _toaster);
 
-            var result = commands.DeleteBlueprint(blueprintGuid).GetAwaiter().GetResult();
+            commands.DeleteBlueprint(blueprintGuid);
 
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports.Single().Result);
             Assert.AreEqual(blueprintGuid, deleteService.LastDeletedGuid);
         }
 
@@ -108,9 +116,10 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             SetState(UIStateEnum.BuildMenu);
 
-            var result = CreateCommands(BlueprintDeleteResult.Success).Close();
+            CreateCommands(BlueprintDeleteResult.Success).Close();
 
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.AreEqual(UiStateTransitionRules.RequestCommandName, _toaster.Reports.Single().CommandName);
+            Assert.IsInstanceOf<UiCommandAccepted>(_toaster.Reports.Single().Result);
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, _requester.Requested);
         }
 
@@ -119,7 +128,8 @@ namespace Client.Tests.Ui.State.BuildMenu
         {
             SetState(UIStateEnum.GameScreen);
 
-            var closed = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).Close();
+            CreateCommands(BlueprintDeleteResult.Success).Close();
+            var closed = (UiCommandRejected)_toaster.Reports.Single().Result;
 
             Assert.IsEmpty(_requester.Requested);
             Assert.AreEqual(UiCommandRejectReason.BuildMenuNotOpen, closed.Reason);
@@ -135,7 +145,8 @@ namespace Client.Tests.Ui.State.BuildMenu
             SetState(UIStateEnum.BuildMenu);
             _requester.Result = false;
 
-            var refused = (UiCommandRejected)CreateCommands(BlueprintDeleteResult.Success).Close();
+            CreateCommands(BlueprintDeleteResult.Success).Close();
+            var refused = (UiCommandRejected)_toaster.Reports.Single().Result;
 
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, _requester.Requested);
             Assert.AreEqual(UiCommandRejectReason.ScreenCloseRefused, refused.Reason);
@@ -145,7 +156,7 @@ namespace Client.Tests.Ui.State.BuildMenu
 
         private BuildMenuCommands CreateCommands(BlueprintDeleteResult deleteResult)
         {
-            return new BuildMenuCommands(_routing, _requester, _resolver, _selection, new BlueprintDeleteServiceStub(deleteResult));
+            return new BuildMenuCommands(_routing, _requester, _resolver, _selection, new BlueprintDeleteServiceStub(deleteResult), _toaster);
         }
 
         // 実際の遷移で UiRoutingState まで写す（コマンドは画面の開閉を routing で読む。A-248）

@@ -1,19 +1,16 @@
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;
 using Core.Master;
 using Game.Block.Interface.State;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
@@ -68,35 +65,19 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">%sの成功後topicが遅れても二度目の拒否を誤報しない</web-test>
         [TestCase(RocketCommand.Build, RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadPhase.Building, "rocket-launch-pad-build")]
         [TestCase(RocketCommand.Launch, RocketLaunchPadPhase.AwaitingLaunchCommand, RocketLaunchPadPhase.ReadyToLaunch, "rocket-launch-pad-launch")]
-        public void 成功の後に段階の更新が遅れても二度目の古い合図の拒否をトーストしない(RocketCommand command, RocketLaunchPadPhase phase, RocketLaunchPadPhase nextPhase, string testid)
+        public void 成功の後に段階の更新が遅れても二度目の押下を送り段階が進めば隠す(RocketCommand command, RocketLaunchPadPhase phase, RocketLaunchPadPhase nextPhase, string testid)
         {
+            // 二度目の古い合図の拒否は良性でトーストしない（判定は Commands 側。SpecialBlockCommandsTest が見る）
+            // The second, stale command's refusal is benign and never toasts (decided by the commands; covered by SpecialBlockCommandsTest)
             var action = Mount(new RocketLaunchPadTitleActionView(Kit(null)));
             action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(phase)));
             simulate.FrameUpdate();
             simulate.Click(Find<Button>(action, testid));
-            Commands.SetNextResult(UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockCommandStale, command == RocketCommand.Build ? "rocket_command_not_awaiting_build" : "rocket_command_not_awaiting_launch"));
             simulate.Click(Find<Button>(action, testid));
 
-            Assert.AreEqual(2, Commands.Issued.Count);
-            CollectionAssert.IsEmpty(ShownToasts);
+            CollectionAssert.AreEqual(new[] { $"rocket_launch_pad.command {command}", $"rocket_launch_pad.command {command}" }, Commands.Issued);
             action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(nextPhase)));
             Assert.IsFalse(IsShown(Find<Button>(action, testid)));
-        }
-
-        [Test]
-        public void 材料不足で建造の合図が断られると失敗コードを添えてトーストする()
-        {
-            // トーストに失敗コードが出る（A-261）
-            // Toast shows the failure code (A-261)
-            var action = Mount(new RocketLaunchPadTitleActionView(Kit(null)));
-            action.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)));
-            simulate.FrameUpdate();
-            Commands.SetNextResult(UiCommandRejected.OverridingWireCode(UiCommandRejectReason.SpecialBlockRequestFailed, "rocket_command_missing_materials"));
-            LogAssert.Expect(LogType.Warning, new Regex(@"rocket_launch_pad\.command failed: rocket_command_missing_materials$"));
-            simulate.Click(Find<Button>(action, "rocket-launch-pad-build"));
-
-            Assert.AreEqual(1, ShownToasts.Count);
-            StringAssert.Contains("rocket_command_missing_materials", ShownToasts[0].Text);
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">renders DTO groups and preserves their absolute indices through real mouse gestures</web-test>

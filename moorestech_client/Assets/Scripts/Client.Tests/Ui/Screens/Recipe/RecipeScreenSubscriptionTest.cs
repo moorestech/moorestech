@@ -60,7 +60,7 @@ namespace Client.Tests.Ui.Screens.Recipe
             _columns = new StageColumnsLayout();
             rootVisualElement.Add(_columns);
             _textures = new CountingItemTextureSource();
-            new RecipeScreenPresenter(_columns, routing, _model, new GameContentPresentation(_textures), new RecordingRecipeCommands(), Toaster, _selection).Initialize();
+            new RecipeScreenPresenter(_columns, routing, _model, new GameContentPresentation(_textures), new RecordingRecipeCommands(), _selection).Initialize();
             simulate.FrameUpdate();
         }
 

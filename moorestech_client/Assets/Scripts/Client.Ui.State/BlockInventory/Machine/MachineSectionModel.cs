@@ -27,7 +27,7 @@ namespace Client.Ui.State.BlockInventory.Machine
         private readonly IModuleSlotStackLimitLookup _stackLimit;
         private readonly IFluidReplicaReader _fluidReplica;
         private readonly ReactiveProperty<SectionContent<MachineSectionViewModel>> _current = new(SectionContent<MachineSectionViewModel>.Absent);
-        private readonly AnomalyReportGate _gearAnomalyGate = new();
+        private readonly AnomalyReportGate _gearAnomalyGate = new("[MachineSectionModel] ", "; treated as electric", LogType.Error);
         private MachineRecipeCatalog _catalog = MachineRecipeCatalog.Empty;
 
         public IReadOnlyReactiveProperty<SectionContent<MachineSectionViewModel>> Current => _current;
@@ -83,7 +83,7 @@ namespace Client.Ui.State.BlockInventory.Machine
             {
                 // 区画が無い間は旗を戻し再出力に備える
                 // Clear flag while absent so recovery reports again
-                _gearAnomalyGate.Clear();
+                _gearAnomalyGate.Observe(null);
                 return SectionContent<MachineSectionViewModel>.Absent;
             }
 
@@ -95,14 +95,13 @@ namespace Client.Ui.State.BlockInventory.Machine
                 // silent-ok: 2 つの状態詳細と機械の param が揃うブロックだけが機械（Web ホストと同じ判定） / 区画が出ないことを並べ比べで見る
                 if (common == null || machine == null || block.BlockMasterElement.BlockParam is not IMachineParam param)
                 {
-                    _gearAnomalyGate.Clear();
+                    _gearAnomalyGate.Observe(null);
                     return false;
                 }
                 // 歯車の異常は同じ間 1 回だけ出す
                 // Report gear anomaly once while it persists
                 var gear = GearDriveConversion.Read(block, param);
-                var anomaly = gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
-                if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MachineSectionModel] {anomaly}; treated as electric");
+                _gearAnomalyGate.Observe(gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null);
                 return MachineDetailConversion.TryBuild(common, machine, param, gear.IsGearDriven, out detail);
             }
 

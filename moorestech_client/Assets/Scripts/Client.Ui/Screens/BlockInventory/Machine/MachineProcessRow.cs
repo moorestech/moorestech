@@ -3,7 +3,6 @@ using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Machine.Slots;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.SlotCommands.Block;
-using Client.Ui.State.Toast;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Machine
@@ -18,13 +17,13 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         private readonly MachineSlotBand _output;
         private readonly ProgressArrowGlyph _arrow = new("machine-progress-arrow");
 
-        public MachineProcessRow(GameContentPresentation content, IBlockSlotCommands commands, UiCommandResultToaster toaster)
+        public MachineProcessRow(GameContentPresentation content, IBlockSlotCommands commands)
         {
             name = "machine-process-row";
             pickingMode = PickingMode.Ignore;
             AddToClassList("machine-process-row");
-            _input = new MachineSlotBand("machine-input-slots", "machine-input-slot", commands, toaster, content);
-            _output = new MachineSlotBand("machine-output-slots", "machine-output-slot", commands, toaster, content);
+            _input = new MachineSlotBand("machine-input-slots", "machine-input-slot", commands, content);
+            _output = new MachineSlotBand("machine-output-slots", "machine-output-slot", commands, content);
 
             // 左右を等幅で伸ばし矢印を中央に固定
             // Stretch both side boxes equally to pin the arrow at the centre (Web grid 1fr auto 1fr)

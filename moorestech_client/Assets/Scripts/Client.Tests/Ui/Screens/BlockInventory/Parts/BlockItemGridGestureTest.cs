@@ -5,7 +5,6 @@ using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.Items;
-using Client.Ui.State.Toast;
 using Core.Master;
 using NUnit.Framework;
 using UnityEngine;
@@ -31,7 +30,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Parts
             // Lay out slots 0 and 2 so the captured index is checked even when it differs from the layout position
             _commands = new RecordingBlockSlotCommands();
             var content = new GameContentPresentation(new FakeContentTextureSource(Texture, Texture, Texture));
-            _grid = new BlockItemGrid("chest-grid", _commands, content, new UiCommandResultToaster(new GameUiToastFeed()));
+            _grid = new BlockItemGrid("chest-grid", _commands, content);
             rootVisualElement.Add(_grid);
             var wood = Wood();
             var slots = new[] { new SlotItem(wood, 3), new SlotItem(wood, 4), new SlotItem(wood, 5) };

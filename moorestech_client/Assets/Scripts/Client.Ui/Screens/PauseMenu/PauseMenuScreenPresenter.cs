@@ -26,13 +26,12 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly IPauseMenuCommands _commands;
         private readonly ISettingsCommands _settingsCommands;
         private readonly GameUiToastFeed _toasts;
-        private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly IUiOsCursor _osCursor;
         private readonly SerialDisposable _shownSubscription = new();
         private PauseMenuView _view;
 
-        public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft, IUiOsCursor osCursor)
+        public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, IUiOsCursor osCursor)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
@@ -41,7 +40,6 @@ namespace Client.Ui.Screens.PauseMenu
             _commands = commands;
             _settingsCommands = settingsCommands;
             _toasts = toasts;
-            _toaster = toaster;
             _draft = draft;
             _osCursor = osCursor;
         }
@@ -50,7 +48,7 @@ namespace Client.Ui.Screens.PauseMenu
         {
             // 載せるのはここで 1 回だけ。View は隠れた状態で生まれる
             // Mount exactly once here; the view is born hidden
-            _view = new PauseMenuView(_commands, _settingsCommands, _toasts, _toaster, _draft, _osCursor);
+            _view = new PauseMenuView(_commands, _settingsCommands, _toasts, _draft, _osCursor);
 
             _gameUiRoot.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Add(_view);
 

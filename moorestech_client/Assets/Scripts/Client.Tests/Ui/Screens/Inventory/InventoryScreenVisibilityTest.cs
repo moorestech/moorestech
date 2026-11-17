@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         {
             var columns = new StageColumnsLayout();
             rootVisualElement.Add(columns);
-            new InventoryScreenPresenter(columns, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, new RecordingInventorySortCommands(), Content(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
+            new InventoryScreenPresenter(columns, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, new RecordingInventorySortCommands(), Content(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             _operations.SetMain(0, new SlotItem(MasterHolder.ItemMaster.GetItemId(WoodGuid), 7));
             simulate.FrameUpdate();
 
@@ -92,7 +92,7 @@ namespace Client.Tests.Ui.Screens.Inventory
         private EquipmentHudView MountEquipmentHud(UIStateEnum state)
         {
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            new EquipmentHudPresenter(root, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, Content(), Toaster).Initialize();
+            new EquipmentHudPresenter(root, UiRoutingStateTestFactory.Create(_host, state), _model, _commands, Content()).Initialize();
             simulate.FrameUpdate();
             return rootVisualElement.Q<EquipmentHudView>();
         }

@@ -44,7 +44,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
             var root = GameUiRootTestFactory.Create(_host, rootVisualElement);
-            _presenter = new PauseMenuScreenPresenter(root, routing, PauseMenuModelTestFactory.Create(_pauseMenuState), new SettingsModel(), _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
+            _presenter = new PauseMenuScreenPresenter(root, routing, PauseMenuModelTestFactory.Create(_pauseMenuState), new SettingsModel(), _commands, new RecordingSettingsCommands(), Toasts, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
             _presenter.Initialize();
             simulate.FrameUpdate();
         }

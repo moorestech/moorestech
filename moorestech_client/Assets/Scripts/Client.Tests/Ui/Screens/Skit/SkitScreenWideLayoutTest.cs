@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.Screens.Skit
         [Test]
         public void 横長画面で会話帯を全幅に広げツールを実画面右上へ固定する()
         {
-            var view = Mount(new SkitScreenView(new RecordingSkitCommands(), Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            var view = Mount(new SkitScreenView(new RecordingSkitCommands(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             view.Render(SkitTestData.Text(SkitTestData.SessionId, 1, "Blocking message", SkitTestData.TextIntents));
             simulate.FrameUpdate();
 

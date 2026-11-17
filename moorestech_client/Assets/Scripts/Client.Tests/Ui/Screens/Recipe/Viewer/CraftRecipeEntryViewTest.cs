@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void 秒数は矢印の上に出しボタンは秒数を持たない()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 2, true, false, Material(1, 1, 3)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 2, true, false, Material(1, 1, 3)), Context(_commands, _selection)));
 
             var duration = view.Q<Label>($"craft-recipe-box-{guid}-duration");
             var arrow = view.Q($"craft-progress-arrow-{guid}");
@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void 言語を変えると秒数の書式が変わる()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 3)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 3)), Context(_commands, _selection)));
             Localize.TrySetChosenLanguage("japanese");
             simulate.FrameUpdate();
             Assert.AreEqual("0.4秒", view.Q<Label>($"craft-recipe-box-{guid}-duration").text);
@@ -60,7 +60,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void 不足の素材はinsufficientで押すとその素材を選び不可ならボタンが無効()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 2, false, false, Material(1, 5, 3)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 2, false, false, Material(1, 5, 3)), Context(_commands, _selection)));
             var slot = view.Q<ItemSlot>();
             Assert.IsNotNull(slot.Q(className: "slot-frame--insufficient"));
             Assert.IsFalse(view.Q<RecipeActionButton>().enabledSelf);

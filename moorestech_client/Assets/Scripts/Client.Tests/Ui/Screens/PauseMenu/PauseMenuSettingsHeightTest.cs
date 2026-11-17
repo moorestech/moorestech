@@ -74,7 +74,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             // 言語を先に決めてから載せ、字形（CJK/Latin）を最初のレイアウトに入れる
             // Pick the language before mounting so the first layout uses its glyph face (CJK/Latin)
             Localize.TrySetChosenLanguage(languageCode);
-            _view = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new PauseMenuView(new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, new BugReportDraft(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Settings), FakeSettingsModel.Default());
             simulate.FrameUpdate();

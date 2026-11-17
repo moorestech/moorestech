@@ -3,6 +3,7 @@ using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Research.Tree;
+using Client.Ui.State.Toast;
 using Cysharp.Threading.Tasks;
 using Game.Research;
 using Server.Protocol.PacketResponse;
@@ -20,11 +21,13 @@ namespace Client.Ui.State.Research.Commands
 
         private readonly ResearchSelectionStore _selection;
         private readonly ResearchNodeStateStore _store;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public ResearchTreeCommands(ResearchSelectionStore selection, ResearchNodeStateStore store)
+        public ResearchTreeCommands(ResearchSelectionStore selection, ResearchNodeStateStore store, IUiCommandResultToaster toaster)
         {
             _selection = selection;
             _store = store;
+            _toaster = toaster;
         }
 
         public void ToggleNodeSelection(Guid researchGuid)
@@ -37,10 +40,21 @@ namespace Client.Ui.State.Research.Commands
             _selection.Clear();
         }
 
-        public async UniTask<UiCommandResult> CompleteResearch(Guid researchGuid)
+        // 戻り値は無い。サーバーの結果は届いてからトーストへ渡す
+        // No return value; the server result is reported to the toaster when it arrives
+        public void CompleteResearch(Guid researchGuid)
         {
-            var response = await ClientContext.VanillaApi.Response.Progression.CompleteResearch(researchGuid, CancellationToken.None);
-            return ToCommandResult(response, _store, researchGuid);
+            CompleteAsync().Forget();
+
+            #region Internal
+
+            async UniTaskVoid CompleteAsync()
+            {
+                var response = await ClientContext.VanillaApi.Response.Progression.CompleteResearch(researchGuid, CancellationToken.None);
+                _toaster.Report(CompleteResearchCommandName, ToCommandResult(response, _store, researchGuid));
+            }
+
+            #endregion
         }
 
         // 応答を状態へ反映し結果へ写す

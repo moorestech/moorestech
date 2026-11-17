@@ -10,7 +10,6 @@ using Client.Ui.State.BuildMenu.Session;
 using Client.Ui.State.BuildMenu.Source;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Routing;
-using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
 
@@ -29,13 +28,12 @@ namespace Client.Ui.Screens.BuildMenu
         private readonly IHotbarCommands _hotbarCommands;
         private readonly GameContentPresentation _content;
         private readonly PlacementTargetIcons _icons;
-        private readonly UiCommandResultToaster _toaster;
         private readonly BuildMenuSessionStore _session;
         private readonly IUiOsCursor _osCursor;
         private readonly SerialDisposable _modelSubscription = new();
         private BuildMenuView _view;
 
-        public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, UiCommandResultToaster toaster, BuildMenuSessionStore session, IUiOsCursor osCursor)
+        public BuildMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, BuildMenuModel model, IBuildMenuCommands commands, IHotbarCommands hotbarCommands, GameContentPresentation content, PlacementTargetIcons icons, BuildMenuSessionStore session, IUiOsCursor osCursor)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
@@ -44,7 +42,6 @@ namespace Client.Ui.Screens.BuildMenu
             _hotbarCommands = hotbarCommands;
             _content = content;
             _icons = icons;
-            _toaster = toaster;
             _session = session;
             _osCursor = osCursor;
         }
@@ -54,7 +51,7 @@ namespace Client.Ui.Screens.BuildMenu
             // 載せるのはここで 1 回だけ。トラッカーは View と同じ寿命（D-22）
             // Mount exactly once here; the tracker lives as long as the view (D-22)
             var tracker = new BuildMenuCategoryScrollTracker(_session);
-            _view = new BuildMenuView(_commands, _hotbarCommands, _content, _icons, _toaster, _session, tracker, _osCursor);
+            _view = new BuildMenuView(_commands, _hotbarCommands, _content, _icons, _session, tracker, _osCursor);
 
             _gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(_view);
             _routingState.Current.Select(BuildMenuScreenVisibility.IsShown).DistinctUntilChanged().Subscribe(SetShown);

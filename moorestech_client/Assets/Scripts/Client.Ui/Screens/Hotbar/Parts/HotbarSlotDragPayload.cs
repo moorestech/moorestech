@@ -1,7 +1,6 @@
 using Client.Ui.Foundation.DragDrop;
 using Client.Ui.State.Hotbar;
 using Client.Ui.State.Hotbar.Logic;
-using Client.Ui.State.Toast;
 
 namespace Client.Ui.Screens.Hotbar.Parts
 {
@@ -14,21 +13,19 @@ namespace Client.Ui.Screens.Hotbar.Parts
         private readonly int _slotIndex;
         private readonly HotbarSlotViewModel _slot;
         private readonly IHotbarCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
 
-        public HotbarSlotDragPayload(int slotIndex, HotbarSlotViewModel slot, IHotbarCommands commands, UiCommandResultToaster toaster)
+        public HotbarSlotDragPayload(int slotIndex, HotbarSlotViewModel slot, IHotbarCommands commands)
         {
             _slotIndex = slotIndex;
             _slot = slot;
             _commands = commands;
-            _toaster = toaster;
         }
 
-        // 受けるかは操作側（HotbarSelectRule）が決め、拒否はトースト口へ（良性なのでログだけ）。D&D は受けない画面でも成立する
-        // The operation side (HotbarSelectRule) decides; a rejection goes to the toaster (benign, so log only). Drag-and-drop works even on non-accepting screens
+        // 受けるかは操作側（HotbarSelectRule）が決め、拒否は操作側がトースト口へ渡す（良性なのでログだけ）。D&D は受けない画面でも成立する
+        // The operation side (HotbarSelectRule) decides and hands a rejection to the toaster (benign, so log only). Drag-and-drop works even on non-accepting screens
         public void OnTapped()
         {
-            _toaster.Report(HotbarCommands.SelectCommandName, _commands.Select(_slotIndex));
+            _commands.Select(_slotIndex);
         }
 
         public void OnDropped(IHotbarDropReceiver receiver)

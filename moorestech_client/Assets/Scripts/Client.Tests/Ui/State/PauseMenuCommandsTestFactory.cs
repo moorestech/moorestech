@@ -8,6 +8,7 @@ using Client.Tests.BugReport;
 using Client.Tests.Playtest;
 using Client.Tests.PlaytestReceiver;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Toast;
 using Client.Tests.BugReport.Bundle;
 
 namespace Client.Tests.Ui.State
@@ -20,12 +21,12 @@ namespace Client.Tests.Ui.State
     {
         // セーブして終了（MonoBehaviour）と救出窓口はこのテスト群で呼ばないので null を渡す
         // Save-and-quit (a MonoBehaviour) and the recovery window are never called by these tests, so null is passed
-        public static PauseMenuCommands Create(PauseMenuStateService pauseMenuStateService)
+        public static PauseMenuCommands Create(PauseMenuStateService pauseMenuStateService, IUiCommandResultToaster toaster)
         {
             var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
             var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), new TestBugReportOutboxRoot());
             var submitter = new BugReportSubmitter(writer, session, new RecordingProgressSink(), new RecordingUploadRequester());
-            return new PauseMenuCommands(new GameSaveRequester(), null, pauseMenuStateService, submitter, null);
+            return new PauseMenuCommands(new GameSaveRequester(), null, pauseMenuStateService, submitter, null, toaster);
         }
     }
 }

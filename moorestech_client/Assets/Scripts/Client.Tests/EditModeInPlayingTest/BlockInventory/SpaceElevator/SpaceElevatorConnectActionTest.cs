@@ -9,8 +9,11 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
+using Client.Tests.Ui.State.Toast;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Commands;
+using Client.Ui.State.Inventory.Grab;
 using Cysharp.Threading.Tasks;
 using Core.Master;
 using Game.Block.Interface;
@@ -86,23 +89,25 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
-                // 特殊族のコマンド・応答を通す
-                // Exercise the special-family command and response
-                var commands = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ISpecialBlockCommands>();
-                var insufficient = await commands.ConnectSpaceElevator();
+                // 本物の送り手・パネル・掴みで特殊族のコマンド・応答を通し、結果はトーストの係の偽物で受ける
+                // Exercise the special-family command and response with the real sender, panel and grab, receiving results through a fake toaster
+                var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+                var toaster = new RecordingUiCommandResultToaster();
+                var commands = new SpecialBlockCommands(resolver.Resolve<IBlockInventoryPanelSource>(), resolver.Resolve<ISpecialBlockRequestSender>(), resolver.Resolve<PlayerGrabModel>(), toaster);
+                var insufficient = await Connect(commands, toaster);
                 AssertRejected(insufficient, UiCommandRejectReason.SpecialBlockRequestFailed, "insufficient_cable");
                 var param = (SpaceElevatorBaseBlockParam)master.BlockParam;
                 var insufficientState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(0, insufficientState.PoolAmount);
                 Assert.IsFalse(insufficientState.TargetConnected);
                 var supplied = await SpaceElevatorServerTestState.SupplyCableAsync(param);
-                var connected = await commands.ConnectSpaceElevator();
+                var connected = await Connect(commands, toaster);
                 Assert.IsInstanceOf<UiCommandAccepted>(connected, (connected as UiCommandRejected)?.ToLogText());
                 var connectedState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.IsTrue(connectedState.TargetConnected);
                 Assert.IsFalse(connectedState.DecoyConnected, "request used the decoy coordinates");
                 Assert.AreEqual(supplied - param.CablesPerElevator, connectedState.PoolAmount);
-                var already = await commands.ConnectSpaceElevator();
+                var already = await Connect(commands, toaster);
                 AssertRejected(already, UiCommandRejectReason.SpecialBlockCommandStale, "already_connected");
                 var alreadyState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(connectedState.PoolAmount, alreadyState.PoolAmount);
@@ -118,6 +123,18 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.IsFalse(refundedState.DecoyConnected);
                 Object.DestroyImmediate(ground);
                 Directory.Delete(directory, true);
+            }
+
+            // 接続を送り、トーストの係へ結果が届くまで待つ
+            // Send a connect and wait until its result reaches the toaster
+            async UniTask<UiCommandResult> Connect(SpecialBlockCommands commands, RecordingUiCommandResultToaster toaster)
+            {
+                var before = toaster.Reports.Count;
+                commands.ConnectSpaceElevator();
+                for (var i = 0; i < 50 && toaster.Reports.Count == before; i++) await UniTask.Delay(100);
+                Assert.AreEqual(before + 1, toaster.Reports.Count, "the connect result never reached the toaster");
+                Assert.AreEqual(SpecialBlockCommands.ConnectSpaceElevatorCommandName, toaster.Reports[before].CommandName);
+                return toaster.Reports[before].Result;
             }
 
             // 拒否の理由と、サーバーの結果を写した失敗コードを見る

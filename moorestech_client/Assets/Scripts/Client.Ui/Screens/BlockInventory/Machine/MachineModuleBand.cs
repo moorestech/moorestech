@@ -9,7 +9,6 @@ using Client.Ui.State.BlockInventory.Logic.Machine;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.SlotCommands.Block;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -24,7 +23,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         private readonly LocalizedLabel _stackLimit = new() { name = "machine-module-stack-limit" };
         private readonly MachineSlotBand _slots;
 
-        public MachineModuleBand(GameContentPresentation content, IBlockSlotCommands commands, UiCommandResultToaster toaster)
+        public MachineModuleBand(GameContentPresentation content, IBlockSlotCommands commands)
         {
             // UiStack は子の marginTop を gap で上書きするので、Web の mt=xs は器の内側の余白で写す
             // UiStack overwrites a child's marginTop with the gap, so the Web mt=xs is ported as this box's inner padding
@@ -40,7 +39,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _stackLimit.pickingMode = PickingMode.Ignore;
             _stackLimit.AddToClassList(UiTypographyClass.TextXs);
             _stackLimit.AddToClassList(UiTypographyClass.TextDimmed);
-            _slots = new MachineSlotBand("machine-module-slots", "machine-module-slot", commands, toaster, content);
+            _slots = new MachineSlotBand("machine-module-slots", "machine-module-slot", commands, content);
 
             stack.AddItem(label);
             stack.AddItem(_stackLimit);

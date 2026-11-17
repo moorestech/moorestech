@@ -92,13 +92,12 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     // 特殊族コマンドで出力モードを選ぶ
                     // Pick the output mode via the special-family command
                     var commands = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ISpecialBlockCommands>();
-                    var result = await commands.SetElectricToGearMode(2);
-                    Assert.IsInstanceOf<UiCommandAccepted>(result, $"output mode command was rejected: {(result as UiCommandRejected)?.ToLogText()}");
+                    commands.SetElectricToGearMode(2);
 
-                    // 往復後の選択2を確認
-                    // Confirm selection 2 after the round-trip
-                    for (var i = 0; i < 120 && component.SelectedIndex != 2; i++) await UniTask.Yield();
-                    Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex");
+                    // 往復後の選択2を確認（結果はトーストの係へ行く。拒否なら [UiCommandResultToaster] の警告ログに理由が出る）
+                    // Confirm selection 2 after the round-trip (results go to the toaster; a rejection's reason appears in the [UiCommandResultToaster] warning log)
+                    for (var i = 0; i < 50 && component.SelectedIndex != 2; i++) await UniTask.Delay(100);
+                    Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex; see the [UiCommandResultToaster] electric_to_gear.set_output_mode warning for a rejection");
 
                     BlockSubInventoryOpener.Close(subInventoryState);
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);

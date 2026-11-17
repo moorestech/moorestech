@@ -4,7 +4,6 @@ using Client.Ui.Screens.Skit.Parts.Toolbar;
 using Client.Ui.Screens.Skit.Parts.Window;
 using Client.Ui.State.Skit;
 using Client.Ui.State.Skit.Logic;
-using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -21,7 +20,6 @@ namespace Client.Ui.Screens.Skit
         private const string WholeUiHiddenLog = "[skit.text] Enter ignored: the whole UI is hidden";
 
         private readonly ISkitCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly SkitDialogueWindow _window;
         private readonly SkitChoiceList _choices;
         private readonly SkitBackgroundLine _backgroundLine;
@@ -32,19 +30,18 @@ namespace Client.Ui.Screens.Skit
         private bool _wholeUiShown = true;
         private bool _hasRendered;
 
-        public SkitScreenView(ISkitCommands commands, UiCommandResultToaster toaster, IUiOsCursor osCursor)
+        public SkitScreenView(ISkitCommands commands, IUiOsCursor osCursor)
         {
             _commands = commands;
-            _toaster = toaster;
             AddToClassList("skit-screen");
             pickingMode = PickingMode.Ignore;
 
             // Web と同順に重ねる
             // Stack in Web order
             _window = new SkitDialogueWindow(osCursor);
-            _choices = new SkitChoiceList(commands, toaster, osCursor);
+            _choices = new SkitChoiceList(commands, osCursor);
             _backgroundLine = new SkitBackgroundLine();
-            _toolbar = new SkitToolbar(commands, toaster, osCursor);
+            _toolbar = new SkitToolbar(commands, osCursor);
 
             Add(_window);
             Add(_choices);
@@ -122,7 +119,7 @@ namespace Client.Ui.Screens.Skit
             // Reveal all while typing; advance when complete
             var outcome = CurrentClickOutcome();
             if (outcome == SkitClickOutcome.Reveal) _typewriter.RevealAll();
-            if (outcome == SkitClickOutcome.Advance) _toaster.Report(SkitCommands.AdvanceCommandName, _commands.Advance(_model.SessionId, _model.SceneRevision));
+            if (outcome == SkitClickOutcome.Advance) _commands.Advance(_model.SessionId, _model.SceneRevision);
         }
 
         private void ShowRevealedText()

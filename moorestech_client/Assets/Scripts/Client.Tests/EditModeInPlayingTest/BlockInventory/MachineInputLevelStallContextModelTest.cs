@@ -5,7 +5,6 @@ using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Machine.Selection;
-using Client.Ui.State.Commands;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.Machine;
@@ -77,8 +76,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                 // 上限つき継承レシピを通常のUI経路で選ぶ
                 // Select the capped inheritance recipe through the production UI path
-                var select = await ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMachineRecipeSelectCommand>().Select(CrusherInheritRecipeGuid);
-                Assert.IsInstanceOf<UiCommandAccepted>(select, $"select command was rejected: {(select as UiCommandRejected)?.ToLogText()}");
+                await MachineRecipeSelectAwaiter.SelectAndWait(CrusherInheritRecipeGuid);
 
                 // 製作上限 Lv1 の間に Lv2 の素材をチェストへ入れると、ベルトの先頭で止まり、理由が欄に載る
                 // Putting a Lv2 material in the chest under the Lv1 craft cap stalls it at the belt head and the reason reaches the entry

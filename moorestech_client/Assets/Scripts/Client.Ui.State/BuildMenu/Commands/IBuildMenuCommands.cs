@@ -1,17 +1,15 @@
 using System;
-using Client.Ui.State.Commands;
-using Cysharp.Threading.Tasks;
 
 namespace Client.Ui.State.BuildMenu.Commands
 {
     /// <summary>
-    /// ビルドメニューの型付きコマンド（Web の build_menu.select・blueprint.delete・ui_state.request の写し）
-    /// Typed build-menu commands (port of Web build_menu.select, blueprint.delete and ui_state.request)
+    /// ビルドメニューの型付きコマンド（Web の build_menu.select・blueprint.delete・ui_state.request の写し）。結果は実装がトーストへ渡す
+    /// Typed build-menu commands (port of Web build_menu.select, blueprint.delete and ui_state.request); the implementation hands results to the toaster
     /// </summary>
     public interface IBuildMenuCommands
     {
-        UiCommandResult SelectEntry(Guid targetId);
-        UniTask<UiCommandResult> DeleteBlueprint(Guid blueprintGuid);
-        UiCommandResult Close();
+        void SelectEntry(Guid targetId);
+        void DeleteBlueprint(Guid blueprintGuid);
+        void Close();
     }
 }

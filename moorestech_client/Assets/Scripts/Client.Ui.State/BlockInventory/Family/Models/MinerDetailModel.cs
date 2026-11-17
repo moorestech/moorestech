@@ -16,7 +16,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
     public sealed class MinerDetailModel : IMinerDetailModel, IInitializable
     {
         private readonly OpenBlockDetailTracker _tracker;
-        private readonly AnomalyReportGate _gearAnomalyGate = new();
+        private readonly AnomalyReportGate _gearAnomalyGate = new("[MinerDetailModel] ", "; treated as electric", LogType.Error);
         private readonly ReactiveProperty<SectionContent<MinerDetail>> _current = new(SectionContent<MinerDetail>.Absent);
 
         public IReadOnlyReactiveProperty<SectionContent<MinerDetail>> Current => _current;
@@ -39,7 +39,7 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 追跡ブロックが無いとき区画は無い（閉と同じ） / 追跡替えの購読で直ちに組み直す
             if (block == null)
             {
-                _gearAnomalyGate.Clear();
+                _gearAnomalyGate.Observe(null);
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
@@ -52,15 +52,14 @@ namespace Client.Ui.State.BlockInventory.Family.Models
             // silent-ok: 採掘機でない・状態詳細が揃う前は区画が無い（Web ホストと同じ） / 状態詳細の更新で組み直す
             if (miner == null || common == null || param is not IMinerParam minerParam)
             {
-                _gearAnomalyGate.Clear();
+                _gearAnomalyGate.Observe(null);
                 _current.Value = SectionContent<MinerDetail>.Absent;
                 return;
             }
             // 歯車の異常は同じ間 1 回だけ出す
             // Report gear anomaly once while it persists
             var gear = GearDriveConversion.Read(block, param);
-            var anomaly = gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null;
-            if (_gearAnomalyGate.ShouldReport(anomaly)) Debug.LogError($"[MinerDetailModel] {anomaly}; treated as electric");
+            _gearAnomalyGate.Observe(gear.TryGetAnomaly(out var anomalyText) ? anomalyText : null);
             _current.Value = SectionContent<MinerDetail>.Present(FamilyDetailConversion.Miner(miner, common, minerParam, gear.IsGearDriven));
         }
     }

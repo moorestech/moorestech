@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Modal.Logic;
@@ -17,9 +18,13 @@ namespace Client.Tests.Ui.State.Modal
         {
             var service = new ModalRequestService();
             var result = service.RequestModal("確認", "本文", "OK", ModalVariant.Confirm);
-            var commands = new ModalCommands(service);
+            var toaster = new RecordingUiCommandResultToaster();
+            var commands = new ModalCommands(service, toaster);
 
-            Assert.AreSame(UiCommandAccepted.Instance, commands.Respond(ModalResponse.Confirm(service.Pending, "")));
+            commands.Respond(ModalResponse.Confirm(service.Pending, ""));
+            Assert.AreEqual(1, toaster.Reports.Count);
+            Assert.AreEqual(ModalCommands.RespondCommandName, toaster.Reports[0].CommandName);
+            Assert.AreSame(UiCommandAccepted.Instance, toaster.Reports[0].Result);
             Assert.AreEqual(UniTaskStatus.Succeeded, result.Status);
             Assert.IsNull(service.Pending);
         }
@@ -30,10 +35,13 @@ namespace Client.Tests.Ui.State.Modal
             var service = new ModalRequestService();
             service.RequestModal("確認", "本文", "OK", ModalVariant.Confirm).Forget();
             var request = service.Pending;
-            var commands = new ModalCommands(service);
+            var toaster = new RecordingUiCommandResultToaster();
+            var commands = new ModalCommands(service, toaster);
             commands.Respond(ModalResponse.Cancel(request));
 
-            var rejected = (UiCommandRejected)commands.Respond(ModalResponse.Cancel(request));
+            commands.Respond(ModalResponse.Cancel(request));
+            Assert.AreEqual(2, toaster.Reports.Count);
+            var rejected = (UiCommandRejected)toaster.Reports[1].Result;
             Assert.AreEqual(UiCommandRejectReason.ModalResponseStale, rejected.Reason);
             Assert.AreEqual("no_pending_modal", rejected.ToWireCode());
             Assert.IsTrue(UiCommandRejectReasonTable.Get(rejected.Reason).IsBenign);

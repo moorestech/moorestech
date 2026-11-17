@@ -9,7 +9,6 @@ using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.SlotCommands.Block;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -29,13 +28,13 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         private readonly List<Label> _perMinuteNumbers = new();
         private readonly GameContentPresentation _content;
 
-        public MachineInventoryBody(GameContentPresentation content, IBlockSlotCommands commands, UiCommandResultToaster toaster)
+        public MachineInventoryBody(GameContentPresentation content, IBlockSlotCommands commands)
         {
             name = "machine-inventory-body";
             pickingMode = PickingMode.Ignore;
             _content = content;
-            _processRow = new MachineProcessRow(content, commands, toaster);
-            _moduleBand = new MachineModuleBand(content, commands, toaster);
+            _processRow = new MachineProcessRow(content, commands);
+            _moduleBand = new MachineModuleBand(content, commands);
             _stack.pickingMode = PickingMode.Ignore;
             _stack.AddToClassList(UiLayoutClass.StackAlignCenter);
             _perMinuteRows.pickingMode = PickingMode.Ignore;

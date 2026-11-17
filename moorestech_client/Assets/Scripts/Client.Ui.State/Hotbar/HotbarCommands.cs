@@ -3,6 +3,7 @@ using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.UIState;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Hotbar.Logic;
+using Client.Ui.State.Toast;
 
 namespace Client.Ui.State.Hotbar
 {
@@ -16,22 +17,28 @@ namespace Client.Ui.State.Hotbar
 
         private readonly ClientHotbarDatastore _datastore;
         private readonly UIStateControl _uiStateControl;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public HotbarCommands(ClientHotbarDatastore datastore, UIStateControl uiStateControl)
+        public HotbarCommands(ClientHotbarDatastore datastore, UIStateControl uiStateControl, IUiCommandResultToaster toaster)
         {
             _datastore = datastore;
             _uiStateControl = uiStateControl;
+            _toaster = toaster;
         }
 
-        public UiCommandResult Select(int slotIndex)
+        public void Select(int slotIndex)
         {
             // 受けない状態のタップは積まずに良性の拒否を返す（Web の invalid_state と同じ。画面は列の減光で示し、ログはトースト口が出す）
             // A tap in a non-accepting state is not queued and returns a benign rejection (Web invalid_state; the row dims and the toaster logs it)
             // UiScreen に無い状態（GameScreen・PlaceBlock）なので UIStateEnum を読む（A-248）
             // These states (GameScreen, PlaceBlock) are not in UiScreen, so read UIStateEnum (A-248)
-            if (!HotbarSelectRule.Accepts(_uiStateControl.CurrentState)) return UiCommandRejected.Of(UiCommandRejectReason.HotbarSelectNotAccepted);
+            if (!HotbarSelectRule.Accepts(_uiStateControl.CurrentState))
+            {
+                _toaster.Report(SelectCommandName, UiCommandRejected.Of(UiCommandRejectReason.HotbarSelectNotAccepted));
+                return;
+            }
             _datastore.EnqueueSelectRequest(slotIndex);
-            return UiCommandAccepted.Instance;
+            _toaster.Report(SelectCommandName, UiCommandAccepted.Instance);
         }
 
         public void Drop(HotbarDragSource source, HotbarDropTarget target)

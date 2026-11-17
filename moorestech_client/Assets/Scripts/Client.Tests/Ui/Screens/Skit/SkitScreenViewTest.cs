@@ -27,7 +27,7 @@ namespace Client.Tests.Ui.Screens.Skit
         {
             _commands = new RecordingSkitCommands();
             _cursorApplier = new FakeUiOsCursorApplier();
-            _view = Mount(new SkitScreenView(_commands, Toaster, new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f))));
+            _view = Mount(new SkitScreenView(_commands, new UiOsCursorRequestStack(_cursorApplier, new FakeUiScreenPointer(1f))));
         }
 
         /// <web-test file="e2e/tests/skit.spec.ts">blocking skit reveals, advances, and selects by choiceId</web-test>

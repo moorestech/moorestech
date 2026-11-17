@@ -6,7 +6,6 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Modal.Logic;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -21,18 +20,16 @@ namespace Client.Ui.Screens.Modal
     {
         private readonly ModalRequest _request;
         private readonly IModalCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly IObservable<Unit> _backdropClicked;
         private readonly FormButton _button;
         private bool _confirmable;
         private string _confirmedText;
         private IDisposable _backdropSubscription;
 
-        public ModalView(ModalRequest request, IModalCommands commands, UiCommandResultToaster toaster, IObservable<Unit> backdropClicked)
+        public ModalView(ModalRequest request, IModalCommands commands, IObservable<Unit> backdropClicked)
         {
             _request = request;
             _commands = commands;
-            _toaster = toaster;
             _backdropClicked = backdropClicked;
             AddToClassList("modal-view");
 
@@ -120,7 +117,7 @@ namespace Client.Ui.Screens.Modal
 
         private void Respond(ModalResponse response)
         {
-            _toaster.Report(ModalCommands.RespondCommandName, _commands.Respond(response));
+            _commands.Respond(response);
         }
     }
 }

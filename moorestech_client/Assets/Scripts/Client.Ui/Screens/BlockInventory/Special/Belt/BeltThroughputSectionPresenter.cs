@@ -1,5 +1,5 @@
 using Client.Input.ArrowKeys;
-using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Logic.Belt;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special;
@@ -14,7 +14,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
     /// ベルトの流量の区画の Presenter。詳細と ←/→ を Attach から Detach まで購読し、窓の選択（既定 180・端で止まる）と出し入れ（IsApplicable）を持つ（Web BeltThroughputSection の useState と keydown）
     /// Presenter of the belt throughput section; subscribes to details and ←/→ from Attach to Detach, owning the window choice (default 180, stops at the ends) and visibility (Web useState and keydown)
     /// </summary>
-    public sealed class BeltThroughputSectionPresenter : IBlockInventorySection
+    public sealed class BeltThroughputSectionPresenter : BlockInventorySectionBase
     {
         private readonly BeltThroughputSectionView _view;
         private readonly ISpecialBlockDetailModel _model;
@@ -22,12 +22,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
         private readonly UiRoutingState _routing;
         private readonly IBlockInventoryPanelSource _panelSource;
         private readonly BeltWindowCursor _cursor = new();
-        private readonly ReactiveProperty<bool> _isApplicable = new(false);
-        private readonly CompositeDisposable _subscriptions = new();
         private BeltThroughputDetail _belt;
 
-        public VisualElement Root => _view;
-        public IReadOnlyReactiveProperty<bool> IsApplicable => _isApplicable;
+        public override VisualElement Root => _view;
 
         public BeltThroughputSectionPresenter(BeltThroughputSectionView view, ISpecialBlockDetailModel model, IHorizontalArrowKeySource arrowKeys, UiRoutingState routing, IBlockInventoryPanelSource panelSource)
         {
@@ -38,26 +35,24 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
             _panelSource = panelSource;
         }
 
-        public void Attach(OpenBlockInventoryPanel panel)
+        public override void Attach(OpenBlockInventoryPanel panel)
         {
             // 詳細の変化と矢印の押下を Detach まで聞く
             // Listen to detail changes and arrow presses until Detach
-            _model.Current.Subscribe(detail =>
+            AddSubscription(_model.Current.Subscribe(detail =>
             {
                 _belt = detail.TryGetBelt(out var belt) ? belt : null;
                 Draw();
-            }).AddTo(_subscriptions);
-            _arrowKeys.OnArrowPressed.Subscribe(OnArrowPressed).AddTo(_subscriptions);
+            }));
+            AddSubscription(_arrowKeys.OnArrowPressed.Subscribe(OnArrowPressed));
         }
 
-        public void Detach()
+        protected override void ResetSectionStateOnDetach()
         {
-            // 外れたら窓と適用可否を既定へ戻す
-            // Reset window and applicability when detached
-            _subscriptions.Clear();
+            // 外れたら窓を既定へ戻す（購読の解除と適用可否は基底が戻す）
+            // Reset the window when detached (the base unsubscribes and resets applicability)
             _cursor.Reset();
             _belt = null;
-            _isApplicable.Value = false;
         }
 
         private void OnArrowPressed(HorizontalArrowKey key)
@@ -75,8 +70,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Belt
             // 窓が選べなければ出さない（Web の selected 無しの return null）。出し入れは親の SetItemShown（D-23）
             // Hide when no window can be selected (Web returns null without a selection); the parent's SetItemShown applies it (D-23)
             BeltThroughputWindow selected = null;
-            _isApplicable.Value = _belt != null && BeltThroughputLogic.TrySelectBeltWindow(_belt.Windows, _cursor.SelectedTicks, out selected);
-            if (_isApplicable.Value) _view.Render(BeltThroughputLogic.RowDisplay(selected), _belt.RecentSecondBars());
+            var applicable = _belt != null && BeltThroughputLogic.TrySelectBeltWindow(_belt.Windows, _cursor.SelectedTicks, out selected);
+            SetApplicable(applicable);
+            if (applicable) _view.Render(BeltThroughputLogic.RowDisplay(selected), _belt.RecentSecondBars());
         }
     }
 }

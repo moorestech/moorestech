@@ -17,8 +17,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// </summary>
     public sealed class RocketLaunchPadTitleActionView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
-        public const string CommandName = "rocket_launch_pad.command";
-
         private readonly SpecialViewKit _kit;
         private readonly Dictionary<RocketCommand, PanelActionButton> _buttons = new();
 
@@ -54,7 +52,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             {
                 var created = new PanelActionButton($"rocket-launch-pad-{source.Command.ToString().ToLowerInvariant()}", new UiText(source.LabelKey), _kit.OsCursor);
 
-                created.OnClicked.Subscribe(_ => _kit.Run(CommandName, _kit.Commands.SendRocketCommand(source.Command)));
+                created.OnClicked.Subscribe(_ => _kit.Commands.SendRocketCommand(source.Command));
                 Add(created);
                 return created;
             }

@@ -2,7 +2,6 @@ using Client.Tests.Ui.State.Recipe;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.Recipe;
 using Client.Ui.Screens.Recipe.Parts;
-using Client.Ui.State.Commands;
 using Client.Ui.State.Recipe.Screen;
 using System.Reflection;
 using NUnit.Framework;
@@ -33,7 +32,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void 長押しで到達ごとにクラフトし可否が偽になったら止まる()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 2)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 2)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
 
             simulate.MouseDown(button.worldBound.center);
@@ -55,7 +54,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void 押下後にボタンの外へ出ると止まり経過が0に戻る()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
 
             simulate.MouseDown(button.worldBound.center);
@@ -71,7 +70,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         public void 保持中に作れるまま描き直しても長押しは切れず経過も続く()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 1, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             simulate.MouseDown(view.Q<RecipeActionButton>().worldBound.center);
 
             // 初回の経過は 0〜上限 0.25 秒のどれでもよいように数える（5 フレームで高々 0.65 秒）
@@ -87,10 +86,9 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         }
 
         [Test]
-        public void 拒否はトーストへ渡り1フレームの経過は上限で頭打ち()
+        public void 長押しの1フレームの経過は上限で頭打ちになる()
         {
-            _commands.SetResult(UiCommandRejected.Of(UiCommandRejectReason.RecipeLocked));
-            var view = Mount(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 0.3, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(RecipeFixtures.RecipeGuid(1), 0.3, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             simulate.MouseDown(view.Q<RecipeActionButton>().worldBound.center);
 
             // 1 フレームで 1 秒進めても 0.25 秒だけ進み、次の 0.1 秒で 0.3 秒に届いて 1 回
@@ -99,13 +97,12 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             Assert.IsEmpty(_commands.Crafted);
             simulate.FrameUpdateMs(100);
             Assert.AreEqual(1, _commands.Crafted.Count);
-            Assert.AreEqual(1, ShownToasts.Count);
         }
         [Test]
         public void 他ボタンを押したまま左だけ離すとchordedな移動で止まる()
         {
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(Toaster, _commands, _selection)));
+            var view = Mount(new CraftRecipeEntryView(CraftVm(guid, 0.4, true, false, Material(1, 1, 9)), Context(_commands, _selection)));
             var button = view.Q<RecipeActionButton>();
             simulate.MouseDown(button.worldBound.center);
             simulate.FrameUpdateMs(100);
@@ -136,7 +133,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             // 閉じるとエントリが木から外れて長押しが止まる（Web は画面を出るとアンマウント。Task 6 レビューの申し送り b）
             // Hiding detaches the entry and stops the hold (the Web unmounts on leaving the screen; Task 6 review follow-up b)
             var guid = RecipeFixtures.RecipeGuid(1);
-            var view = Mount(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = Mount(new RecipeViewerView(Context(_commands, _selection)));
             view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();
             var button = view.Q<RecipeActionButton>($"craft-button-{guid}");

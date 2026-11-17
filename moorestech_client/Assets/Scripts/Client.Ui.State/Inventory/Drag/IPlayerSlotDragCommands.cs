@@ -1,4 +1,3 @@
-using Client.Ui.State.Commands;
 using Client.Ui.State.Inventory.Actions;
 
 namespace Client.Ui.State.Inventory.Drag
@@ -11,6 +10,6 @@ namespace Client.Ui.State.Inventory.Drag
     {
         void BeginSplitDrag(PlayerSlotRef slot);
         void EnterWithLeftButton(PlayerSlotRef slot);
-        UiCommandResult EnterWithRightButton(PlayerSlotRef slot);
+        void EnterWithRightButton(PlayerSlotRef slot);
     }
 }

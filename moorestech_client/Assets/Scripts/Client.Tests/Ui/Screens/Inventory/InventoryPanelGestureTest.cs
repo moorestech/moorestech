@@ -40,7 +40,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             _texture = new Texture2D(4, 4) { hideFlags = HideFlags.DontSave };
             _fixture = new InventoryScreenFixture(36, 3, Toaster);
             var content = new GameContentPresentation(new FakeContentTextureSource(_texture, _texture, _texture));
-            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_fixture.Commands, Toaster), new RecordingInventorySortCommands(), content, Toaster, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view = Mount(new InventoryView(new PlayerSlotGestureRouter(_fixture.Commands), new RecordingInventorySortCommands(), content, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
             _view.SetShown(true);
             _fixture.Model.Current.Subscribe(_view.Render);
         }

@@ -6,7 +6,6 @@ using Client.Ui.Foundation.Theme;
 using Client.Ui.Screens.BlockInventory.Parts.Rows;
 using Client.Ui.State.Items;
 using Client.Ui.State.SlotCommands.Block;
-using Client.Ui.State.Toast;
 using UniRx;
 using UnityEngine.UIElements;
 
@@ -24,17 +23,15 @@ namespace Client.Ui.Screens.BlockInventory.Parts
         private readonly string _testId;
         private readonly IBlockSlotCommands _commands;
         private readonly GameContentPresentation _content;
-        private readonly UiCommandResultToaster _toaster;
         private readonly SlotGrid _grid;
         private readonly KeyedRowList<int, ItemSlot> _slots = new();
         private int _inventoryColumns;
 
-        public BlockItemGrid(string testId, IBlockSlotCommands commands, GameContentPresentation content, UiCommandResultToaster toaster)
+        public BlockItemGrid(string testId, IBlockSlotCommands commands, GameContentPresentation content)
         {
             _testId = testId;
             _commands = commands;
             _content = content;
-            _toaster = toaster;
             _grid = new SlotGrid(testId, 1);
             Add(_grid);
             AddToClassList(ClassName);
@@ -71,7 +68,7 @@ namespace Client.Ui.Screens.BlockInventory.Parts
                 {
                     var slot = new ItemSlot($"{_testId}-slot-{index}");
                     var capturedIndex = index;
-                    slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, _toaster, capturedIndex, gesture));
+                    slot.OnSlotGestured.Subscribe(gesture => BlockSlotGestureCommands.Run(_commands, capturedIndex, gesture));
                     _grid.AddItem(slot);
                     _slots.Add(index, slot);
                 }

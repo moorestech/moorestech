@@ -1,6 +1,5 @@
 using Client.Ui.Foundation.Modal;
 using Client.Ui.State.Modal;
-using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
 
@@ -15,15 +14,13 @@ namespace Client.Ui.Screens.Modal
         private readonly UiModalHost _host;
         private readonly ModalRequestService _service;
         private readonly IModalCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private string _shownRequestId;
 
-        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, UiCommandResultToaster toaster)
+        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands)
         {
             _host = host;
             _service = service;
             _commands = commands;
-            _toaster = toaster;
         }
 
         public void Initialize()
@@ -47,7 +44,7 @@ namespace Client.Ui.Screens.Modal
             // silent-ok: 同じ要求の通知の重なりは描き直さない（入力中の文を守る） / 新しい要求は ID が変わるので ModalScreenPresenterTest「新しい要求は…」が見る
             if (pending.Id == _shownRequestId) return;
             _shownRequestId = pending.Id;
-            _host.Show(new ModalView(pending, _commands, _toaster, _host.OnBackdropClicked));
+            _host.Show(new ModalView(pending, _commands, _host.OnBackdropClicked));
         }
     }
 }

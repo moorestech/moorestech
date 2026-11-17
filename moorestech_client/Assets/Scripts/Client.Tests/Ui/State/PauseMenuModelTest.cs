@@ -3,6 +3,7 @@ using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Ui.State.PauseMenu;
 using NUnit.Framework;
+using Client.Tests.Ui.State.Toast;
 
 namespace Client.Tests.Ui.State
 {
@@ -20,7 +21,7 @@ namespace Client.Tests.Ui.State
         {
             var service = new PauseMenuStateService();
             var model = PauseMenuModelTestFactory.Create(service);
-            var commands = PauseMenuCommandsTestFactory.Create(service);
+            var commands = PauseMenuCommandsTestFactory.Create(service, new RecordingUiCommandResultToaster());
             Assert.AreEqual(PauseMenuPage.Top, model.Current.Value.Page);
 
             commands.ShowPage(PauseMenuPage.Settings);

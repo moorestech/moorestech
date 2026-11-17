@@ -53,7 +53,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void 解放で並びが変わると同じ要素のまま長押しは止まり押し直しで再開する()
         {
-            var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new RecipeViewerView(Context(_commands, _selection)));
             var guid = RecipeFixtures.RecipeGuid(2);
             view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();
@@ -86,7 +86,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
             // The detach ends the hold, so it does not rely on the release arriving (Task 6 review follow-up; overrides D-34)
             // 1 回の所要は 1 秒にし、離す前の経過（高々 0.35＋0.25 秒）でクラフトしないようにする
             // Use a 1 s cycle so the time before the release (at most 0.35 + 0.25 s) never crafts
-            var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new RecipeViewerView(Context(_commands, _selection)));
             var guid = RecipeFixtures.RecipeGuid(2);
             view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();
@@ -108,7 +108,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         {
             // 前方追加で押したボタンが下へずれ、元の位置で離すと離しは別のボタンへ落ちる。それでもクラフトが続かない
             // A front unlock shifts the pressed button down, so a release at the old spot lands elsewhere; crafting still does not continue
-            var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new RecipeViewerView(Context(_commands, _selection)));
             var guid = RecipeFixtures.RecipeGuid(2);
             view.Render(Selected(7, CraftVm(guid, 1, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();
@@ -132,7 +132,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         {
             // 本番の組み立て（RecipeViewModelFactory.BuildViewer）で「B だけ → A・B」の VM を作る。A は B より前に並ぶレシピ
             // Build "B only -> A and B" with the production factory; A sorts before B
-            var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new RecipeViewerView(Context(_commands, _selection)));
             var a = RecipeFixtures.Craft(RecipeFixtures.RecipeGuid(1), 7, 1, 0.4, RecipeFixtures.Amount(1, 1));
             var b = RecipeFixtures.Craft(RecipeFixtures.RecipeGuid(2), 7, 1, 0.4, RecipeFixtures.Amount(1, 1));
             var owned = new Dictionary<ItemId, int> { { new ItemId(1), 9 } };
@@ -149,7 +149,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         [Test]
         public void Enterで長押し中に並びが変わると止まる()
         {
-            var view = MountInRules(new RecipeViewerView(Context(Toaster, _commands, _selection)));
+            var view = MountInRules(new RecipeViewerView(Context(_commands, _selection)));
             var guid = RecipeFixtures.RecipeGuid(2);
             view.Render(Selected(7, CraftVm(guid, 0.4, true, false, Material(1, 1, 9))));
             simulate.FrameUpdate();

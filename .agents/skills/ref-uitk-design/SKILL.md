@@ -115,12 +115,12 @@ public sealed class IconButton : VisualElement
 |---|---|
 | `S/Client.Ui.State/<機能>/<機能>ViewModel.cs` | 不変 sealed。判別 union は抽象基底＋sealed 派生 |
 | `S/Client.Ui.State/<機能>/<機能>Model.cs` | `IReadOnlyReactiveProperty<<機能>ViewModel> Current`（源を購読して作る） |
-| `S/Client.Ui.State/<機能>/I<機能>Commands.cs`・`<機能>Commands.cs` | 型付きコマンド。`UiCommandResult` を返し、拒否は理由 enum とログ |
+| `S/Client.Ui.State/<機能>/I<機能>Commands.cs`・`<機能>Commands.cs` | 型付きコマンド。ctor で `IUiCommandResultToaster` を受け、結果（`UiCommandResult`。拒否は理由 enum とログ）を自分で `Report` する。操作の戻り値は `void` |
 | `S/Client.Ui/Screens/<機能>/<機能>ScreenPresenter.cs`（HUD は `<名>HudPresenter`） | 起動時に 1 回マウント・ルータで表示を切替・表示中だけ Model を購読。判断を持たない |
-| `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report` |
+| `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。Toaster を持たない |
 | `S/Client.Ui/Screens/<機能>/<機能>.uss` | 配置とつまみの上書きだけ |
 
-- Commands は結果を返すだけで、トーストは呼び手の View が `UiCommandResultToaster.Report` で出す。Commands 内で Report してよいのは分割ドラッグ（`PlayerSlotDragCommands`。呼び手の View が居ない）と列車の編集（`TrainPlatformEditCommands`・`TrainTimetableEditCommands`／`Session`。閉じた後に戻った拒否もトーストする。S4-train D-39・D-40）だけ（設計書 A-262）
+- トーストは結果を作る Commands が `IUiCommandResultToaster.Report` で出し、View は Report しない（入口を足しても Report を書き忘れないため）。テストは偽物 `RecordingUiCommandResultToaster` に届いた結果を見る
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない
 - View は C# で組む。UXML と UI Builder は使わない
 - 出し分けは `UiRoutingState` と `UiScreenTraitsTable` で決め、画面の開閉を読む State は `<機能>ScreenVisibility.IsShown` を通す。`UiScreen` に無い状態だけ `UIStateEnum` を読み、その行に理由を 1 行書く（設計書 A-248）

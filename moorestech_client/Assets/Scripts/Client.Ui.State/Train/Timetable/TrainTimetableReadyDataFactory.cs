@@ -68,10 +68,10 @@ namespace Client.Ui.State.Train.Timetable
                     var unknownSide = $"[TrainTimetableModel] discarding timetable with unknown side: {timetable.TrainUnitInstanceId}";
                     if (!_unknownSideGates.TryGetValue(timetable.TrainUnitInstanceId, out var unknownSideGate))
                     {
-                        unknownSideGate = new AnomalyReportGate();
+                        unknownSideGate = new AnomalyReportGate("", "", LogType.Error);
                         _unknownSideGates[timetable.TrainUnitInstanceId] = unknownSideGate;
                     }
-                    if (unknownSideGate.ShouldReport(unknownSide)) Debug.LogError(unknownSide);
+                    unknownSideGate.Observe(unknownSide);
                     // 捨てた時刻表は欠けの比較の元にしない。届き直したら同じ欠けでも警告し直す
                     // A discarded timetable is no baseline for missing stations, so a re-delivered one warns again even with the same set
                     _lastWarnedMissingStationPositions.Remove(timetable.TrainUnitInstanceId);

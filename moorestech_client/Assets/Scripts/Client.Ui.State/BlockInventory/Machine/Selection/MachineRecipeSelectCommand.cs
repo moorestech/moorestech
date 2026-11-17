@@ -3,6 +3,7 @@ using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Commands;
+using Client.Ui.State.Toast;
 using Cysharp.Threading.Tasks;
 using Game.UnlockState;
 using Server.Protocol.PacketResponse;
@@ -21,15 +22,33 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
         private readonly IBlockInventoryPanelSource _panelSource;
         private readonly IMachineSectionModel _machine;
         private readonly IGameUnlockStateData _unlockState;
+        private readonly IUiCommandResultToaster _toaster;
 
-        public MachineRecipeSelectCommand(IBlockInventoryPanelSource panelSource, IMachineSectionModel machine, IGameUnlockStateData unlockState)
+        public MachineRecipeSelectCommand(IBlockInventoryPanelSource panelSource, IMachineSectionModel machine, IGameUnlockStateData unlockState, IUiCommandResultToaster toaster)
         {
             _panelSource = panelSource;
             _machine = machine;
             _unlockState = unlockState;
+            _toaster = toaster;
         }
 
-        public async UniTask<UiCommandResult> Select(Guid recipeGuid)
+        // 戻り値は無い。結果は届いてからトーストへ渡す
+        // No return value; the result is reported to the toaster when it arrives
+        public void Select(Guid recipeGuid)
+        {
+            SelectAsync().Forget();
+
+            #region Internal
+
+            async UniTaskVoid SelectAsync()
+            {
+                _toaster.Report(CommandName, await SendSelection(recipeGuid));
+            }
+
+            #endregion
+        }
+
+        private async UniTask<UiCommandResult> SendSelection(Guid recipeGuid)
         {
             // 送れない要求は非良性の拒否で返す（Web と同じくトーストする。GUID はここでログへ出す。D-38）
             // Requests that cannot go return a non-benign rejection (toasts like Web; the GUID is logged here; D-38)

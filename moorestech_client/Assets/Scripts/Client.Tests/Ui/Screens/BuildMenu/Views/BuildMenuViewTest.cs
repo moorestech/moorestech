@@ -1,6 +1,5 @@
 using System.Linq;
 using Client.Tests.Ui.Screens.BuildMenu.Support;
-using Client.Ui.State.Commands;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Screens.BuildMenu.Support.BuildMenuSamples;
@@ -62,26 +61,6 @@ namespace Client.Tests.Ui.Screens.BuildMenu.Views
 
             Assert.AreEqual(10, CategoryButtons().Length);
             Assert.IsNull(View.Q<Button>($"build-menu-category-{EmptyCategory:D}"));
-        }
-
-        [Test]
-        public void 良性でない削除の失敗だけをトーストする()
-        {
-            OpenMenu(Create());
-            simulate.Click(CategoryButton(Blueprint));
-            Settle();
-
-            // BP が既に無いのは良性（Web の BENIGN_ERRORS）。要求の失敗はトーストする
-            // A blueprint already gone is benign (the Web BENIGN_ERRORS); a failed request is toasted
-            Commands.SetDeleteResult(UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteNotFound));
-            simulate.Click(Entry("blueprint", StarterBase), MouseButton.RightMouse);
-            Settle();
-            Assert.AreEqual(0, ShownToasts.Count);
-
-            Commands.SetDeleteResult(UiCommandRejected.Of(UiCommandRejectReason.BlueprintDeleteRequestFailed));
-            simulate.Click(Entry("blueprint", StarterBase), MouseButton.RightMouse);
-            Settle();
-            Assert.AreEqual(1, ShownToasts.Count);
         }
     }
 }

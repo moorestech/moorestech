@@ -3,32 +3,23 @@ using Client.Ui.Screens.BuildMenu.Parts;
 using Client.Ui.State.BuildMenu.Commands;
 using Client.Ui.State.BuildMenu.Entries;
 using Client.Ui.State.BuildMenu.Session;
-using Client.Ui.State.Toast;
-using Cysharp.Threading.Tasks;
 
 namespace Client.Ui.Screens.BuildMenu
 {
     /// <summary>
-    /// マス操作を型付きコマンドへ流し、結果をトーストへ
-    /// Routes slot operations to typed commands, results to toasts, and hovers to the detail and session
+    /// マス操作を型付きコマンドへ流し、ホバーを詳細とセッションへ
+    /// Routes slot operations to typed commands and hovers to the detail and session
     /// </summary>
     public sealed class BuildMenuEntryActions : IBuildMenuEntryHandler
     {
-        // トーストのログに出す名前は Web の action 名に揃える
-        // Names logged with toasts match the Web action names
-        private const string SelectCommandName = "build_menu.select";
-        private const string DeleteCommandName = "blueprint.delete";
-
         private readonly IBuildMenuCommands _commands;
-        private readonly UiCommandResultToaster _toaster;
         private readonly BuildMenuSessionStore _session;
         private readonly BuildMenuDetailSidebar _detail;
         private BuildMenuViewModel _viewModel = BuildMenuViewModel.Empty;
 
-        public BuildMenuEntryActions(IBuildMenuCommands commands, UiCommandResultToaster toaster, BuildMenuSessionStore session, BuildMenuDetailSidebar detail)
+        public BuildMenuEntryActions(IBuildMenuCommands commands, BuildMenuSessionStore session, BuildMenuDetailSidebar detail)
         {
             _commands = commands;
-            _toaster = toaster;
             _session = session;
             _detail = detail;
         }
@@ -41,22 +32,12 @@ namespace Client.Ui.Screens.BuildMenu
 
         public void OnEntrySelected(Guid targetId)
         {
-            _toaster.Report(SelectCommandName, _commands.SelectEntry(targetId));
+            _commands.SelectEntry(targetId);
         }
 
         public void OnBlueprintDeleteRequested(Guid targetId)
         {
-            DeleteBlueprintAsync().Forget();
-
-            #region Internal
-
-            async UniTaskVoid DeleteBlueprintAsync()
-            {
-                var result = await _commands.DeleteBlueprint(targetId);
-                _toaster.Report(DeleteCommandName, result);
-            }
-
-            #endregion
+            _commands.DeleteBlueprint(targetId);
         }
 
         public void OnEntryHovered(Guid targetId)

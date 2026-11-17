@@ -112,20 +112,21 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         {
             _operations.SetGrab(new SlotItem(Wood, 10));
 
-            var first = _commands.EnterWithRightButton(PlayerSlotRef.Main(3));
-            var second = _commands.EnterWithRightButton(PlayerSlotRef.Main(4));
+            _commands.EnterWithRightButton(PlayerSlotRef.Main(3));
+            _commands.EnterWithRightButton(PlayerSlotRef.Main(4));
 
-            Assert.IsInstanceOf<UiCommandAccepted>(first);
-            Assert.IsInstanceOf<UiCommandAccepted>(second);
+            // 受理はトーストを出さない
+            // Acceptances show no toast
+            Assert.IsEmpty(_shownToasts);
             Assert.AreEqual(new[] { "Grab->Main:3 x1", "Grab->Main:4 x1" }, _operations.Moves.ToArray());
         }
 
         [Test]
         public void 何も持っていない右ボタンの進入は何もしない()
         {
-            var result = _commands.EnterWithRightButton(PlayerSlotRef.Main(3));
+            _commands.EnterWithRightButton(PlayerSlotRef.Main(3));
 
-            Assert.IsInstanceOf<UiCommandAccepted>(result);
+            Assert.IsEmpty(_shownToasts);
             Assert.IsEmpty(_operations.Moves);
         }
     }

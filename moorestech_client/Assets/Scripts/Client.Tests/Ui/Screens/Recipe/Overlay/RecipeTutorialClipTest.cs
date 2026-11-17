@@ -83,7 +83,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Overlay
         public void レシピ列のクリップ境界は最下段までスクロールしても逃げぶん離れる()
         {
             var entries = ManyCrafts(8);
-            var view = Mount(new RecipeViewerView(Context(Toaster, new RecordingRecipeCommands(), Selection)));
+            var view = Mount(new RecipeViewerView(Context(new RecordingRecipeCommands(), Selection)));
             view.Render(Selected(7, entries));
             simulate.FrameUpdate();
             simulate.FrameUpdate();

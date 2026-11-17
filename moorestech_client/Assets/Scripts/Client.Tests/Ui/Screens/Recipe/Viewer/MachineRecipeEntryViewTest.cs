@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.Screens.Recipe.Viewer
         {
             _commands = new RecordingRecipeCommands();
             _selection = new RecipeItemSelection();
-            _context = Context(Toaster, _commands, _selection);
+            _context = Context(_commands, _selection);
 
             // 機械名の言語追従を見るため英日の名前を合成する（基底が英語にした後。言語の切り替えでは合成は消えない）
             // Compose English/Japanese names to observe the machine-name follow (after the base picks English; switching language keeps the merge)
