@@ -80,7 +80,10 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
                 var blockSize = (Vector3)MasterHolder.BlockMaster.GetBlockMaster(FindBlockIdByName(blockName)).BlockSize;
                 var center = playerPosition + forward * BlockCenterDistanceFromPlayer;
-                return Vector3Int.FloorToInt(new Vector3(center.x - blockSize.x / 2f, playerPosition.y, center.z - blockSize.z / 2f));
+                // ワープ直後は着地前のことがあるため、高さはプレイヤーでなく足場の上面で決める
+                // The player may not have landed right after the warp, so the height comes from the scaffold top, not the player
+                var groundTopY = PlaytestSetup.GroundCenter.y + PlaytestSetup.GroundSize.y / 2f;
+                return Vector3Int.FloorToInt(new Vector3(center.x - blockSize.x / 2f, groundTopY, center.z - blockSize.z / 2f));
             }
 
             #endregion

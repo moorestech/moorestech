@@ -30,8 +30,10 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         {
             // 網再構築と配置のdirty更新を競合させない
             // Keep placement dirty flags from racing the transport network rebuild
-            Chest = PlaceBlock("量子チェスト", _machinePosition + Vector3Int.back * 2, BlockDirection.North);
-            Belt = PlaceBlock("直進高速ベルトコンベア", _machinePosition + Vector3Int.back, BlockDirection.North);
+            // プレイヤーは機械の南に立つため西から東向きに流す。足元に置くと押し出されて機械の届く範囲を外れる
+            // The player stands south of the machine, so feed eastward from the west; placing under the player shoves them out of the machine's reach
+            Chest = PlaceBlock("量子チェスト", _machinePosition + Vector3Int.left * 2, BlockDirection.East);
+            Belt = PlaceBlock("直進高速ベルトコンベア", _machinePosition + Vector3Int.left, BlockDirection.East);
             if (Chest == null || Belt == null)
             {
                 Debug.LogError($"[MachineInputStallFeedSetupStep] 搬送元の配置に失敗しました machine:{_machinePosition} chest:{Chest != null} belt:{Belt != null}");
