@@ -401,8 +401,8 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 書き直した（S3-ladder。GameUi・Web とも緑） |
 | `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除した（S3-ladder。後継 extend-chain は GameUi で緑） |
 | `misc/fps-tps-view-toggle-via-ui.cs` | 削除済みの uGUI 型（CrosshairView）を参照 | 3 | S3-ladder | 移植した（S3-ladder。CrosshairVisibility と crosshair の照会。GameUi・Web とも緑） |
-| `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除（ADR 0038 で研究 1〜3 が消え、役目が終わった） |
-| `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 現行の研究 GUID へ書き直す（研究ツリーの UITK 化の後に流す） |
+| `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除した（post-allrec。ADR 0038 で研究 1〜3 が消え、役目が終わった） |
+| `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 書き直した（post-allrec。根→子→孫の研究をマスタから選び、期待のラベルは Localize から引く） |
 
 ## 見た目の例外
 
