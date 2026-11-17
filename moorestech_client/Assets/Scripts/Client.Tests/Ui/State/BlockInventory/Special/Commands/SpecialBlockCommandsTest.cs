@@ -57,8 +57,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             var result = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.BlockTypeMismatch, result.Reason);
             Assert.AreEqual("invalid_block_type", result.ToWireCode());
-            Assert.AreNotEqual(UiCommandRejectReasonTraits.ToLocalizationKey(UiCommandRejectReason.BlockNotOpen).Key, UiCommandRejectReasonTraits.ToLocalizationKey(result.Reason).Key);
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(result.Reason));
+            Assert.AreNotEqual(UiCommandRejectReasonTable.Get(UiCommandRejectReason.BlockNotOpen).LocalizationKey.Key, UiCommandRejectReasonTable.Get(result.Reason).LocalizationKey.Key);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(result.Reason).IsBenign);
             CollectionAssert.IsEmpty(_sender.Sent);
         }
 
@@ -74,7 +74,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             _operations.SetGrab(new SlotItem(ItemMaster.EmptyItemId, 0));
             var noop = _commands.SetFilterItem(2, 1, false).GetAwaiter().GetResult() as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.FilterSplitterGrabEmpty, noop.Reason);
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(noop.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(noop.Reason).IsBenign);
             Assert.AreEqual(2, _sender.Sent.Count);
         }
 
@@ -100,13 +100,13 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             _sender.SetNextOutcome(SpecialBlockRequestOutcome.Stale("rocket_command_not_awaiting_build"));
             var stale = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.SpecialBlockCommandStale, stale.Reason);
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(stale.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(stale.Reason).IsBenign);
             Assert.AreEqual("rocket_command_not_awaiting_build", stale.ToWireCode());
 
             _sender.SetNextOutcome(SpecialBlockRequestOutcome.Failed("rocket_command_missing_materials"));
             var failed = _commands.SendRocketCommand(RocketCommand.Build).GetAwaiter().GetResult() as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.SpecialBlockRequestFailed, failed.Reason);
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(failed.Reason));
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(failed.Reason).IsBenign);
             Assert.AreEqual("rocket_command_missing_materials", failed.ToWireCode());
         }
 

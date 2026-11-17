@@ -52,7 +52,7 @@ namespace Client.Ui.State.BlockInventory.Machine.Selection
 
             UiCommandResult Reject(UiCommandRejectReason reason, string serverReason)
             {
-                Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTraits.ToWireCode(reason)} recipe={recipeGuid} server={serverReason}");
+                Debug.LogWarning($"[{CommandName}] rejected: {UiCommandRejectReasonTable.Get(reason).WireCode} recipe={recipeGuid} server={serverReason}");
                 return UiCommandRejected.Of(reason);
             }
 

@@ -38,7 +38,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
             var refused = (UiCommandRejected)new BlockInventoryPanelCommands(requester).Close();
             Assert.AreEqual(UiCommandRejectReason.ScreenCloseRefused, refused.Reason);
             Assert.AreEqual("transition_not_allowed", refused.ToWireCode());
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(refused.Reason));
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(refused.Reason).IsBenign);
         }
     }
 }

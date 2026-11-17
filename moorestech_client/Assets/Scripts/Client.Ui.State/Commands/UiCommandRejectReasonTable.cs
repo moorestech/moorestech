@@ -10,8 +10,16 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public sealed class UiCommandRejectReasonRow
     {
+        // 状態を変えない再選択・受理外のタップ・古い応答・空の掴みのフィルタ設定などは良性でトーストに出さない
+        // Re-selections, non-accepting taps, stale replies and filter sets with an empty grab are benign and never toast
         public bool IsBenign { get; }
+
+        // ログと録画の照合に使う既定の失敗コード。拒否ごとの上書きは UiCommandRejected.ToWireCode が優先する
+        // Default failure code for logs and recording checks; UiCommandRejected.ToWireCode prefers a per-rejection override
         public string WireCode { get; }
+
+        // トーストに出す文言。失敗コードは利用者に意味が通じないので表示には使わない
+        // Message shown in the toast; the failure code means nothing to players, so it is never displayed
         public LocalizationKey LocalizationKey { get; }
 
         public UiCommandRejectReasonRow(bool isBenign, string wireCode, LocalizationKey localizationKey)

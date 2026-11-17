@@ -48,7 +48,7 @@ namespace Client.Tests.Ui.State
 
             Assert.AreEqual(1, _shown.Count);
             Assert.AreEqual(GameUiToastVariant.Error, _shown[0].Variant);
-            Assert.AreEqual(Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(UiCommandRejectReason.UnknownLanguage)), _shown[0].Text);
+            Assert.AreEqual(Localize.Get(UiCommandRejectReasonTable.Get(UiCommandRejectReason.UnknownLanguage).LocalizationKey), _shown[0].Text);
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace Client.Tests.Ui.State
             // 診断はログだけに載る（A-260）
             // Diagnostic rides only in the log (A-260)
             var rejected = UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainStationNameFailed, "DuplicateName");
-            Assert.AreEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.TrainStationNameFailed), rejected.ToWireCode());
+            Assert.AreEqual(UiCommandRejectReasonTable.Get(UiCommandRejectReason.TrainStationNameFailed).WireCode, rejected.ToWireCode());
             LogAssert.Expect(LogType.Warning, $"[UiCommandResultToaster] train_station.set_name failed: {rejected.ToWireCode()} (DuplicateName)");
             _toaster.Report("train_station.set_name", rejected);
             Assert.AreEqual(1, _shown.Count);

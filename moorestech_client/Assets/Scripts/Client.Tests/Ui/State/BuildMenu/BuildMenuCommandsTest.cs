@@ -73,8 +73,8 @@ namespace Client.Tests.Ui.State.BuildMenu
 
             Assert.AreEqual("invalid_state", closed.ToWireCode());
             Assert.AreEqual("unknown_entry", unknown.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(closed.Reason));
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(unknown.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(closed.Reason).IsBenign);
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(unknown.Reason).IsBenign);
             Assert.IsFalse(_selection.TryConsumeSelectedTarget(out _));
         }
 
@@ -87,7 +87,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             var result = (UiCommandRejected)CreateCommands(deleteResult).DeleteBlueprint(Guid.NewGuid()).GetAwaiter().GetResult();
 
             Assert.AreEqual(wireCode, result.ToWireCode());
-            Assert.AreEqual(benign, UiCommandRejectReasonTraits.IsBenign(result.Reason));
+            Assert.AreEqual(benign, UiCommandRejectReasonTable.Get(result.Reason).IsBenign);
         }
 
         [Test]
@@ -124,7 +124,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             Assert.IsEmpty(_requester.Requested);
             Assert.AreEqual(UiCommandRejectReason.BuildMenuNotOpen, closed.Reason);
             Assert.AreEqual("invalid_state", closed.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(closed.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(closed.Reason).IsBenign);
         }
 
         [Test]
@@ -140,7 +140,7 @@ namespace Client.Tests.Ui.State.BuildMenu
             CollectionAssert.AreEqual(new[] { UIStateEnum.GameScreen }, _requester.Requested);
             Assert.AreEqual(UiCommandRejectReason.ScreenCloseRefused, refused.Reason);
             Assert.AreEqual("transition_not_allowed", refused.ToWireCode());
-            Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(refused.Reason));
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(refused.Reason).IsBenign);
         }
 
         private BuildMenuCommands CreateCommands(BlueprintDeleteResult deleteResult)

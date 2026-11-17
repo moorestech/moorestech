@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.State.Commands
             var benign = new[] { UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReason.ItemSourceSlotEmpty, UiCommandRejectReason.ItemSourceCountShort, UiCommandRejectReason.SplitGrabNotEmpty, UiCommandRejectReason.SpecialBlockCommandStale, UiCommandRejectReason.FilterSplitterGrabEmpty, UiCommandRejectReason.BuildMenuNotOpen, UiCommandRejectReason.UnknownBuildMenuEntry, UiCommandRejectReason.BlueprintDeleteNotFound, UiCommandRejectReason.HotbarSelectNotAccepted, UiCommandRejectReason.ModalResponseStale };
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
-                Assert.AreEqual(0 <= System.Array.IndexOf(benign, reason), UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
+                Assert.AreEqual(0 <= System.Array.IndexOf(benign, reason), UiCommandRejectReasonTable.Get(reason).IsBenign, reason.ToString());
             }
         }
 
@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.State.Commands
             Localize.Initialize();
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
-                var text = Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(reason));
+                var text = Localize.Get(UiCommandRejectReasonTable.Get(reason).LocalizationKey);
                 Assert.IsNotEmpty(text, reason.ToString());
                 StringAssert.DoesNotContain("_", text, $"{reason} の文言が失敗コードのまま");
                 StringAssert.DoesNotStartWith("[!", text, $"{reason} の翻訳キーが辞書に無い");

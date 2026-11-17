@@ -73,7 +73,7 @@ namespace Client.Tests.Ui.State.Inventory.Drag
 
             Assert.AreEqual(reason, rejected.Reason);
             Assert.AreEqual(wireCode, rejected.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(rejected.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(rejected.Reason).IsBenign);
         }
 
         [Test]
@@ -109,7 +109,7 @@ namespace Client.Tests.Ui.State.Inventory.Drag
 
             Assert.AreEqual(UiCommandRejectReason.SplitGrabNotEmpty, result.Reason);
             Assert.AreEqual("grab_not_empty", result.ToWireCode());
-            Assert.IsTrue(UiCommandRejectReasonTraits.IsBenign(result.Reason));
+            Assert.IsTrue(UiCommandRejectReasonTable.Get(result.Reason).IsBenign);
         }
 
         [Test]
@@ -155,9 +155,9 @@ namespace Client.Tests.Ui.State.Inventory.Drag
         [TestCase(UiCommandRejectReason.SplitDragNoValidSlots, "no_valid_slots", false)]
         public void 足した拒否理由の良性とWebの失敗コードはWebのBENIGN_ERRORSと同じ(UiCommandRejectReason reason, string wireCode, bool benign)
         {
-            Assert.AreEqual(wireCode, UiCommandRejectReasonTraits.ToWireCode(reason));
-            Assert.AreEqual(benign, UiCommandRejectReasonTraits.IsBenign(reason));
-            Assert.DoesNotThrow(() => UiCommandRejectReasonTraits.ToLocalizationKey(reason));
+            Assert.AreEqual(wireCode, UiCommandRejectReasonTable.Get(reason).WireCode);
+            Assert.AreEqual(benign, UiCommandRejectReasonTable.Get(reason).IsBenign);
+            Assert.IsNotEmpty(UiCommandRejectReasonTable.Get(reason).LocalizationKey.Key);
         }
     }
 }

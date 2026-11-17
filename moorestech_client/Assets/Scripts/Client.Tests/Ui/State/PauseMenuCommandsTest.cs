@@ -58,7 +58,7 @@ namespace Client.Tests.Ui.State
             // 送信手続きの失敗コードはそのまま返る
             // Submitter failure code is returned as is
             Assert.IsNotEmpty(rejected.ToWireCode());
-            Assert.AreNotEqual(UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.CaptureRefused), rejected.ToWireCode());
+            Assert.AreNotEqual(UiCommandRejectReasonTable.Get(UiCommandRejectReason.CaptureRefused).WireCode, rejected.ToWireCode());
             Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
         }
 
@@ -90,7 +90,7 @@ namespace Client.Tests.Ui.State
         {
             // 理由表は Client.Game を参照しないので綴りを写している。送信手続き側の改名で黙ってずれないよう見張る
             // The reason table does not reference Client.Game and copies the spelling; guard it against a silent drift on the submitter side
-            Assert.AreEqual(BugReportSubmitResult.BundleWriteFailed, UiCommandRejectReasonTraits.ToWireCode(UiCommandRejectReason.BundleWriteFailed));
+            Assert.AreEqual(BugReportSubmitResult.BundleWriteFailed, UiCommandRejectReasonTable.Get(UiCommandRejectReason.BundleWriteFailed).WireCode);
         }
 
         private static UiCommandRejected AssertRejected(UiCommandResult result, UiCommandRejectReason expected)
