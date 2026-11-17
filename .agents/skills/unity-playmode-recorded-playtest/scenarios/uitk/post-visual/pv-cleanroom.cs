@@ -59,11 +59,14 @@ return PlaytestRunner.Run("pv-cleanroom", options, async p =>
     for (var x = 3; x <= 7; x++) cells.Add(new Vector3Int(x, 33, 10));
     cells.Add(new Vector3Int(3, 33, 4));
     var placed = 0;
+    // 切断機は切断機の南から、清浄機は切断機に視線を遮られない清浄機の南西から開く
+    // Open the cutter from its south and the purifier from its south-west where the cutter cannot block the view
+    var (cutterStand, filterStand) = (new Vector3(5.5f, 33.5f, 5.4f), new Vector3(7.5f, 33.5f, 4.5f));
     IBlock firstFilter = null;
 
     // 4. 清浄機 0 台の精密切断機
     // 4. The cutter with no purifiers
-    await OpenAndShoot(new Vector3(5.5f, 33.4f, 7.1f), "4-block-cleanRoomMachineNoFilters");
+    await OpenAndShoot(cutterStand, new Vector3(5.5f, 33.4f, 7.1f), "4-block-cleanRoomMachineNoFilters");
 
     // 5. 台数ごとに清浄機と精密切断機を撮る
     // 5. Shoot the purifier and the cutter at each count
@@ -77,17 +80,17 @@ return PlaytestRunner.Run("pv-cleanroom", options, async p =>
         await p.WaitBlockGameObject(cells[placed - 1]);
         await p.WaitForCleanRoom(firstFilter, false, 15f, $"清浄機 {count} 台の部屋が検出された");
         await p.WaitSeconds(2f);
-        if (filterId != null) await OpenAndShoot(new Vector3(8.5f, 33.5f, 6.5f), filterId);
-        if (machineId != null) await OpenAndShoot(new Vector3(5.5f, 33.4f, 7.1f), machineId);
+        if (filterId != null) await OpenAndShoot(filterStand, new Vector3(8.5f, 33.5f, 6.5f), filterId);
+        if (machineId != null) await OpenAndShoot(cutterStand, new Vector3(5.5f, 33.4f, 7.1f), machineId);
     }
 
     #region Internal
 
-    // 精密切断機の南（室内）に立ち、Alt のカーソル照準で狙った物を開いて撮り、Escape で閉じる
-    // Stand south of the cutter inside the room, open the aimed block via the Alt cursor, shoot, close with Escape
-    async UniTask OpenAndShoot(Vector3 aim, string shotId)
+    // 室内の立つ位置に立ち、Alt のカーソル照準で狙った物を開いて撮り、Escape で閉じる
+    // Stand at the given spot inside the room, open the aimed block via the Alt cursor, shoot, close with Escape
+    async UniTask OpenAndShoot(Vector3 stand, Vector3 aim, string shotId)
     {
-        p.WarpPlayer(new Vector3(5.5f, 33.5f, 5.4f));
+        p.WarpPlayer(stand);
         await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, $"床パネルの上に着地（y={p.PlayerPosition.y:F2}）");
         SemanticInput.KeyDown(Key.LeftAlt);
         // 前の撮影で左端へ寄せたカーソルが Alt の照準になるので、画面の中央へ戻す
