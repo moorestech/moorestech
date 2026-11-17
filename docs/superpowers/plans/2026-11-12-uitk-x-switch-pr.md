@@ -10,6 +10,20 @@
 
 設計の出所: 実行計画 `docs/uitk-migration/execution/execution-plan.md` §1.5 の X-switch-pr 行（完了条件の原文:「`feature/uitk` 上の Web コミットを `捨てた` で記帳し `check-uitk-web-follow.py --base origin/master --head feature/uitk` 0 件。全束 `切替済み`・全行 `UITK`。G4 緑。Windows/Mac ビルド・Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh`、CEF の無いビルドでラダー 6 本と全録画、IME 一巡。焼くのは `feature/uitk` の HEAD の SHA（`release-playtest.sh` の既定の `origin/master` を使わない）。playtest-staging へのアップロードは裁定の『切替 PR の中の検証』の範囲として行い、playtest への反映（moores-playtest-release の手順 3 以降）はユーザーのマージ後の X-release でだけ行う。pr-create（head=`feature/uitk`、base=master）・pr-independent-review。目視とマージはユーザー。検証中に master の Web 更新が入ったら I-follow で写して再検証」）・§4.3（末尾「X-switch-pr は master への PR で、pr-create まで」）・§5・§7 の U-4、統合計画 `docs/uitk-migration/plan.md` §2.6（切替 PR の作り方）・§4.4（ラダー）・§4.7（G1 の走り方・G4）・§4.9（IME と実機）・§5.1（完了の定義）・§7.4、裁定 `.decisions/2026-11-06-*.md` の 7 本、配布の手順 `.agents/skills/moores-playtest-release/SKILL.md`・`scripts/playtest/README.md`、ADR `docs/adr/0072-remote-exec-in-distributed-builds.md`（完了条件 3 点）と前例 `docs/research/2026-10-26-remote-exec-own-listener-windows.md`、IME の前例 `~/share/2026-10-28-uitk-s9-ime-result/s9-ime-win-report.md`（§2〜§4）と `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-c2b-ime-mac-keys.sh`。
 
+## 2026-11-17 の改訂（先に読む。本文と食い違えばこの節が勝つ）
+
+起草後に `feature/uitk` へ入ったもの: X-5a #1683（5a〜5d と 5e のコード改名を 1 PR に畳んだ。裁定 `.decisions/2026-11-16-UITK撤去5aから5dと5eのコード改名を1レーン1PRで行う.md`）・X-5e-docs #1677（5e の文書・スキル・ADR）・I-fix7 #1681・S4-allrec #1675・S5-ladder #1674。X-prerun・X-5b〜X-5d の別レーンは無い。起点 HEAD は `1e071c1157`。
+
+1. **R-1 の読み替え**: 「X-5a〜X-5e・X-prerun の done.md が完了」→「`$H/X-5a/done.md`・`$H/X-5e-docs/done.md` の 1 行目が『状態: 完了』で、#1683・#1677 が `feature/uitk` にマージ済み」。X-prerun は前提にしない。5b〜5d の削除表・申し送りは `$H/X-5a/done.md` の「## 5b」「## 5c」「## 5d」節にある（X-5d の名前の一覧は `$H/X-5a/done.md` の `### client（61 名）`・`### server（17 名）`）。`moorestech-wwxy` が OPEN でも止まらない（R-20 の 10 本は事後確認へ）
+2. **R-9 全録画は流さない**（ユーザー裁定 2026-11-16「じゃあ打ち切りで」。`.decisions/2026-11-16-UITK段階4の全録画の撮り直しは打ち切り切替PRの後の事後確認へ回す.md`）。R-20 の「壊れている 10 本が全録画で PASS」も同じ。どちらも `done.md`「事後確認へ回すもの」へ。Task 7 は Step 1（ラダー 6 本）だけ。X-prerun の基準（`PRERUN_HEAD`・物差し `prerun-smoke-shots`・W6-6 の撮り比べ。Task 1 Step 6 の X-prerun の部分・Step 12・Task 6 Step 1b）は X-prerun が無いので行わず事後確認へ
+3. **R-6 のレビューは moores-code-review を 1 回だけ**（Task 5 と Task 13 を 1 回に畳む。範囲は R-6 の feature 側のコミット）。opus の評価役 2 体の独立判定（Task 5 Step 2・3）は行わない。各レーンの PR は個別に moores-code-review 済み
+4. **1 時間ルール**: どの要件も 1 時間以上詰まったら事後確認へ回して先へ進む（指揮の決定）
+5. **R-14 の Mac の Steam**: 起点で Mac mini の Steam はベータ `playtest-staging` に入り `appmanifest_1958160.acf` は `StateFlags 4`・`buildid 26516593`（インストール済み）。Task 1 Step 8b の「ユーザーへの依頼」は要らない。Steam の操作は cua-driver で行う
+6. **Unity**: Mac mini は Editor 1 本（このレーンの worktree）。Windows は `~/bin/winunity`（GUI Editor の job は gui-pool-1/2 の 2 本まで同時。winunity が待たせる）。独立した作業（Windows のテスト・Mac のラダー・配布ビルド）は並列に流してよい（ユーザー「なんで90分もかかるの。いまぱっと並行してやれば良いんじゃないの」）。winunity の `--ui-system` は付けない。Windows で全録画や事後確認を流す前提（PlayerPrefs の言語・SprintInputMode の削除）は要らない
+7. **ラダーの実際のパス**（Task 1 Step 4 の実測）: `S/uitk/stage1/uitk-lifeline.cs`・`S/uitk/stage2/uitk-opening-hud.cs`・`S/uitk/stage3/uitk-build-bp.cs`・`S/uitk/stage4/ladder/uitk-production-loop.cs`・`S/uitk/stage4/research/uitk-research-train.cs`・`S/uitk/stage5/uitk-challenge-gate.cs`（運転役 `exhibition-mode-run.sh <project> <scenario.cs>`。系の引数は無い）
+8. **やらないこと（再掲）**: playtest への反映（promote）とパッチノート、台帳と G1 の workflow の削除、切替 PR のマージ
+9. **5c の削除コミット**: `a4988176fb`（`moorestech_web` 削除。X-5a の done.md「integrator への依頼（5c）」）
+
 ## Requirements
 
 | # | 要件 | 受け入れ基準 |
