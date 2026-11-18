@@ -27,8 +27,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
         // Only a family with both up and down slopes may use slopes
         public bool AllowsSlopes => Family.UpBlockId.HasValue && Family.DownBlockId.HasValue;
 
-        // 経路設置に入るのはファミリーの直線ブロックで分岐器でないものだけ。坂と分岐器は単発設置（ADR 0102）
-        // Only a family's straight, non-splitter block enters route placement; slopes and splitters are placed singly (ADR 0102)
+        // 経路設置は分岐器でない直線だけ（ADR 0102）
+        // Route placement takes only straight, non-splitter blocks (ADR 0102)
         public static bool IsRoutePlacementBlock(BlockId blockId)
         {
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)) return false;

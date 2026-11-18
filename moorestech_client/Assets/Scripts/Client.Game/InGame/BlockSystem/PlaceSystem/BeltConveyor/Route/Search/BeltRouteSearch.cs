@@ -39,8 +39,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         // Reported by the caller's log when there is no route
         public int Expansions { get; private set; }
 
-        // 終点状態は直線と下り坂の2つ。Runごとに決まり呼び手も共用
-        // Two goal states, straight and down slope; fixed per Run and shared with callers
+        // 終点状態は直線と下り坂の2つ
+        // Two goal states: straight and down slope
         public BeltRouteState Goal { get; private set; }
         public BeltRouteState DownGoal { get; private set; }
 

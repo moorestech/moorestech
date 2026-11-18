@@ -40,8 +40,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute.World
         public void MarkBlockCell(Vector3Int cell) => _blockCells.Add(cell);
         public void MarkSlopeHead(Vector3Int cell) => _slopeHeads.Add(cell);
         public void AddOutputEdge(BeltRouteEdge edge) => BeltRouteFaceBits.Mark(edge, _outputFaceBits);
-        // 探索は入力辺を読まない。入力辺を読むのは分岐判定の BeltRouteNeighbourEdges だけ（ADR 0102）
-        // The search never reads input edges; only the branch judge's BeltRouteNeighbourEdges does (ADR 0102)
+        // 探索は入力辺を読まない（読むのは分岐判定だけ）
+        // The search never reads input edges; only the branch judge does
         public void AddInputEdge(BeltRouteEdge edge) { }
 
         public bool IsBlockedByBlock(Vector3Int cell) => !Contains(cell) || _blockCells.Contains(cell);

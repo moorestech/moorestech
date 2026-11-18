@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             hit = default;
             if (!PlaceSystemUtil.TryGetFootprintGroundedRayHitBlockPosition(camera, heightOffset, keyDirection, holdingMaster, feedback, out var cell, out var surfaceType)) return false;
 
-            // 地面はキーの向き。天面・底面は面の向きが決まらないのでキーの向きのまま
-            // Ground keeps the key's heading; top and bottom faces fix no heading, so the key's stays
+            // 地面・天面・底面はキーの向き
+            // Ground, top and bottom keep the key's heading
             if (surfaceType == null)
             {
                 hit = new BeltRouteCursorHit(cell, keyDirection, null);

@@ -59,8 +59,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 case BlockPlacementTarget block:
                 {
-                    // 直線ベルトだけ経路設置へ。坂・分岐器と残りは通常ブロック（ADR 0102）
-                    // Only straight belts go to route placement; slopes, splitters and the rest are common blocks (ADR 0102)
+                    // 直線ベルトだけ経路設置、残りは通常ブロック
+                    // Straight belts route; the rest are common blocks
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                     return blockMaster.BlockType switch
                     {
