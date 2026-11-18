@@ -18,7 +18,10 @@ await PlaytestSetup.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnP
 // Raise the test scaffold above terrain loaded asynchronously
 GameObject.Find("PlaytestFlatGround").transform.position = new Vector3(0f, 300f, 0f);
 GameObject.Find("PlaytestFlatGround").transform.localScale = new Vector3(100f, 4f, 100f);
-await PlaytestSkitOps.SkipOpeningSkit(30f, 15f);
+// 開幕スキットはデバッグ設定 SkitPlaySettings（共用 Editor では他の本が立てて残る）で流れないことがあるので、流れていれば飛ばす
+// The opening skit may not play under the SkitPlaySettings debug flag (left set by other runs on a shared Editor), so skip it only if playing
+await PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+await PlaytestUiOps.WaitUiState(UIStateEnum.GameScreen, 15f);
 SemanticInput.EnsureDevices();
 // Editorの背景入力制限だけを一時解除し、終了時に元へ戻す
 // Temporarily relax only Editor background input restrictions, restoring them at the end
