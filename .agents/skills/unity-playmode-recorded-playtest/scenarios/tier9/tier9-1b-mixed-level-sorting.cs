@@ -1,5 +1,5 @@
-// ダイシングの出力のような Lv1/Lv2 の混ざったダイが届くとパッケージングが止まって理由を出し、フィルター分岐器で仕分けると両方流れることを確かめる
-// Mixed Lv1/Lv2 dies (like dicing output) stall packaging with a shown reason; sorting with a filter splitter lets both flow
+// ダイシングの出力のような Lv1/Lv2 の混ざったダイが届くと電気精密組立機（パッケージング）が止まって理由を出し、フィルター分岐器で仕分けると両方流れることを確かめる
+// Mixed Lv1/Lv2 dies (like dicing output) stall the electric precision assembler (packaging) with a shown reason; sorting with a filter splitter lets both flow
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,29 +40,26 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     // Terrain (mesas, rocks) pokes through the scaffold and skews aim and view, so stop its display and spawning like cleanroom-room-usability
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
-    p.WarpPlayer(new Vector3(6.5f, 33.2f, 1.5f));
-    var ipaId = MasterHolder.FluidMaster.GetFluidId(MasterHolder.FluidMaster.Fluids.Data.First(f => f.Name == "イソプロピルアルコール").FluidGuid);
+    p.WarpPlayer(new Vector3(6.5f, 32.5f, 1.5f));
     var consumers = new List<IBlock>();
     await p.RunOnServer("研究を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "半導体製造の研究が完了扱いになった");
-    // 部屋の中にパッケージング2台を並べる。A の入口 (5,33,6) の手前、B の入口 (8,33,6) の手前に搬入路を作る
-    // Place two packaging machines in the room; feed paths end in front of A's inlet (5,33,6) and B's inlet (8,33,6)
-    p.Note("クリーンルームにパッケージング装置 A・B を置き、給電する");
-    await BuildRoom();
-    var packagingA = await Place("パッケージング装置", new Vector3Int(4, 33, 6));
-    var packagingB = await Place("パッケージング装置", new Vector3Int(7, 33, 6));
-    var packagingRecipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == packagingA.BlockMasterElement.BlockGuid).MachineRecipeGuid;
+    // パッケージングはクリーンルーム外の電気精密組立機（7x4x5・南面に入口4つ）なので地面に2台並べる。A の東端の入口 (5,32,6)、B の西端の入口 (8,32,6) の手前に搬入路を作る
+    // Packaging is the electric precision assembler outside the clean room (7x4x5, four south inlets), so two sit on the ground; feed paths end in front of A's east inlet (5,32,6) and B's west inlet (8,32,6)
+    p.Note("電気精密組立機 A・B を置き、給電する");
+    var packagingA = await Place("電気精密組立機", new Vector3Int(-1, 32, 6));
+    var packagingB = await Place("電気精密組立機", new Vector3Int(8, 32, 6));
+    var dieLv1Guid = MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId("シリコンダイLv1")).ItemGuid;
+    var packagingRecipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == packagingA.BlockMasterElement.BlockGuid && r.InputItems.Any(i => i.ItemGuid == dieLv1Guid)).MachineRecipeGuid;
     foreach (var machine in new[] { packagingA, packagingB }) await SelectRecipe(machine, packagingRecipe);
-    foreach (var x in new[] { 11, 12 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 8)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.WaitForCleanRoom(packagingA, true, 30f, "クリーンルームが判定された");
     foreach (var machine in new[] { packagingA, packagingB }) await Give(machine, 1, "ICチップ基板", 20);
     // A の継承元に Lv1 を置き、分岐器→ベルトで Lv2 を届けると止まって理由が出る。ベルトへの押し込みは tick 内だけ受け付けるので、分岐器（block 更新で押す）へ入れる
     // With Lv1 in A's source slot, Lv2 via splitter -> belt stalls it with a reason; belts accept pushes only in-tick, so items go into the splitter (it pushes during block updates)
-    p.Note("パッケージングA に Lv1 ダイを置き、分岐器とベルトで Lv2 ダイを届ける");
+    p.Note("組立機A に Lv1 ダイを置き、分岐器とベルトで Lv2 ダイを届ける");
     await Give(packagingA, 0, "シリコンダイLv1", 1);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 33, 5), BlockDirection.North);
-    var splitter = (await p.PlaceBlockDirect("フィルター分岐器", new Vector3Int(6, 33, 5), BlockDirection.North)).GetComponent<VanillaFilterSplitterComponent>();
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 32, 5), BlockDirection.North);
+    var splitter = (await p.PlaceBlockDirect("フィルター分岐器", new Vector3Int(6, 32, 5), BlockDirection.North)).GetComponent<VanillaFilterSplitterComponent>();
     p.Assert(splitter.DirectionCount == 3, $"フィルター分岐器の方向数が3（{splitter.DirectionCount}）");
     await AllowOnly(splitter, 0, "シリコンダイLv1", "シリコンダイLv2");
     await p.WaitSeconds(0.5f);
@@ -77,16 +74,16 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     // 止まっていた Lv2 はベルトごと撤去し、B への搬入路を足して、分岐器の -x 側（A）は Lv1 だけ、+x 側（B）は Lv2 だけを通す
     // Remove the stuck Lv2 with its belt, add the path to B, and let the splitter's -x (A) pass only Lv1 and +x (B) only Lv2
     p.Note("フィルター分岐器で Lv1 を A、Lv2 を B へ仕分ける");
-    await p.RemoveBlock(new Vector3Int(5, 33, 5));
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 33, 5), BlockDirection.North);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(7, 33, 5), BlockDirection.East);
-    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(8, 33, 5), BlockDirection.North);
+    await p.RemoveBlock(new Vector3Int(5, 32, 5));
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 32, 5), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(7, 32, 5), BlockDirection.East);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(8, 32, 5), BlockDirection.North);
     await AllowOnly(splitter, 0, "シリコンダイLv1");
     await AllowOnly(splitter, 2, "シリコンダイLv2");
     p.Note($"分岐器の設定: {splitter.GetBlueprintSettingsJson()}");
     await p.WaitSeconds(0.5f);
     foreach (var die in Enumerable.Range(0, 19).Select(i => i % 2 == 0 ? "シリコンダイLv2" : "シリコンダイLv1")) await InsertIntoSplitter(die);
-    // 両方のパッケージングが本当に ICチップを作り、A の止まった理由は消える
+    // 両方の組立機が本当に ICチップを作り、A の止まった理由は消える
     // Both packaging machines really make IC chips and A's stall reason clears
     await p.Until(() => Count(packagingA, "ICチップLv1") >= 1 && Count(packagingB, "ICチップLv2") >= 1, 90f, "仕分けた後に Lv1 と Lv2 の ICチップが両方出た");
     p.Assert(Count(packagingA, "ICチップLv2") == 0 && Count(packagingB, "ICチップLv1") == 0, "A は Lv1 だけ、B は Lv2 だけを作った");
@@ -109,15 +106,11 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
     async UniTask InsertIntoSplitter(string die)
     {
-        // 分岐器が空くまで tick 末尾で入れ直し、そのたびにパッケージングの IPA タンクも満たす（パイプ注入は流体網の複製と食い違うため直接入れる）
-        // Retry at the tick end until the splitter takes it, topping up packaging IPA tanks each time (direct, since pipe injection desyncs the fluid replica)
+        // 分岐器が空くまで tick 末尾で入れ直す
+        // Retry at the tick end until the splitter takes it
         var (rest, deadline) = (1, Time.realtimeSinceStartup + 10f);
         while (rest > 0 && Time.realtimeSinceStartup < deadline)
-            await p.RunOnServer($"分岐器へ {die} を入れる", () =>
-            {
-                rest = splitter.InsertItem(ServerContext.ItemStackFactory.Create(PlaytestItemOps.ResolveItemId(die), 1), InsertItemContext.Empty).Count;
-                foreach (var machine in new[] { packagingA, packagingB }) machine.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(100000, ipaId), default);
-            });
+            await p.RunOnServer($"分岐器へ {die} を入れる", () => rest = splitter.InsertItem(ServerContext.ItemStackFactory.Create(PlaytestItemOps.ResolveItemId(die), 1), InsertItemContext.Empty).Count);
         await p.Until(() => rest == 0, 0f, $"分岐器へ {die} を入れた");
     }
     int Count(IBlock block, string itemName) => block.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Where(s => s.Count > 0 && s.Id == PlaytestItemOps.ResolveItemId(itemName)).Sum(s => s.Count);
@@ -125,7 +118,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     {
         block.ComponentManager.TryGetComponent<IMachineRecipeSelectorComponent>(out var selector);
         var result = MachineRecipeSelectionResult.Success;
-        await p.RunOnServer("パッケージングのレシピを選ぶ", () => result = selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10)));
+        await p.RunOnServer("電気精密組立機のレシピを選ぶ", () => result = selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10)));
         p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe {recipeGuid}");
     }
     async UniTask AllowOnly(VanillaFilterSplitterComponent component, int direction, params string[] itemNames)
@@ -141,13 +134,13 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     }
     async UniTask OpenMachine(IBlock block)
     {
-        // F は射程2mなので南面の1m手前（搬入ベルトの西隣）に着地し、Alt のカーソル照準で南面を狙って開く（cleanroom-room-usability と同じ手順）
-        // F reaches 2 m, so land 1 m south of the face (west of the feed belt) and open by aiming at the south face with the Alt cursor (same as cleanroom-room-usability)
+        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開く（cleanroom-room-usability と同じ手順）
+        // F reaches 2 m, so land 1 m south of the face and open by aiming at the south face with the Alt cursor (same as cleanroom-room-usability)
         var origin = block.BlockPositionInfo.OriginalPos;
-        p.WarpPlayer(new Vector3(origin.x + 0.3f, 33.5f, origin.z - 1f));
-        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, "床パネルの板の上(y≈32.85)に着地した");
+        p.WarpPlayer(new Vector3(origin.x + 0.3f, 32.5f, origin.z - 1f));
+        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
         SemanticInput.KeyDown(Key.LeftAlt);
-        await p.AimAt(new Vector3(origin.x + 1f, 34f, origin.z + 0.5f));
+        await p.AimAt(new Vector3(origin.x + 1f, 33f, origin.z + 0.5f));
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
@@ -161,23 +154,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         while (Time.realtimeSinceStartup < deadline)
             if (!(await PlaytestUiElementOps.FindUi("machine-input-stall")).IsFound) return true; else await UniTask.Delay(200);
         return false;
-    }
-    async UniTask BuildRoom()
-    {
-        // 内寸 x1..13 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 にする
-        // Interior x1..13 / z1..9 / y33..36; the ceiling sits at y37 so the third-person camera (about 2.9 m above the feet) stays under it when opening UIs inside
-        // 床と天井の 5x1x5 のパネルは 5 の倍数の角に置き、5 で割り切れない帯（z=10）はブロックで埋める
-        // Floor and ceiling 5x1x5 panels go at multiple-of-5 corners; the leftover strip (z=10) is filled with blocks
-        var door = new Vector3Int(10, 33, 0);
-        for (var x = 0; x <= 14; x++)
-        for (var z = 0; z <= 10; z++)
-        {
-            foreach (var y in new[] { 32, 37 })
-                if (z == 10 || (x % 5 == 0 && z % 5 == 0)) await p.PlaceBlockDirect(z == 10 ? "クリーンルームブロック" : "クリーンルームパネル", new Vector3Int(x, y, z), BlockDirection.North);
-            if (x != 0 && x != 14 && z != 0 && z != 10) continue;
-            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
-        }
-        await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
     async UniTask PowerAll()
     {

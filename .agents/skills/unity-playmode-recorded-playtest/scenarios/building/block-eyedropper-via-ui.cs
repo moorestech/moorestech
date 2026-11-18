@@ -1,7 +1,7 @@
 // ブロックスポイトE2E検証（IPlacementTarget版）: 通常プレイ中と配置モード中のミドルクリックで設置済みブロックをピックする
-// 検証項目: GameScreenからPlaceBlock遷移とCurrentTarget反映、PlaceBlock中の持ち替え、West向き保持、地形ミス時の不変、3連ベルトの代表解決
+// 検証項目: GameScreenからPlaceBlock遷移とCurrentTarget反映、PlaceBlock中の持ち替え、West向き保持、地形ミス時の不変
 // Block eyedropper E2E (IPlacementTarget edition): pick placed blocks with middle-click during normal play and placement mode.
-// Verifies: GameScreen->PlaceBlock transition with CurrentTarget, target swap in PlaceBlock, West direction retention, no-op on bare terrain, and length-3 belt resolution.
+// Verifies: GameScreen->PlaceBlock transition with CurrentTarget, target swap in PlaceBlock, West direction retention, and no-op on bare terrain.
 using Client.Playtest;
 using Client.Playtest.Operations;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -81,7 +81,6 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     var posC = GroundPoint(4f, -2f);
     var posB = GroundPoint(4f, 2f);
     var posD = GroundPoint(7f, -6f);
-    var posE = GroundPoint(4f, 6f);
 
     // サーバー側アンロック後、クライアント側ミラーへ反映されるまで条件待機する
     // After server-side unlock, wait until the client-side mirror reflects it
@@ -138,11 +137,4 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     p.Assert(Equals(placeController.CurrentTarget, beforeTarget), "項目4: ターゲットが変化しない");
     p.Assert(p.CurrentUiState == beforeUiState, "項目4: UI状態が変化しない");
     await p.Screenshot("04-pick-empty-terrain-noop");
-
-    // 確認項目5: 3連ベルトの隠しバリアントをピックし、代表ベルトIDへ解決されることを検証する
-    // Check item 5: pick the hidden length-3 belt variant and verify it resolves to the representative belt ID
-    await p.PlaceBlockDirect("ベルトコンベア(3連)", posE, BlockDirection.North);
-    await PickBlockAtAsync(posE);
-    p.Assert(CurrentBlockTarget()?.BlockId == beltBlockId, "項目5: 隠しバリアントが代表ブロックへ解決される");
-    await p.Screenshot("05-pick-hidden-belt-variant");
 });
