@@ -55,11 +55,11 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     await p.RunOnServer("半導体製造と S1 の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
-    // 電気汎用工作装置を5台並べて給電し、各レシピを選んで材料を入れる
-    // Place five powered electric workshops, select each recipe and insert its inputs
-    p.Note("電気汎用工作装置5台でモジュール4種と GPULv1 のレシピを選び材料を入れる");
+    // モジュールと GPU のレシピは電気精密組立機（7x4x5）にあるので5台を 8 間隔で並べて給電し、各レシピを選んで材料を入れる
+    // The module and GPU recipes live on the electric precision assembler (7x4x5), so place five 8 apart, power them, select each recipe and insert its inputs
+    p.Note("電気精密組立機5台でモジュール4種と GPULv1 のレシピを選び材料を入れる");
     var crafters = new IBlock[productRecipes.Length];
-    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気汎用工作装置", new Vector3Int(i * 4, 32, 0), BlockDirection.North);
+    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(i * 8, 32, 0), BlockDirection.North);
     await PowerAll();
     for (var i = 0; i < productRecipes.Length; i++)
     {
@@ -70,13 +70,13 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     foreach (var crafter in crafters) await p.WaitBlockGameObject(crafter.BlockPositionInfo.OriginalPos);
     // 列の南へ着地し、設置演出が終わって機械が描画される最初の完成(品質モジュール)まで待ってから撮る
     // Land south of the row and wait for the first product (quality module), by which the placement effect has finished, then shoot
-    p.WarpPlayer(new Vector3(9.5f, 32.5f, -8f));
+    p.WarpPlayer(new Vector3(19.5f, 32.5f, -14f));
     await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
     await p.Until(() => Count(crafters[0], productRecipes[0].product) > 0, 60f, $"{productRecipes[0].product} crafted");
     await p.Screenshot("01-workshops");
 
-    // 5製品の Lv1 がそれぞれ出る（最後は GPU の機械が GPULv1 を本当に出すところ）
-    // Each of the five products comes out at Lv1 (last is the GPU workshop really producing GPULv1)
+    // 5製品の Lv1 がそれぞれ出る（最後は GPU の組立機が GPULv1 を本当に出すところ）
+    // Each of the five products comes out at Lv1 (last is the GPU assembler really producing GPULv1)
     for (var i = 0; i < productRecipes.Length; i++)
     {
         var index = i;
@@ -84,9 +84,9 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     }
     await ShootMachine(crafters[4], "02-modules-gpu");
 
-    // 製作上限 Lv1 のため ICチップLv2 は品質モジュールの工作装置へ入らない（品質モジュールLv2 の研究まで）
-    // With the craft cap at Lv1, IC chip Lv2 does not enter the quality-module workshop (until the quality module Lv2 research)
-    p.Note("製作上限 Lv1 の工作装置へ ICチップLv2 を入れて拒まれることを見る");
+    // 製作上限 Lv1 のため ICチップLv2 は品質モジュールの組立機へ入らない（品質モジュールLv2 の研究まで）
+    // With the craft cap at Lv1, IC chip Lv2 does not enter the quality-module assembler (until the quality module Lv2 research)
+    p.Note("製作上限 Lv1 の組立機へ ICチップLv2 を入れて拒まれることを見る");
     var lv2 = MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId("ICチップLv2")).ItemGuid;
     var rest = await Insert(crafters[0], lv2, 5);
     p.Assert(rest.Count == 5, "IC chip Lv2 is refused by the Lv1-capped module recipe");
@@ -108,7 +108,7 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     async UniTask<IItemStack> Insert(IBlock block, Guid itemGuid, int count)
     {
         IItemStack rest = null;
-        await p.RunOnServer($"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count} を工作装置へ入れる", () => rest = block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(ServerContext.ItemStackFactory.Create(itemGuid, count)));
+        await p.RunOnServer($"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count} を組立機へ入れる", () => rest = block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(ServerContext.ItemStackFactory.Create(itemGuid, count)));
         return rest;
     }
 
@@ -124,7 +124,7 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
         var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
         block.ComponentManager.TryGetComponent<IMachineRecipeSelectorComponent>(out var selector);
         var result = MachineRecipeSelectionResult.Success;
-        await p.RunOnServer("工作装置のレシピを選ぶ", () => result = selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), overflow));
+        await p.RunOnServer("組立機のレシピを選ぶ", () => result = selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), overflow));
         p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe {recipeGuid}");
     }
 
@@ -148,18 +148,18 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
 
     async UniTask PowerAll()
     {
-        // 発電機 → 広範囲電柱 → 工作装置5台へ配線する（結線で電力網の再構築は自動で予約される）
-        // Wire generator -> wide-range pole -> the five workshops (wiring schedules the network rebuild)
+        // 発電機 → 広範囲電柱 → 組立機5台へ配線する（結線で電力網の再構築は自動で予約される）
+        // Wire generator -> wide-range pole -> the five assemblers (wiring schedules the network rebuild)
         var generator = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-12, 32, -20), BlockDirection.North);
         var gasoline = MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"));
         var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(-2, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
         var free = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
         var wired = new List<(bool connected, string label)>();
-        await p.RunOnServer("発電機に給油して工作装置5台へ配線する", () =>
+        await p.RunOnServer("発電機に給油して組立機5台へ配線する", () =>
         {
             generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(2000, gasoline), default);
             wired.Add((ElectricWireSystemUtil.TryConnectBothSides(generator.GetComponent<IElectricWireConnector>(), pole, free), "wire generator -> pole"));
-            foreach (var crafter in crafters) wired.Add((ElectricWireSystemUtil.TryConnectBothSides(pole, crafter.GetComponent<IElectricWireConnector>(), free), "wire pole -> workshop"));
+            foreach (var crafter in crafters) wired.Add((ElectricWireSystemUtil.TryConnectBothSides(pole, crafter.GetComponent<IElectricWireConnector>(), free), "wire pole -> assembler"));
         });
         foreach (var (connected, label) in wired) p.Assert(connected, label);
     }
