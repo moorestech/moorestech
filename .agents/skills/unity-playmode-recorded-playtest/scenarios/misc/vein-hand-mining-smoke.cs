@@ -5,9 +5,11 @@ using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Core.Master;
 using Server.Protocol.PacketResponse;
@@ -21,26 +23,11 @@ var options = new PlaytestRunOptions { Record = true };
 
 return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
 {
-    // 開幕スキット終了
-    // End opening skit
-    p.Note("開幕スキット(blocking-skit)の表示を待つ");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    var skitShown = await PollUntilAsync(async () =>
-        (await PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
-    p.Assert(skitShown, "開幕スキット(blocking-skit)がWeb HUDに表示された");
-
-    // 受理されるまでSkipを試み、終了はskip自身では満たせない要素の消失で確かめる
-    // Retry Skip until accepted, then confirm the end by the element disappearing, which skip itself cannot satisfy
-    p.Note("Skipインテントで開幕スキットを飛ばす");
-    var skipAccepted = await PollUntil(() =>
-    {
-        var current = skitStore.GetCurrent();
-        return skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
-    }, 15);
-    p.Assert(skipAccepted, "開幕スキットのSkipインテントが受理された");
-    var skitGone = await PollUntilAsync(async () =>
-        !(await PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
-    p.Assert(skitGone, "開幕スキットが終了した");
+    // 開幕スキットを飛ばしてゲーム画面へ戻す（前例どおりの DSL）
+    // Skip the opening skit and return to the game screen (the precedent DSL)
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
 
     // 11種・1775件を検証
     // Verify 11 kinds and 1,775 instances
@@ -61,9 +48,8 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
 
     // 石斧を装備枠へ設定
     // Set stone axe to equipment slot
-    p.Note("石の斧をホットバー1へ入れ、装備枠1で選択する");
-    await p.GiveItemToHotbar(0, "石の斧", 1);
-    await p.SelectHotbar(0);
+    p.Note("石の斧を渡して装備枠1へ装着する");
+    await p.GiveItemDirect("石の斧", 1);
     await p.EquipItem("石の斧", 0);
 
     var stoneOutcrop = datastore.SearchNearestOutcrop(stoneVeinGuid, p.PlayerPosition);
@@ -87,7 +73,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     p.WarpPlayer(stoneOutcrop.transform.position - cameraForward * 1.4f + Vector3.up * 0.5f);
     await p.WaitSeconds(0.5f);
     await p.AimAt(stoneCollider.bounds.center);
-    await p.Until(() => ReferenceEquals(selector.Select(), stoneOutcrop), 10f, "正面照準で本番選定が石露頭と一致");
+    await p.Until(() => ReferenceEquals(selector.Scan().Primary, stoneOutcrop), 10f, "正面照準で本番選定が石露頭と一致");
 
     // 本番focus確認後だけ輪郭を表示する
     // Show the evidence outline only after production focus matches
@@ -121,7 +107,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
         p.WarpPlayer(stoneOutcrop.transform.position - angleDirection * 1.4f + Vector3.up * 0.5f);
         await p.WaitSeconds(0.5f);
         await p.AimAt(stoneCollider.bounds.center);
-        await p.Until(() => ReferenceEquals(selector.Select(), stoneOutcrop), 10f, "45度照準で本番選定が石露頭と一致");
+        await p.Until(() => ReferenceEquals(selector.Scan().Primary, stoneOutcrop), 10f, "45度照準で本番選定が石露頭と一致");
         await p.Screenshot("02-stone-outcrop-angle-focus");
 
         // 採掘後の石増加を待つ
@@ -143,28 +129,4 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
         UnityEngine.Object.Destroy(outlineObject);
         UnityEngine.Object.Destroy(outlineMaterial);
     }
-
-    #region Internal
-
-    async UniTask<bool> PollUntil(Func<bool> condition, int seconds)
-    {
-        for (var i = 0; i < seconds; i++)
-        {
-            if (condition()) return true;
-            await p.WaitSeconds(1f);
-        }
-        return condition();
-    }
-
-    async UniTask<bool> PollUntilAsync(Func<UniTask<bool>> condition, int seconds)
-    {
-        for (var i = 0; i < seconds; i++)
-        {
-            if (await condition()) return true;
-            await p.WaitSeconds(1f);
-        }
-        return await condition();
-    }
-
-    #endregion
 });

@@ -3,6 +3,7 @@ using Game.Context;
 // 検証項目: GameScreen中の電線ピック→PlaceBlock遷移+電線接続ツール選択、PlaceBlock中の列車ピック→TrainCarPlacementTargetへの持ち替え
 // Placement-pick extension E2E: middle-click eyedrops an electric wire and a train car into placement targets.
 // Verifies: wire pick in GameScreen transits to PlaceBlock with the wire connect tool, and train pick in PlaceBlock swaps to TrainCarPlacementTarget.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +23,9 @@ using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.UnlockState;
-using Mooresmaster.Model.PlaceSystemModule;
+using Game.EnergySystem;
+using Mooresmaster.Model.BuildMenuModule;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using VContainer;
 using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject;
@@ -114,15 +117,18 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
 
     var poleAPos = GroundPoint(5f, -3f);
     var poleBPos = GroundPoint(5f, 3f);
-    await p.GiveItemDirect("電線", 64);
-    await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
-    await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
+    var poleA = await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
+    var poleB = await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
     await p.WaitBlockGameObject(poleAPos);
     await p.WaitBlockGameObject(poleBPos);
 
-    // 本番プロトコルで結線しワイヤービュー生成を待つ
-    // Connect via the production protocol and wait for the client wire view with colliders
-    Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.ElectricWireExtendRequestSender.Connect(poleAPos, poleBPos, PlaytestItemOps.ResolveItemId("電線"));
+    // マスタの電線ツールでサーバー側に結線しワイヤービュー生成を待つ（ピックの検証が主目的で結線経路は問わない）
+    // Wire the poles server-side with the master's electric wire tool and wait for the client wire view (the pick is under test, not the wiring route)
+    var wireTool = MasterHolder.ConnectToolMaster.All.First(t => t.ToolType == ConnectToolMasterElement.ToolTypeConst.electricWire);
+    var freeLine = new ConnectionLineRecord(wireTool.ConnectToolGuid, Array.Empty<ConnectToolMaterialCost>());
+    var wired = false;
+    await p.RunOnServer("電柱2本を電線で結線する", () => wired = ElectricWireSystemUtil.TryConnectBothSides(poleA.GetComponent<IElectricWireConnector>(), poleB.GetComponent<IElectricWireConnector>(), freeLine));
+    p.Assert(wired, "電柱2本を電線で結線した");
     ElectricWireLineViewElement WireWithColliders() =>
         UnityEngine.Object.FindObjectsByType<ElectricWireLineViewElement>(FindObjectsSortMode.None)
             .FirstOrDefault(w => 0 < w.GetComponentsInChildren<Collider>(true).Length);
@@ -136,7 +142,7 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: 電線ピックでPlaceBlockへ遷移");
     var wireTarget = placeController.CurrentTarget as ConnectToolPlacementTarget;
     p.Assert(wireTarget != null, "項目1: CurrentTargetがConnectToolPlacementTargetになる");
-    p.Assert(wireTarget?.PlaceMode == PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect, "項目1: PlaceModeが電線接続になる");
+    p.Assert(wireTarget?.ConnectToolGuid == wireTool.ConnectToolGuid, "項目1: 接続ツールが電線になる");
     await p.Screenshot("03-pick-wire");
 
     // ===== 確認2: PlaceBlock中の列車ピック =====

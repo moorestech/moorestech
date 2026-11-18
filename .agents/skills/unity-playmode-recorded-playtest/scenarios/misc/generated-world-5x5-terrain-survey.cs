@@ -4,6 +4,7 @@
 // Looks are judged from the recording and screenshots, while seams are also measured numerically (adjacent-tile height delta) so nothing rests on eyeballing.
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using Client.Playtest;
@@ -49,7 +50,7 @@ return PlaytestRunner.Run("generated-world-5x5-terrain-survey", options, async p
     // 3: Spawn; the player stands at the handshake position with terrain underneath it
     var handshake = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>();
     var playerPosition = p.PlayerPosition;
-    var hasGround = SlopeBlockPlaceSystem.TryGetGroundPoint(playerPosition.x, playerPosition.z, out var groundPoint);
+    var hasGround = GroundHeightProbe.TryGetGroundPoint(playerPosition.x, playerPosition.z, out var groundPoint);
     p.Note($"spawn handshake={handshake.PlayerPos} player={playerPosition} ground={hasGround}/{groundPoint}");
     p.Assert(hasGround, $"自機の真下に地形がある pos={playerPosition}");
     p.Assert(Mathf.Abs(playerPosition.y - groundPoint.y) < 5f, $"自機が地表付近にいる playerY={playerPosition.y} groundY={groundPoint.y}");
@@ -255,7 +256,7 @@ return PlaytestRunner.Run("generated-world-5x5-terrain-survey", options, async p
 
     float SampleWorldHeight(Vector3 position)
     {
-        return SlopeBlockPlaceSystem.TryGetGroundPoint(position.x, position.z, out var point) ? point.y : 0f;
+        return GroundHeightProbe.TryGetGroundPoint(position.x, position.z, out var point) ? point.y : 0f;
     }
 
     // タイル境界線上を歩いて、海面(y=0付近)をまたぐ地表の点を探す
