@@ -34,12 +34,10 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
     // 1. 入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
     // 1. Input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
     var shotPrefix = "uitk";
-    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-    SemanticInput.EnsureDevices();
-    foreach (var device in new InputDevice[] { Keyboard.current, Mouse.current }) InputSystem.EnableDevice(device);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     await p.SetupFlatGround();
     await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "GameScreen");
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     var languageBefore = Localize.GetCurrentLanguageCode();
