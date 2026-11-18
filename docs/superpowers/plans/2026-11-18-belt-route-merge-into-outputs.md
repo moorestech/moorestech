@@ -371,6 +371,41 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
         }
 ```
 
+続けて、既に別のラインへ流している分岐器の、空いた出口の前を経路が通る配置も足す。ADR 0102 の「既存の接続は付け替わらない」はコードの読みだけで未実測なので、この1配置で実測する。
+
+```csharp
+        // 分岐器の西の出口は既存ラインへ繋がり、北の出口は空いている。北の出口の前を新しい経路が通っても、既存ラインへ荷物が届き続ける（ADR 0102）
+        // The splitter's west exit feeds an existing line and its north exit is free; a new route passing the north exit must leave the existing line fed (ADR 0102)
+        [Test]
+        public void RoutePassingASplitterExitKeepsTheExistingLineFed()
+        {
+            var world = BootWorld();
+            var straight = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000009");
+            var splitter = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000012");
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(3, 0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(splitter, new Vector3Int(3, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(2, 0, -1), BlockDirection.West, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(1, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(1, 0, -2), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _));
+
+            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, false);
+            var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
+            Assert.IsTrue(result.HasPlan, "no route");
+            Assert.IsTrue(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(3, 0, 0)), "route should pass in front of the splitter's free exit");
+            foreach (var cell in result.Plan.Cells)
+                Assert.IsTrue(world.TryAddBlock(straight, cell.Cell, cell.Facing, Array.Empty<BlockCreateParam>(), out _), $"placement failed at {cell}");
+
+            var source = PlaceChest(world, new Vector3Int(3, 0, -3));
+            var existingSink = PlaceChest(world, new Vector3Int(1, 0, -3));
+            var routeSink = PlaceChest(world, new Vector3Int(7, 0, 0));
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(TestItemId, 6));
+
+            Assert.IsTrue(TickUntilDelivered(existingSink, 1, routeSink, 1), $"existing:{CountOf(existingSink)} route:{CountOf(routeSink)}");
+        }
+```
+
+このテストが `existing:0` で落ちたら、新しい経路が既存の接続を奪っている。規則を戻さず、その結果をそのまま報告して止まる（ADR 0102 の前提が崩れるので、ユーザーの裁定が要る）。
+
 - [ ] **Step 4: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.PlaceSystem\.BeltRoute\..*"`
@@ -895,4 +930,4 @@ git commit -m "test: ベルト経路の出力口合流・出力口の面の向�
 - テストを足すことと `.decisions/2026-11-07-ベルト経路のテストは利用者が見る挙動を守るものだけ残す.md` の関係（agent前提）: 足すのは利用者が見る挙動（出力口の前で合流して荷物が届く・終点が下り坂になる・出力口の面で向きが決まる）を守るものだけで、同裁定の趣旨に沿う。壁時計の閾値は置かない。
 - 坂・分岐器を手持ちにした左ドラッグは、通常ブロックと同じドラッグ列になる（同じ高さに横一列）。出所: ユーザー裁定 2026-11-18 原文「他ブロックと同じように単発設置で良い」の字義（他ブロックと同じ）。ADR 0050 の「毎セル+1段の階段」は置き換え（ADR 0102 §1）。
 - セーブ形式は変えない（設置時のクライアント判定だけの変更）。マイグレーションは不要。
-- 反証検査（fresh-context・opus、2026-11-18）: Critical 1件（録画シナリオの荷物の受け渡しに入出力口の無い「木のチェスト」を使っていた → 「鉄のミニコンベアチェスト」へ修正済み）、Warning 1件（Task 1 Step 11 の grep の期待値 → 検索範囲を絞って修正済み）、設計判断 0件。反証できなかった主張: 出力口の前に置いても既存の繋がりを奪わない（サーバーは辺と同じ高さのセルを先に選び、1つ下が受け手になり得るのは坂のときだけで、その真上は坂の真上の規則で置けない）／テスト用ベルトの横入力で合流が成立する／下り坂の終点の探索・組み立て・参照ソルバの条件が一致する／出力口の面ビットの読み方。終点が出力口の面のとき R の向きにする変更（ユーザー裁定）は検査開始後に入れたもので、単体テストの期待値（終点=キーの向き）は本体が手で追って確認した。
+- 反証検査（fresh-context・opus、2026-11-18）: Critical 1件（録画シナリオの荷物の受け渡しに入出力口の無い「木のチェスト」を使っていた → 「鉄のミニコンベアチェスト」へ修正済み）、Warning 1件（Task 1 Step 11 の grep の期待値 → 検索範囲を絞って修正済み）、設計判断 0件。反証できなかった主張（証明ではない。コードの読みで反例が出なかっただけで、未実行・未網羅）: 出力口の前に置いても既存の接続が付け替わらない（サーバーは辺と同じ高さのセルを先に選び、1つ下が受け手になり得るのは坂のときだけで、その真上は坂の真上の規則で置けない）／テスト用ベルトの横入力で合流が成立する／下り坂の終点の探索・組み立て・参照ソルバの条件が一致する／出力口の面ビットの読み方。終点が出力口の面のとき R の向きにする変更（ユーザー裁定）は検査開始後に入れたもので、単体テストの期待値（終点=キーの向き）は本体が手で追って確認した。
