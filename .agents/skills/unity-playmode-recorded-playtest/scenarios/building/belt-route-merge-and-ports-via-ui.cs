@@ -1,8 +1,8 @@
 // ベルト経路の出力口まわりの通し検証（ADR 0102）。経路が既存の出力口の前を避けずに通って合流すること、
-// 始点で出力口の面を狙うとブロックから離れる向きになり、終点で狙うと R の向きのままになること、
+// 始点で出力口の面を狙うとブロックから離れる向きになり、終点は入力口の面を狙ったときだけ差し込む向きになり他の面では R の向きのままになること、
 // 終点が下り坂になること、分岐器と坂が通常ブロックと同じ単発設置になることを、実プレイヤーと同じキーマウス経路で確かめる
 // End-to-end check around outputs for belt routes (ADR 0102): a route passes in front of an existing output and merges,
-// a start aimed at an output face heads away from the block while an end aimed at one keeps the R heading,
+// a start aimed at an output face heads away from the block while an end heads in only on an input face and keeps the R heading on other faces,
 // the end becomes a down slope, and splitters and slopes are placed singly like common blocks, all through the real key/mouse path
 using System.Linq;
 using Client.Playtest;
@@ -75,7 +75,7 @@ return PlaytestRunner.Run("belt-route-merge-and-ports-via-ui", options, async p 
     await p.Screenshot("02-start-on-output-port");
 
     // ---------------------------------------------------------------- 2b. 終点で出力口の面を狙う
-    p.Note("フェーズ2b: 別の東向きミニチェストの出力口の面を終点に狙う。終点はチェストへ差し込む西向きにならず、R で合わせた南向きのまま");
+    p.Note("フェーズ2b: 別の東向きミニチェストの面を終点に狙う。終点はチェストへ差し込む西向きにならず、R で合わせた南向きのまま");
     await p.PlaceBlockDirect("鉄のミニコンベアチェスト", new Vector3Int(2, 32, 10), BlockDirection.East);
     await p.WaitBlockGameObject(new Vector3Int(2, 32, 10));
     p.WarpPlayer(new Vector3(7f, 33.5f, 8.5f));
@@ -91,7 +91,40 @@ return PlaytestRunner.Run("belt-route-merge-and-ports-via-ui", options, async p 
     p.Assert(ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(3, 32, 10)) == BlockDirection.South, "出力口の面を狙った終点は R の向き（南）");
     await p.WaitBlockGameObject(new Vector3Int(3, 32, 10));
     await p.ExitToGameScreen();
-    await p.Screenshot("03-end-on-output-port");
+
+    p.Note("フェーズ2c: 口の無い木のチェストの面を終点に狙う。ここでも終点はチェストへ差し込む西向きにならず、R で合わせた北向きのまま");
+    await p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 14), BlockDirection.North);
+    await p.WaitBlockGameObject(new Vector3Int(2, 32, 14));
+    p.WarpPlayer(new Vector3(7f, 33.5f, 12.5f));
+    await p.WaitSeconds(0.5f);
+    await p.OpenBuildMenuAndSelectBlock("ベルトコンベア");
+    await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", new Vector3Int(5, 32, 14), BlockDirection.North));
+    await PlaytestBeltRouteOps.RotateTo(p, BlockDirection.North, BlockDirection.West);
+    await p.ClickPlace();
+    await p.AimAt(new Vector3(3f, 32.5f, 14.5f));
+    await PlaytestBeltRouteOps.RotateTo(p, BlockDirection.West, BlockDirection.North);
+    await p.ClickPlace();
+    await p.Until(() => p.GetBlock(new Vector3Int(3, 32, 14)) != null, 15f, "口の無い面の前を終点にした経路が置かれる");
+    p.Assert(ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(3, 32, 14)) == BlockDirection.North, "口の無い面を狙った終点も R の向き（北）");
+    await p.WaitBlockGameObject(new Vector3Int(3, 32, 14));
+    await p.ExitToGameScreen();
+    await p.Screenshot("03-end-on-block-face");
+
+    p.Note("フェーズ2d: 東向きミニチェスト (2,32,10) の入力口の面（西の面）を終点に狙う。R は北のままでも、終点はチェストへ差し込む東向きになる");
+    p.WarpPlayer(new Vector3(-2f, 33.5f, 8.5f));
+    await p.WaitSeconds(0.5f);
+    await p.OpenBuildMenuAndSelectBlock("ベルトコンベア");
+    await p.AimAt(PlaytestUiOps.PlaceAimPoint("ベルトコンベア", new Vector3Int(-1, 32, 10), BlockDirection.North));
+    await PlaytestBeltRouteOps.RotateTo(p, BlockDirection.North, BlockDirection.East);
+    await p.ClickPlace();
+    await PlaytestBeltRouteOps.RotateTo(p, BlockDirection.East, BlockDirection.North);
+    await p.AimAt(new Vector3(2f, 32.5f, 10.5f));
+    await p.ClickPlace();
+    await p.Until(() => p.GetBlock(new Vector3Int(1, 32, 10)) != null, 15f, "入力口の前を終点にした経路が置かれる");
+    p.Assert(ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(1, 32, 10)) == BlockDirection.East, "入力口の面を狙った終点は差し込む向き（東）");
+    await p.WaitBlockGameObject(new Vector3Int(1, 32, 10));
+    await p.ExitToGameScreen();
+    await p.Screenshot("03b-end-on-input-port");
 
     // ---------------------------------------------------------------- 3. 終点が下り坂
     p.Note("フェーズ3: チェストの上 (10,33,6) を始点、隣の地面 (11,32,6) を終点にすると、終点が下り坂になる");

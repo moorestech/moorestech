@@ -80,14 +80,26 @@ namespace Client.Tests.PlaceSystem.BeltRoute.Rule
             Assert.AreEqual(expected, facing);
         }
 
-        // 出力口でない面。始点はキーの向き、終点はブロックへ差し込む向き
-        // A face without an output port: the start keeps the key's heading, the end heads into the block
+        // (4,0,3)のブロックの東の面が入力口。(5,0,3)から狙うと、終点は差し込む向き（西）、始点はキーの向き（東）
+        // The east face of the block at (4,0,3) is an input port; aimed from (5,0,3) the end heads in (west) and the start keeps the key's heading (east)
         [TestCase(BeltRouteEndpointRole.Start, BlockDirection.East)]
         [TestCase(BeltRouteEndpointRole.End, BlockDirection.West)]
-        public void PlainFaceKeepsTheFormerHeading(BeltRouteEndpointRole role, BlockDirection expected)
+        public void InputPortFaceTurnsOnlyTheEndIntoTheBlock(BeltRouteEndpointRole role, BlockDirection expected)
+        {
+            var grid = GridWithOutputPortFacingSouth();
+            grid.AddInputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 0, 3), BlockDirection.East, 0));
+            var facing = BeltRouteEndpointFacing.Resolve(grid, new Vector3Int(5, 0, 3), BlockDirection.West, BlockDirection.East, role);
+            Assert.AreEqual(expected, facing);
+        }
+
+        // 口の無い面。始点も終点もキーの向きのまま（壁へ差し込む向きにはならない）
+        // A face without any port: both the start and the end keep the key's heading (never turning into the wall)
+        [TestCase(BeltRouteEndpointRole.Start)]
+        [TestCase(BeltRouteEndpointRole.End)]
+        public void PlainFaceKeepsTheKeyHeading(BeltRouteEndpointRole role)
         {
             var facing = BeltRouteEndpointFacing.Resolve(GridWithOutputPortFacingSouth(), new Vector3Int(5, 0, 3), BlockDirection.West, BlockDirection.East, role);
-            Assert.AreEqual(expected, facing);
+            Assert.AreEqual(BlockDirection.East, facing);
         }
 
         // 1つ上の高さの出力口は、その下のセルの向きを変えない

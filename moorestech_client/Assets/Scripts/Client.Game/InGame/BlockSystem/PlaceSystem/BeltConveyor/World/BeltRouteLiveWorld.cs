@@ -22,6 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
         private readonly HashSet<Vector3Int> _blockCells = new();
         private readonly HashSet<Vector3Int> _slopeHeads = new();
         private readonly Dictionary<Vector3Int, int> _outputFaceBits = new();
+        private readonly Dictionary<Vector3Int, int> _inputFaceBits = new();
 
         public BeltRouteLiveWorld(BlockGameObjectDataStore blocks)
         {
@@ -36,6 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
             _blockCells.Clear();
             _slopeHeads.Clear();
             _outputFaceBits.Clear();
+            _inputFaceBits.Clear();
             foreach (var block in _blocks.BlockGameObjectDictionary.Values)
             {
                 MarkFootprint(block);
@@ -85,10 +87,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.World
         public bool IsBlockedByBlock(Vector3Int cell) => _blockCells.Contains(cell);
         public bool IsSlopeHead(Vector3Int cell) => _slopeHeads.Contains(cell);
         public int OutputFaceBits(Vector3Int cell) => _outputFaceBits.TryGetValue(cell, out var bits) ? bits : 0;
+        public int InputFaceBits(Vector3Int cell) => _inputFaceBits.TryGetValue(cell, out var bits) ? bits : 0;
         public void AddOutputEdge(BeltRouteEdge edge) => BeltRouteFaceBits.Mark(edge, _outputFaceBits);
-        // 探索は入力辺を読まない（読むのは分岐判定だけ）
-        // The search never reads input edges; only the branch judge does
-        public void AddInputEdge(BeltRouteEdge edge) { }
+        public void AddInputEdge(BeltRouteEdge edge) => BeltRouteFaceBits.Mark(edge, _inputFaceBits);
         public void MarkSlopeHead(Vector3Int cell) => _slopeHeads.Add(cell);
     }
 }

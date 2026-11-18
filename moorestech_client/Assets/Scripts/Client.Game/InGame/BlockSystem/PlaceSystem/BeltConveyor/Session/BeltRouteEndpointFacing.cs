@@ -25,13 +25,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
         // faceInward heads from the aimed face into the block
         // 始点は、面が出力口ならブロックから離れる向き（その出力を受ける）、それ以外はキーの向き
         // The start heads away from the block on an output port (taking that output), and keeps the key's heading otherwise
-        // 終点は、面が出力口ならキーの向き（差し込んでも繋がらない）、それ以外はブロックへ差し込む向き
-        // The end keeps the key's heading on an output port (heading in would connect nothing), and heads into the block otherwise
+        // 終点は、面が入力口ならブロックへ差し込む向き（その入口へ繋ぐ）、それ以外はキーの向き。口の無い壁では向きを変えない
+        // The end heads into the block on an input port (feeding that port), and keeps the key's heading otherwise; a plain wall never turns it
         public static BlockDirection Resolve(IBeltRouteWorld world, Vector3Int cell, BlockDirection faceInward, BlockDirection keyDirection, BeltRouteEndpointRole role)
         {
-            var facesOutputPort = (world.OutputFaceBits(cell) & BeltRouteFaceBits.FaceBit(faceInward, 0)) != 0;
-            if (role == BeltRouteEndpointRole.Start) return facesOutputPort ? BeltRouteDirection.Opposite(faceInward) : keyDirection;
-            return facesOutputPort ? keyDirection : faceInward;
+            var faceBit = BeltRouteFaceBits.FaceBit(faceInward, 0);
+            if (role == BeltRouteEndpointRole.End) return (world.InputFaceBits(cell) & faceBit) != 0 ? faceInward : keyDirection;
+            return (world.OutputFaceBits(cell) & faceBit) != 0 ? BeltRouteDirection.Opposite(faceInward) : keyDirection;
         }
     }
 }
