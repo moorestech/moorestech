@@ -48,7 +48,9 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // ===== 準備: レールを敷いて貨車を出現させる =====
     // ===== Setup: lay rails and spawn the cargo car =====
     p.Note("レール橋脚をUI設置しノードを結線する");
-    p.WarpPlayer(new Vector3(11f, 33.5f, 10f));
+    // 設置カメラは北を向くので、両橋脚より南に立つ
+    // The placement camera faces north, so stand south of both piers
+    p.WarpPlayer(new Vector3(11f, 33.5f, -6f));
     await p.WaitSeconds(0.5f);
 
     // 橋脚は生成時create paramが必須のため直設置でなくUI経路で置く
@@ -56,8 +58,10 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     var pierAPos = new Vector3Int(10, 32, 4);
     var pierBPos = new Vector3Int(10, 32, 16);
     await p.PrepareBlockForUiPlacement("レール橋脚", 2);
-    await p.PlaceBlockViaUi("レール橋脚", pierAPos, BlockDirection.North);
+    // 手前の橋脚を先に置くと奥への照準レイが手前に当たるので、奥の B から置く
+    // Placing the near pier first makes the aim ray hit it, so place the far pier B first
     await p.PlaceBlockViaUi("レール橋脚", pierBPos, BlockDirection.North);
+    await p.PlaceBlockViaUi("レール橋脚", pierAPos, BlockDirection.North);
     await p.WaitBlockGameObject(pierAPos);
     await p.WaitBlockGameObject(pierBPos);
     await p.ExitToGameScreen();
