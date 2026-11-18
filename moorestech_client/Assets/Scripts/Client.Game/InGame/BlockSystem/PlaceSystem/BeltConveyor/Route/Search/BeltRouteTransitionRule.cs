@@ -43,8 +43,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return !_world.IsBlockedByBlock(head);
         }
 
-        // 始点・終点以外のセルとして置けるか。既存の出力口の前でも置ける（合流になる。ADR 0102）
-        // Whether the cell may be a mid-route cell; a cell in front of an existing output is fine (it merges, ADR 0102)
+        // 始点・終点以外のセルとして置けるか。既存の出力口の前でも置ける（合流になる。ADR 0103）
+        // Whether the cell may be a mid-route cell; a cell in front of an existing output is fine (it merges, ADR 0103)
         public bool IsIntermediatePlaceable(Vector3Int cell, BeltRouteCellKind kind)
         {
             // 終点の前のセルは、終点が流す先として空けておく
@@ -56,8 +56,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 
         // 手前の状態から終点セルへ入れるか。終点は向きが固定で、直線か下り坂
         // Whether the end cell can be entered from the previous state; the end has a fixed facing and is straight or a down slope
-        // 下り坂の終点は1つ上の高さから入り、曲がれず、真上を空ける。上り坂の終点は直線より高くつくだけで出口が1つ上へずれるので作らない（ADR 0102）
-        // A down-slope end is entered one level up, cannot turn, and keeps its head clear; an up-slope end only costs more and lifts the exit a level, so it is never built (ADR 0102)
+        // 下り坂の終点は1つ上の高さから入り、曲がれず、真上を空ける。上り坂の終点は直線より高くつくだけで出口が1つ上へずれるので作らない（ADR 0103）
+        // A down-slope end is entered one level up, cannot turn, and keeps its head clear; an up-slope end only costs more and lifts the exit a level, so it is never built (ADR 0103)
         public bool CanEnterGoal(BeltRouteState previous, BeltRouteCellKind goalKind)
         {
             var next = previous.Cell + BeltRouteDirection.Forward(previous.Outgoing);

@@ -12,8 +12,8 @@ using static Client.Tests.PlaceSystem.BeltRoute.BeltRouteConveyanceWorld;
 
 namespace Client.Tests.PlaceSystem.BeltRoute.Rule
 {
-    // 端点（始点・終点）の種別と向きの規則を確かめる（ADR 0102）
-    // Checks the rules for the endpoints' kinds and facings (ADR 0102)
+    // 端点（始点・終点）の種別と向きの規則を確かめる（ADR 0103）
+    // Checks the rules for the endpoints' kinds and facings (ADR 0103)
     public class BeltRouteEndpointTest
     {
         // 始点の隣で1つ下の終点。終点が下り坂になれないと遠回りするしかない

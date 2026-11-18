@@ -10,7 +10,7 @@
 
 ## Requirements
 
-設計は ADR 0102（`docs/adr/0102-belt-route-merges-into-outputs-and-straight-only-routing.md`）と `.decisions/2026-11-18-ベルト経路は出力口の前を避けず合流し経路設置は直線ベルトだけにする.md`。
+設計は ADR 0103（`docs/adr/0103-belt-route-merges-into-outputs-and-straight-only-routing.md`）と `.decisions/2026-11-18-ベルト経路は出力口の前を避けず合流し経路設置は直線ベルトだけにする.md`。
 
 - R1. ビルドメニューで選んだブロックが「ベルトファミリーの直線ブロックで分岐器でない」ときだけ経路設置に入る。分岐器・上り坂・下り坂は通常ブロックと同じ単発設置。受け入れ基準: 分岐器・上りベルトを選んで1クリックするとそのブロックが1個だけ置かれ、始点待ちにならない（Task 5 の録画テスト）。
 - R2. 分岐器手持ちの経路に関するコード（`BeltRouteQuery.TurnByOutput`・`BeltConveyorHoldingBlock.IsSplitter`・`FeedsForeignInput`・`IBeltRouteWorld.InputFaceBits`）を削除する。受け入れ基準: リポジトリ内に `TurnByOutput` の参照が無い。
@@ -41,10 +41,10 @@
 | Ctrl 分岐、R での出口切替 | 生きる | `BeltRouteBranchOrigin.Judge` は `IsSplitter` 条件が外れるだけ |
 | 始点セル再クリックの単発設置 | 生きる | `BeltRouteRoutingFrame` は変えない |
 | 右クリック・Esc の始点解除、Q/E の高さ、建設コスト判定、確定時の読み直し | 生きる | `BeltConveyorPlaceSystem` の該当箇所は変えない |
-| 坂手持ち・分岐器手持ちの2クリック経路（スポイトで拾った場合を含む） | 死ぬ | ADR 0102 §1（ユーザー裁定） |
-| 出力口の前を避ける迂回 | 死ぬ | ADR 0102 §2（ユーザー裁定） |
-| 終点を出力口の面に当てたときの「差し込む向き」 | R の向きに変わる | ADR 0102 §3（ユーザー裁定） |
-| 始点で出力口の面を狙っている間の R | プレビューの向きに効かない（面から外せば効く） | ADR 0102 §3 |
+| 坂手持ち・分岐器手持ちの2クリック経路（スポイトで拾った場合を含む） | 死ぬ | ADR 0103 §1（ユーザー裁定） |
+| 出力口の前を避ける迂回 | 死ぬ | ADR 0103 §2（ユーザー裁定） |
+| 終点を出力口の面に当てたときの「差し込む向き」 | R の向きに変わる | ADR 0103 §3（ユーザー裁定） |
+| 始点で出力口の面を狙っている間の R | プレビューの向きに効かない（面から外せば効く） | ADR 0103 §3 |
 
 ## 設計検査記録
 
@@ -110,8 +110,8 @@
 `Resolve` の上に足す。手持ちは常に直線なので `SelectedBlockId` は `BlockId` と同じ値になり不要。
 
 ```csharp
-        // 経路設置に入るのはファミリーの直線ブロックで分岐器でないものだけ。坂と分岐器は単発設置（ADR 0102）
-        // Only a family's straight, non-splitter block enters route placement; slopes and splitters are placed singly (ADR 0102)
+        // 経路設置に入るのはファミリーの直線ブロックで分岐器でないものだけ。坂と分岐器は単発設置（ADR 0103）
+        // Only a family's straight, non-splitter block enters route placement; slopes and splitters are placed singly (ADR 0103)
         public static bool IsRoutePlacementBlock(BlockId blockId)
         {
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)) return false;
@@ -125,8 +125,8 @@
 - [ ] **Step 2: `PlaceSystemSelector` の振り分けを変える**
 
 ```csharp
-                    // 直線ベルトだけ経路設置へ。坂・分岐器と残りは通常ブロック（ADR 0102）
-                    // Only straight belts go to route placement; slopes, splitters and the rest are common blocks (ADR 0102)
+                    // 直線ベルトだけ経路設置へ。坂・分岐器と残りは通常ブロック（ADR 0103）
+                    // Only straight belts go to route placement; slopes, splitters and the rest are common blocks (ADR 0103)
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                     return blockMaster.BlockType switch
                     {
@@ -194,8 +194,8 @@
 - `BeltRouteLiveWorld`: `_inputFaceBits` フィールド・`Rebuild` の `_inputFaceBits.Clear()`・`InputFaceBits` メソッドを消す。`AddInputEdge` は `IBeltRouteEdgeSink`（分岐判定の `BeltRouteNeighbourEdges` が入力辺を読む）の実装として残し、中身を空にする:
 
 ```csharp
-        // 探索は入力辺を読まない。入力辺を読むのは分岐判定の BeltRouteNeighbourEdges だけ（ADR 0102）
-        // The search never reads input edges; only the branch judge's BeltRouteNeighbourEdges does (ADR 0102)
+        // 探索は入力辺を読まない。入力辺を読むのは分岐判定の BeltRouteNeighbourEdges だけ（ADR 0103）
+        // The search never reads input edges; only the branch judge's BeltRouteNeighbourEdges does (ADR 0103)
         public void AddInputEdge(BeltRouteEdge edge) { }
 ```
 
@@ -237,13 +237,13 @@
 ADR 0100 のヘッダ（`- Supersedes:` の行の下）に1行:
 
 ```markdown
-- Superseded in part by: ADR 0102（「変えないもの」のうち既存の出力口を横取りしない規則と分岐器手持ち、囲まれ判定の「終点の手前は同じ高さか1つ下だけ」、`IBeltRouteWorld` の入力辺の面ビットは 2026-11-18 に置き換え）
+- Superseded in part by: ADR 0103（「変えないもの」のうち既存の出力口を横取りしない規則と分岐器手持ち、囲まれ判定の「終点の手前は同じ高さか1つ下だけ」、`IBeltRouteWorld` の入力辺の面ビットは 2026-11-18 に置き換え）
 ```
 
 ADR 0050 のヘッダ部（状態の行の下）に1行:
 
 ```markdown
-- Superseded in part by: ADR 0102（坂を手持ちにしたドラッグは通常ブロックと同じドラッグ列になる。「毎セル+1段の階段」は 2026-11-18 に置き換え）
+- Superseded in part by: ADR 0103（坂を手持ちにしたドラッグは通常ブロックと同じドラッグ列になる。「毎セル+1段の階段」は 2026-11-18 に置き換え）
 ```
 
 ADR 0097 には次の1行。
@@ -251,7 +251,7 @@ ADR 0097 には次の1行。
 `- Superseded in part by: ADR 0100（…）` の行の下に1行:
 
 ```markdown
-- Superseded in part by: ADR 0102（既存の出力口の前を途中で使わない規則・分岐器手持ちの経路・手持ちが坂でも直線と同じ・終点は直線固定・終点の向きは 2026-11-18 に置き換え）
+- Superseded in part by: ADR 0103（既存の出力口の前を途中で使わない規則・分岐器手持ちの経路・手持ちが坂でも直線と同じ・終点は直線固定・終点の向きは 2026-11-18 に置き換え）
 ```
 
 - [ ] **Step 11: 参照が残っていないことを確かめ、コンパイルしてテストを実行する**
@@ -292,8 +292,8 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
 ```
 
 ```csharp
-        // 終点自身の出口の辺の面ビット。既存の出力口は見ない（前を通れば合流になる。ADR 0102）
-        // Face bits of the end's own exit edge; existing outputs are not consulted (passing in front of one merges, ADR 0102)
+        // 終点自身の出口の辺の面ビット。既存の出力口は見ない（前を通れば合流になる。ADR 0103）
+        // Face bits of the end's own exit edge; existing outputs are not consulted (passing in front of one merges, ADR 0103)
         private int EndExitFaceBits(Vector3Int cell)
         {
             var bits = 0;
@@ -325,8 +325,8 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
             // A north-facing belt at (4,0,1) flows into (4,0,2)
             grid.MarkBlockCell(new Vector3Int(4, 0, 1));
             grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 0, 1), BlockDirection.North, 0));
-            // 出力口の前を避けないので、迂回せず一直線に通る（そのセルは合流になる。ADR 0102）
-            // Outputs are not avoided, so the route runs straight through without a detour (that cell becomes a merge, ADR 0102)
+            // 出力口の前を避けないので、迂回せず一直線に通る（そのセルは合流になる。ADR 0103）
+            // Outputs are not avoided, so the route runs straight through without a detour (that cell becomes a merge, ADR 0103)
             var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(7, 0, 2), BlockDirection.East, false);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
 
@@ -341,8 +341,8 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
 同じファイルに、避け続ける例外（出力口が1段下の下り坂へ繋がっている配置）のテストも足す。
 
 ```csharp
-        // 出力口が1段下の下り坂へ繋がっているとき、出力口の正面は坂の真上なので経路に使わない。使うと坂への接続を奪う（ADR 0102）
-        // When an output feeds a down slope one level below, the cell in front of it is the slope's head and stays unused; using it would steal the slope's connection (ADR 0102)
+        // 出力口が1段下の下り坂へ繋がっているとき、出力口の正面は坂の真上なので経路に使わない。使うと坂への接続を奪う（ADR 0103）
+        // When an output feeds a down slope one level below, the cell in front of it is the slope's head and stays unused; using it would steal the slope's connection (ADR 0103)
         [Test]
         public void FrontOfAnOutputFeedingADownSlopeBelowStaysUnused()
         {
@@ -365,8 +365,8 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
 `BeltRouteConveyanceTest` の末尾に足す。
 
 ```csharp
-        // 既存ベルトの末端が向くセルを新しい経路が通り、そこで合流して両方の荷物が同じ終点へ届く（ADR 0102）
-        // A new route passes the cell an existing belt's end points at, merges there, and items from both reach the same end (ADR 0102)
+        // 既存ベルトの末端が向くセルを新しい経路が通り、そこで合流して両方の荷物が同じ終点へ届く（ADR 0103）
+        // A new route passes the cell an existing belt's end points at, merges there, and items from both reach the same end (ADR 0103)
         [Test]
         public void RoutePassingAnExistingOutputMergesBothFlows()
         {
@@ -393,11 +393,11 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
         }
 ```
 
-続けて、既に別のラインへ流している分岐器の、空いた出口の前を経路が通る配置も足す。ADR 0102 の「既存の接続は付け替わらない」はコードの読みだけで未実測なので、この1配置で実測する。
+続けて、既に別のラインへ流している分岐器の、空いた出口の前を経路が通る配置も足す。ADR 0103 の「既存の接続は付け替わらない」はコードの読みだけで未実測なので、この1配置で実測する。
 
 ```csharp
-        // 分岐器の西の出口は既存ラインへ繋がり、北の出口は空いている。北の出口の前を新しい経路が通っても、既存ラインへ荷物が届き続ける（ADR 0102）
-        // The splitter's west exit feeds an existing line and its north exit is free; a new route passing the north exit must leave the existing line fed (ADR 0102)
+        // 分岐器の西の出口は既存ラインへ繋がり、北の出口は空いている。北の出口の前を新しい経路が通っても、既存ラインへ荷物が届き続ける（ADR 0103）
+        // The splitter's west exit feeds an existing line and its north exit is free; a new route passing the north exit must leave the existing line fed (ADR 0103)
         [Test]
         public void RoutePassingASplitterExitKeepsTheExistingLineFed()
         {
@@ -426,7 +426,7 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
         }
 ```
 
-このテストが `existing:0` で落ちたら、新しい経路が既存の接続を奪っている。規則を戻さず、その結果をそのまま報告して止まる（ADR 0102 の前提が崩れるので、ユーザーの裁定が要る）。
+このテストが `existing:0` で落ちたら、新しい経路が既存の接続を奪っている。規則を戻さず、その結果をそのまま報告して止まる（ADR 0103 の前提が崩れるので、ユーザーの裁定が要る）。
 
 - [ ] **Step 4: コンパイルしテストを実行する**
 
@@ -466,8 +466,8 @@ git commit -m "feat: ベルト経路が既存の出力口の前を避けず合�
 ```csharp
         // 手前の状態から終点セルへ入れるか。終点は向きが固定で、直線か下り坂
         // Whether the end cell can be entered from the previous state; the end has a fixed facing and is straight or a down slope
-        // 下り坂の終点は1つ上の高さから入り、曲がれず、真上を空ける。上り坂の終点は直線より高くつくだけで出口が1つ上へずれるので作らない（ADR 0102）
-        // A down-slope end is entered one level up, cannot turn, and keeps its head clear; an up-slope end only costs more and lifts the exit a level, so it is never built (ADR 0102)
+        // 下り坂の終点は1つ上の高さから入り、曲がれず、真上を空ける。上り坂の終点は直線より高くつくだけで出口が1つ上へずれるので作らない（ADR 0103）
+        // A down-slope end is entered one level up, cannot turn, and keeps its head clear; an up-slope end only costs more and lifts the exit a level, so it is never built (ADR 0103)
         public bool CanEnterGoal(BeltRouteState previous, BeltRouteCellKind goalKind)
         {
             var next = previous.Cell + BeltRouteDirection.Forward(previous.Outgoing);
@@ -600,8 +600,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltRoute.Endpoint
 {
-    // 端点（始点・終点）の種別と向きの規則を確かめる（ADR 0102）
-    // Checks the rules for the endpoints' kinds and facings (ADR 0102)
+    // 端点（始点・終点）の種別と向きの規則を確かめる（ADR 0103）
+    // Checks the rules for the endpoints' kinds and facings (ADR 0103)
     public class BeltRouteEndpointTest
     {
         // 始点の隣で1つ下の終点。終点が下り坂になれないと遠回りするしかない
@@ -657,8 +657,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute.Endpoint
 `BeltRouteConveyanceTest` の末尾に足す。
 
 ```csharp
-        // 始点の隣で1つ下の終点は下り坂になり、荷物が終点の先のチェストへ届く（ADR 0102）
-        // An end beside the start and one level down becomes a down slope, and the item reaches the chest beyond it (ADR 0102)
+        // 始点の隣で1つ下の終点は下り坂になり、荷物が終点の先のチェストへ届く（ADR 0103）
+        // An end beside the start and one level down becomes a down slope, and the item reaches the chest beyond it (ADR 0103)
         [Test]
         public void DownSlopeEndConveysItemToTheLowerChest()
         {
@@ -735,8 +735,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     }
 
     /// <summary>
-    ///     ブロックの側面を狙った端点の向きを決める（ADR 0102）
-    ///     Decides the facing of an endpoint aimed at a block's side face (ADR 0102)
+    ///     ブロックの側面を狙った端点の向きを決める（ADR 0103）
+    ///     Decides the facing of an endpoint aimed at a block's side face (ADR 0103)
     /// </summary>
     public static class BeltRouteEndpointFacing
     {
@@ -821,7 +821,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             if (!BeltRouteCursorHit.TryResolve(_mainCamera, _placementHeightOffset.Value, _currentDirection, _holding.BlockMaster, _blocks, _world, BeltRouteEndpointRole.End, feedback, out var hit)) return;
 ```
 
-終点が出力口の面に当たったときは `hit.Direction` が R の向き（`_currentDirection`）になる（ADR 0102 §3）。始点選び中の R は今までどおり `_currentDirection` を回す。出力口の面を狙っている間はプレビューの向きが変わらないだけで、面から外せば回した向きになる。
+終点が出力口の面に当たったときは `hit.Direction` が R の向き（`_currentDirection`）になる（ADR 0103 §3）。始点選び中の R は今までどおり `_currentDirection` を回す。出力口の面を狙っている間はプレビューの向きが変わらないだけで、面から外せば回した向きになる。
 
 - [ ] **Step 4: 単体テストを足す**
 
@@ -941,16 +941,16 @@ git commit -m "test: ベルト経路の出力口合流・出力口の面の向�
 
 ## 判断記録（ADR）
 
-- 設計の裁定: `docs/adr/0102-belt-route-merges-into-outputs-and-straight-only-routing.md`、`.decisions/2026-11-18-ベルト経路は出力口の前を避けず合流し経路設置は直線ベルトだけにする.md`。ユーザー裁定と agent前提の区別はADRの出所欄が正。
+- 設計の裁定: `docs/adr/0103-belt-route-merges-into-outputs-and-straight-only-routing.md`、`.decisions/2026-11-18-ベルト経路は出力口の前を避けず合流し経路設置は直線ベルトだけにする.md`。ユーザー裁定と agent前提の区別はADRの出所欄が正。
 - ランタイム挙動に触れるので、unityプレイ録画テスト（Task 5）を含める。
 - `PlaceSystemSelector` の振り分け判定を `BeltConveyorHoldingBlock.IsRoutePlacementBlock` に置く（agent前提）。理由: 「どのブロックが経路設置の手持ちになれるか」は手持ちの解決（`Resolve`）と同じ知識で、ファミリーの直線・分岐器判定を既に同クラスが使っている。サーバー側の `BeltConveyorPlaceFamilyUtil` に置かないのは、経路設置がクライアントだけの概念だから。
 - `BeltRouteLiveWorld.AddInputEdge` を空実装で残す（agent前提）。理由: 辺の書き込み（`BeltRouteBlockEdgeScanner.Write`）は分岐判定の `BeltRouteNeighbourEdges` と同じ `IBeltRouteEdgeSink` を使い、そちらは入力辺を読む。書き込み先を2つの interface に割ると走査側に分岐が要る。
-- 終点状態を `Goal`・`DownGoal` の2つの固定プロパティで持つ（agent前提）。理由: 終点になれる種別は直線と下りの2つに決まっており（ADR 0102 §4）、リストにする利点が無い。
+- 終点状態を `Goal`・`DownGoal` の2つの固定プロパティで持つ（agent前提）。理由: 終点になれる種別は直線と下りの2つに決まっており（ADR 0103 §4）、リストにする利点が無い。
 - 端点の向きの規則を `BeltRouteEndpointFacing` に切り出す（agent前提）。理由: カメラの光線に依らない純粋な規則として単体テストでき、`BeltRouteCursorHit` は光線ヒットの解釈だけを持てる。
 - 終点の種別は `BeltRouteCellKind` をそのまま引数に使い、終点専用の型は作らない（agent前提）。理由: 「上りは終点にならない」の判定は `BeltRouteTransitionRule.CanEnterGoal` が正で、探索の `nextKind != Up` はその呼び出しを省く早期の枝刈り、検査器と参照ソルバはテスト側の独立した確認。型を分けると探索の種別ループ（0..2 の添字）に変換が要る。
 - 始点選び中、R と確定クリックを同じフレームに押したときだけ、始点の向きが回転前になる（agent前提・既知の割り切り）。理由: `BeltRouteCursorHit.TryResolve` は Ctrl 分岐の判定（R が出口切替になる）より前に要り、R の回転はその後に置く必要がある。`BeltConveyorPlaceSystem.cs` は200行ちょうどで、順序を直す行を足せない。人の操作で同フレームになることは実質無い。
 - テストを足すことと `.decisions/2026-11-07-ベルト経路のテストは利用者が見る挙動を守るものだけ残す.md` の関係（agent前提）: 足すのは利用者が見る挙動（出力口の前で合流して荷物が届く・終点が下り坂になる・出力口の面で向きが決まる）を守るものだけで、同裁定の趣旨に沿う。壁時計の閾値は置かない。
-- 坂・分岐器を手持ちにした左ドラッグは、通常ブロックと同じドラッグ列になる（同じ高さに横一列）。出所: ユーザー裁定 2026-11-18 原文「他ブロックと同じように単発設置で良い」の字義（他ブロックと同じ）。ADR 0050 の「毎セル+1段の階段」は置き換え（ADR 0102 §1）。
+- 坂・分岐器を手持ちにした左ドラッグは、通常ブロックと同じドラッグ列になる（同じ高さに横一列）。出所: ユーザー裁定 2026-11-18 原文「他ブロックと同じように単発設置で良い」の字義（他ブロックと同じ）。ADR 0050 の「毎セル+1段の階段」は置き換え（ADR 0103 §1）。
 - このセッションで本体が直接実装する。出所: ユーザー裁定 2026-11-18「2 ok」（質問「実装をこのセッションで私が進めてよいですか」への回答）。
 - セーブ形式は変えない（設置時のクライアント判定だけの変更）。マイグレーションは不要。
 - 反証検査（fresh-context・opus、2026-11-18）: Critical 1件（録画シナリオの荷物の受け渡しに入出力口の無い「木のチェスト」を使っていた → 「鉄のミニコンベアチェスト」へ修正済み）、Warning 1件（Task 1 Step 11 の grep の期待値 → 検索範囲を絞って修正済み）、設計判断 0件。反証できなかった主張（証明ではない。コードの読みで反例が出なかっただけで、未実行・未網羅）: 出力口の前に置いても既存の接続が付け替わらない（サーバーは辺と同じ高さのセルを先に選び、1つ下が受け手になり得るのは坂のときだけで、その真上は坂の真上の規則で置けない）／テスト用ベルトの横入力で合流が成立する／下り坂の終点の探索・組み立て・参照ソルバの条件が一致する／出力口の面ビットの読み方。終点が出力口の面のとき R の向きにする変更（ユーザー裁定）は検査開始後に入れたもので、単体テストの期待値（終点=キーの向き）は本体が手で追って確認した。

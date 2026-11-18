@@ -119,8 +119,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(TickUntilDelivered(cornerSink, 1, branchSink, 1), $"items did not reach both chests corner:{CountOf(cornerSink)} branch:{CountOf(branchSink)}");
         }
 
-        // 既存ベルトの末端が向くセルを新しい経路が通り、そこで合流して両方の荷物が同じ終点へ届く（ADR 0102）
-        // A new route passes the cell an existing belt's end points at, merges there, and items from both reach the same end (ADR 0102)
+        // 既存ベルトの末端が向くセルを新しい経路が通り、そこで合流して両方の荷物が同じ終点へ届く（ADR 0103）
+        // A new route passes the cell an existing belt's end points at, merges there, and items from both reach the same end (ADR 0103)
         [Test]
         public void RoutePassingAnExistingOutputMergesBothFlows()
         {
@@ -146,8 +146,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(TickUntilDelivered(sink, 2, null, 0), $"both flows did not reach the sink: {CountOf(sink)}");
         }
 
-        // 分岐器の西の出口は既存ラインへ繋がり、北の出口は空いている。北の出口の前を新しい経路が通っても、既存ラインへ荷物が届き続ける（ADR 0102）
-        // The splitter's west exit feeds an existing line and its north exit is free; a new route passing the north exit must leave the existing line fed (ADR 0102)
+        // 分岐器の西の出口は既存ラインへ繋がり、北の出口は空いている。北の出口の前を新しい経路が通っても、既存ラインへ荷物が届き続ける（ADR 0103）
+        // The splitter's west exit feeds an existing line and its north exit is free; a new route passing the north exit must leave the existing line fed (ADR 0103)
         [Test]
         public void RoutePassingASplitterExitKeepsTheExistingLineFed()
         {

@@ -1,7 +1,7 @@
-// ベルト経路の出力口まわりの通し検証（ADR 0102）。経路が既存の出力口の前を避けずに通って合流すること、
+// ベルト経路の出力口まわりの通し検証（ADR 0103）。経路が既存の出力口の前を避けずに通って合流すること、
 // 始点で出力口の面を狙うとブロックから離れる向きになり、終点は入力口の面を狙ったときだけ差し込む向きになり他の面では R の向きのままになること、
 // 終点が下り坂になること、分岐器と坂が通常ブロックと同じ単発設置になることを、実プレイヤーと同じキーマウス経路で確かめる
-// End-to-end check around outputs for belt routes (ADR 0102): a route passes in front of an existing output and merges,
+// End-to-end check around outputs for belt routes (ADR 0103): a route passes in front of an existing output and merges,
 // a start aimed at an output face heads away from the block while an end heads in only on an input face and keeps the R heading on other faces,
 // the end becomes a down slope, and splitters and slopes are placed singly like common blocks, all through the real key/mouse path
 using System.Linq;

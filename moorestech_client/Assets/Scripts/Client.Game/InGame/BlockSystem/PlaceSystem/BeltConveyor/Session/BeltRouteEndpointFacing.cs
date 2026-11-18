@@ -16,8 +16,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
     }
 
     /// <summary>
-    ///     ブロックの側面を狙った端点の向きを決める（ADR 0102）
-    ///     Decides the facing of an endpoint aimed at a block's side face (ADR 0102)
+    ///     ブロックの側面を狙った端点の向きを決める（ADR 0103）
+    ///     Decides the facing of an endpoint aimed at a block's side face (ADR 0103)
     /// </summary>
     public static class BeltRouteEndpointFacing
     {
