@@ -1,17 +1,21 @@
 namespace Game.Block.Blocks.SpaceElevator
 {
-    // 入口の中身。運べないアイテムはマスタを変えた後のロードでだけ入口に残る
-    // What the inlet holds; a non-carried item only remains after loading with a changed master
+    // 入口の中身
+    // - MissingPayload は空か1便未満
+    // - 運べない品はマスタ変更後のロードでのみ残る
+    // What the inlet holds
+    // - MissingPayload means empty or under one launch
+    // - A non-carried item remains only after a master change on load
     internal enum SatelliteInletState
     {
-        Empty,
+        MissingPayload,
         Carriable,
         NotCarried,
     }
     internal enum SatelliteTakeResult
     {
         Taken,
-        Empty,
+        MissingPayload,
         NotCarried,
         OutputBlocked,
     }

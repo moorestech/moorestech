@@ -11,7 +11,7 @@ test("接続ボタンでactionを送り、接続後は進みを出す", async ({
   await page.goto("/");
 
   await expect(page.getByTestId("space-elevator-section")).toBeVisible();
-  await expect(page.getByTestId("space-elevator-grid")).toContainText("GPU衛星の入口");
+  await expect(page.getByTestId("space-elevator-grid")).toContainText("ICチップの入口");
   await expect(page.getByTestId("space-elevator-grid")).toContainText("成果の出口");
   await expect(page.getByTestId("space-elevator-input-grid").locator("> div")).toHaveCount(1);
   await expect(page.getByTestId("space-elevator-output-grid").locator("> div")).toHaveCount(2);
@@ -34,7 +34,7 @@ for (const [fixture, status, progress] of [
     await setBlock(page, fixture);
     await page.goto("/");
     await expect(page.getByTestId("space-elevator-view")).toBeVisible();
-    await expect(page.getByTestId("space-elevator-grid")).toContainText("GPU衛星の入口");
+    await expect(page.getByTestId("space-elevator-grid")).toContainText("ICチップの入口");
     await expect(page.getByTestId("space-elevator-grid")).toContainText("成果の出口");
     await expect(page.getByTestId("electric-network-section")).toContainText("供給率 100%");
     await expect(page.getByTestId("space-elevator-status")).toContainText(status);

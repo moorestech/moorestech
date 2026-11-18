@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
 using Core.Update;
+using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Orbit;
+using Game.SaveLoad.Json;
+using Game.SpaceElevator;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlocksModule;
 using Server.Boot;
 using Server.Protocol;
 using Tests.Module;
@@ -49,6 +55,37 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             // The test mod's cable launches carry 50 per launch
             var orbital = ServerContext.GetService<IOrbitalArrivalService>();
             for (var launched = 0; launched < count; launched += 50) orbital.Arrive(ForUnitTestItemId.TestElevatorCable, 50);
+        }
+
+        public static IBlock SetupConnected(float power)
+        {
+            CreateServer();
+            return PlaceConnectedBase(power);
+        }
+
+        // 電力とケーブルを与え接続済みにした拠点を置く
+        // Place a base that is powered, supplied with cables and already connected
+        public static IBlock PlaceConnectedBase(float power)
+        {
+            var elevatorBase = PlaceBase(Vector3Int.zero);
+            PowerBase(elevatorBase, Vector3Int.zero, power);
+            LaunchCables(100);
+            ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
+            return elevatorBase;
+        }
+
+        public static SpaceElevatorBaseInventoryComponent Inventory(IBlock elevatorBase)
+        {
+            return elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
+        }
+
+        // セーブの昇降状態から昇降機コンポーネントを組み立てる
+        // Build a climber component from a saved climbing state
+        public static SpaceElevatorClimberComponent LoadClimber(IBlock elevatorBase, SpaceElevatorClimberSaveJsonObject save)
+        {
+            var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
+            var states = new Dictionary<string, object> { { "spaceElevatorClimber", save } };
+            return new SpaceElevatorClimberComponent(states, param, elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>());
         }
 
         public static void RunSeconds(double seconds)

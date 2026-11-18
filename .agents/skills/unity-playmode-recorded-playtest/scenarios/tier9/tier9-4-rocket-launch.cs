@@ -47,7 +47,7 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
 
     // 発射台と発電機を置き、広範囲電柱で給電する
     // Place the pad and a generator and power the pad through a wide-range pole
-    p.Note("発射台と発電機を置いて配線し、1便ぶんの資材と GPU衛星Lv1 を積む");
+    p.Note("発射台と発電機を置いて配線し、1便ぶんの資材と ICチップLv1 を積む");
     var pad = await p.PlaceBlockDirect("ロケット発射台", padPos, BlockDirection.North);
     var generator = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-20, 32, -20), BlockDirection.North);
     var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(-3, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
@@ -63,9 +63,12 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     p.Assert(wired.Count == 2 && wired.All(w => w), "発電機 → 電柱 → 発射台を配線した");
     await Refuel();
 
-    // 1便ぶんの資材と衛星を積むと、初打ち上げ前の台は建造の合図を待つ
-    // With one launch of materials and a satellite loaded, a pad before the first launch waits for the build command
-    var satelliteId = PlaytestItemOps.ResolveItemId("GPU衛星Lv1");
+    // 1便ぶんの資材と ICチップLv1（積荷表の1便の個数）を積むと、初打ち上げ前の台は建造の合図を待つ
+    // With one launch of materials and IC chip Lv1 (the table's per-launch count) loaded, a pad before the first launch waits for the build command
+    var payloadId = PlaytestItemOps.ResolveItemId("ICチップLv1");
+    var payloadGuid = MasterHolder.ItemMaster.GetItemMaster(payloadId).ItemGuid;
+    var countPerLaunch = MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(payload => payload.PayloadItemGuid == payloadGuid).CountPerLaunch;
+    p.Assert(countPerLaunch == 20, $"ICチップLv1 の1便は20個（{countPerLaunch} 個）");
     await LoadOneLaunch();
     await p.Until(() => Phase() == RocketLaunchPadPhase.AwaitingBuildCommand, 10f, "建造の合図待ちになった");
     var padObject = await p.WaitBlockGameObject(padPos);
@@ -102,8 +105,8 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     // 計算データが到着の表どおり出力口に入り、初打ち上げ済みになる
     // Compute data lands in the output slots as the arrival table says, and the world is marked as launched
     var computeDataId = PlaytestItemOps.ResolveItemId("計算データ");
-    var expected = (await p.ReadArrivalOutputs(satelliteId, 1)).Where(s => s.Id == computeDataId).Sum(s => s.Count);
-    p.Assert(expected > 0, $"GPU衛星Lv1 1便の到着成果に計算データがある（{expected} 個）");
+    var expected = (await p.ReadArrivalOutputs(payloadId, countPerLaunch)).Where(s => s.Id == computeDataId).Sum(s => s.Count);
+    p.Assert(expected == 20, $"ICチップLv1 1便の到着成果は計算データ20個（{expected} 個）");
     await p.Until(() => CountInOutputs() == expected, param.LaunchSeconds + 30f, $"計算データ {expected} 個が出力口に届いた");
     var hasLaunched = false;
     await p.RunOnServer("サーバーの判定結果を読む", () => hasLaunched = ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
@@ -117,7 +120,7 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
 
     // 2便目は合図なしで建造が始まる
     // The second launch starts building without any command
-    p.Note("2便目の資材と衛星を積み、合図なしで建造が始まることを確かめる");
+    p.Note("2便目の資材と ICチップLv1 を積み、合図なしで建造が始まることを確かめる");
     await Refuel();
     await LoadOneLaunch();
     await p.Until(() => Phase() == RocketLaunchPadPhase.Building, 10f, "2便目は合図なしで建造が始まった");
@@ -150,11 +153,11 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     // The generator tank empties within tens of seconds, so top it up before and during long waits (overflow is dropped)
     async UniTask Refuel() => await p.RunOnServer("発電機を満タンまで給油する", () => generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(100000, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default));
 
-    async UniTask LoadOneLaunch() => await p.RunOnServer("1便ぶんの資材（マスタの launchMaterials）と GPU衛星Lv1 を積む", () =>
+    async UniTask LoadOneLaunch() => await p.RunOnServer("1便ぶんの資材（マスタの launchMaterials）と ICチップLv1 を積む", () =>
     {
         var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
         foreach (var material in param.LaunchMaterials) inventory.InsertItem(MasterHolder.ItemMaster.GetItemId(material.ItemGuid), material.Count);
-        inventory.InsertItem(satelliteId, 1);
+        inventory.InsertItem(payloadId, countPerLaunch);
     });
 
     async UniTask WaitPhaseRefueling(RocketLaunchPadPhase phase, float timeoutSeconds, string label)
