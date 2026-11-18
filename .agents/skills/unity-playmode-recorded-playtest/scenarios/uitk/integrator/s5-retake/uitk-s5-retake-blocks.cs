@@ -148,7 +148,6 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
         await p.Until(() => Shown(bodyTestId), 15f, $"{blockName}: {bodyTestId} が出る");
-        else await p.UntilUiElement(bodyTestId, 30f);
         await p.WaitSeconds(1f);
     }
 
