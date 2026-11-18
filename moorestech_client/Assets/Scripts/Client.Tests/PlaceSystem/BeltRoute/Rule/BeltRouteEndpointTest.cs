@@ -1,5 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session;
+using Client.Tests.PlaceSystem.BeltRoute.World;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -56,6 +58,49 @@ namespace Client.Tests.PlaceSystem.BeltRoute.Rule
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(query);
 
             Assert.IsFalse(result.HasPlan);
+        }
+
+        // (4,0,3)のブロックが南の面から(4,0,2)へ出力している。(4,0,2)から北の面（ブロックへ向かう向き=北）を狙う
+        // A block at (4,0,3) outputs through its south face into (4,0,2); the north face is aimed from (4,0,2) (the heading into the block is north)
+        private static BeltRouteGrid GridWithOutputPortFacingSouth()
+        {
+            var grid = BeltRoutePlannerBasicTest.FlatGrid(16);
+            grid.MarkBlockCell(new Vector3Int(4, 0, 3));
+            grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 0, 3), BlockDirection.South, 0));
+            return grid;
+        }
+
+        // 出力口の面。始点はブロックから離れる向き（南）、終点はキーの向き（東）
+        // An output port face: the start heads away from the block (south), the end keeps the key's heading (east)
+        [TestCase(BeltRouteEndpointRole.Start, BlockDirection.South)]
+        [TestCase(BeltRouteEndpointRole.End, BlockDirection.East)]
+        public void OutputPortFaceTurnsTheStartAwayAndLeavesTheEndToTheKey(BeltRouteEndpointRole role, BlockDirection expected)
+        {
+            var facing = BeltRouteEndpointFacing.Resolve(GridWithOutputPortFacingSouth(), new Vector3Int(4, 0, 2), BlockDirection.North, BlockDirection.East, role);
+            Assert.AreEqual(expected, facing);
+        }
+
+        // 出力口でない面。始点はキーの向き、終点はブロックへ差し込む向き
+        // A face without an output port: the start keeps the key's heading, the end heads into the block
+        [TestCase(BeltRouteEndpointRole.Start, BlockDirection.East)]
+        [TestCase(BeltRouteEndpointRole.End, BlockDirection.West)]
+        public void PlainFaceKeepsTheFormerHeading(BeltRouteEndpointRole role, BlockDirection expected)
+        {
+            var facing = BeltRouteEndpointFacing.Resolve(GridWithOutputPortFacingSouth(), new Vector3Int(5, 0, 3), BlockDirection.West, BlockDirection.East, role);
+            Assert.AreEqual(expected, facing);
+        }
+
+        // 1つ上の高さの出力口は、その下のセルの向きを変えない
+        // An output port one level up does not change the heading of the cell below it
+        [Test]
+        public void OutputPortOneLevelUpIsIgnored()
+        {
+            var grid = BeltRoutePlannerBasicTest.FlatGrid(16);
+            grid.MarkBlockCell(new Vector3Int(4, 0, 3));
+            grid.MarkBlockCell(new Vector3Int(4, 1, 3));
+            grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 1, 3), BlockDirection.South, 1));
+            var facing = BeltRouteEndpointFacing.Resolve(grid, new Vector3Int(4, 0, 2), BlockDirection.North, BlockDirection.East, BeltRouteEndpointRole.Start);
+            Assert.AreEqual(BlockDirection.East, facing);
         }
 
         // 始点の隣で1つ下の終点は下り坂になり、荷物が終点の先のチェストへ届く
