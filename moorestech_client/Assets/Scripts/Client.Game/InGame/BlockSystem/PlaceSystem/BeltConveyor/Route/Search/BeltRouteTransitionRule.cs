@@ -16,8 +16,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly BeltRouteQuery _query;
         private readonly Vector3Int _endFrontCell;
 
-        // 終点自身の出口の辺も既存の出力口と同じ扱い。辺に接するセルで途中になりうるのは、終点と終点の前それぞれの1つ下だけ
-        // The end's own exit edge counts like an existing output; of the cells touching it, only the ones below the end and below its front can be mid-route
+        // 終点自身の出口の辺。途中セルがこれを受けると終点が自分の経路へ流れ込む。辺に接するセルで途中になりうるのは、終点と終点の前それぞれの1つ下だけ
+        // The end's own exit edge; a mid cell receiving it would make the end feed its own route. Of the cells touching it, only the ones below the end and below its front can be mid-route
         private readonly Vector3Int _cellBelowEnd;
         private readonly Vector3Int _cellBelowEndFront;
         private readonly int _faceBitBelowEnd;
@@ -63,7 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             if (cell == _query.StartCell || cell == _query.EndCell || cell == _endFrontCell) return false;
             if (!IsCellFree(cell)) return false;
             if (kind.IsSlope() && !IsSlopeHeadFree(cell)) return false;
-            return (OutputFaceBits(cell) & EntryFaceBits(kind, incoming, outgoing)) == 0;
+            return (EndExitFaceBits(cell) & EntryFaceBits(kind, incoming, outgoing)) == 0;
         }
 
         // 手前の状態から終点セルへ入れるか。終点は空セルで向きが固定の直線
@@ -95,18 +95,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return IsTurnAllowed(previous.Outgoing, next.Outgoing);
         }
 
-        // 既存の出力口の面ビットに、終点自身の出口の辺を重ねる
-        // Existing output faces with the end's own exit edge laid over them
-        private int OutputFaceBits(Vector3Int cell)
+        // 終点自身の出口の辺の面ビット。既存の出力口は見ない（前を通れば合流になる。ADR 0102）
+        // Face bits of the end's own exit edge; existing outputs are not consulted (passing in front of one merges, ADR 0102)
+        private int EndExitFaceBits(Vector3Int cell)
         {
-            var bits = _world.OutputFaceBits(cell);
+            var bits = 0;
             if (cell == _cellBelowEnd) bits |= _faceBitBelowEnd;
             if (cell == _cellBelowEndFront) bits |= _faceBitBelowEndFront;
             return bits;
         }
 
-        // 入口の面が既存の出力口に向いていると、そのラインの荷物を横取りする
-        // An entry face aimed at by an existing output would steal that line's items
+        // このセルが荷物を受ける面。終点自身の出口の辺と照合する
+        // The faces this cell takes items on, matched against the end's own exit edge
         // 坂なしの直線ベルトは背面・左右の3面が入口。坂は手前セルへ向く1面だけ（下り坂は1つ上の高さ）
         // A flat straight belt takes input on back, left and right; slopes only on the face toward the previous cell (a down slope one level up)
         private int EntryFaceBits(BeltRouteCellKind kind, BlockDirection incoming, BlockDirection outgoing)

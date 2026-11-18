@@ -107,25 +107,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         }
 
         [Test]
-        public void CellReceivingExistingOutputIsAvoided()
-        {
-            var grid = FlatGrid();
-            // (4,0,1)の北向きベルトが(4,0,2)へ流している
-            // A north-facing belt at (4,0,1) flows into (4,0,2)
-            grid.MarkBlockCell(new Vector3Int(4, 0, 1));
-            grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 0, 1), BlockDirection.North, 0));
-            // 坂なしの直線ベルトはその面を入口に持つので、横へ迂回するしかない
-            // A flat straight belt owns that face as an input, so the only option is a sideways detour
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(7, 0, 2), BlockDirection.East, false);
-            var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
-
-            Assert.IsTrue(result.HasPlan);
-            BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "existing output");
-            Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(4, 0, 2)));
-            Assert.LessOrEqual(result.Plan.Cells.Count, 8 * BeltRouteSearch.HeuristicWeight);
-        }
-
-        [Test]
         public void BranchStartsBesideTheExistingBelt()
         {
             var grid = FlatGrid();

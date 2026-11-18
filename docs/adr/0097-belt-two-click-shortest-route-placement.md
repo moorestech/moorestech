@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-06
 - Superseded in part by: ADR 0100（探索箱・高さ上限・経路なしの理由分け・C キーは 2026-11-09 に置き換え。該当節の冒頭に注記）
+- Superseded in part by: ADR 0102（既存の出力口の前を途中で使わない規則・分岐器手持ちの経路・手持ちが坂でも直線と同じ・終点は直線固定・終点の向きは 2026-11-18 に置き換え）
 - Related: ADR 0081（ベルトのドラッグ経路は地形を乗り越える・本ADRで廃止）、ADR 0083（合流マスの分岐器モデル）、ADR 0095（向きは水平4方向のみ）
 - 参考実装: ParamegaFactory `Road/Djk.cs`（A*）・`Road/DJKSetRoad.cs`（経路の組み立て）
 
