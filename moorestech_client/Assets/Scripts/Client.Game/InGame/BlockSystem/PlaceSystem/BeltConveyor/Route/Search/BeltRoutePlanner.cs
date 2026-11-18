@@ -51,14 +51,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             var outcome = _search.Run(rule, startStates, MaxExpansions);
             if (outcome != BeltRouteSearchOutcome.Reached) return NotFound(query, outcome.ToString(), _search.Expansions);
 
-            // 届いたコストで組み、失敗時は追加展開して再組み立て
-            // Assemble at the reached cost; on failure expand more and retry
-            var reached = _search.BestCost(_search.Goal);
-            var plan = _recovery.Recover(rule, startStates, reached);
+            // 届いた終点で組み、失敗時は直線・下りの順に再試行
+            // Assemble at the reached goal; on failure retry straight, then down
+            var goal = _search.BestGoal;
+            var reached = _search.BestCost(goal);
+            var plan = _recovery.Recover(rule, startStates, goal, reached);
             if (plan == null && _recoverySlack != NoRecoverySlack)
             {
                 _search.ExpandMore(RecoveryExtraExpansions);
-                plan = _recovery.Recover(rule, startStates, reached + _recoverySlack);
+                plan = _recovery.Recover(rule, startStates, _search.Goal, reached + _recoverySlack) ?? _recovery.Recover(rule, startStates, _search.DownGoal, reached + _recoverySlack);
             }
             return plan == null ? NotFound(query, "recovery failed", _search.Expansions) : BeltRoutePlanResult.Found(plan);
         }
@@ -71,8 +72,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return BeltRoutePlanResult.NotFound();
         }
 
-        // 出発規則: 通常は直線か上り、分岐器は背面入力3方向
-        // Start rule: normal belt straight or up, splitter back entry three ways
+        // 出発規則: 直線か上り。分岐は既存ベルトからコスト0
+        // Start rule: straight or up; a branch leaves the existing belt at cost 0
         private static List<(BeltRouteState state, int cost)> BuildStartStates(BeltRouteQuery query, BeltRouteTransitionRule rule)
         {
             var starts = new List<(BeltRouteState, int)>(3);
@@ -81,14 +82,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             if (query.StartIsExistingBelt)
             {
                 starts.Add((new BeltRouteState(cell, direction, BeltRouteCellKind.Straight), 0));
-                return starts;
-            }
-
-            if (query.TurnByOutput)
-            {
-                starts.Add((new BeltRouteState(cell, direction, BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost));
-                starts.Add((new BeltRouteState(cell, BeltRouteDirection.Left(direction), BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost));
-                starts.Add((new BeltRouteState(cell, BeltRouteDirection.Right(direction), BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost));
                 return starts;
             }
 

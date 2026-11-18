@@ -34,9 +34,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _candidates = new BeltRouteRecoveryCandidates(search);
         }
 
-        // 探索が終点へ届いた後に呼ぶ。budgetは経路の総コストの上限。組めなければnull
-        // Called after the search reached the goal; budget caps the route's total cost; null when nothing assembles within it
-        public BeltRoutePlan Recover(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates, int budget)
+        // 終点到達後に呼ぶ。budgetは総コスト上限、組めなければnull
+        // Called after the goal is reached; budget caps the total cost; null when nothing assembles
+        public BeltRoutePlan Recover(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates, BeltRouteState goal, int budget)
         {
             _rule = rule;
             _startStates = startStates;
@@ -45,7 +45,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _reversedStates.Clear();
             _steps = 0;
 
-            var goal = _search.Goal;
             if (_search.BestCost(goal) == BeltRouteSearch.Unreached) return null;
 
             Place(goal, 0);
@@ -117,19 +116,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _reversedStates.RemoveAt(_reversedStates.Count - 1);
         }
 
-        // 分岐器は入る向きが正面。通常ベルトは出る向きが正面。総コストは置いたセルの和（分岐の始点は置かないので0）
-        // A splitter faces its entry heading; a normal belt faces its exit heading; the total is the sum of placed cells (a branch start is not placed, so 0)
+        // ベルトは出る向きが正面。総コストは置いたセルの和（分岐の始点は置かないので0）
+        // A belt faces its exit heading; the total is the sum of placed cells (a branch start is not placed, so 0)
         private BeltRoutePlan BuildPlan()
         {
             var cells = new List<BeltRouteCell>(_reversedStates.Count);
-            var incoming = _rule.Query.StartDirection;
             var totalCost = 0;
             for (var i = _reversedStates.Count - 1; 0 <= i; i--)
             {
                 var state = _reversedStates[i];
-                var facing = _rule.Query.TurnByOutput ? incoming : state.Outgoing;
-                cells.Add(new BeltRouteCell(state.Cell, facing, state.Kind));
-                incoming = state.Outgoing;
+                cells.Add(new BeltRouteCell(state.Cell, state.Outgoing, state.Kind));
                 totalCost += state.Kind.Cost();
             }
             return new BeltRoutePlan(cells, totalCost);

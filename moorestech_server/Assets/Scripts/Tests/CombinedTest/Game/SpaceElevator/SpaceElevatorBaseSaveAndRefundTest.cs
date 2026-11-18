@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 壊れたセーブを模す。1機だけ昇り、余りの2機は入口へ戻る
             // Mimic a broken save; one satellite keeps climbing and the extra two go back to the inlet
-            LogAssert.Expect(LogType.Error, new Regex("1機だけ昇らせ"));
+            LogAssert.Expect(LogType.Error, new Regex("1便の .* 個だけ昇らせ"));
             var climber = LoadClimber(elevatorBase, save);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
             Assert.AreEqual(2, inventory.GetItem(0).Count);
@@ -163,13 +163,6 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var climber = LoadClimber(elevatorBase, save);
             Assert.AreEqual(0f, ReadClimberDetail(climber).ClimbProgress);
             Assert.AreEqual(1, climber.GetRefundItems().Count);
-        }
-
-        private static SpaceElevatorClimberComponent LoadClimber(IBlock elevatorBase, SpaceElevatorClimberSaveJsonObject save)
-        {
-            var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
-            var states = new Dictionary<string, object> { { "spaceElevatorClimber", save } };
-            return new SpaceElevatorClimberComponent(states, param, elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>());
         }
 
         private static SpaceElevatorBaseStateDetail ReadClimberDetail(SpaceElevatorClimberComponent climber)

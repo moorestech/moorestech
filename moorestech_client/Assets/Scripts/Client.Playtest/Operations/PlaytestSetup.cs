@@ -23,6 +23,7 @@ namespace Client.Playtest.Operations
         // Top face is aligned exactly to y=32 (so the preview's Floor(hit.y) matches the block grid)
         public static readonly Vector3 GroundCenter = new(0, 30, 0);
         public static readonly Vector3 GroundSize = new(50, 4, 50);
+        public static readonly float GroundTopY = GroundCenter.y + GroundSize.y / 2f;
 
         public static async UniTask CreateFlatGroundAndWarp()
         {
@@ -30,7 +31,7 @@ namespace Client.Playtest.Operations
 
             // 足場上面の中央へ少し浮かせてワープし、着地を数フレーム待つ
             // Warp slightly above the scaffold's top center, then wait a few frames to land
-            var warpPosition = new Vector3(GroundCenter.x, GroundCenter.y + GroundSize.y / 2f + 1.5f, GroundCenter.z);
+            var warpPosition = new Vector3(GroundCenter.x, GroundTopY + 1.5f, GroundCenter.z);
             WarpPlayer(warpPosition);
             await UniTask.DelayFrame(10);
         }

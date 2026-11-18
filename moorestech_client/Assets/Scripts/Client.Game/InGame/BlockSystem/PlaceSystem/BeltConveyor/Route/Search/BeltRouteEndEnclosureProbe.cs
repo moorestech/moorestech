@@ -32,11 +32,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                 var cell = queue.Dequeue();
                 if (IsBesideStart(cell)) return true;
 
-                // 終点の手前は同じ高さ（直線・下り坂）か1つ下（上り坂）だけ
-                // The cell before the end is only at the same level (straight, down slope) or one below (up slope)
-                var maxRise = cell == endCell ? 0 : 1;
                 foreach (var step in HorizontalSteps)
-                for (var dy = -1; dy <= maxRise; dy++)
+                for (var dy = -1; dy <= 1; dy++)
                 {
                     var next = cell + step + new Vector3Int(0, dy, 0);
                     if (visited.Contains(next) || !rule.IsCellFree(next)) continue;
