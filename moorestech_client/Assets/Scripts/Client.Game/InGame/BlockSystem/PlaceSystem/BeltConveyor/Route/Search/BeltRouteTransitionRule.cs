@@ -63,8 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             if (cell == _query.StartCell || cell == _query.EndCell || cell == _endFrontCell) return false;
             if (!IsCellFree(cell)) return false;
             if (kind.IsSlope() && !IsSlopeHeadFree(cell)) return false;
-            if ((OutputFaceBits(cell) & EntryFaceBits(kind, incoming, outgoing)) != 0) return false;
-            return !FeedsForeignInput(cell, kind, incoming, outgoing);
+            return (OutputFaceBits(cell) & EntryFaceBits(kind, incoming, outgoing)) == 0;
         }
 
         // 手前の状態から終点セルへ入れるか。終点は空セルで向きが固定の直線
@@ -74,19 +73,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             var next = previous.Cell + BeltRouteDirection.Forward(previous.Outgoing);
             if (next.x != _query.EndCell.x || next.z != _query.EndCell.z) return false;
             if (previous.ExitHeight != _query.EndCell.y) return false;
-            return CanEnterGoalFrom(previous.Outgoing);
+            return IsTurnAllowed(previous.Outgoing, _query.EndDirection);
         }
 
-        // 分岐器の終点は正面一致、通常は背面・左右から入れる
-        // Splitter end needs facing match; normal accepts back or sides
-        public bool CanEnterGoalFrom(BlockDirection outgoing)
-        {
-            if (_query.TurnByOutput) return outgoing == _query.EndDirection;
-            return IsTurnAllowed(outgoing, _query.EndDirection);
-        }
-
-        // 次のセルは前・左・右へ出られる。Uターンだけは入口と出口が同じ面になるので不可（分岐器も幾何は同じ）
-        // The next cell may exit forward, left or right; only a U-turn is impossible since entry and exit share a face (splitters share the geometry)
+        // 次のセルは前・左・右へ出られる。Uターンだけは入口と出口が同じ面になるので不可
+        // The next cell may exit forward, left or right; only a U-turn is impossible since entry and exit share a face
         public bool IsTurnAllowed(BlockDirection incoming, BlockDirection outgoing)
         {
             return outgoing != BeltRouteDirection.Opposite(incoming);
@@ -116,29 +107,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 
         // 入口の面が既存の出力口に向いていると、そのラインの荷物を横取りする
         // An entry face aimed at by an existing output would steal that line's items
-        // 坂なしの直線ベルトは背面・左右の3面が入口。分岐器と坂は手前セルへ向く1面だけ（下り坂は1つ上の高さ）
-        // A flat straight belt takes input on back, left and right; splitters and slopes only on the face toward the previous cell (a down slope one level up)
+        // 坂なしの直線ベルトは背面・左右の3面が入口。坂は手前セルへ向く1面だけ（下り坂は1つ上の高さ）
+        // A flat straight belt takes input on back, left and right; slopes only on the face toward the previous cell (a down slope one level up)
         private int EntryFaceBits(BeltRouteCellKind kind, BlockDirection incoming, BlockDirection outgoing)
         {
-            if (kind == BeltRouteCellKind.Straight && !_query.TurnByOutput)
+            if (kind == BeltRouteCellKind.Straight)
             {
                 return BeltRouteFaceBits.FaceBit(BeltRouteDirection.Opposite(outgoing), 0)
                        | BeltRouteFaceBits.FaceBit(BeltRouteDirection.Left(outgoing), 0)
                        | BeltRouteFaceBits.FaceBit(BeltRouteDirection.Right(outgoing), 0);
             }
             return BeltRouteFaceBits.FaceBit(BeltRouteDirection.Opposite(incoming), kind.EntryHeightOffset());
-        }
-
-        // 分岐器は使わない出口も流すので、その先に既存の受け手がいてはいけない
-        // A splitter also emits through its unused exits, so none of them may face an existing receiver
-        private bool FeedsForeignInput(Vector3Int cell, BeltRouteCellKind kind, BlockDirection incoming, BlockDirection outgoing)
-        {
-            if (!_query.TurnByOutput || kind != BeltRouteCellKind.Straight) return false;
-            var unusedExits = BeltRouteFaceBits.FaceBit(incoming, 0)
-                              | BeltRouteFaceBits.FaceBit(BeltRouteDirection.Left(incoming), 0)
-                              | BeltRouteFaceBits.FaceBit(BeltRouteDirection.Right(incoming), 0);
-            unusedExits &= ~BeltRouteFaceBits.FaceBit(outgoing, 0);
-            return (_world.InputFaceBits(cell) & unusedExits) != 0;
         }
     }
 }

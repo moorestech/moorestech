@@ -66,16 +66,15 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             }
         }
 
-        // 出る向きは次セルへの差分。分岐器は向きが入る側なので差分から復元し、通常ベルトは向きそのもの
-        // The exit heading is the delta to the next cell; a splitter faces its entry so it is recovered from the delta, a normal belt faces its exit
+        // 出る向きは次セルへの差分で、ベルトの向きと一致する
+        // The exit heading is the delta to the next cell and equals the belt's facing
         private static List<BeltRouteState> ToStates(BeltRouteQuery query, IReadOnlyList<BeltRouteCell> cells)
         {
             var states = new List<BeltRouteState>(cells.Count);
             for (var i = 0; i < cells.Count; i++)
             {
                 var outgoing = i + 1 < cells.Count ? BeltRouteDirection.FromStep(cells[i + 1].Cell - cells[i].Cell) : query.EndDirection;
-                if (!query.TurnByOutput) Assert.AreEqual(outgoing, cells[i].Facing, $"belt facing must equal its exit heading at {cells[i].Cell}");
-                else Assert.AreEqual(i == 0 ? query.StartDirection : BeltRouteDirection.FromStep(cells[i].Cell - cells[i - 1].Cell), cells[i].Facing, $"splitter facing must equal its entry heading at {cells[i].Cell}");
+                Assert.AreEqual(outgoing, cells[i].Facing, $"belt facing must equal its exit heading at {cells[i].Cell}");
                 states.Add(new BeltRouteState(cells[i].Cell, outgoing, cells[i].Kind));
             }
             return states;

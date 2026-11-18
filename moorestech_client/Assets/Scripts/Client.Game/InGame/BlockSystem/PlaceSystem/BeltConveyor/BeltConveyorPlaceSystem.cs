@@ -95,7 +95,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             // 手持ちはブロックIDが変わったときだけ解決し直す。持ち替えは始点の選び直しから
             // The held family is re-resolved only when the block id changes; a switch restarts from start selection
-            if (isSelectionChanged || _holding == null || _holding.SelectedBlockId != target.BlockId)
+            if (isSelectionChanged || _holding == null || _holding.BlockId != target.BlockId)
             {
                 _holding = BeltConveyorHoldingBlock.Resolve(target.BlockId);
                 _currentDirection = target.ResolveDirectionOnSelection(_currentDirection, isSelectionChanged);

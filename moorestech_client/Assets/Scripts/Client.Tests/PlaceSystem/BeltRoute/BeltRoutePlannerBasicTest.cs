@@ -34,7 +34,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // A query for a normal belt with slopes
         private static BeltRouteQuery Query(Vector3Int start, BlockDirection startDirection, Vector3Int end, BlockDirection endDirection)
         {
-            return new BeltRouteQuery(start, startDirection, false, end, endDirection, true, false);
+            return new BeltRouteQuery(start, startDirection, false, end, endDirection, true);
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 0, 1), BlockDirection.North, 0));
             // 坂なしの直線ベルトはその面を入口に持つので、横へ迂回するしかない
             // A flat straight belt owns that face as an input, so the only option is a sideways detour
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(7, 0, 2), BlockDirection.East, false, false);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(7, 0, 2), BlockDirection.East, false);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
 
             Assert.IsTrue(result.HasPlan);
@@ -130,25 +130,12 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         {
             var grid = FlatGrid();
             grid.MarkBlockCell(new Vector3Int(2, 0, 2));
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, true, new Vector3Int(6, 0, 5), BlockDirection.North, true, false);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, true, new Vector3Int(6, 0, 5), BlockDirection.North, true);
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
 
             Assert.IsTrue(result.HasPlan);
             BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "branch");
             Assert.AreEqual(new Vector3Int(3, 0, 2), result.Plan.Cells[0].Cell);
-        }
-
-        [Test]
-        public void SplitterHoldingTurnsOnTheExitSideAndStaysFlat()
-        {
-            var grid = FlatGrid();
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(6, 0, 6), BlockDirection.North, false, true);
-            var result = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack).Plan(query);
-
-            Assert.IsTrue(result.HasPlan);
-            BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "splitter");
-            Assert.AreEqual(BlockDirection.East, result.Plan.Cells[0].Facing);
-            Assert.IsTrue(result.Plan.Cells.All(cell => cell.Kind == BeltRouteCellKind.Straight && cell.Cell.y == 0));
         }
 
         // 終点が始点の真上（と真上の1つ前）で逆向き。終点の真下を上りにする形が一番短いが、終点が自分の坂の真上に乗るので外へ回る

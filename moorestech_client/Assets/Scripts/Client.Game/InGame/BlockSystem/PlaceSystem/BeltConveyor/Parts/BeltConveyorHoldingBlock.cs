@@ -7,8 +7,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    ///     選択ブロックから解決した手持ちファミリー。坂を選んでいても直線を代表にし、経路が各セルの種別を決める
-    ///     The held family resolved from the build-menu selection; a slope selection still holds the straight block, and the route decides each cell's kind
+    ///     選択ブロックから解決した手持ちファミリー。経路が各セルの種別を決める
+    ///     The held family resolved from the build-menu selection; the route decides each cell's kind
     /// </summary>
     public class BeltConveyorHoldingBlock
     {
@@ -16,26 +16,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
         public readonly BlockId BlockId;
         public readonly BlockMasterElement BlockMaster;
 
-        // ビルドメニューで選んだブロック。持ち替え検知に使う
-        // The block chosen in the build menu, used to detect a switch
-        public readonly BlockId SelectedBlockId;
-
-        // 分岐器（出力口が2つ以上）のファミリーは水平経路のみで全セルが分岐器になる
-        // A splitter family (two or more output ports) routes horizontally only, with every cell a splitter
-        public readonly bool IsSplitter;
-
-        private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockId selectedBlockId, BlockMasterElement blockMaster, bool isSplitter)
+        private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockMasterElement blockMaster)
         {
             Family = family;
             BlockId = family.StraightBlockId;
-            SelectedBlockId = selectedBlockId;
             BlockMaster = blockMaster;
-            IsSplitter = isSplitter;
         }
 
         // 上り・下りが両方あるファミリーだけ坂を使う
         // Only a family with both up and down slopes may use slopes
         public bool AllowsSlopes => Family.UpBlockId.HasValue && Family.DownBlockId.HasValue;
+
+        // 経路設置に入るのはファミリーの直線ブロックで分岐器でないものだけ。坂と分岐器は単発設置（ADR 0102）
+        // Only a family's straight, non-splitter block enters route placement; slopes and splitters are placed singly (ADR 0102)
+        public static bool IsRoutePlacementBlock(BlockId blockId)
+        {
+            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)) return false;
+            if (family.StraightBlockId != blockId) return false;
+            return !BeltSplitterCounterpart.IsSplitter(MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockParam);
+        }
 
         public static BeltConveyorHoldingBlock Resolve(BlockId selectedBlockId)
         {
@@ -45,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                 throw new InvalidOperationException($"BeltConveyorHoldingBlock: block belongs to no beltConveyorFamily. BlockId:{selectedBlockId}");
 
             var master = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
-            return new BeltConveyorHoldingBlock(family, selectedBlockId, master, BeltSplitterCounterpart.IsSplitter(master.BlockParam));
+            return new BeltConveyorHoldingBlock(family, master);
         }
 
         public bool IsSameFamily(BlockId blockId)

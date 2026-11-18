@@ -117,19 +117,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _reversedStates.RemoveAt(_reversedStates.Count - 1);
         }
 
-        // 分岐器は入る向きが正面。通常ベルトは出る向きが正面。総コストは置いたセルの和（分岐の始点は置かないので0）
-        // A splitter faces its entry heading; a normal belt faces its exit heading; the total is the sum of placed cells (a branch start is not placed, so 0)
+        // ベルトは出る向きが正面。総コストは置いたセルの和（分岐の始点は置かないので0）
+        // A belt faces its exit heading; the total is the sum of placed cells (a branch start is not placed, so 0)
         private BeltRoutePlan BuildPlan()
         {
             var cells = new List<BeltRouteCell>(_reversedStates.Count);
-            var incoming = _rule.Query.StartDirection;
             var totalCost = 0;
             for (var i = _reversedStates.Count - 1; 0 <= i; i--)
             {
                 var state = _reversedStates[i];
-                var facing = _rule.Query.TurnByOutput ? incoming : state.Outgoing;
-                cells.Add(new BeltRouteCell(state.Cell, facing, state.Kind));
-                incoming = state.Outgoing;
+                cells.Add(new BeltRouteCell(state.Cell, state.Outgoing, state.Kind));
                 totalCost += state.Kind.Cost();
             }
             return new BeltRoutePlan(cells, totalCost);

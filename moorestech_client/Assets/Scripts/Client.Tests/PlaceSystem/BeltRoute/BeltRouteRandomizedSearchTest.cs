@@ -30,7 +30,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 var result = planner.Plan(query);
                 if (!result.HasPlan) continue;
                 found++;
-                BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt}");
+                BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} branch:{query.StartIsExistingBelt}");
             }
             Debug.Log($"[BeltRouteRandomized] found {found} routes in {Iterations} iterations");
             Assert.Greater(found, Iterations / 4, "too few routes found; the random scenario is not exercising the search");
@@ -63,22 +63,17 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var kindRoll = random.Next(5);
             if (kindRoll == 0)
             {
-                grid.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Opposite(facing), cell.y));
                 grid.AddOutputEdge(BeltRouteEdge.FromFace(cell, facing, cell.y + 1));
                 grid.MarkSlopeHead(cell + Vector3Int.up);
                 return;
             }
             if (kindRoll == 1)
             {
-                grid.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Opposite(facing), cell.y + 1));
                 grid.AddOutputEdge(BeltRouteEdge.FromFace(cell, facing, cell.y));
                 grid.MarkSlopeHead(cell + Vector3Int.up);
                 return;
             }
             grid.AddOutputEdge(BeltRouteEdge.FromFace(cell, facing, cell.y));
-            grid.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Opposite(facing), cell.y));
-            grid.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Left(facing), cell.y));
-            grid.AddInputEdge(BeltRouteEdge.FromFace(cell, BeltRouteDirection.Right(facing), cell.y));
         }
 
         private static bool TryPickQuery(System.Random random, BeltRouteGrid grid, out BeltRouteQuery query)
@@ -87,13 +82,12 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             if (!TryPickFreeCell(random, grid, out var start) || !TryPickFreeCell(random, grid, out var end) || start == end) return false;
 
             var startIsExistingBelt = random.Next(10) == 0;
-            var turnByOutput = !startIsExistingBelt && random.Next(5) == 0;
-            var allowSlopes = !turnByOutput && random.Next(5) != 0;
+            var allowSlopes = random.Next(5) != 0;
             var startDirection = (BlockDirection)random.Next(4);
             // 分岐の始点は既存ベルトなので障害として塗る
             // A branch start is an existing belt, so it is painted as an obstacle
             if (startIsExistingBelt) grid.MarkBlockCell(start);
-            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, (BlockDirection)random.Next(4), allowSlopes, turnByOutput);
+            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, (BlockDirection)random.Next(4), allowSlopes);
             return true;
         }
 

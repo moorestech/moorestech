@@ -104,7 +104,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                     // Entering the end cell itself generates only the goal state (straight, fixed facing); other heights of that column are ordinary cells
                     if (nextCell == Goal.Cell)
                     {
-                        if (nextKind == BeltRouteCellKind.Straight && _rule.CanEnterGoalFrom(state.Outgoing)) Relax(Goal, g + BeltRouteCellKindExtension.StraightCost);
+                        if (nextKind == BeltRouteCellKind.Straight && _rule.IsTurnAllowed(state.Outgoing, Goal.Outgoing)) Relax(Goal, g + BeltRouteCellKindExtension.StraightCost);
                         continue;
                     }
                     TryRelax(nextCell, nextKind, state.Outgoing, state.Outgoing, g);

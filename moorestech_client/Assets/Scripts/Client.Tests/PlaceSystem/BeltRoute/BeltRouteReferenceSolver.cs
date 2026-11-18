@@ -50,8 +50,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return _best;
         }
 
-        // 本番のBuildStartStatesと同じ出発候補。通常ベルトは直線か上り、分岐器は3方向、分岐は既存ベルトからコスト0
-        // The same start candidates as production: straight or up for a normal belt, three headings for a splitter, cost 0 from an existing belt for a branch
+        // 本番のBuildStartStatesと同じ出発候補。直線か上り、分岐は既存ベルトからコスト0
+        // The same start candidates as production: straight or up, cost 0 from an existing belt for a branch
         internal static List<(BeltRouteState state, int cost)> StartStates(BeltRouteTransitionRule rule)
         {
             var query = rule.Query;
@@ -64,12 +64,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 return starts;
             }
             starts.Add((new BeltRouteState(cell, direction, BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost));
-            if (query.TurnByOutput)
-            {
-                starts.Add((new BeltRouteState(cell, BeltRouteDirection.Left(direction), BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost));
-                starts.Add((new BeltRouteState(cell, BeltRouteDirection.Right(direction), BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost));
-                return starts;
-            }
             if (query.AllowSlopes && rule.IsSlopeHeadFree(cell)) starts.Add((new BeltRouteState(cell, direction, BeltRouteCellKind.Up), BeltRouteCellKindExtension.SlopeCost));
             return starts;
         }

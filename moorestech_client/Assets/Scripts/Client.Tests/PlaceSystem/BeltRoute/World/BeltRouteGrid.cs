@@ -20,7 +20,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute.World
         private readonly HashSet<Vector3Int> _blockCells = new();
         private readonly HashSet<Vector3Int> _slopeHeads = new();
         private readonly Dictionary<Vector3Int, int> _outputFaceBits = new();
-        private readonly Dictionary<Vector3Int, int> _inputFaceBits = new();
 
         public BeltRouteGrid(Vector3Int min, Vector3Int size)
         {
@@ -41,7 +40,9 @@ namespace Client.Tests.PlaceSystem.BeltRoute.World
         public void MarkBlockCell(Vector3Int cell) => _blockCells.Add(cell);
         public void MarkSlopeHead(Vector3Int cell) => _slopeHeads.Add(cell);
         public void AddOutputEdge(BeltRouteEdge edge) => BeltRouteFaceBits.Mark(edge, _outputFaceBits);
-        public void AddInputEdge(BeltRouteEdge edge) => BeltRouteFaceBits.Mark(edge, _inputFaceBits);
+        // 探索は入力辺を読まない。入力辺を読むのは分岐判定の BeltRouteNeighbourEdges だけ（ADR 0102）
+        // The search never reads input edges; only the branch judge's BeltRouteNeighbourEdges does (ADR 0102)
+        public void AddInputEdge(BeltRouteEdge edge) { }
 
         public bool IsBlockedByBlock(Vector3Int cell) => !Contains(cell) || _blockCells.Contains(cell);
 
@@ -54,6 +55,5 @@ namespace Client.Tests.PlaceSystem.BeltRoute.World
 
         public bool IsSlopeHead(Vector3Int cell) => _slopeHeads.Contains(cell);
         public int OutputFaceBits(Vector3Int cell) => _outputFaceBits.TryGetValue(cell, out var bits) ? bits : 0;
-        public int InputFaceBits(Vector3Int cell) => _inputFaceBits.TryGetValue(cell, out var bits) ? bits : 0;
     }
 }
