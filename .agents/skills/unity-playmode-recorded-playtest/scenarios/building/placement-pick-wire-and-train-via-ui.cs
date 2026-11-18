@@ -143,6 +143,10 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     await p.Until(() => WireWithColliders() != null, 15f, "電線ビューとクリック判定コライダーの生成");
     await p.Screenshot("02-wire-connected");
 
+    // 電柱の手前に立つと電線の中央への照準レイがアバターの頭に当たるので、南へ下がって頭越しに狙う
+    // Standing at the poles puts the avatar's head on the aim ray to the wire's middle, so step back south and aim over it
+    p.WarpPlayer(new Vector3(0f, 33.5f, -4f));
+    await p.WaitSeconds(0.5f);
     p.Note("GameScreen中に電線をAltホールドでミドルクリックしてスポイトする");
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
     var wireColliders = WireWithColliders().GetComponentsInChildren<Collider>(true);
