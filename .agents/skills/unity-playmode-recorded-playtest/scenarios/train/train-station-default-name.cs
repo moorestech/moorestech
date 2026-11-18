@@ -8,10 +8,13 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -29,10 +32,6 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         SemanticInput.EnsureDevices();
         InputSystem.EnableDevice(Keyboard.current);
         InputSystem.EnableDevice(Mouse.current);
-        // 実地形より上に足場を置き、画面に地面とアバターを残す。
-        // Put scaffolds above the terrain while keeping ground and the avatar in the frame.
-        CreateScaffold("coal", new Vector3(105f, 98f, -38f), new Vector3(60f, 4f, 65f));
-        CreateScaffold("empty", new Vector3(1003.5f, 98f, 1010f), new Vector3(50f, 4f, 50f));
         await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig
         {
             CreateFlatGround = false,
@@ -43,11 +42,20 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         await PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
-        // 半径32の走査は駅のXZ中心から鉱脈セルまで測り、英語CSVのCoalを使う。
-        // The radius-32 scan measures from the station's XZ center to vein cells and uses Coal from the English CSV.
-        var coalFirst = new Vector3Int(93, 100, -48);
+        // 鉱脈の配置はワールド生成で変わるので、石炭の鉱脈をサーバーから引き、その中心の左右 8 マスに駅(7x20)の中心を置く。半径32の走査で最も近い鉱脈が石炭になり、英語CSVのCoalを使う
+        // Vein layout changes with world generation, so read a coal vein from the server and centre the stations (7x20) 8 cells either side of it; the radius-32 scan then finds coal nearest and uses Coal from the English CSV
+        var coalItemId = PlaytestItemOps.ResolveItemId("石炭");
+        var (veinMin, veinMax) = (Vector3Int.zero, Vector3Int.zero);
+        await p.RunOnServer("石炭の鉱脈を探す", () => { var vein = ServerContext.ItemMapVeinDatastore.Veins.First(v => v.VeinItemId == coalItemId); (veinMin, veinMax) = (vein.VeinRangeMin, vein.VeinRangeMax); });
+        var (centerX, centerZ, stationY) = ((veinMin.x + veinMax.x + 1) / 2, (veinMin.z + veinMax.z + 1) / 2, Mathf.Max(100, veinMax.y + 10));
+        p.Note($"石炭の鉱脈 min={veinMin} max={veinMax} 駅の高さ y={stationY}");
+        var coalFirst = new Vector3Int(centerX - 3 - 8, stationY, centerZ - 10);
         var empty = new Vector3Int(1000, 100, 1000);
-        var coalSecond = new Vector3Int(109, 100, -48);
+        var coalSecond = new Vector3Int(centerX - 3 + 8, stationY, centerZ - 10);
+        // 実地形より上に足場を置き、画面に地面とアバターを残す。
+        // Put scaffolds above the terrain while keeping ground and the avatar in the frame.
+        CreateScaffold("coal", new Vector3(centerX, stationY - 2f, centerZ), new Vector3(60f, 4f, 65f));
+        CreateScaffold("empty", new Vector3(1003.5f, 98f, 1010f), new Vector3(50f, 4f, 50f));
         p.Note("石炭鉱脈の近くに駅を設置し、Coal Stationを確認する");
         await PlaceAndShow(coalFirst, "Coal Station", "01-coal-station");
         p.Note("鉱脈も採掘地物も無い地点でStationを確認する");
