@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
 {
     /// <summary>
-    ///     組み立て済み経路の1セル。Facingは置くブロックの向き（通常ベルトは出る向き、分岐器は入る向き）
-    ///     One cell of an assembled route; Facing is the placed block's heading (exit for a normal belt, entry for a splitter)
+    ///     組み立て済み経路の1セル。Facingは置くブロックの向き（出る向き）
+    ///     One cell of an assembled route; Facing is the placed block's heading (its exit)
     /// </summary>
     public readonly struct BeltRouteCell
     {

@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Paste;
@@ -58,13 +59,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 case BlockPlacementTarget block:
                 {
-                    // ブロック種別で専用システムへ、残りは通常ブロック
-                    // Route by block type; the rest fall back to common blocks
+                    // 直線ベルトだけ経路設置、残りは通常ブロック
+                    // Straight belts route; the rest are common blocks
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                     return blockMaster.BlockType switch
                     {
-                        BlockMasterElement.BlockTypeConst.BeltConveyor => _beltConveyorPlaceSystem,
-                        BlockMasterElement.BlockTypeConst.GearBeltConveyor => _beltConveyorPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.BeltConveyor or BlockMasterElement.BlockTypeConst.GearBeltConveyor when BeltConveyorHoldingBlock.IsRoutePlacementBlock(block.BlockId) => _beltConveyorPlaceSystem,
                         BlockMasterElement.BlockTypeConst.TrainRail => _trainRailPlaceSystem,
                         BlockMasterElement.BlockTypeConst.GearChainPole => _gearChainPoleConnectSystem,
                         _ => _commonBlockPlaceSystem,

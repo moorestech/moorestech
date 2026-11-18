@@ -40,7 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session.Branch
         {
             origin = null;
             // silent-ok: 理由行「分岐は同じ種類の直線ベルトからだけ作れます」で分岐不可と分かる
-            if (holding.IsSplitter || !IsStraightBeltOfFamily(belt, holding)) return BeltRouteBranchBlockReason.NotStraightBelt;
+            if (!IsStraightBeltOfFamily(belt, holding)) return BeltRouteBranchBlockReason.NotStraightBelt;
             // silent-ok: 候補0件や曖昧なマスタはBeltSplitterCounterpartがログに残す / 理由行で分岐不可と分かる
             if (!BeltSplitterCounterpart.TryGetSplitterBlockId(belt.BlockId, out var splitterBlockId)) return BeltRouteBranchBlockReason.NoSplitter;
 
