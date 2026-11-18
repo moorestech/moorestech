@@ -59,14 +59,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return a.bound < b.bound;
         }
 
-        // 終点は手前の状態から入れるか、途中セルは手前の出る向きを入口として置けるか
-        // The end checks whether it can be entered from the previous state; a mid cell whether it is placeable with that entry heading
+        // 終点は手前の状態から入れるか、途中セルはそこに置けるか
+        // The end checks whether it can be entered from the previous state; a mid cell whether it is placeable there
         private static bool IsReachableTransition(BeltRouteTransitionRule rule, BeltRouteState previous, BeltRouteState next)
         {
             if (!rule.IsConnected(previous, next)) return false;
             var isGoal = next.Cell == rule.Query.EndCell;
             if (isGoal) return rule.CanEnterGoal(previous, next.Kind);
-            return rule.IsIntermediatePlaceable(next.Cell, next.Kind, previous.Outgoing, next.Outgoing);
+            return rule.IsIntermediatePlaceable(next.Cell, next.Kind);
         }
 
         private static IEnumerable<BlockDirection> IncomingOptions(BeltRouteState state)

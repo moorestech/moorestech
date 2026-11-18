@@ -3,7 +3,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session;
 using Client.Tests.PlaceSystem.BeltRoute.World;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using System;

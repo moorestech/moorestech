@@ -16,22 +16,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly BeltRouteQuery _query;
         private readonly Vector3Int _endFrontCell;
 
-        // 終点自身の出口の辺。途中セルがこれを受けると終点が自分の経路へ流れ込む。辺に接するセルで途中になりうるのは、終点と終点の前それぞれの1つ下だけ
-        // The end's own exit edge; a mid cell receiving it would make the end feed its own route. Of the cells touching it, only the ones below the end and below its front can be mid-route
-        private readonly Vector3Int _cellBelowEnd;
-        private readonly Vector3Int _cellBelowEndFront;
-        private readonly int _faceBitBelowEnd;
-        private readonly int _faceBitBelowEndFront;
-
         public BeltRouteTransitionRule(IBeltRouteWorld world, BeltRouteQuery query)
         {
             _world = world;
             _query = query;
             _endFrontCell = query.EndCell + BeltRouteDirection.Forward(query.EndDirection);
-            _cellBelowEnd = query.EndCell + Vector3Int.down;
-            _cellBelowEndFront = _endFrontCell + Vector3Int.down;
-            _faceBitBelowEnd = BeltRouteFaceBits.FaceBit(query.EndDirection, 1);
-            _faceBitBelowEndFront = BeltRouteFaceBits.FaceBit(BeltRouteDirection.Opposite(query.EndDirection), 1);
         }
 
         public BeltRouteQuery Query => _query;
@@ -54,16 +43,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return !_world.IsBlockedByBlock(head);
         }
 
-        // 始点・終点以外のセルとして置けるか。incomingは手前セルの出る向き、outgoingはこのセルの出る向き
-        // Whether the cell may be a mid-route cell; incoming is the previous cell's exit heading, outgoing this cell's
-        public bool IsIntermediatePlaceable(Vector3Int cell, BeltRouteCellKind kind, BlockDirection incoming, BlockDirection outgoing)
+        // 始点・終点以外のセルとして置けるか。既存の出力口の前でも置ける（合流になる。ADR 0102）
+        // Whether the cell may be a mid-route cell; a cell in front of an existing output is fine (it merges, ADR 0102)
+        public bool IsIntermediatePlaceable(Vector3Int cell, BeltRouteCellKind kind)
         {
             // 終点の前のセルは、終点が流す先として空けておく
             // The cell in front of the end stays free as the end's delivery target
             if (cell == _query.StartCell || cell == _query.EndCell || cell == _endFrontCell) return false;
             if (!IsCellFree(cell)) return false;
-            if (kind.IsSlope() && !IsSlopeHeadFree(cell)) return false;
-            return (EndExitFaceBits(cell) & EntryFaceBits(kind, incoming, outgoing)) == 0;
+            return !kind.IsSlope() || IsSlopeHeadFree(cell);
         }
 
         // 手前の状態から終点セルへ入れるか。終点は向きが固定で、直線か下り坂
@@ -96,31 +84,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             if (!next.Kind.CanFollow(previous.Kind)) return false;
             if (next.Kind.IsSlope()) return next.Outgoing == previous.Outgoing;
             return IsTurnAllowed(previous.Outgoing, next.Outgoing);
-        }
-
-        // 終点自身の出口の辺の面ビット。既存の出力口は見ない（前を通れば合流になる。ADR 0102）
-        // Face bits of the end's own exit edge; existing outputs are not consulted (passing in front of one merges, ADR 0102)
-        private int EndExitFaceBits(Vector3Int cell)
-        {
-            var bits = 0;
-            if (cell == _cellBelowEnd) bits |= _faceBitBelowEnd;
-            if (cell == _cellBelowEndFront) bits |= _faceBitBelowEndFront;
-            return bits;
-        }
-
-        // このセルが荷物を受ける面。終点自身の出口の辺と照合する
-        // The faces this cell takes items on, matched against the end's own exit edge
-        // 坂なしの直線ベルトは背面・左右の3面が入口。坂は手前セルへ向く1面だけ（下り坂は1つ上の高さ）
-        // A flat straight belt takes input on back, left and right; slopes only on the face toward the previous cell (a down slope one level up)
-        private int EntryFaceBits(BeltRouteCellKind kind, BlockDirection incoming, BlockDirection outgoing)
-        {
-            if (kind == BeltRouteCellKind.Straight)
-            {
-                return BeltRouteFaceBits.FaceBit(BeltRouteDirection.Opposite(outgoing), 0)
-                       | BeltRouteFaceBits.FaceBit(BeltRouteDirection.Left(outgoing), 0)
-                       | BeltRouteFaceBits.FaceBit(BeltRouteDirection.Right(outgoing), 0);
-            }
-            return BeltRouteFaceBits.FaceBit(BeltRouteDirection.Opposite(incoming), kind.EntryHeightOffset());
         }
     }
 }

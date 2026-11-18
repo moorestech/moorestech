@@ -97,7 +97,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 if (_best == NotFound || nextCost < _best) _best = nextCost;
                 return;
             }
-            if (!_rule.IsIntermediatePlaceable(next.Cell, next.Kind, current.Outgoing, next.Outgoing)) return;
+            if (!_rule.IsIntermediatePlaceable(next.Cell, next.Kind)) return;
             if (!TryPlace(next)) return;
             Walk(next, nextCost);
             Unplace(next);

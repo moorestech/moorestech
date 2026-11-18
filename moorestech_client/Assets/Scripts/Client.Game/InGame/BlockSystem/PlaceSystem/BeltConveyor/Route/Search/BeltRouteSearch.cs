@@ -113,16 +113,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                         if (nextKind != BeltRouteCellKind.Up && _rule.CanEnterGoal(state, nextKind)) Relax(nextKind == BeltRouteCellKind.Straight ? Goal : DownGoal, g + nextKind.Cost());
                         continue;
                     }
-                    TryRelax(nextCell, nextKind, state.Outgoing, state.Outgoing, g);
+                    TryRelax(nextCell, nextKind, state.Outgoing, g);
                     if (nextKind.IsSlope()) continue;
-                    TryRelax(nextCell, nextKind, state.Outgoing, BeltRouteDirection.Left(state.Outgoing), g);
-                    TryRelax(nextCell, nextKind, state.Outgoing, BeltRouteDirection.Right(state.Outgoing), g);
+                    TryRelax(nextCell, nextKind, BeltRouteDirection.Left(state.Outgoing), g);
+                    TryRelax(nextCell, nextKind, BeltRouteDirection.Right(state.Outgoing), g);
                 }
             }
 
-            void TryRelax(Vector3Int cell, BeltRouteCellKind kind, BlockDirection incoming, BlockDirection outgoing, int g)
+            void TryRelax(Vector3Int cell, BeltRouteCellKind kind, BlockDirection outgoing, int g)
             {
-                if (!_rule.IsIntermediatePlaceable(cell, kind, incoming, outgoing)) return;
+                if (!_rule.IsIntermediatePlaceable(cell, kind)) return;
                 Relax(new BeltRouteState(cell, outgoing, kind), g + kind.Cost());
             }
 

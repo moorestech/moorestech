@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
 using Client.Tests.PlaceSystem.BeltRoute.World;
-using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -54,7 +53,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 Assert.IsTrue(rule.IsConnected(previous, next), $"{label}: {previous} -> {next} not connected");
                 var isGoal = i == states.Count - 1;
                 if (isGoal) Assert.IsTrue(rule.CanEnterGoal(previous, next.Kind), $"{label}: goal not enterable from {previous}");
-                else Assert.IsTrue(rule.IsIntermediatePlaceable(next.Cell, next.Kind, previous.Outgoing, next.Outgoing), $"{label}: {next} not placeable mid-route");
+                else Assert.IsTrue(rule.IsIntermediatePlaceable(next.Cell, next.Kind), $"{label}: {next} not placeable mid-route");
             }
 
             // 分岐の始点（既存ベルト）からも最初のセルへ繋がること
