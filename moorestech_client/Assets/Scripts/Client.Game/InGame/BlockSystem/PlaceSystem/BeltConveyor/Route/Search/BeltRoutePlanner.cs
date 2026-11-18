@@ -51,14 +51,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             var outcome = _search.Run(rule, startStates, MaxExpansions);
             if (outcome != BeltRouteSearchOutcome.Reached) return NotFound(query, outcome.ToString(), _search.Expansions);
 
-            // 届いたコストで組み、失敗時は追加展開して再組み立て
-            // Assemble at the reached cost; on failure expand more and retry
-            var reached = _search.BestCost(_search.Goal);
-            var plan = _recovery.Recover(rule, startStates, reached);
+            // 届いた終点状態のコストで組み、失敗時は追加展開して直線・下り坂の順に組み直す
+            // Assemble at the reached goal state's cost; on failure expand more and retry the straight goal, then the down-slope one
+            var goal = _search.BestGoal;
+            var reached = _search.BestCost(goal);
+            var plan = _recovery.Recover(rule, startStates, goal, reached);
             if (plan == null && _recoverySlack != NoRecoverySlack)
             {
                 _search.ExpandMore(RecoveryExtraExpansions);
-                plan = _recovery.Recover(rule, startStates, reached + _recoverySlack);
+                plan = _recovery.Recover(rule, startStates, _search.Goal, reached + _recoverySlack) ?? _recovery.Recover(rule, startStates, _search.DownGoal, reached + _recoverySlack);
             }
             return plan == null ? NotFound(query, "recovery failed", _search.Expansions) : BeltRoutePlanResult.Found(plan);
         }

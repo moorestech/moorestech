@@ -34,9 +34,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _candidates = new BeltRouteRecoveryCandidates(search);
         }
 
-        // 探索が終点へ届いた後に呼ぶ。budgetは経路の総コストの上限。組めなければnull
-        // Called after the search reached the goal; budget caps the route's total cost; null when nothing assembles within it
-        public BeltRoutePlan Recover(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates, int budget)
+        // 探索が終点へ届いた後に呼ぶ。goalは組み立てる終点状態、budgetは経路の総コストの上限。組めなければnull
+        // Called after the search reached the goal; goal is the goal state to assemble from and budget caps the route's total cost; null when nothing assembles within it
+        public BeltRoutePlan Recover(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates, BeltRouteState goal, int budget)
         {
             _rule = rule;
             _startStates = startStates;
@@ -45,7 +45,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _reversedStates.Clear();
             _steps = 0;
 
-            var goal = _search.Goal;
             if (_search.BestCost(goal) == BeltRouteSearch.Unreached) return null;
 
             Place(goal, 0);

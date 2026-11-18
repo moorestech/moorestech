@@ -23,7 +23,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             if (!query.StartIsExistingBelt) Assert.AreEqual(query.StartCell, cells[0].Cell, $"{label}: first cell");
             Assert.AreEqual(query.EndCell, cells[^1].Cell, $"{label}: last cell");
             Assert.AreEqual(query.EndDirection, cells[^1].Facing, $"{label}: last facing");
-            Assert.AreEqual(BeltRouteCellKind.Straight, cells[^1].Kind, $"{label}: last kind");
+            Assert.AreNotEqual(BeltRouteCellKind.Up, cells[^1].Kind, $"{label}: last kind");
 
             var rule = new BeltRouteTransitionRule(grid, query);
             var used = new HashSet<Vector3Int>();
@@ -53,7 +53,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 Assert.IsTrue(next.Kind.CanFollow(previous.Kind), $"{label}: peak or valley at {next.Cell}");
                 Assert.IsTrue(rule.IsConnected(previous, next), $"{label}: {previous} -> {next} not connected");
                 var isGoal = i == states.Count - 1;
-                if (isGoal) Assert.IsTrue(rule.CanEnterGoal(previous), $"{label}: goal not enterable from {previous}");
+                if (isGoal) Assert.IsTrue(rule.CanEnterGoal(previous, next.Kind), $"{label}: goal not enterable from {previous}");
                 else Assert.IsTrue(rule.IsIntermediatePlaceable(next.Cell, next.Kind, previous.Outgoing, next.Outgoing), $"{label}: {next} not placeable mid-route");
             }
 

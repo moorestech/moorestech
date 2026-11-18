@@ -88,11 +88,12 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var nextCost = cost + next.Kind.Cost();
             if (_costCap < nextCost) return;
 
-            // 終点セルへ入るのは終点状態（直線・固定向き）だけ。他の種別・向きは終点セルに置けない
-            // Only the goal state (straight, fixed facing) may enter the end cell; no other kind or heading may occupy it
+            // 終点セルへ入るのは終点状態（固定向きの直線か下り坂）だけ。下り坂は真上が置き済みでないこと
+            // Only goal states (fixed facing, straight or down slope) may enter the end cell; a down slope needs its head unused
             if (next.Cell == _query.EndCell)
             {
-                if (next.Kind != BeltRouteCellKind.Straight || next.Outgoing != _query.EndDirection || !_rule.CanEnterGoal(current)) return;
+                if (next.Kind == BeltRouteCellKind.Up || next.Outgoing != _query.EndDirection || !_rule.CanEnterGoal(current, next.Kind)) return;
+                if (next.Kind.IsSlope() && _usedCells.Contains(next.Cell + Vector3Int.up)) return;
                 if (_best == NotFound || nextCost < _best) _best = nextCost;
                 return;
             }

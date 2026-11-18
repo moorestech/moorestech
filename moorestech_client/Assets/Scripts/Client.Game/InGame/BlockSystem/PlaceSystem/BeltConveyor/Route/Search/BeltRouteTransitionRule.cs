@@ -66,14 +66,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return (EndExitFaceBits(cell) & EntryFaceBits(kind, incoming, outgoing)) == 0;
         }
 
-        // 手前の状態から終点セルへ入れるか。終点は空セルで向きが固定の直線
-        // Whether the end cell can be entered from the previous state; the end is a straight cell of fixed facing
-        public bool CanEnterGoal(BeltRouteState previous)
+        // 手前の状態から終点セルへ入れるか。終点は向きが固定で、直線か下り坂
+        // Whether the end cell can be entered from the previous state; the end has a fixed facing and is straight or a down slope
+        // 下り坂の終点は1つ上の高さから入り、曲がれず、真上を空ける。上り坂の終点は直線より高くつくだけで出口が1つ上へずれるので作らない（ADR 0102）
+        // A down-slope end is entered one level up, cannot turn, and keeps its head clear; an up-slope end only costs more and lifts the exit a level, so it is never built (ADR 0102)
+        public bool CanEnterGoal(BeltRouteState previous, BeltRouteCellKind goalKind)
         {
             var next = previous.Cell + BeltRouteDirection.Forward(previous.Outgoing);
             if (next.x != _query.EndCell.x || next.z != _query.EndCell.z) return false;
-            if (previous.ExitHeight != _query.EndCell.y) return false;
-            return IsTurnAllowed(previous.Outgoing, _query.EndDirection);
+            if (previous.ExitHeight != _query.EndCell.y + goalKind.EntryHeightOffset()) return false;
+            if (goalKind == BeltRouteCellKind.Straight) return IsTurnAllowed(previous.Outgoing, _query.EndDirection);
+            return goalKind == BeltRouteCellKind.Down && previous.Outgoing == _query.EndDirection && IsSlopeHeadFree(_query.EndCell);
         }
 
         // 次のセルは前・左・右へ出られる。Uターンだけは入口と出口が同じ面になるので不可

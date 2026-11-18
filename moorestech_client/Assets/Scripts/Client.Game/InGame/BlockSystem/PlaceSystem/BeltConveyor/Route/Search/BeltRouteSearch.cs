@@ -39,9 +39,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         // Reported by the caller's log when there is no route
         public int Expansions { get; private set; }
 
-        // 終点状態。Runごとに決まり呼び手も共用
-        // Goal state, fixed per Run and shared with callers
+        // 終点状態は直線と下り坂の2つ。Runごとに決まり呼び手も共用
+        // Two goal states, straight and down slope; fixed per Run and shared with callers
         public BeltRouteState Goal { get; private set; }
+        public BeltRouteState DownGoal { get; private set; }
+
+        // コストの小さい方の終点状態。同じなら直線
+        // The cheaper goal state; straight on a tie
+        public BeltRouteState BestGoal => BestCost(DownGoal) < BestCost(Goal) ? DownGoal : Goal;
 
         public int BestCost(BeltRouteState state) => _bestCost.TryGetValue(state, out var g) ? g : Unreached;
 
@@ -53,6 +58,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             Expansions = 0;
             var query = rule.Query;
             Goal = new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight);
+            DownGoal = new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Down);
             foreach (var (state, cost) in startStates) Relax(state, cost);
             return ExpandUntil(maxExpansions, true);
         }
@@ -69,12 +75,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             while (0 < _open.Count)
             {
                 // silent-ok: 上限到達は呼び手（BeltRoutePlanner）が展開数つきでログに出す
-                if (expansionLimit <= Expansions) return BestCost(Goal) == Unreached ? BeltRouteSearchOutcome.CapReached : BeltRouteSearchOutcome.Reached;
+                if (expansionLimit <= Expansions) return BestCost(BestGoal) == Unreached ? BeltRouteSearchOutcome.CapReached : BeltRouteSearchOutcome.Reached;
                 var (_, g, state) = _open.Pop();
                 // 古い項は飛ばす
                 // Skip stale entries
                 if (g != BestCost(state)) continue;
-                if (state.Equals(Goal))
+                if (state.Equals(Goal) || state.Equals(DownGoal))
                 {
                     if (stopAtGoal) return BeltRouteSearchOutcome.Reached;
                     continue;
@@ -83,7 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                 Expand(state, g);
             }
             // silent-ok: 待ち行列の枯渇は呼び手（BeltRoutePlanner）がログに出す
-            return BestCost(Goal) == Unreached ? BeltRouteSearchOutcome.Exhausted : BeltRouteSearchOutcome.Reached;
+            return BestCost(BestGoal) == Unreached ? BeltRouteSearchOutcome.Exhausted : BeltRouteSearchOutcome.Reached;
 
             #region Internal
 
@@ -100,11 +106,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                     if (!nextKind.CanFollow(state.Kind)) continue;
                     var nextCell = new Vector3Int(nextColumn.x, exitHeight - nextKind.EntryHeightOffset(), nextColumn.z);
 
-                    // 終点セルそのものへ入るときは終点状態（直線・固定向き）だけを生成する。終点の列の他の高さは普通のセル
-                    // Entering the end cell itself generates only the goal state (straight, fixed facing); other heights of that column are ordinary cells
+                    // 終点セルそのものへ入るときは終点状態（固定向きの直線か下り坂）だけを生成する。終点の列の他の高さは普通のセル
+                    // Entering the end cell itself generates only goal states (fixed facing, straight or down slope); other heights of that column are ordinary cells
                     if (nextCell == Goal.Cell)
                     {
-                        if (nextKind == BeltRouteCellKind.Straight && _rule.IsTurnAllowed(state.Outgoing, Goal.Outgoing)) Relax(Goal, g + BeltRouteCellKindExtension.StraightCost);
+                        if (nextKind != BeltRouteCellKind.Up && _rule.CanEnterGoal(state, nextKind)) Relax(nextKind == BeltRouteCellKind.Straight ? Goal : DownGoal, g + nextKind.Cost());
                         continue;
                     }
                     TryRelax(nextCell, nextKind, state.Outgoing, state.Outgoing, g);

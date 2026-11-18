@@ -65,7 +65,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         {
             if (!rule.IsConnected(previous, next)) return false;
             var isGoal = next.Cell == rule.Query.EndCell;
-            if (isGoal) return rule.CanEnterGoal(previous);
+            if (isGoal) return rule.CanEnterGoal(previous, next.Kind);
             return rule.IsIntermediatePlaceable(next.Cell, next.Kind, previous.Outgoing, next.Outgoing);
         }
 
