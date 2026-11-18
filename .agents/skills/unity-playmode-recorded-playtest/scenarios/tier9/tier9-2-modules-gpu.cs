@@ -55,11 +55,11 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     await p.RunOnServer("半導体製造と S1 の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
-    // モジュールと GPU のレシピは電気精密組立機（7x4x5）にあるので5台を 8 間隔で並べて給電し、各レシピを選んで材料を入れる
-    // The module and GPU recipes live on the electric precision assembler (7x4x5), so place five 8 apart, power them, select each recipe and insert its inputs
+    // モジュールと GPU のレシピは電気精密組立機（7x4x5）にあるので、平らな足場に収まるよう 3 台と 2 台の 2 列で 8 間隔に並べて給電し、各レシピを選んで材料を入れる
+    // The module and GPU recipes live on the electric precision assembler (7x4x5), so place them 8 apart in rows of three and two to stay on the flat scaffold, power them, select each recipe and insert its inputs
     p.Note("電気精密組立機5台でモジュール4種と GPULv1 のレシピを選び材料を入れる");
     var crafters = new IBlock[productRecipes.Length];
-    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(i * 8, 32, 0), BlockDirection.North);
+    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(i % 3 * 8, 32, i / 3 * 8), BlockDirection.North);
     await PowerAll();
     for (var i = 0; i < productRecipes.Length; i++)
     {
@@ -70,7 +70,7 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     foreach (var crafter in crafters) await p.WaitBlockGameObject(crafter.BlockPositionInfo.OriginalPos);
     // 列の南へ着地し、設置演出が終わって機械が描画される最初の完成(品質モジュール)まで待ってから撮る
     // Land south of the row and wait for the first product (quality module), by which the placement effect has finished, then shoot
-    p.WarpPlayer(new Vector3(19.5f, 32.5f, -14f));
+    p.WarpPlayer(new Vector3(11.5f, 32.5f, -12f));
     await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
     await p.Until(() => Count(crafters[0], productRecipes[0].product) > 0, 60f, $"{productRecipes[0].product} crafted");
     await p.Screenshot("01-workshops");
