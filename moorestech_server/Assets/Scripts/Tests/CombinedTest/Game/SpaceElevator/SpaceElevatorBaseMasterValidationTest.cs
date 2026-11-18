@@ -18,6 +18,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [TestCase("capacity")]
         [TestCase("cable")]
         [TestCase("satellite")]
+        [TestCase("duplicate")]
         public void MasterLoadAloneRejectsInvalidOrbitalConfiguration(string variant)
         {
             var configs = ModJsonStringLoader.GetMasterString(new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")));
@@ -38,11 +39,17 @@ namespace Tests.CombinedTest.Game.SpaceElevator
                     block["blockParam"]["outputSlotCount"] = 100;
             }
             if (variant == "satellite") row.Remove();
+            if (variant == "duplicate")
+            {
+                foreach (var block in blocks["data"].Where(b => (string)b["blockType"] == "SpaceElevatorBase"))
+                    block["blockParam"]["carriedPayloadItemGuids"][1] = block["blockParam"]["carriedPayloadItemGuids"][0].DeepClone();
+            }
             if (variant == "cable") items["orbitalPayloads"].Single(p => (Guid)p["payloadItemGuid"] == cable).Remove();
             configs[0].JsonContents[itemKey] = items.ToString();
             configs[0].JsonContents[blockKey] = blocks.ToString();
             var error = Assert.Throws<InvalidOperationException>(() => MasterHolder.Load(new MasterJsonFileContainer(configs)));
-            StringAssert.Contains(variant == "capacity" ? "outputSlotCount 1 cannot hold" : "missing from orbitalPayloads", error.Message);
+            var expected = variant == "capacity" ? "outputSlotCount 1 cannot hold" : variant == "duplicate" ? "has duplicate carriedPayloadItemGuid" : "missing from orbitalPayloads";
+            StringAssert.Contains(expected, error.Message);
         }
     }
 }

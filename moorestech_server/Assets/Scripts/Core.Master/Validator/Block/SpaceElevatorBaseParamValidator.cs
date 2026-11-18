@@ -46,8 +46,13 @@ namespace Core.Master.Validator.Block
                 var logs = "";
                 if (MasterHolder.ItemMaster.GetItemIdOrNull(param.CableItemGuid) == null) logs += $"[BlockMaster] Name:{name} has invalid cableItemGuid:{param.CableItemGuid}\n";
                 if (param.CarriedPayloadItemGuids.Length == 0) logs += $"[BlockMaster] Name:{name} carriedPayloadItemGuids must not be empty\n";
+
+                // 重複すると拠点生成時の辞書化で例外になるためここで弾く
+                // Duplicates would throw when the base builds its dictionary, so reject them here
+                var seenCarried = new HashSet<Guid>();
                 foreach (var payloadGuid in param.CarriedPayloadItemGuids)
                 {
+                    if (!seenCarried.Add(payloadGuid)) logs += $"[BlockMaster] Name:{name} has duplicate carriedPayloadItemGuid:{payloadGuid}\n";
                     logs += ValidatePayload(name, payloadGuid, true, param.OutputSlotCount);
 
                     // ケーブルを昇降機で運べるとロケット無しでプールが増える

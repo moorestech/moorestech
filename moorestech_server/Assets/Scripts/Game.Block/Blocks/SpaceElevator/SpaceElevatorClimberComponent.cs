@@ -15,8 +15,14 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
-    // 拠点の昇降機。積荷を1便ぶんずつ電力で昇らせ、頂上で軌道到着サービスへ渡して成果を出口へ入れる。成果が入りきらなければ昇り始めず、頂上でも待つ
-    // The base's climber: lifts one launch worth of payload at a time with power and hands it over at the top; it neither starts nor hands over while the result would not fit
+    // 拠点の昇降機
+    // - 積荷を1便ずつ電力で昇らせる
+    // - 頂上で到着サービスへ渡す
+    // - 成果が入らなければ待つ
+    // The base's climber
+    // - Lifts one launch of payload at a time with power
+    // - Hands it to the arrival service at the top
+    // - Waits while the result would not fit
     public class SpaceElevatorClimberComponent : ISpaceElevatorBase, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
     {
         public bool IsConnected { get; private set; }
@@ -115,7 +121,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 ItemId satelliteId;
                 var result = IsConnected
                     ? _inventory.TryTakeSatelliteForClimb(out satellite, out satelliteId)
-                    : _inventory.PeekSatellite(out satelliteId) == SatelliteInletState.NotCarried ? SatelliteTakeResult.NotCarried : SatelliteTakeResult.Empty;
+                    : _inventory.PeekSatellite(out satelliteId) == SatelliteInletState.NotCarried ? SatelliteTakeResult.NotCarried : SatelliteTakeResult.MissingPayload;
                 _inletNotCarried = result == SatelliteTakeResult.NotCarried;
                 // 運べないアイテムが入口を塞いだら、その tick に1回だけ開発者ログへ出す
                 // Log once on the tick a non-carried item starts blocking the inlet

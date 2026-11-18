@@ -36,8 +36,8 @@ namespace Game.Block.Blocks.SpaceElevator
         private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        // 運ぶ積荷と、その1便の個数（マスタの積荷表から引く）
-        // Carried payloads and their per-launch counts, read from the master payload table
+        // 積荷と1便の個数（マスタ積荷表）
+        // Payloads and per-launch counts from the master table
         private readonly Dictionary<ItemId, int> _countPerLaunchByCarriedPayload;
         public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService)
         {
@@ -79,10 +79,10 @@ namespace Game.Block.Blocks.SpaceElevator
             CheckDestroy(this);
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
             satelliteId = stack.Id;
-            if (stack.Count == 0) return SatelliteInletState.Empty;
+            if (stack.Count == 0) return SatelliteInletState.MissingPayload;
             if (!IsCarriedPayload(stack.Id)) return SatelliteInletState.NotCarried;
             // silent-ok: 1便に満たない積荷は通常の待機 / プレイヤーは拠点UIの積荷待ちと入口の個数で気づく
-            return stack.Count < GetCountPerLaunch(stack.Id) ? SatelliteInletState.Empty : SatelliteInletState.Carriable;
+            return stack.Count < GetCountPerLaunch(stack.Id) ? SatelliteInletState.MissingPayload : SatelliteInletState.Carriable;
         }
         // 全量が戻せるときだけ入口へ確定する
         // Commit to the inlet only when the entire satellite stack fits
@@ -95,7 +95,7 @@ namespace Game.Block.Blocks.SpaceElevator
             satellite = ServerContext.ItemStackFactory.CreatEmpty();
             var inlet = PeekSatellite(out satelliteId);
             // silent-ok: 通常の入口待機 / 呼出側が理由を状態詳細と初回ログへ反映する
-            if (inlet != SatelliteInletState.Carriable) return inlet == SatelliteInletState.Empty ? SatelliteTakeResult.Empty : SatelliteTakeResult.NotCarried;
+            if (inlet != SatelliteInletState.Carriable) return inlet == SatelliteInletState.MissingPayload ? SatelliteTakeResult.MissingPayload : SatelliteTakeResult.NotCarried;
             var countPerLaunch = GetCountPerLaunch(satelliteId);
             // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
             if (!InventoryInsertItem.TryFillAllPreferringExisting(_arrivalService.PreviewArrivalOutputs(satelliteId, countPerLaunch), CopyOutlets())) return SatelliteTakeResult.OutputBlocked;

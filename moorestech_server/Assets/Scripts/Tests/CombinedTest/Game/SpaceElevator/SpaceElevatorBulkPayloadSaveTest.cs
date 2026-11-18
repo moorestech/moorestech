@@ -1,4 +1,6 @@
+using Core.Item.Interface;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -14,14 +16,15 @@ using Server.Protocol.PacketResponse;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Tests.CombinedTest.Game.SpaceElevator.SpaceElevatorTestUtil;
 using static Tests.CombinedTest.Game.SpaceElevator.SpaceElevatorConnectionTest;
 using static Tests.Util.EnergySystem.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Game.SpaceElevator
 {
-    // 1便3個の積荷を運ぶ昇降中の状態が、セーブと撤去で個数ごと保たれることを確かめる
-    // Verify a climbing three-per-launch payload keeps its count through save/load and removal
+    // 1便3個の昇降中状態がセーブ・撤去で保たれる
+    // A climbing three-per-launch state survives save/load and removal
     public class SpaceElevatorBulkPayloadSaveTest
     {
         private const int PlayerId = 3;
@@ -35,16 +38,16 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             RunSeconds(1);
             var json = provider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            // 読み直すと昇降中のまま、入口は空で、昇っている3個は保たれる
-            // After reload it is still climbing, the inlet stays empty, and the three climbing items are kept
+            // 昇降中のまま入口は空、3個は保持
+            // Still climbing, inlet empty, three items kept
             var (_, loadedProvider) = CreateServer();
             ((WorldLoaderFromJson)loadedProvider.GetService<IWorldSaveDataLoader>()).Load(json);
             var loaded = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.Greater(ReadDetail(loaded).ClimbProgress, 0f);
             Assert.AreEqual(3, loaded.GetComponent<SpaceElevatorClimberComponent>().GetRefundItems()[0].Count);
 
-            // ロード後の電力網へ発電機を戻し、残りだけで一便ぶんの成果が出る
-            // Restore generation to the loaded network; one launch worth of results appears within the remainder
+            // 発電機を戻し、残りで一便ぶん成果が出る
+            // Restore the generator; one launch of results appears
             global::Core.Update.GameUpdater.UpdateOneTick();
             Assert.IsTrue(ServerContext.GetService<IElectricWireNetworkLookup>().TryGetEnergySegment(loaded.BlockInstanceId, out var segment));
             AddGenerator(segment, new TestElectricGenerator(new ElectricPower(100), BlockInstanceId.Create()));
@@ -70,6 +73,39 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var playerInventory = provider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var returned = playerInventory.InventoryItems.Where(item => item.Id == ForUnitTestItemId.TestElevatorBulkPayload).Sum(item => item.Count);
             Assert.AreEqual(4, returned);
+        }
+
+        [Test]
+        public void 一便に足りない個数の積荷が昇降中でロードされたら昇降を取り消して入口へ戻す()
+        {
+            CreateServer();
+            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var shortPayload = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorBulkPayload, 2);
+            var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(shortPayload), RemainingClimbSeconds = 1 };
+
+            // 1便3個に2個では頂上で例外になるため、昇らせず入口へ全量を戻す
+            // Two of three per launch would throw at the top, so return everything to the inlet without climbing
+            LogAssert.Expect(LogType.Error, new Regex("1便の .* 個に足りない"));
+            var climber = LoadClimber(elevatorBase, save);
+            Assert.AreEqual(ForUnitTestItemId.TestElevatorBulkPayload, Inventory(elevatorBase).GetItem(0).Id);
+            Assert.AreEqual(2, Inventory(elevatorBase).GetItem(0).Count);
+            Assert.AreEqual(0, climber.GetRefundItems().Count);
+        }
+
+        [Test]
+        public void 一便より多い個数の積荷が昇降中でロードされたら一便ぶんだけ昇らせ余りを入口へ戻す()
+        {
+            CreateServer();
+            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var excess = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorBulkPayload, 5);
+            var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(excess), RemainingClimbSeconds = 1 };
+
+            // 1便3個だけ昇り、余り2個が入口に戻る
+            // Only the three of one launch climb and the remaining two return to the inlet
+            LogAssert.Expect(LogType.Error, new Regex("1便の .* 個だけ昇らせ"));
+            var climber = LoadClimber(elevatorBase, save);
+            Assert.AreEqual(2, Inventory(elevatorBase).GetItem(0).Count);
+            Assert.AreEqual(3, climber.GetRefundItems()[0].Count);
         }
     }
 }

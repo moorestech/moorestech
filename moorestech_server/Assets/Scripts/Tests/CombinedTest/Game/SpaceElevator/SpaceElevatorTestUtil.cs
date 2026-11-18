@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
@@ -6,8 +7,10 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Orbit;
+using Game.SaveLoad.Json;
 using Game.SpaceElevator;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlocksModule;
 using Server.Boot;
 using Server.Protocol;
 using Tests.Module;
@@ -74,6 +77,15 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public static SpaceElevatorBaseInventoryComponent Inventory(IBlock elevatorBase)
         {
             return elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
+        }
+
+        // セーブの昇降状態から昇降機コンポーネントを組み立てる
+        // Build a climber component from a saved climbing state
+        public static SpaceElevatorClimberComponent LoadClimber(IBlock elevatorBase, SpaceElevatorClimberSaveJsonObject save)
+        {
+            var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
+            var states = new Dictionary<string, object> { { "spaceElevatorClimber", save } };
+            return new SpaceElevatorClimberComponent(states, param, elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>());
         }
 
         public static void RunSeconds(double seconds)

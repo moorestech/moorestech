@@ -165,13 +165,6 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(1, climber.GetRefundItems().Count);
         }
 
-        private static SpaceElevatorClimberComponent LoadClimber(IBlock elevatorBase, SpaceElevatorClimberSaveJsonObject save)
-        {
-            var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
-            var states = new Dictionary<string, object> { { "spaceElevatorClimber", save } };
-            return new SpaceElevatorClimberComponent(states, param, elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>());
-        }
-
         private static SpaceElevatorBaseStateDetail ReadClimberDetail(SpaceElevatorClimberComponent climber)
         {
             return MessagePackSerializer.Deserialize<SpaceElevatorBaseStateDetail>(climber.GetBlockStateDetails()[0].Value);
