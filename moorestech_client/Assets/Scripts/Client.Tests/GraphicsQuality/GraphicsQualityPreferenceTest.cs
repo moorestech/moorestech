@@ -13,6 +13,9 @@ namespace Client.Tests.GraphicsQuality
         public void UnsavedPreferenceStartsAtMedium()
         {
             AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true);
+            // 未保存は不正値ではないので復旧印を立てない
+            // Unsaved is not an invalid value, so the recovery flag stays down
+            Assert.IsFalse(GraphicsQualityPreference.RecoveredInvalidPreference);
         }
 
         [Test]

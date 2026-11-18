@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Game.InGame.UI.UIState.State.Hotbar
 {
     /// <summary>
-    ///     数字キー/Web由来のホットバータップを消費し、建築モードの開始・持ち替え・終了へ振り分ける唯一の入口
-    ///     The single entry point that consumes digit-key/web-originated hotbar taps and routes them to entering, swapping, or leaving build mode
+    ///     数字キー/Client.Ui.State（画面の操作）由来のホットバータップを消費し、建築モードの開始・持ち替え・終了へ振り分ける唯一の入口
+    ///     The single entry point that consumes digit-key and Client.Ui.State (screen operation) hotbar taps and routes them to entering, swapping, or leaving build mode
     /// </summary>
     public class HotbarTapInputService
     {
@@ -69,8 +69,8 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
                 _clientHotbarDatastore.RequestAssign(slot, _placeSystemStateController.CurrentTarget.Id);
         }
 
-        // UIState遷移のたびに押下と未消費のWeb要求を捨てる。復帰直後の誤発火を防ぐ
-        // Drops the held key and the unconsumed web request on every UIState transition to prevent a stale fire after returning
+        // UIState遷移のたびに押下と未消費の Client.Ui.State の要求を捨てる。復帰直後の誤発火を防ぐ
+        // Drops the held key and the unconsumed Client.Ui.State request on every UIState transition to prevent a stale fire after returning
         public void ResetKeyState()
         {
             _hotbarKeyInput.Reset();
@@ -84,11 +84,11 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
             target = null;
             PollKeyInput();
 
-            // 同フレームに両方来ても双方を消費する。短絡させるとWeb側の要求だけ次フレームへ残り遅れて発火する
-            // Consume both sources even when they arrive on the same frame; short-circuiting leaves the web request queued and fires it late
+            // 同フレームに両方来ても双方を消費する。短絡させると Client.Ui.State の要求だけ次フレームへ残り遅れて発火する
+            // Consume both sources even when they arrive on the same frame; short-circuiting leaves the Client.Ui.State request queued and fires it late
             var keyTapped = _hotbarKeyInput.TryGetTappedSlot(out var keySlot);
-            var webTapped = _clientHotbarDatastore.TryConsumeSelectRequest(out var webSlot);
-            if (!keyTapped && !webTapped)
+            var requestTapped = _clientHotbarDatastore.TryConsumeSelectRequest(out var requestedSlot);
+            if (!keyTapped && !requestTapped)
             {
                 slot = default;
                 return false;
@@ -96,7 +96,7 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
 
             // 同フレーム競合は手元の数字キーを優先する
             // A same-frame conflict resolves in favor of the local digit key
-            slot = keyTapped ? keySlot : webSlot;
+            slot = keyTapped ? keySlot : requestedSlot;
 
             var targetId = _clientHotbarDatastore.Assignments[slot];
             if (targetId == Guid.Empty) return true;

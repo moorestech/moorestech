@@ -38,7 +38,6 @@ using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.PlaytestSmoke;
 using Client.Starter.Playtest;
-using Client.WebUiHost.Boot;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -58,8 +57,8 @@ namespace Client.Starter.Registration
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
 
-            // Web用の論理モデルを登録
-            // Register the logical models for the web UI
+            // UI が読む論理モデルを登録
+            // Register the logical models the UI reads
             builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
             builder.Register<GameSaveRequester>(Lifetime.Singleton);
 
@@ -104,6 +103,7 @@ namespace Client.Starter.Registration
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
             builder.RegisterEntryPoint<EquipmentHeldItemModel>();
             builder.RegisterInstance(ServerContext.GetService<IItemStackLevelUnlocker>());
+            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelLookup>());
             builder.RegisterEntryPoint<ItemStackLevelEventHandler>();
 
             // presenterと索引cacheを登録
@@ -135,10 +135,6 @@ namespace Client.Starter.Registration
             // Keep timetables for the UI outside the tick-synchronized path
             builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton).As<IClientTrainTimetableLookup>().As<IClientTrainTimetableMutator>().AsSelf();
             builder.RegisterEntryPoint<TrainTimetableEventHandler>();
-
-            // Webの無応答を1秒ごとに評価し、止まったWebの入力欄が移動とEscを塞ぎ続けないようにする（plan §3.11）
-            // Evaluate web silence every second so a stalled web text field cannot keep blocking movement and Esc (plan §3.11)
-            builder.RegisterEntryPoint<WebUiSilenceWatcher>();
 
             // 通し検証はsmoke起動時だけ登録する（前例: PlaytestRecordRegistration のフラグ分岐）
             // The smoke runner is registered only on a smoke launch (precedent: PlaytestRecordRegistration's flag branch)

@@ -61,6 +61,8 @@ namespace Client.Playtest.Input
         public static void ReleaseAllKeys()
         {
             PressedKeys.Clear();
+            UitkModifierKeys.Apply(PressedKeys);
+            UitkFocusedKeyEvents.Apply(PressedKeys);
             PlaytestOverlay.NotifyAllKeysReleased();
             if (Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
         }
@@ -120,6 +122,7 @@ namespace Client.Playtest.Input
         public static void MouseButtonDown(int button)
         {
             EnsureDevices();
+            UitkModifierKeys.WatchDelivery();
             QueueMouseButtons((ushort)(CurrentButtons() | ButtonBit(button)));
             PlaytestOverlay.NotifyMouseButton(button, true);
         }
@@ -147,15 +150,15 @@ namespace Client.Playtest.Input
             return Mouse.current.position.ReadValue();
         }
 
-        // ホイール量を実マウス状態として注入し、CEF側へ通常フレームで転送する
-        // Inject wheel movement as mouse state so CEF forwards it on a regular frame
-        public static void MouseWheel(float deltaY)
+        // ホイールをノッチ数（正で上・負で下）で注入する。実マウスと同じ正規化済みの値（1 ノッチ＝1）なので UITK が実機と同じ量で動く
+        // Inject wheel notches (positive up, negative down) as the normalized value a real mouse gives (1 per notch), so UITK moves as on hardware
+        public static void MouseWheel(float notchesY)
         {
             EnsureDevices();
             InputSystem.QueueStateEvent(Mouse.current, new MouseState
             {
                 position = Mouse.current.position.ReadValue(),
-                scroll = new Vector2(0f, deltaY),
+                scroll = new Vector2(0f, notchesY),
                 buttons = CurrentButtons(),
             });
         }
@@ -167,6 +170,8 @@ namespace Client.Playtest.Input
             var keys = new Key[PressedKeys.Count];
             PressedKeys.CopyTo(keys);
             InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(keys));
+            UitkModifierKeys.Apply(PressedKeys);
+            UitkFocusedKeyEvents.Apply(PressedKeys);
         }
 
         private static void QueueMouseButtons(ushort buttons)
@@ -188,11 +193,7 @@ namespace Client.Playtest.Input
             if (mouse.middleButton.isPressed) buttons |= 1 << 2;
             return buttons;
         }
-
-        private static ushort ButtonBit(int button)
-        {
-            return (ushort)(1 << button);
-        }
+        private static ushort ButtonBit(int button) => (ushort)(1 << button);
 
         #endregion
     }

@@ -1,0 +1,107 @@
+using System;
+using System.Text.RegularExpressions;
+using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.State.Recipe.Source;
+using Client.Tests.Ui.State.Toast;
+using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.BlockInventory.Machine;
+using Client.Ui.State.BlockInventory.Machine.Detail;
+using Client.Ui.State.BlockInventory.Machine.Selection;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Items;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Client.Tests.Ui.State.BlockInventory.Machine.Selection
+{
+    /// <summary>
+    /// 送信の手前で決まる分岐（選択中・未解放・未知・開いていない）をトーストへ渡す結果で見る。送信境界は録画が見る（D-40）
+    /// Branches decided before sending (already selected, locked, unknown, not open), seen through the result handed to the toaster; the send boundary is covered by the recording (D-40)
+    /// </summary>
+    public class MachineRecipeSelectCommandTest
+    {
+        private static readonly Guid RecipeA = MachineTestDetails.RecipeA;
+        private static readonly Guid RecipeB = MachineTestDetails.RecipeB;
+
+        private ReactiveProperty<BlockInventoryPanelState> _panel;
+        private FakeMachineSectionModel _machine;
+        private FakeGameUnlockStateData _unlock;
+        private MachineRecipeSelectCommand _command;
+        private RecordingUiCommandResultToaster _toaster;
+
+        [SetUp]
+        public void SetUp()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var viewModel = MachineTestDetails.ViewModel(MachineRecipeSelection.Selected(RecipeA), RecipeA, RecipeB);
+            _panel = new ReactiveProperty<BlockInventoryPanelState>(MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, new SlotItem[2]));
+            _machine = new FakeMachineSectionModel();
+            _machine.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
+            _unlock = new FakeGameUnlockStateData();
+            _toaster = new RecordingUiCommandResultToaster();
+            _command = new MachineRecipeSelectCommand(new FakePanelSource(_panel), _machine, _unlock, _toaster);
+        }
+
+        [Test]
+        public void 選択中と同じレシピは送らずに受理する()
+        {
+            _unlock.SetMachineRecipe(RecipeA, true);
+            _command.Select(RecipeA);
+            Assert.AreEqual(1, _toaster.Reports.Count);
+            Assert.AreEqual(MachineRecipeSelectCommand.CommandName, _toaster.Reports[0].CommandName);
+            Assert.AreSame(UiCommandAccepted.Instance, _toaster.Reports[0].Result);
+        }
+
+        [Test]
+        public void 未解放のレシピはrecipe_lockedで拒否する()
+        {
+            _unlock.SetMachineRecipe(RecipeB, false);
+            AssertRejected(RecipeB, UiCommandRejectReason.RecipeLocked, "recipe_locked");
+        }
+
+        [Test]
+        public void 未知のレシピはinvalid_recipeで拒否する()
+        {
+            AssertRejected(RecipeB, UiCommandRejectReason.RecipeInvalid, "invalid_recipe");
+        }
+
+        [Test]
+        public void ブロックが開いていなければblock_not_openで拒否する()
+        {
+            _unlock.SetMachineRecipe(RecipeB, true);
+            _panel.Value = BlockInventoryPanelState.Closed;
+            AssertRejected(RecipeB, UiCommandRejectReason.BlockNotOpen, "block_not_open");
+        }
+
+        [Test]
+        public void 足した4つの拒否理由はどれも良性でない()
+        {
+            // Web はどの拒否もトーストする（BENIGN_ERRORS に machine_recipe.select の項目は無い。D-38）
+            // Web toasts every rejection (BENIGN_ERRORS has no machine_recipe.select entry; D-38)
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.BlockNotOpen).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.RecipeInvalid).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.RecipeLocked).IsBenign);
+            Assert.IsFalse(UiCommandRejectReasonTable.Get(UiCommandRejectReason.MachineRecipeRequestFailed).IsBenign);
+            Assert.AreEqual("machine_recipe_request_failed", UiCommandRejectReasonTable.Get(UiCommandRejectReason.MachineRecipeRequestFailed).WireCode);
+        }
+
+        private void AssertRejected(Guid recipeGuid, UiCommandRejectReason reason, string wireCode)
+        {
+            LogAssert.Expect(LogType.Warning, new Regex($"\\[{Regex.Escape(MachineRecipeSelectCommand.CommandName)}\\] rejected: {wireCode} recipe={recipeGuid}"));
+            _command.Select(recipeGuid);
+            Assert.AreEqual(1, _toaster.Reports.Count);
+            Assert.AreEqual(MachineRecipeSelectCommand.CommandName, _toaster.Reports[0].CommandName);
+            var result = _toaster.Reports[0].Result;
+            Assert.IsInstanceOf<UiCommandRejected>(result);
+            var rejected = (UiCommandRejected)result;
+            Assert.AreEqual(reason, rejected.Reason);
+            Assert.AreEqual(wireCode, rejected.ToWireCode());
+        }
+    }
+}

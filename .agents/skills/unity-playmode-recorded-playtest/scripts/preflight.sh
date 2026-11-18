@@ -6,6 +6,8 @@
 # Checks: (1) CLI loop ping (timeout doubles as modal/busy detection) (2) compile (3) master data presence (4) master-load dry run (schema mismatch detection)
 #
 # usage: preflight.sh <unity-project-path> [master-server-dir]
+# 終了コード: 0 = 全項目 PASS、1 = 失敗、2 = マスタロードのドライランのコード片がコンパイルできなかった
+# Exit codes: 0 = all checks passed, 1 = failure, 2 = the master-load dry-run snippet did not compile
 set -u
 
 PROJECT_PATH="${1:?usage: preflight.sh <unity-project-path> [master-server-dir]}"
@@ -37,46 +39,20 @@ if [[ -z "$MASTER_DIR" ]]; then
     }
 fi
 FAIL=0
+DRYRUN_COMPILE_FAILED=0
 
-# uloop出力から先頭の警告行を除いてJSON部分だけを取り出す
-# Strip leading warning lines from uloop output and keep only the JSON part
-extract_json() { sed -n '/^{/,$p'; }
-json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
-
-# compile中断やdomain reloadで退避されたCLI Loop設定を、次のEDCより前に復元する
-# Restore CLI Loop settings left backed up by compile interruption or domain reload before the next EDC
-restore_cli_loop_settings() {
-    local settings="$PROJECT_PATH/UserSettings/UnityMcpSettings.json"
-    local backup="${settings}.bak"
-    [[ -f "$settings" || ! -f "$backup" ]] || mv "$backup" "$settings"
-}
-
-# GNU timeoutが無い環境（素のmacOS）では秒数指定を無視して直接実行するフォールバックを使う
-# Fall back to direct execution on systems without GNU timeout (stock macOS); uloop has its own internal timeouts
-if ! command -v timeout >/dev/null 2>&1; then
-    timeout() { shift; "$@"; }
-fi
-
-# ドメインリロード直後のEDC失敗に備えて成功までリトライする
-# Retry EDC until it succeeds, covering failures right after a domain reload
-edc_retry() {
-    local attempt response
-    for attempt in $(seq 1 6); do
-        response=$(timeout 30 uloop execute-dynamic-code --project-path "$PROJECT_PATH" --code "$1" 2>/dev/null | extract_json)
-        if [[ "$(echo "$response" | json_get Success)" == "True" ]]; then
-            echo "$response"
-            return 0
-        fi
-        sleep 5
-    done
-    echo "$response"
-    return 1
-}
+# EDC の呼び出しと応答の分類は録画ランナーと共通にする
+# Share EDC calls and response classification with the recorded runner
+source "$(cd "$(dirname "$0")" && pwd)/edc-client.sh"
+# 疎通確認とドライランの再試行回数と 1 回ごとの上限秒数
+# Retry count and per-attempt time limit (seconds) for the ping and the dry run
+PREFLIGHT_EDC_ATTEMPTS=6
+PREFLIGHT_EDC_TIMEOUT_SECONDS=30
 
 echo "== [1/4] CLI Loop疎通（モーダル/ビジー検出） =="
 # ドメインリロード・インポート中を跨げるようリトライ付きで疎通確認する
 # Ping with retries so a domain reload or import in progress doesn't fail the check
-PING=$(edc_retry 'return "pong:" + UnityEditor.EditorApplication.isPlaying;' | json_get Result)
+PING=$(edc_call "$PREFLIGHT_EDC_ATTEMPTS" "$PREFLIGHT_EDC_TIMEOUT_SECONDS" 'return "pong:" + UnityEditor.EditorApplication.isPlaying;' | json_get Result)
 if [[ "$PING" == pong:* ]]; then
     echo "OK: editor responding (isPlaying=${PING#pong:})"
 else
@@ -116,9 +92,17 @@ var modResource = new Mod.Loader.ModsResource(modsDir);
 var container = new Core.Master.MasterJsonFileContainer(Mod.Config.ModJsonStringLoader.GetMasterString(modResource));
 Core.Master.MasterHolder.Load(container);
 return \"master-load-ok\";"
-DRYRUN=$(edc_retry "$DRYRUN_CODE")
+DRYRUN=$(edc_call "$PREFLIGHT_EDC_ATTEMPTS" "$PREFLIGHT_EDC_TIMEOUT_SECONDS" "$DRYRUN_CODE")
+DRYRUN_STATUS=$?
 if [[ "$(echo "$DRYRUN" | json_get Result)" == "master-load-ok" ]]; then
     echo "OK: master data loads against current schema"
+elif [[ "$DRYRUN_STATUS" -eq 2 ]]; then
+    # ドライランのコード片自体がコンパイルできない（ModsResource・MasterHolder の API が変わった）
+    # The dry-run snippet itself does not compile (ModsResource / MasterHolder API changed)
+    echo "NG: master load dry-run did not compile:"
+    printf '%s' "$DRYRUN" | print_compile_errors
+    FAIL=1
+    DRYRUN_COMPILE_FAILED=1
 else
     echo "NG: master load failed (schema/data mismatch?):"
     echo "$DRYRUN" | json_get ErrorMessage | head -5
@@ -128,6 +112,9 @@ fi
 
 if [[ $FAIL -ne 0 ]]; then
     echo "PREFLIGHT: FAIL"
+    # ドライランのコード片のコンパイル失敗は 2（API 変更。他の失敗の 1 と区別する）
+    # A dry-run snippet compile failure exits 2 (an API change), distinct from the other failures' 1
+    [[ "$DRYRUN_COMPILE_FAILED" -eq 1 ]] && exit 2
     exit 1
 fi
 echo "PREFLIGHT: PASS"

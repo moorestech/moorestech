@@ -1,7 +1,7 @@
 # 0005: 名前空間ローカライズキーの正準化とバニラCSVのコード側埋め込み
 
 日付: 2026-07-29
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で改訂: UITK 切替）
 
 ## 背景
 
@@ -35,3 +35,7 @@
 - mooresmaster generator 変更時は `mooresmaster/build.sh` で client/server 両方の DLL を再ビルド・コミットする運用が必要。
 - 共通CSVライブラリ変更時も `mooresmaster/build.sh` で parser DLL と generator DLL を client/server の両方へ再ビルド・コミットする。build.shから全meta生成/上書きを除去し、追跡済みgenerator metaは保持、新規共通DLL metaはUnity自身にruntime pluginとして生成・設定させる。
 - 既存の `Localize.cs` の CSV パース・`TextMeshProLocalize` の try-catch（規約違反）は基盤改修で置き換えられ自然消滅する。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で改訂。決定 4（TS 定数の生成と `t()` の lint）は Web UI の撤去で無くなった。キー切れの検出は C# のコンパイルエラーだけになり、UITK の画面は文言を `UiText`（生成された `LocalizationKey`、または明示の `FromVerbatim`）でしか受けない。

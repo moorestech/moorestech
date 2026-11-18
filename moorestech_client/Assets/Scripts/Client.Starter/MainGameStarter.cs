@@ -27,8 +27,13 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
+using Client.Starter.EventMode;
 using Client.Starter.Registration;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using CommandForgeGenerator.Command;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.Serialization;
 using VContainer;
@@ -62,6 +67,7 @@ namespace Client.Starter
         
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private UIRoot uiRoot;
+        [SerializeField] private GameUiRoot gameUiRoot;
 
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private VeinPin veinPin;
@@ -91,10 +97,22 @@ namespace Client.Starter
         [SerializeField] private GameObjectToolTipTargetController gameObjectToolTipTargetController;
 
         private IObjectResolver _resolver;
+        // DI より前に立てる土台。言語ゲートと DI の両方がこれを使う（S5-gate D-2）
+        // Foundation built before DI; both the language gate and DI use it (S5-gate D-2)
+        private GameUiPreDiFoundation _gameUiFoundation;
 
         protected override void OnDestroy()
         {
             _resolver?.Dispose();
+        }
+
+        // DI より前に土台（sRGB 合成・ロケールのクラス・倍率の見張り）を 1 本だけ立て、その上の言語ゲート画面を返す。出展モードか否かによらない
+        // Builds the single pre-DI foundation (sRGB composite, locale classes, scale watch) and returns the language-gate screen on it, exhibition mode or not
+        internal IEventLanguageGateScreen PrepareUiBeforeDi()
+        {
+            _gameUiFoundation = new GameUiPreDiFoundation(gameUiRoot);
+            _gameUiFoundation.Initialize();
+            return new EventLanguageGateBootHost(gameUiRoot.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport), _gameUiFoundation.StageScale, LanguageCatalog.Languages);
         }
         
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter, bool collectsPlaytestRecords)
@@ -106,6 +124,9 @@ namespace Client.Starter
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
             MainGameUiStateRegistration.Register(builder);
+            // 描く系は UITK だけ。DI より前に立てた土台（sRGB 合成・倍率・ロケール）を作り済みのまま DI へ渡す
+            // UITK is the only drawing system; hand the foundation built before DI (sRGB composite, scale, locale) to DI as built
+            MainGameUiRegistration.Register(builder, gameUiRoot, _gameUiFoundation);
 
             
             //Hierarchy上にあるcomponent

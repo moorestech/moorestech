@@ -67,6 +67,9 @@ class DashboardCollectTest(unittest.TestCase):
         row = next(r for r in self.reports_by_id().values() if r["boxId"] == "20260913_badingest")
         self.assertEqual(row["triage"], "broken")
         self.assertIn("JSON", row["problem"])
+        # 読めない箱も撤去済みの UI ホスト欄（webUiHealth）は「欄なし」とし、画面に 3 行を出させない
+        # An unreadable box also reports the retired UI-host field (webUiHealth) as absent so the view shows none of its three rows
+        self.assertEqual(row["webUiHealth"], {"status": "absent"})
 
     def test_mistyped_display_field_keeps_triage(self):
         self.add_report("7656005", "20260913_tick", {"kind": "bug", "remoteExec": DISABLED_MARK, "reportTick": "123",
@@ -117,7 +120,6 @@ class DashboardCollectTest(unittest.TestCase):
         self.assertEqual({s["id"] for s in sessions}, {"20260912_130000_pg1", "20260912_140000_pg2"})
         self.assertTrue(all(s["remoteExec"] is False for s in sessions))
 
-
 class DashboardMediaTest(unittest.TestCase):
     def test_resolve_media_rejects_unsafe_and_unlisted(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -138,7 +140,6 @@ class DashboardMediaTest(unittest.TestCase):
         self.assertEqual(media.parse_range("bytes=50-500", 100), (50, 99))
         for bad in ("bytes=100-", "bytes=-0", "bytes=20-10", "bytes=0-1,5-6", "items=0-1"):
             self.assertIsNone(media.parse_range(bad, 100)[0], bad)
-
 
 class DashboardHttpTest(unittest.TestCase):
     def setUp(self):

@@ -1,0 +1,8 @@
+.uss-custom-style-probe {
+    --probe-edge-fade: var(--panel-edge-fade);
+    --probe-enter: var(--notification-enter-duration);
+    --probe-face: var(--surface-navy);
+    --probe-title-scale: var(--title-scale-x);
+    --probe-vignette-width: var(--screen-vignette-width);
+    --probe-keyword: inset;
+}

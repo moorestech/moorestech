@@ -35,6 +35,8 @@ namespace Client.Ui.State.Train
         {
             // 開閉で取得状態を破棄し再解決
             // Drop fetch state on open/close and re-resolve
+            // UIStateEnum は契機だけで、判定は SubInventory の中身の源（列車）なので UiScreen を通さない（A-248）
+            // UIStateEnum is only the trigger; the decision is the SubInventory content source (a train), so UiScreen is not consulted (A-248)
             _uiStateControl.OnStateChanged.Subscribe(_ => OnUiStateChanged());
             // 時刻表更新・取得失敗で再配信
             // Republish on timetable updates and fetch failures

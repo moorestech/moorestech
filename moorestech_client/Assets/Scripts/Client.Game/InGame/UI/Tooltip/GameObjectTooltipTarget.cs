@@ -1,5 +1,5 @@
-// ワールドオブジェクト側のツールチップ入力アダプタ。表示はWeb UIが担う
-// World-object-side tooltip input adapter; the Web UI owns the actual rendering
+// ツールチップ入力アダプタ
+// Tooltip input adapter
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 

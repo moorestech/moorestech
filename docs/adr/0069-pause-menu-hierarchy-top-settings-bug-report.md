@@ -1,7 +1,7 @@
 # 0069. ポーズメニューをトップ・設定・バグ報告の階層にする
 
 日付: 2026-09-24
-状態: 採択（`.decisions/2026-09-11-バグ報告の入口はポーズメニューへ記述欄と送信を直置きする.md` を覆す）
+状態: 採択（`.decisions/2026-09-11-バグ報告の入口はポーズメニューへ記述欄と送信を直置きする.md` を覆す）（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## Context
 
@@ -25,7 +25,7 @@
   失敗時に留まって入力を残す扱いは agent前提（現状の `BugReportForm` が失敗時に入力を消さない挙動を引き継ぐ）。
   棄却案: バグ報告画面に留まる／ポーズごと閉じてゲームへ戻る
 
-- **送信成功後にトップへ戻すのは C# の `BugReportSubmitActionHandler` が行う。** 今ポーズを閉じている箇所を、`PauseMenuStateService` へのトップ遷移要求に置き換える。
+- **送信成功後にトップへ戻すのは C# の型付きコマンド `PauseMenuCommands.SubmitBugReport` が行う（Web の `BugReportSubmitActionHandler` は JSON を解いてこれを呼ぶだけ）。** 今ポーズを閉じている箇所を、`PauseMenuStateService` へのトップ遷移要求に置き換える。
   出所: agent前提（今どの画面にいるかの持ち主が C# なので、遷移も C# 側の同じ箇所で起こす）
 
 - **設定画面の中身は、今回は言語選択の移設だけにする。** 新しい設定項目は別タスクで足す。
@@ -51,3 +51,7 @@
 - バグ報告は Escape → バグ報告 → 記入 → 送信 となり、1クリック増える。
 - ポーズメニューの pauseMenu トピックに「今の画面」が増えるので、Web と C# の契約テスト（WireContract）を更新する。
 - 今後の設定項目は設定画面に足していく。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。今いる画面の持ち主が `PauseMenuStateService`、送信後のトップ戻しが `PauseMenuCommands.SubmitBugReport` である決定は保つ。Web のアクションと pauseMenu トピックは、UITK の画面（`BugReportFormView` ほか）が `IPauseMenuCommands` を直接呼び、`PauseMenuStateService` を購読する形に置き換わった。

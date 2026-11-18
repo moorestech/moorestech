@@ -43,29 +43,29 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.Hotbar.UnlockBlueprint();
     await p.Hotbar.UnlockConnectTool("電線");
     await p.UnlockBlock("電柱");
-    await p.UnlockBlock("石窯");
-    // 電柱2本と石窯を置き、電柱同士と電柱→石窯を電線でつなぐ（外接箱は x6・y5・z5）
-    // Place two poles and an oven, wiring pole-pole and pole-oven (extent is x6, y5, z5)
+    await p.UnlockBlock("電気炉");
+    // 電柱2本と電気炉を置き電線でつなぐ。石窯は燃料機械で電線口0の仕様なので同寸3x2x3の電気炉にする（外接箱は x6・y5・z5）
+    // Wire two poles and an electric furnace; the stone oven is fuel-fired with zero wire slots, so use the same 3x2x3 furnace (extent x6, y5, z5)
     var poleA = new Vector3Int(2, 32, 2);
     var poleB = new Vector3Int(7, 32, 2);
-    var oven = new Vector3Int(4, 32, 4);
+    var furnace = new Vector3Int(4, 32, 4);
     var sideChest = new Vector3Int(-12, 32, 22);
     await p.PlaceBlockDirect("電柱", poleA, BlockDirection.North);
     await p.PlaceBlockDirect("電柱", poleB, BlockDirection.North);
-    await p.PlaceBlockDirect("石窯", oven, BlockDirection.North);
+    await p.PlaceBlockDirect("電気炉", furnace, BlockDirection.North);
     await p.PlaceBlockDirect("木のチェスト", sideChest, BlockDirection.North);
-    await p.WaitBlockGameObject(oven);
+    await p.WaitBlockGameObject(furnace);
     await p.WaitBlockGameObject(sideChest);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
     var wireTool = MasterHolder.ConnectToolMaster.All.First(tool => tool.Name == "電線").ConnectToolGuid;
     var (wiredAb, reasonAb, wiredBo, reasonBo) = (false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason), false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason));
-    await p.RunOnServer("電柱同士と電柱→石窯を結線する", () =>
+    await p.RunOnServer("電柱同士と電柱→電気炉を結線する", () =>
     {
         wiredAb = ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, true, out reasonAb);
-        wiredBo = ElectricWireSystemUtil.TryConnect(poleB, oven, playerId, wireTool, true, out reasonBo);
+        wiredBo = ElectricWireSystemUtil.TryConnect(poleB, furnace, playerId, wireTool, true, out reasonBo);
     });
     p.Assert(wiredAb, $"電柱同士を結線 理由:{reasonAb}");
-    p.Assert(wiredBo, $"電柱→石窯を結線 理由:{reasonBo}");
+    p.Assert(wiredBo, $"電柱→電気炉を結線 理由:{reasonBo}");
     p.WarpPlayer(new Vector3(5f, 33.5f, -6f));
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var nameState = resolver.Resolve<BlueprintNameInputState>();
@@ -146,12 +146,12 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await AimAndSettle(new Vector3(-10f, 32f, 8.5f));
     await p.Until(() => probe.AreAllGhostsColored(3, true), 10f, "素材が揃うとゴーストが青");
     await p.ClickPlace();
-    await p.Until(() => p.GetBlock(groundOrigin) != null && p.GetBlock(groundOrigin + new Vector3Int(5, 0, 0)) != null && p.GetBlock(groundOrigin + new Vector3Int(2, 0, 2)) != null, 15f, "電柱2本と石窯が置かれる");
+    await p.Until(() => p.GetBlock(groundOrigin) != null && p.GetBlock(groundOrigin + new Vector3Int(5, 0, 0)) != null && p.GetBlock(groundOrigin + new Vector3Int(2, 0, 2)) != null, 15f, "電柱2本と電気炉が置かれる");
     var pastedA = p.GetBlock(groundOrigin).GetComponent<IElectricWireConnector>();
     var pastedB = p.GetBlock(groundOrigin + new Vector3Int(5, 0, 0)).GetComponent<IElectricWireConnector>();
-    var pastedOven = p.GetBlock(groundOrigin + new Vector3Int(2, 0, 2));
+    var pastedFurnace = p.GetBlock(groundOrigin + new Vector3Int(2, 0, 2));
     p.Assert(pastedA.ContainsWireConnection(pastedB.BlockInstanceId) && pastedA.WireConnections.Count == 1, $"貼った電柱同士が接続済み・余計な線なし 実際:{pastedA.WireConnections.Count}");
-    p.Assert(pastedB.ContainsWireConnection(pastedOven.BlockInstanceId) && pastedB.WireConnections.Count == 2, $"電柱→石窯も復元 実際:{pastedB.WireConnections.Count}");
+    p.Assert(pastedB.ContainsWireConnection(pastedFurnace.BlockInstanceId) && pastedB.WireConnections.Count == 2, $"電柱→電気炉も復元 実際:{pastedB.WireConnections.Count}");
     p.Assert(required.All(r => p.CountItem(ItemName(r.itemId)) == heldBefore[r.itemId]), "1個分の素材をちょうど消費");
     await p.WaitBlockGameObject(groundOrigin + new Vector3Int(2, 0, 2));
     await p.Screenshot("06-pasted-with-wires");

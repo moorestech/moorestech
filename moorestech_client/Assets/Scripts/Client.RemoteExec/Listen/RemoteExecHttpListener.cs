@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace Client.RemoteExec.Listen
 {
-    // 遠隔実行専用の待受。Web UIのホストとは独立に開閉する（ADR 0072 2026-10-26改訂）
-    // The remote-exec-only listener, opened and closed independently of the Web UI host (ADR 0072, revised 2026-10-26)
+    // 遠隔実行専用の待受。UIの起動とは独立に開閉する（ADR 0072 2026-10-26改訂）
+    // The remote-exec-only listener, opened and closed independently of the UI startup (ADR 0072, revised 2026-10-26)
     internal static class RemoteExecHttpListener
     {
-        // Web UIのKestrel(25050〜)・Vite(25173〜)と重ならない帯
-        // A band that overlaps neither the Web UI Kestrel (25050+) nor Vite (25173+)
+        // 撤去前のローカル待受（UIのホスト 25050〜・開発サーバー 25173〜の帯）と重ならないよう選んだ帯
+        // A band chosen clear of the pre-removal local listeners (UI host 25050+ and dev server 25173+)
         internal const int BasePort = 25100;
         internal const int PortSearchRange = 20;
 
@@ -42,8 +42,8 @@ namespace Client.RemoteExec.Listen
                 return null;
             }
 
-            // 基準ポートから上へbindを試し、最初に開けたポートを採る（KestrelServerと同じ探索）
-            // Probe upward from the base port and adopt the first that binds (the same search as KestrelServer)
+            // 基準ポートから上へbindを試し、最初に開けたポートを採る
+            // Probe upward from the base port and adopt the first that binds
             for (var port = BasePort; port < BasePort + PortSearchRange; port++)
             {
                 var listener = new HttpListener();

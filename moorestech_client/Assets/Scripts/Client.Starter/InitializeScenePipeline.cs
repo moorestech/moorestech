@@ -65,8 +65,8 @@ namespace Client.Starter
             // Resolve launch arguments before capturing the current session origin
             Client.RemoteExec.RemoteExecLaunchOption.ResolveFromCommandLine(Environment.GetCommandLineArgs());
             Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
-            // 遠隔実行はWeb UIより先に専用の待受で開く。Webホストが起動に失敗してもCEFの不具合を調べられるようにする
-            // Remote exec opens on its own listener before the Web UI, so a failed Web host still leaves CEF faults diagnosable
+            // 遠隔実行は起動の早い段で専用の待受で開く。後の初期化が失敗しても調べられるようにする
+            // Remote exec opens early on its own listener, so a later initialization failure still leaves the game diagnosable
             Client.RemoteExec.RemoteExecActivation.ActivateIfRequested();
             // 正常終了で遠隔実行の入口を撤去する。終了イベントを知らないClient.RemoteExecへここから配線する
             // A clean exit withdraws the remote-exec entry; Client.RemoteExec does not know the shutdown event, so it is wired from here
@@ -77,7 +77,6 @@ namespace Client.Starter
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-            await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

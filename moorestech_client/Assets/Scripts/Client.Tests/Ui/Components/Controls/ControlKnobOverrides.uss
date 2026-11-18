@@ -1,0 +1,52 @@
+/* 操作部品のつまみを画面の側で上書きしたときの効き方を L1 で確かめる（Web の skit/controls/SkitToolbar.module.css:6-7 と同じ上書き） */
+/* Lets L1 check how control knobs behave when a screen overrides them (same override as Web skit/controls/SkitToolbar.module.css:6-7) */
+.control-knob-override {
+    --icon-button-size: var(--skit-tool-button-size);
+    --icon-button-icon-size: var(--skit-tool-button-size);
+}
+
+/* IconButton の図形の色をルートのつまみで変える（Web SkitToolbar.module.css の .toolButton の color と同じ 2 クラスの上書き） */
+/* Recolours the IconButton glyph through the root knob (the same two-class override as the Web SkitToolbar.module.css .toolButton color) */
+.control-knob-override .control-icon-button-color-probe {
+    --icon-button-color: var(--select-cyan);
+}
+
+/* RecipeListScrollView の行の間隔（MachineRecipeSelectionList の listGap）と bleed の上書き */
+/* RecipeListScrollView row gap (the MachineRecipeSelectionList listGap) and bleed overrides */
+.control-recipe-list-machine-probe {
+    --recipe-list-gap: var(--machine-recipe-row-gap);
+}
+
+.control-recipe-list-bleed-probe {
+    --recipe-entry-bleed: 7px;
+}
+
+/* RecipeListScrollView の reserve を読めない値にし、前回の右の余白が残らないことを確かめる */
+/* Makes the RecipeListScrollView reserve unreadable to check that the previous right padding does not linger */
+.control-recipe-list-unreadable-reserve-probe .recipe-list-scroll-view__list {
+    --recipe-list-scroll-view-reserve: none;
+}
+
+/* GameScrollView の溝・つまみ・縦バーの位置・内側余白の比を祖先から上書きする */
+/* Overrides the GameScrollView track, thumb, vertical bar insets and padding ratio from an ancestor */
+.game-scroll-view-knob-probe {
+    --game-scroll-view-track-face: rgba(0, 0, 0, 0);
+    --game-scroll-view-thumb-face: rgb(255, 255, 255);
+    --game-scroll-view-scrollbar-inset-top: 12px;
+    --game-scroll-view-scrollbar-inset-bottom: 12px;
+    --game-scroll-view-scrollbar-inset-right: 12px;
+}
+
+.game-scroll-view-size-probe {
+    --scrollarea-scrollbar-size: 4px;
+}
+
+.game-scroll-view-ratio-probe {
+    --game-scroll-view-scrollbar-padding-ratio: 0;
+}
+
+/* 通知ホストの出入りのトークンを読めない値にし、読めない理由のログが出ることを確かめる */
+/* Makes the notification host enter/exit/shift tokens unreadable to check that the unreadable-token log is raised */
+.notification-host.notification-host-unreadable-tokens-probe {
+    --notification-host-enter-duration: none;
+}

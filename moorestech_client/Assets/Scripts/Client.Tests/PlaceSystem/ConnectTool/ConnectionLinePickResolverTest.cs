@@ -52,8 +52,8 @@ namespace Client.Tests.PlaceSystem.ConnectTool
         }
 
         /// <summary>
-        ///     接続ツールの解放状態だけを差し込むテスト用スタブ（前例: CraftActionTest.StubUnlockStateData）
-        ///     Test stub injecting only connect-tool unlock state (precedent: CraftActionTest.StubUnlockStateData)
+        ///     接続ツールの解放状態だけを差し込むテスト用スタブ
+        ///     Test stub injecting only connect-tool unlock state
         /// </summary>
         private class FakeUnlockState : IGameUnlockStateData
         {

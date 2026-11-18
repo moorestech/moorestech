@@ -10,6 +10,9 @@ namespace Client.Localization
         // Selectable languages and source texts live in separate fields so no exclusion rule is needed
         public readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Languages;
         public readonly IReadOnlyDictionary<string, string> SourceTexts;
+        // 版ごとに空の集合で始まるので、版が上がれば同じキーでももう一度警告される
+        // Starts empty per revision, so the same key warns again after the revision rises
+        public readonly LocalizationMissingTextReport MissingTextReport = new();
 
         public PublishedLocalizationDictionarySnapshot(
             long revision,

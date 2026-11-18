@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using Client.RemoteExec;
-using Client.Starter.Initialization.Boot;
 using Client.Starter.Playtest;
 using Client.Playtest;
 using Client.PlaytestReceiver.Launch;
@@ -48,18 +47,15 @@ namespace Client.Tests.Playtest
         }
 
         [Test]
-        public void InitializeScenePipeline_起動印の後かつWebUi起動より前に遠隔実行を有効化する()
+        public void InitializeScenePipeline_起動印の後に遠隔実行を有効化する()
         {
-            // Webホストの成否に依らず遠隔実行が開く順を、本番の非同期入口で固定する
-            // Pin, in the production async entry, the order that opens remote exec regardless of the Web host's outcome
+            // 後の初期化の成否に依らず遠隔実行が開く順を、本番の非同期入口で固定する
+            // Pin, in the production async entry, the order that opens remote exec regardless of later initialization
             var moveNext = FindInitializeMoveNext();
             var beginMarks = typeof(PreviousSessionStartupTasks).GetMethod(nameof(PreviousSessionStartupTasks.BeginCurrentSessionMarks));
             var activate = typeof(RemoteExecActivation).GetMethod(nameof(RemoteExecActivation.ActivateIfRequested));
-            var startWebUi = typeof(WebUiStartup).GetMethod(nameof(WebUiStartup.StartAsync), BindingFlags.Static | BindingFlags.NonPublic);
 
-            Assert.That(startWebUi, Is.Not.Null);
             Assert.That(MethodCallInspector.CallsInOrder(moveNext, beginMarks, activate), Is.True);
-            Assert.That(MethodCallInspector.CallsInOrder(moveNext, activate, startWebUi), Is.True);
         }
 
         private static MethodInfo FindInitializeMoveNext()

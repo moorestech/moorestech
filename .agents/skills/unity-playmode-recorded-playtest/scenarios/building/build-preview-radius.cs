@@ -18,16 +18,13 @@ using UnityEngine;
 // 1600ブロック並べて設置モードのフレーム時間を測る
 // Lay out 1600 blocks and measure frame time in build mode
 var options = new PlaytestRunOptions { Record = true };
-// 録画前にフォーカスと単体マウス入力を確認する
-// Verify focus and a single mouse input before recording
-EditorWindow.GetWindow(System.Type.GetType("UnityEditor.GameView,UnityEditor")).Focus();
-SemanticInput.EnsureDevices();
-foreach (var device in InputSystem.devices)
-    if (!device.enabled) InputSystem.EnableDevice(device);
+// 録画前に前面を取らず入力を整え、単体マウス入力を確認する
+// Prepare input without the foreground and verify a single mouse input before recording
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 SemanticInput.MouseMoveTo(new Vector2(400, 300));
 await UniTask.DelayFrame(5);
-if (!Application.isFocused || !Keyboard.current.enabled || !Mouse.current.enabled || Vector2.Distance(Mouse.current.position.ReadValue(), new Vector2(400, 300)) > 1f)
-    throw new System.InvalidOperationException($"入力事前確認失敗: focus={Application.isFocused}, keyboard={Keyboard.current.enabled}, mouse={Mouse.current.enabled}, position={Mouse.current.position.ReadValue()}");
+if (!Keyboard.current.enabled || !Mouse.current.enabled || Vector2.Distance(Mouse.current.position.ReadValue(), new Vector2(400, 300)) > 1f)
+    throw new System.InvalidOperationException($"入力事前確認失敗: keyboard={Keyboard.current.enabled}, mouse={Mouse.current.enabled}, position={Mouse.current.position.ReadValue()}");
 return PlaytestRunner.Run("build-preview-radius", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());

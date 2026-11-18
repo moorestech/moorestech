@@ -44,7 +44,7 @@ return PlaytestRunner.Run("tier9-2-modules", new PlaytestRunOptions { Record = t
     // 地形(メサ・岩)が組立機の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
     // Terrain (mesas, rocks) spawns in front of the assemblers and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
-    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(1.5f, 32.5f, -9f));
 
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）

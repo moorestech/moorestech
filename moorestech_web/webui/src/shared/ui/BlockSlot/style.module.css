@@ -1,5 +1,0 @@
-/* アイコン寸法・余白は1マスを描く3者の共有stylesheetから引く */
-/* The icon dimensions and padding come from the stylesheet shared by the three one-cell components */
-.icon {
-  composes: icon from "../slotContent.module.css";
-}

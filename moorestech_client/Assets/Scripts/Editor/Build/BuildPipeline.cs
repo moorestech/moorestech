@@ -25,6 +25,10 @@ namespace Client.Editor.Build
             // Bundling and check policy derive from the purpose alone
             var policy = BuildPurposeRules.Resolve(request.Purpose, request.LocalDevelopmentChoosesDevelopment);
 
+            // 撤去前のビルドが残した Web の成果物は StreamingAssets ごと焼かれるので先に消す
+            // Leftover pre-removal Web output would be baked with StreamingAssets, so remove it first
+            if (!PreRemovalStreamingAssetsCleaner.RemoveLeftovers()) return PlayerBuildOutcome.PreRemovalStreamingAssetsCleanupFailed;
+
             var buildOptions = new BuildPlayerOptions
             {
                 target = request.Target,
@@ -59,14 +63,14 @@ namespace Client.Editor.Build
             // Bake with strict passed as an argument like the other bundlers; the strict gate fails before BuildPlayer's lengthy run
             BuildInfoWriter.Write(policy.IsStrictBundling, request.Target);
 
-            // CEFのMacランタイムがarm64のみのため、配布用途のMacは焼く直前にarm64へ固定する
-            // CEF's Mac runtime is arm64 only, so distribution Mac builds pin arm64 right before baking
+            // Mac版はApple Silicon専用（ADR 0071）で同梱ffmpegもmacos-arm64版だけのため、配布用途のMacは焼く直前にarm64へ固定する
+            // The Mac build is Apple Silicon only (ADR 0071) and bundles a macos-arm64 ffmpeg, so distribution Mac builds pin arm64 right before baking
             // Editor全体の設定を書き換えるため、復元を飛ばす離脱点を間に挟まない位置に置く
             // It rewrites an Editor-wide setting, so nothing that could exit early sits between the pin and the restore
             var pinsAppleSilicon = policy.PinsAppleSilicon && request.Target == BuildTarget.StandaloneOSX;
-            if (pinsAppleSilicon && MacPlayerArchitecture.PinAppleSilicon() == MacArchitecturePinResult.UnsupportedHost)
+            if (pinsAppleSilicon && MacPlayerArchitecture.PinAppleSilicon() == MacArchitecturePinResult.MacBuildSupportMissing)
             {
-                Debug.LogError(MacPlayerArchitecture.UnsupportedHostReason);
+                Debug.LogError(MacPlayerArchitecture.MacBuildSupportMissingReason);
                 return PlayerBuildOutcome.MacArchitecturePinFailed;
             }
 
@@ -84,10 +88,9 @@ namespace Client.Editor.Build
 
             if (report.summary.result != BuildResult.Succeeded) return PlayerBuildOutcome.PlayerBuildFailed;
 
-            // 動作に必要なCEFランタイムとゲームデータを同梱する
-            // Bundle the CEF runtime and game data the player needs to run
+            // Harmony・ffmpeg・ゲームデータを同梱
+            // Bundle Harmony, ffmpeg and the game data
             RemoteExecHarmonyBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
-            CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, policy.IsStrictBundling);
             if (policy.BundlesLocalGameData)
             {
@@ -109,7 +112,7 @@ namespace Client.Editor.Build
             // 非配布用途のMacはarm64固定も再署名も省く。無音で縮退させず理由を残す
             // Non-distribution Mac builds skip both pinning and re-signing; say so instead of degrading silently
             if (request.Target == BuildTarget.StandaloneOSX && !policy.PinsAppleSilicon)
-                Debug.Log($"[BuildPipeline] {request.Purpose} は配布用途でないためarm64固定とad-hoc再署名を行いません。osx-arm64専用CEFのWeb UIが動かない可能性があります");
+                Debug.Log($"[BuildPipeline] {request.Purpose} は配布用途でないためarm64固定とad-hoc再署名を行いません。macos-arm64版だけを同梱したffmpegの録画が動かない可能性があります");
 
             return PlayerBuildOutcome.Succeeded;
 
@@ -144,7 +147,10 @@ namespace Client.Editor.Build
 
         public static void LinuxBuildFromGithubAction()
         {
-            BuildFromGithubAction(BuildTarget.StandaloneLinux64);
+            // Linuxクライアントは配布対象外のため、メニューと同じく意図的に失敗させる（.decisions/2026-08-02）
+            // The Linux client is not distributed, so fail on purpose like the menu entry (.decisions/2026-08-02)
+            Debug.LogError("[BuildPipeline] LinuxBuildFromGithubAction は配布対象外のため意図的に失敗させました（再開は統合計画 §5.2 で別に判断する）");
+            EditorApplication.Exit(1);
         }
 
         private static void BuildFromGithubAction(BuildTarget buildTarget)

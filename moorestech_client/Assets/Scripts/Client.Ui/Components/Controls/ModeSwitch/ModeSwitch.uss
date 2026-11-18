@@ -1,0 +1,104 @@
+/* ModeSwitch。寸法と色は web@6248097123/src/shared/ui/ModeSwitch/style.module.css を写す */
+/* box-shadow の輪は USS に無いので、面の外へ出した絡まない子（ModeSwitchRing・.mode-switch__ring）の枠線で描く。面の箱と送りは Web と同じで、輪はレイアウトに入らない。選択面の color-mix は DerivedTokens/ControlsDerivedTokens.uss の前計算トークンで受ける */
+/* ModeSwitch; sizes and colors copy web@6248097123/src/shared/ui/ModeSwitch/style.module.css */
+/* USS has no box-shadow, so the ring is the border of a non-picking child (ModeSwitchRing, .mode-switch__ring) pushed outside the face; the face box and pitch match the Web and the ring stays out of layout; the selected face's color-mix comes from a precomputed DerivedTokens/ControlsDerivedTokens.uss token */
+
+.mode-switch {
+    flex-direction: row;
+}
+
+.mode-switch--vertical {
+    flex-direction: column;
+}
+
+/* 既定テーマの .unity-button より強くするため親のクラスを前に付ける */
+/* Prefix the parent class so these beat the default theme's .unity-button */
+.mode-switch .mode-switch__option {
+    --mode-switch-option-face: var(--gauge-track);
+    --mode-switch-option-face-selected: var(--mode-switch-selected-face);
+    --mode-switch-option-ring: var(--bevel-c1);
+    --mode-switch-option-ring-selected: var(--bevel-c2);
+    --mode-switch-option-text: var(--text-muted);
+    --mode-switch-option-text-selected: var(--text-high-contrast);
+    flex-grow: 1;
+    flex-shrink: 1;
+    /* Web の縦の高さは var(--mode-switch-option-height, auto)。auto の実寸 34.8px を既定に置き、横も同じ高さで揃える（UITK は枠線と字の自然な高さで 34〜36px になるため） */
+    /* The Web vertical height is var(--mode-switch-option-height, auto); default the knob to auto's real 34.8px and use it for horizontal too (UITK's border and glyph height give 34-36px otherwise) */
+    height: var(--mode-switch-option-height);
+    margin: 0;
+    padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+    border-width: 0;
+    border-radius: var(--bevel-1);
+    background-color: var(--mode-switch-option-face);
+    color: var(--mode-switch-option-text);
+    opacity: 1;
+    transition-duration: 0s;
+}
+
+/* Web の選択肢にホバーと押下の表現は無いので既定テーマの変化を打ち消す */
+/* Web options have no hover or press look, so cancel the default theme's changes */
+.mode-switch .mode-switch__option:hover,
+.mode-switch .mode-switch__option:active {
+    translate: 0 0;
+    background-color: var(--mode-switch-option-face);
+}
+
+/* Web の box-shadow 0 0 0 var(--bevel-1) の輪。位置・幅・角丸・被覆は ModeSwitchRing が --bevel-1 と倍率から決める。面の外へ広がり、スクロールの視口では Web と同じく左右が切れる */
+/* The Web box-shadow 0 0 0 var(--bevel-1) ring; ModeSwitchRing sets position, width, radius and coverage from --bevel-1 and the scale; it spreads outside the face and, like the Web, its sides are clipped by a scroll viewport */
+.mode-switch__ring {
+    --mode-switch-ring-width: var(--bevel-1);
+    position: absolute;
+    border-color: var(--mode-switch-option-ring);
+}
+
+/* 縦はサイドバーの並び。パネル高に合わせて伸ばさない */
+/* Vertical is a sidebar list; options never stretch with the panel height */
+.mode-switch--vertical .mode-switch__option {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.mode-switch--horizontal .mode-switch__option--following {
+    margin-left: var(--mode-switch-gap);
+}
+
+.mode-switch--vertical .mode-switch__option--following {
+    margin-top: var(--mode-switch-gap);
+}
+
+/* 選択は青グラデを避け、明るい寒色面と高コントラスト文字で示す */
+/* Selection avoids the blue gradient and uses a brighter cool face with high-contrast text */
+.mode-switch .mode-switch__option--selected,
+.mode-switch .mode-switch__option--selected:hover,
+.mode-switch .mode-switch__option--selected:active {
+    background-color: var(--mode-switch-option-face-selected);
+    color: var(--mode-switch-option-text-selected);
+}
+
+.mode-switch__option--selected > .mode-switch__ring {
+    border-color: var(--mode-switch-option-ring-selected);
+}
+
+/* 全体の無効は選択中も含めて、選択肢ごとの無効はその 1 つだけを従属テキストへ減衰させる。既定テーマの半透明化はしない */
+/* Whole-switch disabling fades every option (selected included) and per-option disabling fades just that one to secondary text, without the default theme's translucency */
+.mode-switch--disabled .mode-switch__option,
+.mode-switch--disabled .mode-switch__option--selected,
+.mode-switch .mode-switch__option--option-disabled,
+.mode-switch .mode-switch__option--option-disabled:hover,
+.mode-switch .mode-switch__option--option-disabled:active {
+    color: var(--mode-switch-option-text);
+    opacity: 1;
+}
+
+/* タブの役（§8.22）は本文との間を 1 段空ける。Web は margin-bottom だが、部品は外側の margin を書かない（設計書 A-30）ので、面を持たない根の下の余白で同じ見え方にする */
+/* The tablist role (§8.22) leaves one step below; the Web uses margin-bottom, but components write no outer margin (design A-30), so use bottom padding on the faceless root for the same look */
+.mode-switch--tablist {
+    padding-bottom: var(--mode-switch-padding-block);
+}
+
+.mode-switch__label {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+    font-size: var(--mantine-font-size-md); /* web: .option の font: inherit で Mantine の body（--mantine-font-size-md）を継ぐ（参照 1-settings・3-build-menu・4-block-train-timetable-tab の実測 16px。--mode-switch-option-height の 16px×1.55 と同じ前提） */
+}

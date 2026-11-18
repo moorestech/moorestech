@@ -32,6 +32,54 @@ namespace Client.Game.InGame.GraphicsQuality
             OceanVisible = oceanVisible;
         }
 
+        // 1 項目だけを差し替えた値を作る。9 引数の ctor を呼び手ごとに手書きさせない
+        // Builds a copy with exactly one item replaced, so callers never hand-write the nine-argument ctor
+
+        public GraphicsQualitySettings WithDrawDistance(GraphicsDrawDistance drawDistance)
+        {
+            return new GraphicsQualitySettings(drawDistance, ShadowsEnabled, RenderScale, SsaoEnabled, PostProcessingEnabled, EffectsEnabled, MapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithShadowsEnabled(bool shadowsEnabled)
+        {
+            return new GraphicsQualitySettings(DrawDistance, shadowsEnabled, RenderScale, SsaoEnabled, PostProcessingEnabled, EffectsEnabled, MapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithRenderScale(GraphicsRenderScale renderScale)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, renderScale, SsaoEnabled, PostProcessingEnabled, EffectsEnabled, MapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithSsaoEnabled(bool ssaoEnabled)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, RenderScale, ssaoEnabled, PostProcessingEnabled, EffectsEnabled, MapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithPostProcessingEnabled(bool postProcessingEnabled)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, RenderScale, SsaoEnabled, postProcessingEnabled, EffectsEnabled, MapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithEffectsEnabled(bool effectsEnabled)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, RenderScale, SsaoEnabled, PostProcessingEnabled, effectsEnabled, MapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithMapObjectsVisible(bool mapObjectsVisible)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, RenderScale, SsaoEnabled, PostProcessingEnabled, EffectsEnabled, mapObjectsVisible, TerrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithTerrainDetail(GraphicsTerrainDetail terrainDetail)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, RenderScale, SsaoEnabled, PostProcessingEnabled, EffectsEnabled, MapObjectsVisible, terrainDetail, OceanVisible);
+        }
+
+        public GraphicsQualitySettings WithOceanVisible(bool oceanVisible)
+        {
+            return new GraphicsQualitySettings(DrawDistance, ShadowsEnabled, RenderScale, SsaoEnabled, PostProcessingEnabled, EffectsEnabled, MapObjectsVisible, TerrainDetail, oceanVisible);
+        }
+
         public bool Equals(GraphicsQualitySettings other)
         {
             return DrawDistance == other.DrawDistance && ShadowsEnabled == other.ShadowsEnabled && RenderScale == other.RenderScale &&

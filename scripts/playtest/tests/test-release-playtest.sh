@@ -12,7 +12,7 @@ make_sandbox
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "success run exited $STATUS: $OUTPUT"
 ORDER=$(awk '{print $1}' "$SANDBOX/calls.log" | tr '\n' ' ')
-[ "$ORDER" = "steam-auth git git git moores-wt git git git git git git git git git unity unity codesign lipo lipo lipo steamcmd rm verify moores-wt " ] || fail "call order was: $ORDER"
+[ "$ORDER" = "steam-auth git git git moores-wt git git git git git git git git git unity unity codesign lipo lipo steamcmd rm verify moores-wt " ] || fail "call order was: $ORDER"
 grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to run_app_build"
 ls "$SANDBOX"/runs/*/promotion.md >/dev/null 2>&1 || fail "promotion.md was not written"
 grep -q '"setlive" "playtest-staging"' "$SANDBOX"/runs/*/steam/app_build_playtest.vdf || fail "Steam upload did not target playtest-staging"
@@ -74,6 +74,15 @@ OUTPUT=$(BUILD_INFO_TARGET_WINDOWS=StandaloneOSX run_target); STATUS=$?
 [ "$STATUS" -eq 4 ] || fail "Windows target mismatch did not exit 4 (got $STATUS)"
 [ "$(grep -c '^unity' "$SANDBOX/calls.log")" -eq 1 ] || fail "Mac build ran despite the Windows artifact mismatch"
 grep -q '^steamcmd' "$SANDBOX/calls.log" && fail "steamcmd ran despite the Windows artifact mismatch"
+
+# Windows 成果物に CEF のファイルが残っていたら Mac ビルドの前に止め、理由とパスを出す
+# Stop before the Mac build when the Windows artifact still carries a CEF file, naming reason and path
+make_sandbox
+OUTPUT=$(WINDOWS_LEAKS_CEF=1 run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "leaked Windows CEF file did not exit 4 (got $STATUS)"
+[ "$(grep -c '^unity' "$SANDBOX/calls.log")" -eq 1 ] || fail "Mac build ran despite the leaked Windows CEF file"
+grep -q '^steamcmd' "$SANDBOX/calls.log" && fail "steamcmd ran despite the leaked Windows CEF file"
+case "$OUTPUT" in *'CEF のファイル'*'libcef.dll'*) ;; *) fail "leaked Windows CEF file was not named";; esac
 
 # 検証機の通し検証が落ちたら手動反映手順を書かない
 make_sandbox

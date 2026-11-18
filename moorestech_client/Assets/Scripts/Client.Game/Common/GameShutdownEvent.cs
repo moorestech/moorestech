@@ -140,12 +140,18 @@ namespace Client.Game.Common
             return aggregated;
         }
 
-        // アプリを終了する唯一の口。書き出しを待ってから落とす
-        // The single application-exit entry point; waits for the flush before going down
-        public static async UniTask QuitApplicationAsync()
+        // 意図的な終了の口。アプリの終了はこれと下の初期化の失敗の口だけが行い、どちらも書き出しを待ってから落とす
+        // The deliberate-exit entry; only this and the initialization-failure entry below quit the app, both after the flush
+        public static UniTask QuitApplicationAsync() => QuitAfterFlushAsync(GameShutdownReason.IntentionalExit);
+
+        // 初期化の失敗で止めて終了する口。理由を InitializationFailed で流し、正常終了として記録させない
+        // Exit after a failed initialization; the reason travels as InitializationFailed so it is never recorded as a clean exit
+        public static UniTask QuitApplicationAfterInitializationFailureAsync() => QuitAfterFlushAsync(GameShutdownReason.InitializationFailed);
+
+        private static async UniTask QuitAfterFlushAsync(GameShutdownReason reason)
         {
             _quitInProgress = true;
-            var flushResult = await FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+            var flushResult = await FireGameShutdownAsync(reason);
             if (flushResult == ShutdownFlushResult.FlushTimedOut)
                 Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
             if (flushResult == ShutdownFlushResult.SaveAbandoned)

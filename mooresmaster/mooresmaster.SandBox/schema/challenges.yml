@@ -147,7 +147,7 @@ properties:
                     properties:
                       - key: highLightAnchorId
                         type: string
-                        default: web anchor id
+                        default: anchor id
                       - key: highLightText
                         type: string
                         default: highlight text

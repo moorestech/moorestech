@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Client.RemoteExec
 {
-    // 有効な起動だけで専用の待受・Harmony・接続情報を用意する。Web UIの起動結果には依らない
-    // Prepare the dedicated listener, Harmony and access details only on enabled boots, independent of the Web UI startup
+    // 有効な起動だけで専用の待受・Harmony・接続情報を用意する。UIの起動結果には依らない
+    // Prepare the dedicated listener, Harmony and access details only on enabled boots, independent of the UI startup
     public static class RemoteExecActivation
     {
         public static void ActivateIfRequested()

@@ -17,7 +17,7 @@ namespace Client.Game.InGame.UI.UIState
         public IObservable<UIStateEnum> OnStateChanged => _onStateChanged;
         public UIStateEnum CurrentState { get; private set; }
 
-        private UIStateEnum? _webTransitionRequest;
+        private UIStateEnum? _requestedTransition;
         private IDisposable _subStateMovementLockSubscription;
 
         // DIと初期画面への入場が済むまで入力更新を停止する
@@ -39,28 +39,32 @@ namespace Client.Game.InGame.UI.UIState
             CurrentState = initialState;
             EnterState(CurrentState, initialContext);
             enabled = true;
+
+            // 復元直後の画面（列車HUD等）を購読側へ知らせ、初期値のままの表示を残さない
+            // Tell subscribers the restored initial screen (e.g. train HUD) so none keeps showing its pre-restore value
+            _onStateChanged.OnNext(CurrentState);
         }
 
-        // 現stateが入れ子ポーズを持つ画面かの解決口。Web境界はこの1箇所だけを見る（ADR 0035）
-        // Single resolution point for whether the current state owns a nested pause; the web boundary looks only here (ADR 0035)
+        // 現stateが入れ子ポーズを持つ画面かの解決口。Client.Ui.State の画面の振り分けはこの1箇所だけを見る（ADR 0035）
+        // Single resolution point for whether the current state owns a nested pause; Client.Ui.State screen routing looks only here (ADR 0035)
         public INestedPauseScreenState GetCurrentNestedPauseScreen()
         {
             return _uiStateDictionary.GetState(CurrentState) as INestedPauseScreenState;
         }
         
-        // Web UI からの遷移要求を受け付ける（次のUpdateで最優先消費）
-        // Accept a transition request from the Web UI (consumed first in the next Update)
+        // Client.Ui.State（画面の操作）からの遷移要求を受け付ける（次のUpdateで最優先消費）
+        // Accept a transition request from Client.Ui.State screen operations (consumed first in the next Update)
         public void RequestTransition(UIStateEnum nextState)
         {
-            _webTransitionRequest = nextState;
+            _requestedTransition = nextState;
         }
 
         // UI state
         private void Update()
         {
-            // Web要求を最優先で消費し、無ければ現stateの入力判定を使う
-            // Consume the web request first; otherwise poll the current state's input
-            var nextContext = ConsumeWebRequest() ?? _uiStateDictionary.GetState(CurrentState).GetNextUpdate();
+            // Client.Ui.State からの要求を最優先で消費し、無ければ現stateの入力判定を使う
+            // Consume the Client.Ui.State request first; otherwise poll the current state's input
+            var nextContext = ConsumeRequestedTransition() ?? _uiStateDictionary.GetState(CurrentState).GetNextUpdate();
             if (nextContext == null) return;
 
             var lastState = CurrentState;
@@ -79,11 +83,11 @@ namespace Client.Game.InGame.UI.UIState
 
             #region Internal
 
-            UITransitContext ConsumeWebRequest()
+            UITransitContext ConsumeRequestedTransition()
             {
-                if (_webTransitionRequest == null) return null;
-                var requested = _webTransitionRequest.Value;
-                _webTransitionRequest = null;
+                if (_requestedTransition == null) return null;
+                var requested = _requestedTransition.Value;
+                _requestedTransition = null;
 
                 // 同一stateへの要求は遷移不要
                 // A request for the current state needs no transition

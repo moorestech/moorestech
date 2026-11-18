@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train.Timetable.Send;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using UniRx;
@@ -15,23 +15,31 @@ namespace Client.Ui.State.Train
     {
         private readonly IClientTrainTimetableMutator _timetables;
         private readonly IClientTrainTimetableLookup _timetableLookup;
+        private readonly ITrainTimetableRequestSender _requestSender;
         private readonly Subject<UniRx.Unit> _onFetchFailed = new();
         // タブが開いている事実と再要求を抑える取得ラッチは別物
         // Whether the tab is open (kept until close) differs from the re-request latch; the tracker owns the open train id
         private bool _isTimetableTabOpen;
-        private TrainUnitInstanceId? _requestedTrainUnitInstanceId;
-        private TrainUnitInstanceId? _unavailableTrainUnitInstanceId;
+        private readonly TrainTimetableFetchLatch _latch = new();
+        private readonly TrainTimetableDeliveredLatchRelease _deliveredLatchRelease;
+        private readonly Subject<UniRx.Unit> _onFetchStarted = new();
         private CancellationTokenSource _cts;
         private int _requestGeneration;
-        private bool _retriedForRequestedTrain;
-        private bool _isFetchInFlight;
         private IDisposable _timetableUpdatedSubscription;
         public IObservable<UniRx.Unit> OnFetchFailed => _onFetchFailed;
+        // 取得中を立てた直後に流す。購読は UITK の TrainTimetableModel だけ
+        // Emitted right after the in-flight latch is raised; only the UITK TrainTimetableModel subscribes
+        public IObservable<UniRx.Unit> OnFetchStarted => _onFetchStarted;
+        // 届いた時刻表で取得不可・取得中のラッチを下ろした直後に流す。Model が古いラッチで固まらないようにする
+        // Emitted right after a delivered timetable lowers the unavailable or in-flight latch, so the model never stays on a stale latch
+        public IObservable<UniRx.Unit> OnFetchLatchReleased => _deliveredLatchRelease.OnReleased;
 
-        public TrainTimetableFetcher(IClientTrainTimetableMutator timetables, IClientTrainTimetableLookup timetableLookup)
+        public TrainTimetableFetcher(IClientTrainTimetableMutator timetables, IClientTrainTimetableLookup timetableLookup, ITrainTimetableRequestSender requestSender)
         {
             _timetables = timetables;
             _timetableLookup = timetableLookup;
+            _requestSender = requestSender;
+            _deliveredLatchRelease = new TrainTimetableDeliveredLatchRelease(timetableLookup, _latch);
         }
 
         // 開かれた列車の取得を始める。取得中・取得済みは再要求しない
@@ -41,37 +49,20 @@ namespace Client.Ui.State.Train
             _isTimetableTabOpen = true;
             // タブが開いている間だけ新着通知を待ち受ける（Closeで切る）
             // Listen for delivered timetables only while the tab is open; Close disposes the subscription
-            _timetableUpdatedSubscription ??= _timetableLookup.OnTimetableUpdated.Subscribe(OnTimetableDelivered);
-            if (_requestedTrainUnitInstanceId == trainUnitInstanceId) return; // silent-ok: 同じ取得の重複要求を抑える / 開いているタブは既存の取得結果を表示する
+            _timetableUpdatedSubscription ??= _timetableLookup.OnTimetableUpdated.Subscribe(_deliveredLatchRelease.OnTimetableDelivered);
+            if (_latch.IsSameRequest(trainUnitInstanceId)) return; // silent-ok: 同じ取得の重複要求を抑える / 開いているタブは既存の取得結果を表示する
             // 打ち切りは旧列車IDのまま行い、放棄したのがどの取得か判るようにする
             // Cancel while the old train id is still set so the log names the abandoned fetch
             var token = RestartCancellation();
             // 再試行の残りは列車ごとに持つ
             // The retry allowance is per requested train and resets when the train changes
-            _requestedTrainUnitInstanceId = trainUnitInstanceId;
-            _unavailableTrainUnitInstanceId = null;
-            _retriedForRequestedTrain = false;
-            _isFetchInFlight = true;
+            _latch.StartRequest(trainUnitInstanceId);
+            // 購読側が組み直すと読込中になる
+            // A subscriber that rebuilds now sees Loading
+            _onFetchStarted.OnNext(UniRx.Unit.Default);
             FetchTimetableAsync(trainUnitInstanceId, ++_requestGeneration, token).Forget();
 
             #region Internal
-
-            // 手元に正しい時刻表が届いたら取得不可・取得中のラッチを下ろす
-            // A delivered timetable releases the unavailable and in-flight latches so held data is never withheld
-            void OnTimetableDelivered(TrainUnitInstanceId deliveredTrainUnitInstanceId)
-            {
-                // 削除でも同じ通知が飛ぶため、実体がある時だけ解除する
-                // Removal raises the same notification, so only an existing timetable releases the latches
-                if (!_timetableLookup.TryGet(deliveredTrainUnitInstanceId, out _)) return; // silent-ok: 削除通知では取得ラッチを解除しない / タブが取得中か取得不可を表示する
-                if (_unavailableTrainUnitInstanceId == deliveredTrainUnitInstanceId)
-                {
-                    Debug.Log($"[TrainTimetableFetcher] timetable delivered; releasing unavailable latch: {deliveredTrainUnitInstanceId}");
-                    _unavailableTrainUnitInstanceId = null;
-                }
-                if (!_isFetchInFlight || _requestedTrainUnitInstanceId != deliveredTrainUnitInstanceId) return; // silent-ok: 別列車の通知では取得状態を変えない / 対象タブは対応する応答を表示する
-                Debug.Log($"[TrainTimetableFetcher] timetable delivered while fetching; releasing in-flight latch: {deliveredTrainUnitInstanceId}");
-                _isFetchInFlight = false;
-            }
 
             // 走っている取得を打ち切って新しいトークンを配る
             // Cancel the running fetch and hand out a fresh token
@@ -108,30 +99,27 @@ namespace Client.Ui.State.Train
             _timetableUpdatedSubscription?.Dispose();
             _timetableUpdatedSubscription = null;
             _isTimetableTabOpen = false;
-            _requestedTrainUnitInstanceId = null;
-            _unavailableTrainUnitInstanceId = null;
+            _latch.Clear();
             _requestGeneration++;
-            _retriedForRequestedTrain = false;
-            _isFetchInFlight = false;
         }
 
         public bool IsUnavailable(TrainUnitInstanceId trainUnitInstanceId)
         {
-            return _unavailableTrainUnitInstanceId == trainUnitInstanceId;
+            return _latch.IsUnavailable(trainUnitInstanceId);
         }
 
         // 取得中は古いキャッシュより読み込み中を優先させる口
         // Lets the DTO prefer a loading view over a stale cache while a fetch is in flight
         public bool IsFetchInFlight(TrainUnitInstanceId trainUnitInstanceId)
         {
-            return _isFetchInFlight && _requestedTrainUnitInstanceId == trainUnitInstanceId;
+            return _latch.IsFetchInFlight(trainUnitInstanceId);
         }
 
         // 放棄した取得は無音にせずログへ残す
         // An abandoned fetch is logged rather than dropped silently
         private void CancelInFlightFetch()
         {
-            if (_isFetchInFlight) Debug.Log($"[TrainTimetableFetcher] cancelling in-flight timetable request: {_requestedTrainUnitInstanceId}");
+            if (_latch.HasFetchInFlight) Debug.Log($"[TrainTimetableFetcher] cancelling in-flight timetable request: {_latch.RequestedTrainUnitInstanceId}");
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
@@ -140,7 +128,7 @@ namespace Client.Ui.State.Train
         private async UniTaskVoid FetchTimetableAsync(TrainUnitInstanceId trainUnitInstanceId, int generation, CancellationToken ct)
         {
             Debug.Log($"[TrainTimetableFetcher] requesting timetable: {trainUnitInstanceId}");
-            var response = await ClientContext.VanillaApi.Response.Train.GetTrainTimetable(trainUnitInstanceId, ct);
+            var response = await _requestSender.GetTrainTimetable(trainUnitInstanceId, ct);
             if (response == null)
             {
                 OnNoResponse();
@@ -161,7 +149,7 @@ namespace Client.Ui.State.Train
                 Debug.LogWarning($"[TrainTimetableFetcher] discarding stale timetable response: {trainUnitInstanceId} (generation {generation})");
                 return;
             }
-            _isFetchInFlight = false;
+            _latch.CompleteFetch();
             _timetables.Apply(response.Timetable.ToModel());
 
             #region Internal
@@ -174,21 +162,19 @@ namespace Client.Ui.State.Train
                 if (generation != _requestGeneration) return; // silent-ok: 旧要求は現要求の状態を上書きしない / タブに現要求の取得結果が表示される
                 // 再試行は要求する列車ごとに1回まで
                 // Retry at most once per requested train so a deterministic failure does not keep requesting
-                if (_retriedForRequestedTrain)
+                if (!_latch.TryUseRetry())
                 {
                     Debug.LogWarning($"[TrainTimetableFetcher] retry already used; unavailable until reopen: {trainUnitInstanceId}");
                     MarkUnavailable();
                     return;
                 }
-                _retriedForRequestedTrain = true;
                 FetchTimetableAsync(trainUnitInstanceId, ++_requestGeneration, ct).Forget();
             }
 
             void MarkUnavailable()
             {
                 if (generation != _requestGeneration) return; // silent-ok: 旧要求は現要求の状態を上書きしない / タブに現要求の取得結果が表示される
-                _isFetchInFlight = false;
-                _unavailableTrainUnitInstanceId = trainUnitInstanceId;
+                _latch.MarkUnavailable(trainUnitInstanceId);
                 _onFetchFailed.OnNext(UniRx.Unit.Default);
             }
 

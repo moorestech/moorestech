@@ -1,0 +1,32 @@
+using Client.Ui.State.Routing;
+
+namespace Client.Ui.State.Inventory.Equipment
+{
+    public enum EquipmentWheelBlock
+    {
+        None,
+        Layer,
+        Ui,
+        Tool,
+    }
+
+    /// <summary>
+    /// ホイール抑止の判定（Web の順に評価）
+    /// Wheel suppression check (evaluated in Web order)
+    /// </summary>
+    public static class EquipmentWheelGate
+    {
+        public static EquipmentWheelBlock Judge(EquipmentWheelSituation situation)
+        {
+            // 前面の層がゲームでなければ止める（Routing の共有判定。Web deriveActiveLayer の写し）
+            // Stop unless the front layer is the game (shared Routing check; a copy of the web deriveActiveLayer)
+            if (UiActiveLayer.CoversGameLayer(situation.Screen, situation.ModalPending)) return EquipmentWheelBlock.Layer;
+
+            // UI の上のホイールはその画面の操作。占有は C# の値をそのまま読む
+            // A wheel over UI belongs to that screen; ownership is read as C# publishes it
+            if (situation.OverBlockingUi) return EquipmentWheelBlock.Ui;
+            if (situation.ToolOwnsWheel) return EquipmentWheelBlock.Tool;
+            return EquipmentWheelBlock.None;
+        }
+    }
+}

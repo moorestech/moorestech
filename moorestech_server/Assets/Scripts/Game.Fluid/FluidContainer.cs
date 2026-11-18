@@ -1,3 +1,4 @@
+using System;
 using Core.Master;
 
 namespace Game.Fluid
@@ -25,6 +26,9 @@ namespace Game.Fluid
         /// <param name="capacity">液体の許容量</param>
         public FluidContainer(double capacity)
         {
+            // 容量はマスタの各種タンク容量からここを通って来る。非有限・負の値は画面のフィルの割合を黙って壊すので作る時点で止める
+            // Capacities from every master tank parameter pass through here; non-finite or negative ones silently break UI fill ratios, so stop at construction
+            if (double.IsNaN(capacity) || double.IsInfinity(capacity) || capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Fluid container capacity must be finite and non-negative; check the tank capacity in the block or train car master");
             Capacity = capacity;
             FluidId = FluidMaster.EmptyFluidId;
         }

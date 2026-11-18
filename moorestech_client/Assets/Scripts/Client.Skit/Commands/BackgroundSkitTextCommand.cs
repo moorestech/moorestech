@@ -19,8 +19,8 @@ namespace CommandForgeGenerator.Command
                 OverrideCharacterName,
                 Body);
             
-            // 解決文をWebへ共有
-            // Share the resolved text with the web
+            // 解決文を表示側（UITK）へ共有
+            // Share the resolved text with the display side (UITK)
             var voicePlayer = storyContext.GetBackgroundSkitVoicePlayer();
             SkitPresentationStateStore.Instance.SetBackgroundText(
                 line.SpeakerName,

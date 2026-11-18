@@ -1,4 +1,5 @@
 using Client.Game.Common;
+using Client.Playtest.Boot;
 using Client.Playtest.Core;
 using UniRx;
 using UnityEditor;
@@ -13,10 +14,13 @@ namespace Client.Playtest
     public static class PlaytestBoot
     {
         private const string GameInitializerScenePath = "Assets/Scenes/Game/GameInitialaizer.unity";
+        // PlayMode 中に起動を頼まれたときの応答。run-scenario.sh 等のシェルがこの文字列で回収の分岐をする
+        // Reply when asked to boot during PlayMode; shell drivers such as run-scenario.sh branch on this exact string
+        public const string AlreadyPlayingReply = "ERROR: already playing";
 
         public static string PrepareAndEnterPlayMode(string serverDirectory, bool noSave)
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return AlreadyPlayingReply;
 
             PlaytestBootLifecycle.PrepareLegacyBootSession(serverDirectory, noSave);
             EnterPlayMode();
@@ -25,7 +29,7 @@ namespace Client.Playtest
 
         public static string PrepareWorldAndEnterPlayMode(string serverDirectory, string worldDirectory, string mapMode, int seed)
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return AlreadyPlayingReply;
             if (string.IsNullOrWhiteSpace(serverDirectory)) return "ERROR: server directory is required";
             if (string.IsNullOrWhiteSpace(worldDirectory)) return "ERROR: world directory is required";
             if (string.IsNullOrWhiteSpace(mapMode)) return "ERROR: map mode is required";
@@ -49,6 +53,9 @@ namespace Client.Playtest
             // PlayMode突入後のドメインリロードで再実行され、ここで初期化完了イベントを購読する
             // Re-runs after the play-mode domain reload; subscribe to the game-initialized event here
             if (!PlaytestBootLifecycle.RestoreAfterDomainReload(EditorApplication.isPlayingOrWillChangePlaymode)) return;
+            // 出展モードの言語ゲートで止まる起動は初期化完了が来ないので、MainGame の読み込みを ready にする
+            // A boot held at the exhibition language gate never reports initialization, so MainGame's load counts as ready
+            if (PlaytestEventLanguageGateBoot.ApplyIfArmed()) return;
             GameInitializedEvent.OnGameInitialized.First().Subscribe(_ => PlaytestPaths.WriteReadyMarker());
         }
     }

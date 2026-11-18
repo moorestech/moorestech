@@ -2,8 +2,10 @@ using System.Collections;
 using Client.Common;
 using Client.Game.Common;
 using Client.Tests.EventMode;
-using Client.Tests.WebUi.Gate;
-using Client.WebUiHost.Game.EventMode;
+using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
+using Client.Ui.Screens.EventMode;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UniRx;
@@ -11,7 +13,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using Cursor = UnityEngine.Cursor;
 
 namespace Client.Tests.EditModeInPlayingTest
 {
@@ -83,16 +87,16 @@ namespace Client.Tests.EditModeInPlayingTest
                 // Always restore the env vars and subscription; leaving them would boot later tests in exhibition mode
                 try
                 {
-                    await LoadMainGame();
+                    // ゲートの待機中は初期化が来ないので、ローダーが出た時点で戻る入口を使う
+                    // Initialization never arrives while the gate waits, so use the entry that returns once the loader appears
+                    await LoadMainGameUntilLoaderShown(null, null);
                     await WaitMainGameActive();
                     for (var frame = 0; frame < SettleFrameCount; frame++) await UniTask.Yield();
 
                     // ゲートで待機中であること（Startは走り終え、UIStateはまだ無い）を前提として固定する
                     // Pin the precondition that the gate is waiting: Start has run and no UIState exists yet
-                    var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
-                    Assert.IsNotNull(hub, "WebUiHost hub is not running; the language gate cannot be shown");
                     Assert.IsFalse(gameInitialized, "言語を選んでいないのに初期化が完了した");
-                    StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, true);
+                    Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.FullScreenGate, UiFamily.Viewport).Q(EventLanguageGateView.RootTestId), "UITK の言語ゲートが出ていない");
 
                     // 待機中は実カーソルが見える
                     // The real cursor is visible while waiting
@@ -108,8 +112,8 @@ namespace Client.Tests.EditModeInPlayingTest
                     initializedSubscription.Dispose();
                     EventModeTestEnvironment.Restore(EventModeTestEnvironment.ExhibitionEnableKeys, savedEnvValues);
 
-                    // 検出は保存終了までとし、Play終了の後片付け（Linux CIのCEF停止の例外など）は他のPlayModeテストと同じく検出の外に置く
-                    // Detection ends at the shutdown save; the play-exit teardown (e.g. the CEF shutdown exception on Linux CI) stays outside it like other PlayMode tests
+                    // 検出は保存終了までとし、Play終了の後片付けは他のPlayModeテストと同じく検出の外に置く
+                    // Detection ends at the shutdown save; the play-exit teardown stays outside it like other PlayMode tests
                     LogAssert.ignoreFailingMessages = true;
                 }
             }

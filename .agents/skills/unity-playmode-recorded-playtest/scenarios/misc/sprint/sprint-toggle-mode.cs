@@ -112,8 +112,8 @@ return PlaytestRunner.Run("sprint-toggle-mode", options, async p =>
         await Measure("d-after-inventory", false);
         await EndMovement();
 
-        // 通常のDOMクリック経路で方式を変更し、W保持中にShiftを押し離す
-        // Change mode via normal DOM clicks and press/release Shift while holding W
+        // 通常の要素クリック経路で方式を変更し、W保持中にShiftを押し離す
+        // Change mode via normal element clicks and press/release Shift while holding W
         p.Note("e: ポーズ設定でホールドに変更");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 10f);

@@ -385,7 +385,7 @@ git commit -m "refactor: 視点副作用をカメラと表示に限定"
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/BuildMenuState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateControlTest.cs`（既存ファイルがなければ新規作成し、`.meta`はUnityに生成させる）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateControlTest.cs`（既存ファイルがなければ新規作成し、`.meta`はUnityに生成させる）
 
 **Interfaces:**
 - Consumes: `InGameCameraController.SetControllable(bool)`、`InputManager.MouseCursorVisible(bool)`

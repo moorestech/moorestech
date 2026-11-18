@@ -9,15 +9,9 @@ namespace Client.Tests.BugReport
         [Test]
         public void ポーズメニューから送れるのはバグと感想だけ()
         {
-            Assert.IsTrue(PlaytestReportKindText.TryParseSubmittableFromPauseMenu("bug", out var bug));
-            Assert.AreEqual(PlaytestReportKind.Bug, bug);
-            Assert.IsTrue(PlaytestReportKindText.TryParseSubmittableFromPauseMenu("feedback", out var feedback));
-            Assert.AreEqual(PlaytestReportKind.Feedback, feedback);
-
-            Assert.IsFalse(PlaytestReportKindText.TryParseSubmittableFromPauseMenu("crash", out _));
-            Assert.IsFalse(PlaytestReportKindText.TryParseSubmittableFromPauseMenu("bugs", out _));
-            Assert.IsFalse(PlaytestReportKindText.TryParseSubmittableFromPauseMenu("", out _));
-            Assert.IsFalse(PlaytestReportKindText.TryParseSubmittableFromPauseMenu(null, out _));
+            Assert.IsTrue(PlaytestReportKindText.IsSubmittableFromPauseMenu(PlaytestReportKind.Bug));
+            Assert.IsTrue(PlaytestReportKindText.IsSubmittableFromPauseMenu(PlaytestReportKind.Feedback));
+            Assert.IsFalse(PlaytestReportKindText.IsSubmittableFromPauseMenu(PlaytestReportKind.Crash));
         }
 
         // 綴りは受け口・取り込み側との契約。書く側と読む側で片方だけ変わると取り込みが全件外れる
@@ -31,6 +25,13 @@ namespace Client.Tests.BugReport
                 Assert.IsTrue(PlaytestReportKindText.TryParse(PlaytestReportKindText.ToContractText(kind), out var restored), $"{kind} が読み戻せない");
                 Assert.AreEqual(kind, restored);
             }
+        }
+
+        [TestCase("nope")]
+        [TestCase("")]
+        public void 契約に無い綴りは読めない(string text)
+        {
+            Assert.IsFalse(PlaytestReportKindText.TryParse(text, out _));
         }
     }
 }

@@ -1,0 +1,41 @@
+/* web: web@6248097123/src/shared/ui/slotContent.module.css の .icon・.count を写す。.iconTextOutlineLight は OutlinedCountLabel が写す */
+/* web: copies .icon and .count in web@6248097123/src/shared/ui/slotContent.module.css; OutlinedCountLabel copies .iconTextOutlineLight */
+/* 個数の末尾の字間は既定 0。字間を em で上書きする置き場が .slot-content を前に置いたセレクタで受け直す */
+/* The count's trailing spacing defaults to 0; placements that override letter spacing in em re-declare it with a selector ending in .slot-content */
+.slot-content {
+    flex-grow: 1;
+    --slot-content-count-trailing-spacing: 0px;
+}
+
+/* 絵は GameIcon の子が描くので、余白はこの包みに付けて絵を内側へ縮める */
+/* The picture is GameIcon's child, so the padding sits on this wrapper and shrinks the picture inward */
+.slot-content__icon {
+    width: 100%;
+    height: 100%;
+    padding-left: var(--icon-pad);
+    padding-top: var(--icon-pad);
+    padding-right: var(--icon-pad);
+    padding-bottom: var(--icon-pad);
+}
+
+/* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは 2 枚の置き場・字間と大きさのつまみだけを当てる */
+/* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places both layers, sets letter spacing and passes the size knob */
+.slot-content__count {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 2px;
+    bottom: var(--count-bottom);
+    --outlined-count-label-size: var(--count-font-size);
+    letter-spacing: var(--count-letter-spacing);
+}
+
+.slot-content--counted > .slot-content__count {
+    display: flex;
+}
+
+/* Chrome の letter-spacing は最後の字の後ろにも字間を足すが UITK は足さないので、右寄せの字をその分だけ内へ寄せる（OutlinedCountLabel の padding 0 より強い 2 クラスで当てる） */
+/* Chrome adds letter spacing after the last glyph too while UITK does not, so the right-aligned glyphs move in by that much (two classes beat OutlinedCountLabel's padding 0) */
+.slot-content > .slot-content__count {
+    padding-right: var(--slot-content-count-trailing-spacing);
+}

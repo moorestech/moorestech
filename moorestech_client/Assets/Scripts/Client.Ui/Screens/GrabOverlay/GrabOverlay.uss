@@ -1,0 +1,15 @@
+/* web: GrabOverlay.module.css .overlay { position: fixed; --slot-size: 3rem; width: var(--slot-size); height: var(--slot-size); pointer-events: none; z-index: var(--z-viewport-grab); transform: scale(var(--ui-scale)); transform-origin: center; } と GrabOverlay.tsx の left: x - 24, top: y - 24 */
+/* 重なりの順は UiLayer.Grab が、ui-scale はパネルの倍率が持つので書かない。中心合わせは left/top をポインタにして -50% ずらす */
+/* Stacking is owned by UiLayer.Grab and ui-scale by the panel scale, so neither is written; centering puts left/top at the pointer and shifts by -50% */
+.grab-overlay {
+    position: absolute;
+    display: none;
+    --slot-size: 48px;
+    width: var(--slot-size);
+    height: var(--slot-size);
+    translate: -50% -50%;
+}
+
+.grab-overlay--shown {
+    display: flex;
+}

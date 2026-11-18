@@ -51,7 +51,7 @@ namespace Client.Tests.UnitTest.Tutorial
             manager.ApplyTutorial(tutorial);
 
             var outline = LatestOutline();
-            Assert.AreEqual(TutorialAnchorIdMapper.FromItemId(itemId), outline.AnchorId);
+            Assert.AreEqual(AnchorIds.RecipeItem(itemId), outline.AnchorId);
             Assert.AreEqual(tutorial.TutorialGuid.ToString(), outline.LabelTutorialGuid);
         }
 

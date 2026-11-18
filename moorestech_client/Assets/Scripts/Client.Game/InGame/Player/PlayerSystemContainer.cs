@@ -32,9 +32,9 @@ namespace Client.Game.InGame.Player
         {
             playerObjectController.Initialize(initialHandshakeResponse.PlayerPos, initialHandshakeResponse.MapLayout.Spawn);
 
-            // 文字入力中の停止は自機の初期化後に張る。フォーカスは受信スレッド発なのでメインスレッドへ移す
-            // Hook the text-input stop after the player is initialized; focus comes from the socket thread, so hop to the main thread
-            new TextInputMovementLockApplier(playerObjectController).Initialize(WebUiInputExclusivity.TextInputFocused.ObserveOnMainThread());
+            // 文字入力中の停止は自機の初期化後に張る。メインスレッドへ寄せる段は移動停止の効くフレームを変えないため残す
+            // Hook the text-input stop after the player is initialized; the main-thread hop stays so the frame the stop takes effect does not change
+            new TextInputMovementLockApplier(playerObjectController).Initialize(UiInputExclusivity.TextInputFocused.ObserveOnMainThread());
         }
 
         // 地形構築の完了をFinalizerから受けて、自機の実行を開始する

@@ -1,0 +1,96 @@
+using System.Collections.Generic;
+using System.Text;
+
+namespace Client.Ui.Foundation.Text
+{
+    /// <summary>
+    /// 行末の閉じ約物を Chrome の text-spacing-trim: normal と同じく半角に詰めて折り返すための文字列の整形
+    /// String shaping that wraps with line-end closing punctuation trimmed to half width like Chrome's text-spacing-trim: normal
+    /// </summary>
+    /// <remarks>
+    /// TextCore（standard）の折り返し判定は「字の送り位置＋字の送り幅 ≦ 行幅」で、字の位置を変えずに約物の送り幅だけを半分にする rich text が無い。
+    /// そこで 2 段で行う: 測る文（ToBreakMeasureText）は約物の前で 0.5em 戻し後ろで 0.5em 進めるので、約物は半分入れば行に残り（Chrome の allow-end）行中の後続は動かない。
+    /// その折り返し位置で原文に改行を入れた表示文（Apply）を自動の折り返し無しで描くと、約物の字は元の位置のまま行末で空白の半分だけ箱をはみ出す。
+    /// TextCore (standard) breaks when "pen position + glyph advance > line width", and no rich text halves only the punctuation's advance while keeping its glyph in place.
+    /// So it takes two steps: the measuring text (ToBreakMeasureText) steps back 0.5em before and forward 0.5em after each mark, so a mark stays on the line when half of it fits (Chrome's allow-end) and later glyphs on the line do not move.
+    /// The display text (Apply) puts newlines into the source at those breaks and is drawn without automatic wrapping, so the glyph keeps its place and only its blank half overhangs the box at line end.
+    /// </remarks>
+    internal static class LineEndPunctuationTrim
+    {
+        private const string StepBackTag = "<space=-0.5em>";
+        private const string StepForwardTag = "<space=0.5em>";
+
+        // R-2 の閉じ約物（全角の閉じ括弧・句読点）。Chrome は行末でこれらの右半分の空きを詰める
+        // The R-2 closing marks (fullwidth closing brackets and stops); Chrome trims their blank right half at line end
+        public static bool IsClosingPunctuation(char c)
+        {
+            return c == '）' || c == '」' || c == '』' || c == '】' || c == '〕' || c == '》' || c == '〉' || c == '。' || c == '、';
+        }
+
+        // 詰める対象か（閉じ約物を含み、rich text の印を含まない）。印のある文は TextCore が印と見なすかを同じに判定できず字の番号がずれうるので詰めない
+        // Whether to trim: has closing marks and no rich-text tags; a tagged text is left untrimmed since TextCore's tag recognition cannot be mirrored and glyph indices could drift
+        public static bool CanTrim(string source)
+        {
+            // silent-ok: rich text の文（会話の本文の打ち出し等）は詰めずに 1 行多く折れうる / 台帳 docs/uitk/TODO.md の LX-180 が例外として持つ
+            if (0 <= source.IndexOf('<')) return false; // look-exception: LX-180
+            foreach (var c in source)
+            {
+                if (IsClosingPunctuation(c)) return true;
+            }
+            return false;
+        }
+
+        // 描かれる字の数（サロゲートペアは 1 字。TextCore の字の番号と同じ数え方）
+        // Number of presented glyphs (a surrogate pair is one, as TextCore numbers glyphs)
+        public static int CountPresentedGlyphs(string source)
+        {
+            var count = 0;
+            foreach (var c in source)
+            {
+                if (!char.IsHighSurrogate(c)) count++;
+            }
+            return count;
+        }
+
+        // 閉じ約物ごとに前で 0.5em 戻し後ろで 0.5em 進めた、折り返し位置を測るための文
+        // Text for measuring breaks: each closing mark steps back 0.5em before and forward 0.5em after
+        public static string ToBreakMeasureText(string source)
+        {
+            var builder = new StringBuilder(source.Length + 16);
+            foreach (var c in source)
+            {
+                if (!IsClosingPunctuation(c))
+                {
+                    builder.Append(c);
+                    continue;
+                }
+                builder.Append(StepBackTag).Append(c).Append(StepForwardTag);
+            }
+            return builder.ToString();
+        }
+
+        // CanTrim を通った原文（rich text の印を含まない）だけを受け、行末の字（サロゲートペアは 1 字）の直後に改行を入れる。既に改行の位置には足さない。印の扱いを広げるときは NarrowWrapWidth の規則に寄せる
+        // Takes only a CanTrim-passed source (no rich-text tags) and inserts a newline after each line-end glyph (a surrogate pair as one), skipping existing newlines; widen tag handling by following NarrowWrapWidth
+        public static string Apply(string source, IReadOnlyList<int> lineEndIndices)
+        {
+            var builder = new StringBuilder(source.Length + lineEndIndices.Count);
+            var presentedIndex = 0;
+            var nextLineEnd = 0;
+            foreach (var c in source)
+            {
+                builder.Append(c);
+                // サロゲートは後ろ半分で 1 字
+                // A surrogate pair counts as one glyph at its low half
+                if (char.IsHighSurrogate(c)) continue;
+
+                if (nextLineEnd < lineEndIndices.Count && lineEndIndices[nextLineEnd] == presentedIndex)
+                {
+                    if (c != '\n') builder.Append('\n');
+                    nextLineEnd++;
+                }
+                presentedIndex++;
+            }
+            return builder.ToString();
+        }
+    }
+}

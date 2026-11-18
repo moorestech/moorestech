@@ -16,11 +16,17 @@ using UnityEngine.InputSystem;
 using VContainer;
 using UniRx;
 
-// 録画前にGameViewへフォーカスし単体入力を実測する
-// Focus GameView and verify one input before recording
-Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView").Focus();
+// 録画前に前面を取らず入力を整え単体入力を実測する
+// Prepare input without the foreground and verify one input before recording
+Client.Playtest.Operations.Ui.PlaytestUiOps.PrepareBackgroundInput();
 await UniTask.DelayFrame(3);
 var control = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+// 開幕スキット中（Story）は Esc でポーズが開かないので、先に飛ばしてゲーム画面に着くのを待つ
+// Esc cannot open the pause during the opening skit (Story), so skip it first and wait for the game screen
+await Client.Playtest.Operations.Ui.PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+var gameScreenDeadline = Time.realtimeSinceStartup + 30f;
+while (control.CurrentState != UIStateEnum.GameScreen && Time.realtimeSinceStartup < gameScreenDeadline) await UniTask.Yield();
+if (control.CurrentState != UIStateEnum.GameScreen) throw new System.Exception("Escape入力の事前検証の前にゲーム画面へ着かない: " + control.CurrentState);
 await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
 await UniTask.DelayFrame(3);
 if (control.CurrentState != UIStateEnum.PauseMenu) throw new System.Exception("Escape入力の事前検証が失敗しました");
@@ -95,16 +101,24 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
         await p.Until(() => Directory.GetDirectories(outbox).Except(previous).Any(d => File.Exists(Path.Combine(d, "READY"))), 120f, "新しいREADY箱");
         var box = Directory.GetDirectories(outbox).Except(previous).First(d => File.Exists(Path.Combine(d, "READY")));
         p.Note("報告ID: " + Path.GetFileName(box));
-        // 書いた箱の manifest に CEF 停止の記録の生の値 3 つが入っていること（manifest v6）
-        // The written box's manifest carries the three raw CEF-stall values (manifest v6)
+        // 書いた箱の manifest は v8 で、CEF 停止の記録（webUiHealth）を持たず、UI の例外の数（gameUiExceptions）を持つ
+        // The written box's manifest is v8: no CEF-stall record (webUiHealth), but the UI exception count (gameUiExceptions)
         var boxManifest = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(box, "manifest.json")));
-        var webUiHealth = boxManifest["webUiHealth"];
-        var secondsSinceWeb = webUiHealth?["secondsSinceLastWebMessage"];
-        p.Note($"webUiHealth: {webUiHealth?.ToString(Newtonsoft.Json.Formatting.None)}");
-        p.Assert((int)boxManifest["schemaVersion"] == 6, "manifest の schemaVersion が 6");
-        p.Assert((string)webUiHealth?["hostStartup"] == "started", "webUiHealth.hostStartup が started");
-        p.Assert((string)webUiHealth?["cefProcess"] == "observedAfterBrowserStart", "webUiHealth.cefProcess が observedAfterBrowserStart");
-        p.Assert(secondsSinceWeb != null && secondsSinceWeb.Type != Newtonsoft.Json.Linq.JTokenType.Null && (double)secondsSinceWeb >= 0 && (double)secondsSinceWeb < 15, "webUiHealth.secondsSinceLastWebMessage が 0 以上 15 未満");
+        var uiExceptions = boxManifest["gameUiExceptions"];
+        p.Note($"schemaVersion: {boxManifest["schemaVersion"]} gameUiExceptions: {uiExceptions?.ToString(Newtonsoft.Json.Formatting.None)}");
+        p.Assert((int)boxManifest["schemaVersion"] == 8, "manifest の schemaVersion が 8");
+        p.Assert(boxManifest["webUiHealth"] == null, "manifest に webUiHealth が無い");
+
+        // 実の確保なので数え手の値が写る。件数はセッション通算なので 0 とは決めず、見本が先頭 5 件までであることだけを見る（A-244）
+        // A real capture copies the tally; the count spans the session, so it is not pinned to zero, only the samples are capped at the first five (A-244)
+        p.Assert((string)uiExceptions?["status"] == "recorded", "gameUiExceptions.status が recorded");
+        var uiExceptionSamples = uiExceptions?["samples"] as Newtonsoft.Json.Linq.JArray;
+        // 上限は internal で動的コンパイルから見えないため、数値を写さずリフレクションで読む（改名すれば null で落ちて気づく）
+        // The cap is internal and invisible to dynamic compilation, so read it by reflection instead of copying the number (a rename fails loudly on null)
+        var sampleLimitField = typeof(Client.Game.InGame.BugReport.GameUiExceptions.GameUiExceptionTally).GetField("SampleLimit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        p.Assert(sampleLimitField != null, "GameUiExceptionTally.SampleLimit をリフレクションで読める");
+        var sampleLimit = (int)sampleLimitField.GetRawConstantValue();
+        p.Assert(uiExceptionSamples != null && uiExceptionSamples.Count == System.Math.Min((int)uiExceptions["count"], sampleLimit), "gameUiExceptions の見本が件数と上限 SampleLimit に合う");
         await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後のトップ");
         await p.ClickUi("pause-menu-open-bug-report");
         if (hasToken)

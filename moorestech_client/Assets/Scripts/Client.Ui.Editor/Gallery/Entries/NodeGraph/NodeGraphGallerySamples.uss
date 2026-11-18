@@ -1,0 +1,19 @@
+/* 部品ギャラリーの NodeGraphView の見本の枠とカードの寸法（値は Web ResearchTreePanel の .node width 132px と研究画面の地 --mantine-color-dark-8） */
+/* Frame and card sizes for the NodeGraphView gallery entry (values from Web ResearchTreePanel .node width 132px and the research screen backdrop --mantine-color-dark-8) */
+
+/* 面が窓の地と同色なので、研究画面の地を枠に敷く */
+/* The card face matches the window backdrop, so lay the research screen backdrop under the frame */
+.gallery-node-graph {
+    width: 640px;
+    height: 360px;
+    flex-direction: column;
+    background-color: var(--mantine-color-dark-8);
+}
+
+/* translate の -50% でカードの中心をノードの座標に合わせる */
+/* translate -50% centers the card on the node position */
+.gallery-node-graph__card {
+    width: 132px;
+    height: 56px;
+    translate: -50% -50%;
+}

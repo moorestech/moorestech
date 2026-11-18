@@ -8,8 +8,8 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Diagnostics;
 using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.Readings;
 using Client.Game.InGame.BugReport.Recording;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
@@ -43,15 +43,17 @@ namespace Client.Game.InGame.BugReport
         public const int StillFrameIntervalSeconds = 3;
 
         private readonly IPlaytestSessionIdentity _identity;
+        private readonly IBugReportOutboxRoot _outboxRoot;
 
-        public BugReportBundleWriter(IPlaytestSessionIdentity identity)
+        public BugReportBundleWriter(IPlaytestSessionIdentity identity, IBugReportOutboxRoot outboxRoot)
         {
             _identity = identity;
+            _outboxRoot = outboxRoot;
         }
 
         public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, PlaytestReportKind kind)
         {
-            var directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+            var directory = BugReportOutbox.CreateBundleDirectory(_outboxRoot.RootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
 
             // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
             // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first
@@ -64,15 +66,7 @@ namespace Client.Game.InGame.BugReport
             // 見出しが積んだ欠損（steamId等）を消さないよう、確保時の欠損は上書きせず後ろへ足す
             // The capture's gaps are appended rather than assigned, so the header's own gaps (steamId and friends) survive
             var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, _identity.SteamIdAbsenceReason, buildOrigin);
-            // 確保が箱を埋め損ねたら unknown を入れ、常時非 null の契約を守りつつ欠損と開発者ログへ残す
-            // If the capture left the box empty, unknown is recorded so the always-non-null contract holds, with the gap in the manifest and the developer log
-            if (data.WebUiHealth == null)
-            {
-                Debug.LogError("[BugReport] 確保データにWebホスト・CEFの値が無い。webUiHealth は unknown で出す");
-                manifest.WebUiHealth = WebUiHealthReading.UnknownForPreviousSession();
-                manifest.AddMissing("webUiHealth", "確保データにWebホスト・CEFの値が無い");
-            }
-            else manifest.WebUiHealth = data.WebUiHealth;
+            BugReportManifestReadings.Apply(manifest, data);
             manifest.ReportTick = data.ReportTick;
             manifest.ClientState = data.ClientState;
             manifest.Missing.AddRange(data.Missing);

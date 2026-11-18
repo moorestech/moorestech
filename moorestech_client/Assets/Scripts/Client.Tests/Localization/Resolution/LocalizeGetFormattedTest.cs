@@ -19,6 +19,7 @@ namespace Client.Tests.Localization.Resolution
             StringAssert.DoesNotContain("{count}", text);
         }
 
+        /// <web-test file="src/shared/i18n/useI18n.test.ts">leaves unknown interpolation variables visible for diagnosis</web-test>
         [Test]
         public void GetFormattedKeepsAndReportsPlaceholderWithoutValue()
         {

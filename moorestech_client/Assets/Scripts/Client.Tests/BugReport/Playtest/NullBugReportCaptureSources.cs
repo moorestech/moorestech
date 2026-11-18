@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -29,9 +29,9 @@ namespace Client.Tests.BugReport
 
         public IReadOnlyList<UnityLogEntry> Logs() => Array.Empty<UnityLogEntry>();
 
-        public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, "PauseMenu", 0, false, false);
+        public GameUiExceptionReading GameUiExceptions() => new GameUiExceptionsUnknown();
 
-        public WebUiHealthReading WebUiHealth() => new();
+        public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, "PauseMenu", 0, false, false);
 
         public UniTask<string> CaptureScreenshot(string workDirectory) => UniTask.FromResult<string>(null);
     }

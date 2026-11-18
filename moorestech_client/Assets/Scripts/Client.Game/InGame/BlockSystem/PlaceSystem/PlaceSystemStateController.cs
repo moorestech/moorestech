@@ -30,7 +30,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // ホイールを実際に消費している設置系がここへプッシュする。消費側は種別から再導出しない
         // The place system actually consuming the wheel pushes here; consumers must not re-derive it from the target kind
         public bool IsWheelOwnedByTool => _isWheelOwnedByTool.Value;
-        public IObservable<bool> OnWheelOwnedByToolChanged => _isWheelOwnedByTool;
 
         // 表示面へ触るのは初期化ではなくManualUpdate/Disableの仕事。ctorはフィールドを埋めるだけにする
         // Touching the view is ManualUpdate/Disable's job, not construction; the ctor only fills fields

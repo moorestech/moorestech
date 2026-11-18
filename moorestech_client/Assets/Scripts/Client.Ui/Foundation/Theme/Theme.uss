@@ -1,0 +1,149 @@
+/* 既定ランタイムテーマの部品を Mantine の暗色の既定（Button default・Input・Checkbox・Slider・ScrollArea・Combobox）で塗る。寸法は段階 1 のまま（Mantine の寸法の写しは C2 の部品） */
+/* Paints default runtime theme controls with Mantine's dark defaults (Button default, Input, Checkbox, Slider, ScrollArea, Combobox); sizes stay as in stage 1 (Mantine sizing belongs to the C2 components) */
+
+/* web: Mantine Button variant=default（bg default・color default-color・border default-border・hover default-hover・active は 1px 沈む） */
+.unity-button {
+    margin: 0;
+    padding: 4px 12px;
+    border-width: 1px;
+    border-radius: var(--mantine-radius-default);
+    border-color: var(--mantine-color-default-border);
+    background-color: var(--mantine-color-default);
+    color: var(--mantine-color-default-color);
+    transition-property: background-color, translate;
+    transition-duration: 0.1s;
+}
+
+.unity-button:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+.unity-button:active {
+    translate: 0 1px;
+}
+
+.unity-base-field {
+    margin: 0;
+    color: var(--mantine-color-text);
+    align-items: center;
+}
+
+.unity-base-field__label {
+    color: var(--mantine-color-dimmed);
+    min-width: 0;
+    padding: 0 6px 0 0;
+    -unity-text-align: middle-left;
+}
+
+/* 既定テーマでは入力部の高さが0になり、トラックがラベルの上へずれるため明示する */
+/* The default theme leaves the slider input at zero height, shifting the track above the label */
+.unity-base-slider--horizontal .unity-base-slider__input {
+    height: 20px;
+}
+
+.unity-base-slider--horizontal .unity-base-slider__drag-container {
+    flex-grow: 1;
+    height: 20px;
+}
+
+/* web: Mantine Input の暗色（bg dark-6・border dark-4・focus で primary filled） */
+.unity-base-popup-field__input,
+.unity-base-text-field__input {
+    border-width: 1px;
+    border-radius: var(--mantine-radius-default);
+    border-color: var(--mantine-color-default-border);
+    background-color: var(--mantine-color-default);
+    color: var(--mantine-color-text);
+    padding: 4px 8px;
+}
+
+.unity-base-text-field:focus .unity-base-text-field__input {
+    border-color: var(--mantine-primary-color-filled);
+}
+
+.unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--mantine-color-dimmed);
+}
+
+/* web: Mantine Slider の暗色（トラック dark-4・つまみの面 primary filled・つまみの縁 white） */
+.unity-base-slider__tracker {
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+    border-width: 0;
+    border-radius: 2px;
+    background-color: var(--mantine-color-dark-4);
+}
+
+.unity-base-slider__dragger {
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    border-width: 2px;
+    border-radius: 7px;
+    border-color: var(--mantine-color-white);
+    background-color: var(--mantine-primary-color-filled);
+}
+
+/* web: Mantine Checkbox の暗色（未チェックは bg dark-6・border dark-4、チェック済みは箱が primary filled で印は white） */
+.unity-toggle__checkmark {
+    width: 18px;
+    height: 18px;
+    border-width: 1px;
+    border-radius: var(--mantine-radius-default);
+    border-color: var(--mantine-color-default-border);
+    background-color: var(--mantine-color-default);
+    -unity-background-image-tint-color: var(--mantine-color-white);
+}
+
+.unity-toggle:checked .unity-toggle__checkmark {
+    border-color: var(--mantine-primary-color-filled);
+    background-color: var(--mantine-primary-color-filled);
+}
+
+/* web: Mantine ScrollArea（トラックは透明・つまみは白の 40%） */
+.unity-scroller--vertical {
+    width: 8px;
+    border-width: 0;
+    background-color: transparent;
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+.unity-scroller .unity-base-slider__tracker {
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    height: auto;
+    margin: 0;
+    background-color: transparent;
+}
+
+.unity-scroller .unity-base-slider__dragger {
+    width: 8px;
+    height: auto;
+    margin: 0;
+    left: 0;
+    border-width: 0;
+    border-radius: 4px;
+    background-color: var(--theme-scroller-thumb-face);
+}
+
+/* web: Mantine Popover/Combobox の暗色（面 dark-6・枠 dark-4・項目のホバー dark-7） / dropdown popup (spawned at panel root) */
+.unity-base-dropdown__container-outer {
+    background-color: var(--mantine-color-default);
+    border-color: var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-default);
+}
+
+.unity-base-dropdown__item {
+    color: var(--mantine-color-text);
+}
+
+.unity-base-dropdown__item:hover {
+    background-color: var(--mantine-color-dark-7);
+}

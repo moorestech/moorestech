@@ -1,5 +1,6 @@
 using System;
 using Client.Localization;
+using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -14,8 +15,8 @@ namespace Client.Ui.State.EventMode
         private readonly UniTaskCompletionSource _selectionSource = new();
         private readonly Subject<Unit> _onWaitingChanged = new();
 
-        // 待機状態と選択の受付は描く側（Webのtopic・action、将来のUITK）が触る。ゲームのDIより前に要るのでDIには載せず、開始側が作って描く側へ渡す
-        // Presenters (the web topic/action, later UITK) touch the waiting state and selection intake; it is needed before the game DI, so the starter builds it and hands it to presenters instead of registering it in DI
+        // 待機状態と選択の受付は描く側（EventLanguageGateView）が触る。ゲームのDIより前に要るのでDIには載せず、開始側が作って描く側へ渡す
+        // The presenter (EventLanguageGateView) touches the waiting state and selection intake; it is needed before the game DI, so the starter builds it and hands it to the presenter instead of registering it in DI
         public bool IsWaitingSelection { get; private set; }
         public IObservable<Unit> OnWaitingChanged => _onWaitingChanged;
 
@@ -32,25 +33,18 @@ namespace Client.Ui.State.EventMode
             return _selectionSource.Task;
         }
 
-        // 選択を1回だけ効かせる。二重クリックと再送は「既に選択済み」として区別し、成功と一律に丸めない
-        // Only the first selection takes effect; double clicks and resends are distinguished as "already selected" instead of a uniform success
-        public EventLanguageSelectionResult TrySelectLanguage(string languageCode)
+        // 選択済みは良性の拒否として返す
+        // Already selected returns a benign rejection
+        public UiCommandResult SelectLanguage(string languageCode)
         {
-            // silent-ok: 拒否結果を呼び出し元へ返す / Web actionがalready_selected・unknown_localeとして応答する
-            if (!IsWaitingSelection) return EventLanguageSelectionResult.AlreadySelected;
-            if (!Localize.TrySetChosenLanguage(languageCode)) return EventLanguageSelectionResult.UnknownLanguage;
+            // silent-ok: 拒否は結果で返す / EventLanguageGateView が Toaster と同じ書式で LogWarning する（気づく経路はそこだけ）
+            if (!IsWaitingSelection) return UiCommandRejected.Of(UiCommandRejectReason.LanguageAlreadySelected);
+            if (!Localize.TrySetChosenLanguage(languageCode)) return UiCommandRejected.Of(UiCommandRejectReason.UnknownLanguage);
 
             IsWaitingSelection = false;
             _onWaitingChanged.OnNext(Unit.Default);
             _selectionSource.TrySetResult();
-            return EventLanguageSelectionResult.Applied;
+            return UiCommandAccepted.Instance;
         }
-    }
-
-    public enum EventLanguageSelectionResult
-    {
-        Applied,
-        AlreadySelected,
-        UnknownLanguage
     }
 }

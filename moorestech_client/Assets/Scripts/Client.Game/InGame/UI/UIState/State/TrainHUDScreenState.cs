@@ -33,8 +33,12 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly TrainHudRideSession _rideSession;
         private readonly Subject<Unit> _onPresentationChanged = new();
         private int _lastBranchCandidateCount;
+        private bool _isCurrentUiState;
 
         public bool IsRiding => _rideSession.IsRiding;
+        // 画面中かつ乗車中（UITK側の読み口）
+        // True on this screen while riding (UITK read point)
+        public bool IsRidingOnScreen => _isCurrentUiState && _rideSession.IsRiding;
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
         public int SelectedBranchIndex { get; private set; }
@@ -54,6 +58,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            _isCurrentUiState = true;
             _subStateController.StartSubState();
             _trainRidingInputSender.Reset();
             _rideSession.Enter(context);
@@ -114,6 +119,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
+            _isCurrentUiState = false;
             _rideSession.Exit();
 
             // 入れ子サブステートを終了（必要に応じてポーズメニューを閉じる）

@@ -1,0 +1,32 @@
+/* web: App.module.css .stage { display: grid; grid-template-areas: "inv viewer items"; grid-template-columns: auto auto auto; justify-content: start; align-items: start; column-gap: var(--stage-column-gap); padding: var(--menu-upper-safe-area) var(--stage-padding-right) 2px var(--stage-padding-left); } .stageResearch { padding-left: 0; } */
+/* UITK に grid が無いので、横並びの flex と 2 列目・3 列目の左マージンで写す。空の列も幅 0 の track として列間を保つ（Web の grid と同じ） */
+/* UITK has no grid, so a row flex plus a left margin on the 2nd/3rd columns ports it; an empty column keeps its gap like a zero-width grid track */
+.stage-columns {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-top: var(--menu-upper-safe-area);
+    padding-right: var(--stage-padding-right);
+    padding-bottom: 2px;
+    padding-left: var(--stage-padding-left);
+}
+
+.stage-columns--left-padding-collapsed {
+    padding-left: 0;
+}
+
+.stage-columns__column {
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.stage-columns__column--viewer,
+.stage-columns__column--items {
+    margin-left: var(--stage-column-gap);
+}

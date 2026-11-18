@@ -3,8 +3,8 @@ using UnityEditor;
 
 namespace Client.RemoteExec.Listen
 {
-    // Editor専用: Play終了・ドメインリロード・Editor終了のいずれでも待受を閉じる（WebUiHostEditorCleanupと同じ契機）
-    // Editor-only: close the listener on play-mode exit, domain reload or editor quit (the same triggers as WebUiHostEditorCleanup)
+    // Editor専用: Play終了・ドメインリロード・Editor終了のいずれでも待受を閉じる
+    // Editor-only: close the listener on play-mode exit, domain reload or editor quit
     internal static class RemoteExecListenerEditorCleanup
     {
         [InitializeOnLoadMethod]

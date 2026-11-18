@@ -5,16 +5,25 @@ using System.Threading;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.World;
+using Client.Tests.Ui.State.Toast;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special.Commands;
+using Client.Ui.State.Commands;
+using Client.Ui.State.Inventory.Grab;
 using Cysharp.Threading.Tasks;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
@@ -25,7 +34,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator RegisteredActionUsesOpenCoordinatesAndReturnsAllThreeResults()
         {
             EnterPlayModeUtil();
-            BlockActionSceneIsolation.Prepare();
             // PlayMode遷移はUnityTest直下に置く
             // Keep the PlayMode transition directly inside the UnityTest
             yield return new EnterPlayMode(expectDomainReload: true);
@@ -40,13 +48,20 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 var directory = SpaceElevatorActionTestMod.Create();
                 await LoadMainGame(directory, null);
-                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
-                // 起動後の例外をテスト失敗として扱う
-                // Fail the test on exceptions after startup
+
+                // 開いた画面は届く範囲を外れると閉じるので、足場を置く前に自機を対象の -x の隣へ移す
+                // The opened screen closes once out of reach, so move the player next to the target on -x before placing the ground
+                var position = new Vector3Int(20, 0, 4);
+                PlayerSystemContainer.Instance.PlayerObjectController.SetPlayerPosition(position + new Vector3(-1.5f, 0.1f, 0.5f));
+                var ground = TestPlayerGround.Create();
+
+                // 実足場を置き例外を失敗扱い
+                // Place real ground and fail on exceptions
+                await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
+                await TestPlayerGround.AssertGroundedAsync();
                 var master = MasterHolder.BlockMaster.GetBlockAllIds().Select(id => MasterHolder.BlockMaster.GetBlockMaster(id))
                     .Single(b => b.BlockParam is SpaceElevatorBaseBlockParam);
-                var position = new Vector3Int(20, 0, 4);
                 var target = await ServerBlockPlacement.PlaceAsync(master.Name, position, BlockDirection.North);
                 var decoy = await ServerBlockPlacement.PlaceAsync(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
@@ -67,30 +82,37 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreSame(view.Interactable, child.Interactable);
                 Assert.IsNotEmpty(view.Interactable.Actions);
                 Debug.Log($"[SpaceElevatorClick] total={colliders.Length} clickable=1 layer={collider.gameObject.layer} owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
+                // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
+                // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
+                var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+                LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
+                await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
-                // 実Binder・API・応答を通す
-                // Exercise the real binder, API and server response
-                var insufficient = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
-                Assert.IsFalse(insufficient.Ok);
-                Assert.AreEqual("insufficient_cable", insufficient.Error);
+                // 本物の送り手・パネル・掴みで特殊族のコマンド・応答を通し、結果はトーストの係の偽物で受ける
+                // Exercise the special-family command and response with the real sender, panel and grab, receiving results through a fake toaster
+                var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+                var toaster = new RecordingUiCommandResultToaster();
+                var commands = new SpecialBlockCommands(resolver.Resolve<IBlockInventoryPanelSource>(), resolver.Resolve<ISpecialBlockRequestSender>(), resolver.Resolve<PlayerGrabModel>(), toaster);
+                var insufficient = await Connect(commands, toaster);
+                AssertRejected(insufficient, UiCommandRejectReason.SpecialBlockRequestFailed, "insufficient_cable");
                 var param = (SpaceElevatorBaseBlockParam)master.BlockParam;
                 var insufficientState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(0, insufficientState.PoolAmount);
                 Assert.IsFalse(insufficientState.TargetConnected);
                 var supplied = await SpaceElevatorServerTestState.SupplyCableAsync(param);
-                var connected = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
-                Assert.IsTrue(connected.Ok, connected.Error);
+                var connected = await Connect(commands, toaster);
+                Assert.IsInstanceOf<UiCommandAccepted>(connected, (connected as UiCommandRejected)?.ToLogText());
                 var connectedState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.IsTrue(connectedState.TargetConnected);
                 Assert.IsFalse(connectedState.DecoyConnected, "request used the decoy coordinates");
                 Assert.AreEqual(supplied - param.CablesPerElevator, connectedState.PoolAmount);
-                var already = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
-                Assert.IsFalse(already.Ok);
-                Assert.AreEqual("already_connected", already.Error);
+                var already = await Connect(commands, toaster);
+                AssertRejected(already, UiCommandRejectReason.SpecialBlockCommandStale, "already_connected");
                 var alreadyState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(connectedState.PoolAmount, alreadyState.PoolAmount);
                 BlockSubInventoryOpener.Close(subInventory);
+                await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
 
                 // 正規撤去の返却を検証する
                 // Verify refunds through the normal removal request
@@ -99,12 +121,32 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var refundedState = await SpaceElevatorServerTestState.ReadAsync(decoy, decoy);
                 Assert.AreEqual(supplied, refundedState.PoolAmount);
                 Assert.IsFalse(refundedState.DecoyConnected);
+                Object.DestroyImmediate(ground);
                 Directory.Delete(directory, true);
+            }
+
+            // 接続を送り、トーストの係へ結果が届くまで待つ
+            // Send a connect and wait until its result reaches the toaster
+            async UniTask<UiCommandResult> Connect(SpecialBlockCommands commands, RecordingUiCommandResultToaster toaster)
+            {
+                var before = toaster.Reports.Count;
+                commands.ConnectSpaceElevator();
+                for (var i = 0; i < 50 && toaster.Reports.Count == before; i++) await UniTask.Delay(100);
+                Assert.AreEqual(before + 1, toaster.Reports.Count, "the connect result never reached the toaster");
+                Assert.AreEqual(SpecialBlockCommands.ConnectSpaceElevatorCommandName, toaster.Reports[before].CommandName);
+                return toaster.Reports[before].Result;
+            }
+
+            // 拒否の理由と、サーバーの結果を写した失敗コードを見る
+            // Check the rejection reason and the failure code mapped from the server result
+            void AssertRejected(UiCommandResult result, UiCommandRejectReason reason, string wireCode)
+            {
+                Assert.IsInstanceOf<UiCommandRejected>(result, $"expected {wireCode} but the command was accepted");
+                var rejected = (UiCommandRejected)result;
+                Assert.AreEqual(reason, rejected.Reason);
+                Assert.AreEqual(wireCode, rejected.ToWireCode());
             }
             #endregion
         }
-
-        [TearDown]
-        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }

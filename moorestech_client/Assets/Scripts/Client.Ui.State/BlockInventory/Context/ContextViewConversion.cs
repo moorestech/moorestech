@@ -1,0 +1,68 @@
+using Client.Game.InGame.BlockInfoPolling;
+using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.BlockInventory.Logic.CleanRoom;
+using Core.Master;
+using Server.Protocol.PacketResponse;
+
+namespace Client.Ui.State.BlockInventory.Context
+{
+    /// <summary>
+    /// 抽選と搬入停止の照会を欄へ写す。未知の型は異常の文面を返し、ログは呼び手の AnomalyReportGate が継続中 1 回だけ出す
+    /// Maps the draw-detail and stall queries onto entries; an unknown view returns the anomaly text, logged once while it persists by the caller's AnomalyReportGate
+    /// </summary>
+    public static class ContextViewConversion
+    {
+        public static SectionContent<CleanRoomYieldFetched> Yield(BlockInfoFetchState fetchState, CleanRoomYieldView view, out string anomaly)
+        {
+            anomaly = null;
+            if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<CleanRoomYieldFetched>.Unavailable(fetchState);
+            switch (view)
+            {
+                case CleanRoomYieldLayerExposureView layer:
+                    var layerCurrent = CleanRoomYieldRates.LayerExposure(layer.LayerExposure.LayerFailRate);
+                    if (layer.PendingDraw == null) return Fetched(CleanRoomYieldFetched.WithoutPendingDraw(layerCurrent));
+                    return Fetched(CleanRoomYieldFetched.WithPendingDraw(layerCurrent, CleanRoomYieldRates.LayerExposure(layer.PendingDraw.LayerFailRate)));
+                case CleanRoomYieldDicingView dicing:
+                    var dicingCurrent = Dicing(dicing.Dicing);
+                    if (dicing.PendingDraw == null) return Fetched(CleanRoomYieldFetched.WithoutPendingDraw(dicingCurrent));
+                    return Fetched(CleanRoomYieldFetched.WithPendingDraw(dicingCurrent, Dicing(dicing.PendingDraw)));
+                // 役割の無いレシピ等は欄を出さない
+                // Role-less recipes and machines that cannot operate show no entry; the room entry shows the halt reason
+                case CleanRoomYieldNoRoleView _:
+                case CleanRoomYieldNotOperableView _:
+                    return SectionContent<CleanRoomYieldFetched>.Absent;
+            }
+
+            // 未知の型は欄を出さず開発者へ知らせる（購読の中で投げると購読ごと止まる。D-6）
+            // An unknown view hides the entry and tells developers (throwing inside the subscription would kill it; D-6)
+            anomaly = $"[ContextViewConversion] unsupported yield view: {view.GetType().Name}";
+            return SectionContent<CleanRoomYieldFetched>.Absent;
+
+            #region Internal
+
+            SectionContent<CleanRoomYieldFetched> Fetched(CleanRoomYieldFetched value) => SectionContent<CleanRoomYieldFetched>.Present(value);
+
+            CleanRoomYieldRates Dicing(DicingYieldMessagePack pack) => CleanRoomYieldRates.Dicing(pack.DieLossRate, pack.QualityTier, pack.LevelRates, pack.FailedRate);
+
+            #endregion
+        }
+
+        public static SectionContent<MachineInputStall> Stall(BlockInfoFetchState fetchState, MachineInputStallView view, out string anomaly)
+        {
+            anomaly = null;
+            if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<MachineInputStall>.Unavailable(fetchState);
+            switch (view)
+            {
+                case MachineInputStalledView stalled:
+                    return SectionContent<MachineInputStall>.Present(new MachineInputStall(stalled.Stall.Reason, new ItemId(stalled.Stall.WaitingItemId)));
+                case MachineInputNotStalledView _:
+                    return SectionContent<MachineInputStall>.Absent;
+            }
+
+            // 未知の型は欄を出さず開発者へ知らせる（D-6）
+            // An unknown view hides the entry and tells developers (D-6)
+            anomaly = $"[ContextViewConversion] unsupported stall view: {view.GetType().Name}";
+            return SectionContent<MachineInputStall>.Absent;
+        }
+    }
+}

@@ -13,18 +13,16 @@ namespace Client.Tests.Localization.Skit
         [SetCulture("en-US")]
         public void KeyBuilderPreservesCommandForgeFieldCasingAndInvariantCommandId()
         {
-            var customCulture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+            var savedCulture = CultureInfo.CurrentCulture;
+            var customCulture = (CultureInfo)savedCulture.Clone();
             customCulture.NumberFormat.NegativeSign = "~";
             CultureInfo.CurrentCulture = customCulture;
 
-            // field表記と不変IDを正本固定
-            // Pin field casing and invariant IDs at the canonical source
-            Assert.AreEqual(
-                "skit.導入.-123.Option1Tag",
-                SkitCommandLocalization.CreateKey(
-                    "導入",
-                    -123,
-                    SkitCommandLocalization.Option1Field));
+            // 負号の文化圏を後のテストへ持ち越さない
+            // Do not carry the altered negative-sign culture into later tests
+            var key = SkitCommandLocalization.CreateKey("導入", -123, SkitCommandLocalization.Option1Field);
+            CultureInfo.CurrentCulture = savedCulture;
+            Assert.AreEqual("skit.導入.-123.Option1Tag", key);
         }
 
         [Test]
@@ -102,7 +100,7 @@ namespace Client.Tests.Localization.Skit
 
             StringAssert.Contains("SkitCommandLocalization.ResolveLine(", commandSource);
             StringAssert.Contains(
-                "ExecuteWebPresentationAsync(\n                line.SpeakerName,\n                line.DisplayBody,",
+                "ExecutePresentationAsync(\n                line.SpeakerName,\n                line.DisplayBody,",
                 commandSource);
             StringAssert.DoesNotContain("GetSkitUI", commandSource);
         }

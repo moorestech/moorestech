@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Recording;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -16,7 +16,7 @@ namespace Client.Starter.Registration
     /// </summary>
     internal sealed class UncollectedBugReportCaptureSources : IBugReportCaptureSources
     {
-        private const string Reason = "この起動はプレイテストの記録を集めない（リモート接続またはWebUI無し）";
+        private const string Reason = "この起動はプレイテストの記録を集めない（リモート接続）";
 
         // 確保の起点を登録していないため本来は呼ばれない。呼ばれたら配線の変化なので無音にしない
         // No capture trigger is registered, so this is normally never called; a call means the wiring changed and is never silent
@@ -55,11 +55,11 @@ namespace Client.Starter.Registration
             return new ClientStateSnapshot(Vector3.zero, Vector3.zero, Vector3.zero, "", 0, false, false);
         }
 
-        // Webホストを観測しない起動なので、観測値を名乗らず「不明」で返す
-        // This boot observes no web host, so it answers unknown rather than claiming an observed value
-        public WebUiHealthReading WebUiHealth()
+        // この起動は UI の例外を数えないので、0 件を名乗らず「不明」で返す
+        // This boot counts no UI exceptions, so it answers unknown rather than claiming zero
+        public GameUiExceptionReading GameUiExceptions()
         {
-            return new WebUiHealthReading { HostStartup = WebUiHostStartupState.Unknown, CefProcess = CefProcessState.Unknown, SecondsSinceLastWebMessage = null };
+            return new GameUiExceptionsUnknown();
         }
 
         public UniTask<string> CaptureScreenshot(string workDirectory)

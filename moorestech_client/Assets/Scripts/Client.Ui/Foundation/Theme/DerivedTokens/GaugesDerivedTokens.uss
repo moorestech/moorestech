@@ -1,0 +1,7 @@
+/* Gauges 族（進捗の部品）の手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens of the Gauges family (progress parts); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* C4-b: 進捗の部品（Gauges）。ProgressArrowGlyph の drop-shadow の色（設計書 A-88） */
+    /* C4-b: progress parts (Gauges); the ProgressArrowGlyph drop-shadow color (design A-88) */
+    --progress-arrow-glyph-shadow: rgba(0, 0, 0, 0.45); /* web: ProgressArrowGlyph .glyph の drop-shadow(0 1px 1px rgb(0 0 0 / 45%)) の色 */
+}

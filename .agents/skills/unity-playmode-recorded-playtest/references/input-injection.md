@@ -40,10 +40,10 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## 画面UI（ボタン・スロット）のクリック
 
-移行済みのゲーム内画面UI（ビルドメニュー・インベントリ等）はWeb UI一本（ADR 0052）で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は無い。ADR 0052の例外4種（MainMenu/ローディング・mapObject HPバー・デバッグUI・CEF描画面）はuGUIのまま。
+移行済みのゲーム内画面UI（ビルドメニュー・インベントリ等）は UITK（`Client.Ui`）一本で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は無い。ADR 0052の例外（MainMenu/ローディング・mapObject HPバー・デバッグUI）はuGUIのまま。
 
-- 画面UIの要素は `data-testid` で指定し、DSLの `ClickUi(testid)` / `HoverUi(testid)` / `UntilUiElement(testid, timeout)` / `SetText(testid, text)` を使う（ロケータが要素を解決→注入マウス。Web 版は DOM 矩形→座標逆変換→入力転送。write-scenario.mdのUI操作参照）
-- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。UIの描画系が15秒以内に使えなければ例外）
+- 画面UIの要素は testid（UITK の要素の `name`）で指定し、DSLの `ClickUi(testid)` / `HoverUi(testid)` / `UntilUiElement(testid, timeout)` / `SetText(testid, text)` を使う（ロケータが要素を解決→注入マウス。write-scenario.mdのUI操作参照）
+- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。15秒以内に要素が見つからなければ例外）
 - uGUI型（`BuildMenuView`/`ItemSlotView`/`CommonSlotView`/`BlueprintNameInputView`/`CrosshairView`）を参照する旧シナリオはコンパイルできない。雛形にしない
 
 ## ワールドクリックの座標
@@ -69,7 +69,7 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## de-risk probe（長いシナリオ・録画前の必須ゲート）
 
-録画前に`InputSystem.settings.backgroundBehavior`、`Application.isFocused`、`Keyboard.current.enabled`、`Mouse.current.enabled`を読み、単体入力1つで期待状態が成立するか確認する。入力デバイスが無効なら`uloop focus-window`でEditorを前面化し、Editor経由で`GameView.Focus()`した後、有効状態を再確認して`QueueStateEvent`を使う。OS入力シミュレーションは使わない。背景動作を求められた場合は、背景のまま入力デバイスが有効で操作が成立することを実測する。前面での成功は背景動作の証拠にしない。
+録画前に`InputSystem.settings.backgroundBehavior`、`Application.isFocused`、`Keyboard.current.enabled`、`Mouse.current.enabled`を読み、単体入力1つで期待状態が成立するか確認する。入力デバイスが無効なら`PlaytestUiOps.PrepareBackgroundInput()`（または`scripts/prepare-editor-input.edc`）を呼び、背景のまま`Keyboard.current.enabled`・`Mouse.current.enabled`と単体入力1つの成立を確かめてから`QueueStateEvent`を使う。`uloop focus-window`・`EditorWindow.Focus()`は使わない（並走Editorのフォーカスを奪う）。`Application.isFocused`は読むが合否条件にしない。OS入力シミュレーションは使わない。背景動作を求められた場合は、背景のまま入力デバイスが有効で操作が成立することを実測する。前面での成功は背景動作の証拠にしない。
 1点注入→0.5秒→内部状態read。ダメなら (a)フォーカスとデバイス有効状態 (b)`Mouse.current.position`が注入値か実OSカーソルか (c)無マスクraycastの当たりlayer (d)狙い座標 (e)OS simulate-*汚染 の順で切り分け。
 
 ## カメラと視界（照準の前提）

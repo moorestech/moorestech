@@ -6,7 +6,6 @@ using Game.Context;
 using Client.Playtest;
 using Client.Skit.Skit;
 using Client.Skit.UI;
-using Cysharp.Threading.Tasks;
 using Game.Map.Interface.Json;
 using UnityEngine;
 
@@ -15,21 +14,6 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("skit-opening-spawn-relative-origin", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
-
-    // WebUiHost(CEF)のVite devサーバーが未接続だと全画面が白く覆われる。
-    // 座標の検証(assert)には影響しないが、スクショの見栄えのため軽く待つだけに留める
-    // (2026-08-23実測: 混雑worktree環境では100秒待ってもWS接続が確立しないことがあり、これはスキット自体の不具合ではない)
-    // A disconnected WebUiHost (CEF) Vite dev server whitewashes the whole screen. Does not affect the
-    // coordinate asserts, so this is only a short courtesy wait for screenshot readability
-    // (observed 2026-08-23: under heavy concurrent-worktree load the WS connection can fail to establish
-    // even after 100s; that is an environment issue, not a skit defect)
-    p.Note("WebUiHost(CEF)のVite devサーバー起動待ち");
-    var webUiDeadline = Time.realtimeSinceStartup + 15f;
-    while (Time.realtimeSinceStartup < webUiDeadline && !(Client.WebUiHost.Boot.WebUiHost.Hub is { HasConnections: true }))
-    {
-        await UniTask.Delay(500);
-    }
-    p.Note($"WebUiHost WS接続: {(Client.WebUiHost.Boot.WebUiHost.Hub is { HasConnections: true })}");
 
     // 検証対象が開幕スキットの座標そのものなのでSkipOpeningSkitは呼ばない
     // The opening skit's own coordinates are under test, so SkipOpeningSkit is deliberately not called

@@ -1,14 +1,12 @@
+using Client.Tests.Ui.State;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
-using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Tests.Playtest;
-using Client.Tests.PlaytestReceiver;
-using Client.WebUiHost.Game.Actions;
+using Client.Ui.State.Commands;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Client.Tests.Ui.State.Toast;
 
 namespace Client.Tests.BugReport
 {
@@ -34,22 +32,17 @@ namespace Client.Tests.BugReport
         }
 
         [Test]
-        public void 範囲外のkindはactionが拒否する()
+        public void 空白本文でも種別を先に解く()
         {
-            // kind 検証は送信より前段なので、トップへの遷移は起きない
-            // The kind check runs before submitting, so no move to the top happens
-            var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
-            var handler = new BugReportSubmitActionHandler(new BugReportSubmitter(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason)), session, new RecordingProgressSink(), new RecordingUploadRequester()), new PauseMenuStateService());
+            // 送れない種別なら本文が空でも種別で拒否し、送れる種別なら空の本文で拒否する
+            // An unsubmittable kind is refused by kind even with a blank description; a submittable kind is refused for the blank description
+            var commands = PauseMenuCommandsTestFactory.Create(new PauseMenuStateService(), new RecordingUiCommandResultToaster());
 
-            var crash = handler.ExecuteAsync(new JObject { ["description"] = "説明", ["kind"] = "crash" }).GetAwaiter().GetResult();
-            Assert.IsFalse(crash.Ok);
-            Assert.AreEqual("invalid_kind", crash.Error);
+            var crash = (UiCommandRejected)commands.SubmitBugReport("  ", PlaytestReportKind.Crash).GetAwaiter().GetResult();
+            Assert.AreEqual(UiCommandRejectReason.UnsubmittableReportKind, crash.Reason);
 
-            var unknown = handler.ExecuteAsync(new JObject { ["description"] = "説明", ["kind"] = "nope" }).GetAwaiter().GetResult();
-            Assert.AreEqual("invalid_kind", unknown.Error);
-
-            var missing = handler.ExecuteAsync(new JObject { ["description"] = "説明" }).GetAwaiter().GetResult();
-            Assert.AreEqual("invalid_kind", missing.Error);
+            var blank = (UiCommandRejected)commands.SubmitBugReport("  ", PlaytestReportKind.Bug).GetAwaiter().GetResult();
+            Assert.AreEqual(UiCommandRejectReason.EmptyDescription, blank.Reason);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using Client.Playtest.UiElements.GameUi;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace Client.Playtest.UiElements
     /// </summary>
     internal static class UiElementScreenPointResolver
     {
-        public static async UniTask<UiElementSnapshot> ResolveClickableUntil(IUiElementLocator locator, string testid, float timeoutSeconds)
+        public static async UniTask<UiElementSnapshot> ResolveClickableUntil(GameUiElementLocator locator, string testid, float timeoutSeconds)
         {
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             var lastStatus = UiElementLookupStatus.NotFound;

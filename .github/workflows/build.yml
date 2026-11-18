@@ -182,8 +182,8 @@ jobs:
         platform:
           # ==========================================
           # プラットフォームの追加/削除でビルド対象を切り替え可能
-          # LinuxクライアントはCEFネイティブランタイム不在で必ず失敗するため除外（.decisions/2026-08-02）
-          # The Linux client is excluded because the CEF native runtime does not exist for it (.decisions/2026-08-02)
+          # Linuxクライアントは配布対象外のため除外（再開は統合計画 §5.2 で別に判断する。.decisions/2026-08-02）
+          # The Linux client is excluded because it is not distributed (resuming it is decided separately under integration plan §5.2)
           # ==========================================
           - name: StandaloneWindows64
             buildMethod: Client.Editor.Build.BuildPipeline.WindowsBuildFromGithubAction
@@ -229,25 +229,6 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # Windows Docker コンテナ内では UPM の git clone + LFS が失敗するため、
-      # ホスト上でパッケージを事前取得し、ローカルパスに差し替える
-      - name: Pre-fetch CefUnity package (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          git clone --depth 1 --branch main https://github.com/KurisuJuha/cef-unity.git _cef_pkg
-          cd _cef_pkg && git lfs pull && cd ..
-          cp -r _cef_pkg/cef-unity-unityproject/Assets/CefUnity moorestech_client/CefUnityLocal
-          cd moorestech_client/Packages
-          python3 -c "
-          import json
-          with open('manifest.json', 'r') as f:
-              data = json.load(f)
-          data['dependencies']['jp.juha.cefunity'] = 'file:../CefUnityLocal'
-          with open('manifest.json', 'w') as f:
-              json.dump(data, f, indent=2)
-          "
-
       # uLoopMCP v3はWindowsで名前付きパイプのIPCサーバをEditor起動時に必ず立て、バッチモードでも止まらない。
       # CIコンテナではその非同期読み取りが未処理のObjectDisposedExceptionを投げ、Unityがビルド開始前に落ちる。
       # 開発専用ツールでビルドには不要なため、Windowsクライアントビルドでは依存ごと外す。
@@ -273,31 +254,6 @@ jobs:
           with open('packages-lock.json', 'w') as f:
               json.dump(lock, f, indent=2)
           "
-
-      # Unityのビルド前処理(WebUiProductionArtifactBuilder)がpnpm buildを実行するが、
-      # node/pnpm本体と webui/node_modules は gitignore されているためここで用意する
-      - name: Setup Web UI toolchain
-        shell: bash
-        working-directory: moorestech_web
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-        run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            pwsh -File setup.ps1
-            pnpm_binary="$PWD/node/win-x64/pnpm.exe"
-          else
-            bash setup.sh
-            # setup.sh はランナーのarchに応じたディレクトリへ配置するのでglobで解決する
-            # setup.sh installs into an arch-dependent directory, so resolve it by glob
-            shopt -s nullglob
-            candidates=(node/*/pnpm)
-            pnpm_binary="$PWD/${candidates[0]}"
-          fi
-          if [ ! -f "$pnpm_binary" ]; then
-            echo "pnpm not found after setup: $pnpm_binary" >&2
-            exit 1
-          fi
-          "$pnpm_binary" --dir webui install --frozen-lockfile
 
       # 日次ビルドはキャッシュ枠(10GB)をPR側へ譲るためコールドで回す（ADR 0028）
       # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)

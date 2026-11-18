@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
-using Client.WebUiHost.Game.Actions;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;

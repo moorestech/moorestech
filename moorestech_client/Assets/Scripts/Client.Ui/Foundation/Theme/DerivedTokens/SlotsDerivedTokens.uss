@@ -1,0 +1,35 @@
+/* Slots 族（SlotFrame・SlotContent・ItemSlot・SlotGrid・液体のスロット）の手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens of the Slots family (SlotFrame, SlotContent, ItemSlot, SlotGrid, fluid slots); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* C3-a: スロット族（Slots）。つまみの既定は Web の var() のフォールバック、色は Web の CSS module の直書きを前計算した値（設計書 A-52） */
+    /* C3-a: slot family (Slots); knob defaults are the Web var() fallbacks, colors precompute literals in the Web CSS modules (design A-52) */
+    --slot-frame-face: rgba(50, 52, 67, 0.5); /* web: SlotFrame .slot の background rgb(50 52 67 / 50%) */
+    --slot-frame-insufficient-opacity: 0.4; /* web: .slot[data-insufficient] の opacity: 0.4 */ /* look-exception: LX-76 */
+    --slot-frame-catalog-face: rgb(124, 126, 136); /* web: .slot[data-catalog="true"] の background-color */
+    --slot-frame-filled-face: rgb(254, 254, 254); /* web: .slot[data-filled="true"] の background-color */
+    --slot-frame-selected-trim-face: rgb(50, 52, 67); /* web: .slot[data-selected][data-filled] の linear-gradient の帯の色 */
+    --face-inset-color: rgb(20, 22, 29); /* web: var(--face-inset-color, rgb(20 22 29)) */
+    --filled-face-inset: 0px; /* web: var(--filled-face-inset, 0px) */
+    --bevel-inset: outset; /* web: var(--bevel-inset, )。Web の空文字（外側へ成長）を UITK はキーワード outset で表す。ホットバーは inset（設計書 A-42） */
+    --sel-c1: rgb(5, 197, 245); /* web: var(--sel-c1, rgb(5 197 245)) */
+    --sel-c2: var(--select-cyan); /* web: var(--sel-c2, var(--select-cyan)) */
+    --sel-c3: rgb(28, 219, 255); /* web: var(--sel-c3, rgb(28 219 255)) */
+    --selected-face-ring-inset: 0px; /* web: var(--selected-face-ring-inset, 0px) */
+    --selected-face-bottom-trim: 0px; /* web: var(--selected-face-bottom-trim, 0px) */
+    --icon-pad: 5px; /* web: slotContent.module.css .icon の var(--icon-pad, 5px) */
+    --count-bottom: -3px; /* web: .count の var(--count-bottom, -3px) */
+    --count-font-size: 19px; /* web: .count の var(--count-font-size, 19px) */
+    --count-letter-spacing: 0px; /* web: .count の var(--count-letter-spacing, normal)。UITK の字間は字の大きさ/100 × 値なので em は ×100 の px で上書きする */
+    --shortage-count-right: -2px; /* web: ItemSlot .shortageCount の var(--shortage-count-right, -2px) */
+    --shortage-count-bottom: -4px; /* web: var(--shortage-count-bottom, -4px) */
+    --shortage-count-font-size: 11px; /* web: var(--shortage-count-font-size, 11px) */
+    --outlined-count-label-color: var(--count-text); /* web: .iconTextOutlineLight の字の色。slotContent.module.css の量バッジの黒は --count-text で一元管理 */
+    --slot-grid-gap: 6.8px; /* web: SlotGrid .grid の var(--slot-grid-gap, 0.425rem) */
+    --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしても行が追う（台帳「実測の結論」） */
+
+    /* C4-a: 液体のスロット族（Slots/Fluid）。縁の色のつまみ・量の基線（設計書 A-97・A-99） */
+    /* C4-a: fluid slot family (Slots/Fluid); outline color knob and amount baseline (design A-97, A-99) */
+    --outlined-count-label-stroke: var(--icon-text-stroke-light); /* web: .iconTextOutlineLight の -webkit-text-stroke の色。.iconTextOutlineDark の置き場（FluidSlot の量・ホットバーの番号）が --icon-text-stroke-dark に上書きする */
+    --fluid-slot-fill-bottom-radius: 3px; /* web: FluidSlot .slot の overflow: hidden が切る枠の内側の角丸。--mantine-radius-sm 4px − 線 1px */
+    --fluid-slot-amount-bottom: 3.3px; /* web: FluidSlot .amount の bottom: 0。行高は本文の --mantine-line-height-md 1.55 で、OutlinedCountLabel は行高 1 の基線で置くので、半行間の差 (1.55 - 1) / 2 × 12px = 3.3px だけ箱を上げる */
+}

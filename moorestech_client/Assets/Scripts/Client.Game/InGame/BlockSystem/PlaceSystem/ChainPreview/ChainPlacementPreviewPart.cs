@@ -4,7 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
 using Client.Game.InGame.Control;
 // ワールドピン配信の共有基盤
-// Shared world-pin publication store: a web-presentation port, not tutorial logic
+// Shared world-pin publication store: a presentation port, not tutorial logic
 using Client.Game.InGame.Tutorial;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
@@ -14,7 +14,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
     ///     設置カーソルへ連結ゴースト群を追従表示する
-    ///     Follows the placement cursor with the chain ghosts; blocked cells turn the not-placeable color, and world pins go to the web UI
+    ///     Follows the placement cursor with the chain ghosts; blocked cells turn the not-placeable color, and world pins go to the world-pin store
     /// </summary>
     public class ChainPlacementPreviewPart
     {
@@ -53,7 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 // Only a blocked cell's ghost drops to the not-placeable color; the reason was decided at resolution
                 if (entry.PreviewObject != null) entry.PreviewObject.SetPlaceableColor(resolved.BlockReason == ChainCellBlockReason.None);
                 
-                PublishWebPin(entry, tutorialGuid);
+                PublishWorldPin(entry, tutorialGuid);
             }
             
             // 連結件数が減ったら余剰ゴーストを畳む
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             
             // 兄弟のチュートリアルゴーストと同様にワールドピンも配信する
             // Publish world pins the same way the sibling tutorial ghosts do
-            void PublishWebPin(PlacementGhostEntry entry, System.Guid ownerTutorialGuid)
+            void PublishWorldPin(PlacementGhostEntry entry, System.Guid ownerTutorialGuid)
             {
                 if (entry.PreviewObject == null) return;
                 
@@ -72,7 +72,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 if (!camera) return;
                 
                 var projection = WorldPinScreenProjection.Project(camera, entry.PreviewObject.transform.position);
-                WorldPinStateStore.Instance.SetPin(entry.WebPinId, ownerTutorialGuid.ToString("D"), projection);
+                WorldPinStateStore.Instance.SetPin(entry.WorldPinId, ownerTutorialGuid.ToString("D"), projection);
             }
             
             #endregion
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
         private static void HideEntry(PlacementGhostEntry entry)
         {
             entry.Hide();
-            WorldPinStateStore.Instance.RemovePin(entry.WebPinId);
+            WorldPinStateStore.Instance.RemovePin(entry.WorldPinId);
         }
     }
 }

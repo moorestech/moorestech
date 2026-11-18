@@ -1,0 +1,5 @@
+/* 研究の詳細ペインのように、画面が祖先で研究の寸法だけを上書きする probe。研究の組（色・字・影・沈み）は部品の修飾クラスが持つ（A-190） */
+/* Probe where a screen ancestor overrides only the research size, like the research detail pane; the research set (colors, type, shadow, sink) lives in the component modifier (A-190) */
+.recipe-action-research-size-probe {
+    --research-action-width: 300px;
+}

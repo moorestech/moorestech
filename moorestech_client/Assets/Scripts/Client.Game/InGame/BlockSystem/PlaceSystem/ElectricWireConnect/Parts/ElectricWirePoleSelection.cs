@@ -69,9 +69,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// </summary>
         public void UpdateInput()
         {
-            // スクロールを蓄積し整数ステップになった分だけ種をサイクルする
-            // Accumulate scroll and cycle the type by whole steps only
-            var scrollStep = _scrollAccumulator.Accumulate(ReadScroll());
+            // スクロールを蓄積し整数ステップ分だけサイクルする。慣性で大きな量が届いても1フレーム1段に抑える
+            // Accumulate scroll and cycle by whole steps, capped at one per frame so inertia bursts cannot spin the selection
+            var scrollStep = Mathf.Clamp(_scrollAccumulator.Accumulate(ReadScroll()), -1, 1);
             for (var i = 0; i < Mathf.Abs(scrollStep); i++)
             {
                 if (0 < scrollStep) CycleNext();
@@ -88,9 +88,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             {
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
 
-                // スクロール読取（legacy代替あり）
-                // Read scroll with legacy fallback
-                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
+                // 入力設定が Uniform なので 1 ノッチ＝1.0 が届き、そのまま 1 段になる（legacy代替あり）
+                // The input settings are Uniform, so one notch arrives as 1.0 and is one step as is (legacy fallback kept)
+                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y : UnityEngine.Input.mouseScrollDelta.y;
             }
 
             #endregion

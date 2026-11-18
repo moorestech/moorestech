@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 指定コミットからWindowsとMac（Apple Silicon）の配布ビルドを焼き、Steamへ上げてWindowsを検証する
 # Bake Windows and Mac (Apple Silicon) from a commit, upload to Steam and verify Windows
+# 標準経路は配布ビルド機（Windows）で焼く release-playtest-windows.sh。これは配布ビルド機が使えないときの予備経路
+# The standard route is release-playtest-windows.sh on the Windows build machine; this is the fallback when that machine is unavailable
 #
 # usage: release-playtest.sh <commit>
 # <commit> は SHA か origin/<branch> を渡す。ローカルブランチ名（master 等）は fetch で進まず古いコミットを焼くため使わない
@@ -35,61 +37,13 @@ BUILD_BRANCH="${MOORESTECH_BUILD_BRANCH:-master}"
 . "$SCRIPT_DIR/lib/release-preflight.sh"
 # shellcheck source=lib/release-artifact.sh
 . "$SCRIPT_DIR/lib/release-artifact.sh"
+# shellcheck source=lib/release-claim.sh
+. "$SCRIPT_DIR/lib/release-claim.sh"
+# shellcheck source=lib/release-deliver.sh
+. "$SCRIPT_DIR/lib/release-deliver.sh"
 # shellcheck source=lib/release-steam-vdf.sh
 . "$SCRIPT_DIR/lib/release-steam-vdf.sh"
-release_require_env
-BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
-playtest_require_build_label "$BUILD_LABEL"
-# 保存資格が無ければ長時間ビルドへ進まない。
-# Reject missing cached authentication before the lengthy build.
-python3 "$SCRIPT_DIR/steam_auth/check_login.py" "$MOORESTECH_STEAM_USER"
-
-# 解決の前にfetchする。マージ直後のコミットや古いorigin/masterのrefを掴まないため
-# Fetch before resolving, so a just-merged commit or a stale origin/master ref is never used
-"$GIT_BIN" -C "$SCRIPT_DIR" fetch origin || {
-    echo "ERROR: git fetch origin に失敗しました" >&2
-    exit 2
-}
-
-# 短縮SHAやブランチ名でも受け付けられるよう、比較の前に40桁へ解決する
-# Resolve the input to a 40-char SHA before any comparison, so a short SHA or branch name still works
-COMMIT_FULL="$("$GIT_BIN" -C "$SCRIPT_DIR" rev-parse --verify "${COMMIT}^{commit}" 2>/dev/null)" || {
-    echo "ERROR: COMMIT を解決できません（存在しないコミットか、このrepoにfetchされていません）: ${COMMIT}" >&2
-    exit 2
-}
-# 焼く branch が嘘にならないよう、要求コミットが配布元 ref から到達できることをビルド前に確かめる
-# merge-base --is-ancestorは「祖先でない」を1、「refが無い・objectが無い」を128で返すため、終了コードで理由を分ける
-# （128のまま「含まれない」と出すと、ブランチ名の打ち間違いをコミットの取り違えと誤診させてしまう）
-# Confirm before the build that the requested commit is reachable from the distribution ref, so the baked branch never lies
-# merge-base --is-ancestor returns 1 for "not an ancestor" and 128 for "ref/object missing"; branch on the exit code
-# (reporting 128 as "not contained" would misdirect a typo'd branch name toward a commit mixup instead)
-if "$GIT_BIN" -C "$SCRIPT_DIR" merge-base --is-ancestor "$COMMIT_FULL" "origin/$BUILD_BRANCH"; then
-    ANCESTOR_STATUS=0
-else
-    ANCESTOR_STATUS=$?
-fi
-if [ "$ANCESTOR_STATUS" -eq 128 ]; then
-    echo "ERROR: origin/${BUILD_BRANCH} が見つかりません（MOORESTECH_BUILD_BRANCH を確認してください）" >&2
-    exit 2
-elif [ "$ANCESTOR_STATUS" -ne 0 ]; then
-    echo "ERROR: ${COMMIT_FULL} は origin/${BUILD_BRANCH} に含まれません（配布元 ref が違うなら MOORESTECH_BUILD_BRANCH で指定してください）" >&2
-    exit 2
-fi
-
-RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
-STEAM_DIR="$RUN_DIR/steam"
-# 並行起動と前回成果物の混入を防ぐため、runを排他的に確保する
-# Claim the run exclusively to prevent concurrent launches and stale artifact reuse
-if ! mkdir -p -- "$PLAYTEST_RUN_ROOT"; then
-    echo "ERROR: RUN_DIR の親を作成できません（IO失敗）: ${RUN_DIR}" >&2
-    exit 2
-fi
-if ! mkdir -- "$RUN_DIR"; then
-    echo "ERROR: RUN_DIR を確保できません（既存・同時確保・IO失敗）: ${RUN_DIR}" >&2
-    exit 2
-fi
-mkdir -p "$RUN_DIR/build-windows" "$RUN_DIR/build-mac" "$STEAM_DIR/output"
-echo "[release-playtest] label=$BUILD_LABEL commit=$COMMIT_FULL branch=$BUILD_BRANCH run=$RUN_DIR"
+release_claim_run
 
 # 使い捨てworktreeで焼く（メインワークツリーのEditorとブランチを触らない）
 # Bake in a disposable worktree so the main worktree's Editor and branch stay untouched
@@ -138,41 +92,4 @@ release_build_player MacOsSteamPlaytestBuild "$RUN_DIR/build-mac" "$RUN_DIR/unit
 # Mac成果物の構成・出所・署名・CPUを検査する
 # Verify the Mac artifact's layout, origin, signature, and CPU
 release_require_mac_artifact "$RUN_DIR/build-mac"
-release_render_steam_vdfs "$RUN_DIR" "$STEAM_DIR"
-
-python3 "$SCRIPT_DIR/steam_auth/owned_process.py" "$STEAMCMD_BIN" +login "$MOORESTECH_STEAM_USER" +run_app_build "$STEAM_DIR/app_build_playtest.vdf" +quit
-
-# Steamに格納済みの本体だけを消し、調査ログと検証資料は残す
-# Remove only uploaded build payloads, keeping logs and verification evidence
-if rm -rf -- "$RUN_DIR/build-windows" "$RUN_DIR/build-mac"; then
-    echo "[release-playtest] uploaded build payloads removed: $RUN_DIR/build-windows $RUN_DIR/build-mac"
-else
-    echo "WARNING: アップロード済みビルド本体の削除に失敗しました" >&2
-    for build_dir in "$RUN_DIR/build-windows" "$RUN_DIR/build-mac"; do
-        [ ! -e "$build_dir" ] && [ ! -L "$build_dir" ] || echo "WARNING: 残存パス: $build_dir" >&2
-    done
-fi
-
-# 検証機の通し検証に通ったものだけを手動反映の対象にする
-# Only a build that passed the check machine becomes eligible for manual promotion
-"$VERIFY_SCRIPT" "$BUILD_LABEL"
-
-cat >"$RUN_DIR/promotion.md" <<EOF
-# moorestech プレイテスト反映手順 ($BUILD_LABEL)
-
-- コミット: $COMMIT_FULL
-- Steam アップロード先: playtest-staging（Windows depot と Mac depot を同じビルドに格納）
-- 通し検証: Windows は検証機で phase1 / phase2 とも合格。Mac 版は自動検証していない（ADR 0071）
-
-## Mac 版の手動確認（playtest 反映前に必須）
-
-1. Apple Silicon の Mac で Steam のベータ \`playtest-staging\` を選び、更新後に Steam から起動する
-2. タイトルから新規ワールドへ入り、Tab でインベントリが開くことを確認する
-3. 起動に回避操作（セキュリティ設定の変更・コマンド実行）が要ったか: [ ] 要らなかった / [ ] 要った（手順: ）
-   要った場合も配布は止めず、その手順をキーと一緒にテスターへ案内する
-
-## 反映
-
-Steamworks → アプリ 1958160 → SteamPipe → ビルドで、検証済みビルドを \`playtest\` ブランチに手動でライブ設定してください。設定後に対象のビルド ID を確認し、テスターへ告知してください。
-EOF
-echo "[release-playtest] promotion: $RUN_DIR/promotion.md"
+release_deliver

@@ -1,21 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
+using Client.Ui.State.BlockInventory.Machine.Selection;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.TestTools;
+using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Ui.UiStateTransitionWait;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
@@ -84,22 +88,24 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                         if (recipe.BlockGuid == blockGuid) blockRecipes.Add(recipe);
                     Assert.AreEqual(2, blockRecipes.Count, "test master data recipe count mismatch");
 
+                    // UITK のパネルは画面が SubInventory のときだけ開くので、先に遷移してから実プレイと同じ文脈で開く（前例 GameUiMachineSectionWiringTest。文脈なしのエラーログが 1 回出る）
+                    // The UITK panel opens only on the SubInventory screen, so transition first and reopen with the real-play context (precedent GameUiMachineSectionWiringTest; one no-context error log)
+                    var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+                    LogAssert.Expect(LogType.Error, "SubInventoryState: サブインベントリソースが指定されていません");
+                    await TransitionTo(uiStateControl, UIStateEnum.SubInventory);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // 登録ハンドラで1件目を選択
-                    // Select the first recipe via the registered handler
+                    // レシピ選択コマンドで1件目を選ぶ
+                    // Select the first recipe via the recipe-select command
                     var targetGuid = blockRecipes[0].MachineRecipeGuid;
-                    var setResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
-                    Assert.IsTrue(setResult.Ok, $"select action failed: {setResult.Error}");
+                    await MachineRecipeSelectAwaiter.SelectAndWait(targetGuid);
                     Assert.AreEqual(targetGuid, processor.SelectedRecipeGuid, "selected recipe did not reach the server");
 
-                    // 解除も同じ経路で往復することを確認する
-                    // Confirm clearing round-trips through the same path.
-                    var clearResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "clear" });
-                    Assert.IsTrue(clearResult.Ok, $"clear action failed: {clearResult.Error}");
-                    Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "clear did not reach the server");
+                    // 解除は Web の画面も送らず（送り手は set だけ）、UITK にも口が無い
+                    // Neither the web screen (it only sends set) nor UITK offers a clear, so it is not exercised here
 
                     BlockSubInventoryOpener.Close(subInventoryState);
+                    await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
 
                     // 元の機能検証後に、保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original functional checks

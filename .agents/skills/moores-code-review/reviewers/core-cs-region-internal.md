@@ -39,6 +39,7 @@ cwd (AI 変更後のリポジトリ) を読み、メソッド構造規約 (`#reg
   - public メソッドの宣言順は保持する
 - 複数の単一参照 helper が同じ public entry / constructor からだけ呼ばれている service class では、全 helper をその public entry / constructor の同じ `#region Internal` に集約する。helper の中へ別 helper をネストして階層を分けない。
 - 無効な却下理由: 「主要フローが短すぎる」「state mutator なので class-level」「サービスメソッドだから class-level」「同種クラスが private のまま」「local function 化すると長い」。これらを理由に Critical を降格 / 抑制しない。
+- **Critical にしないもの（UITK のイベント登録）**: コンストラクタで要素へ `RegisterCallback<TEvent>(OnX)`・`generateVisualContent += DrawX` と method group で渡す、同クラスの private のハンドラ（参照は登録の 1 か所だけ）。`VisualElement` 派生が自分へ登録するもの（`OnCustomStyleResolved`・`Draw*` ほか）と、`VisualElement` 派生でない部品が他の要素へ登録するもの（`UiPressGesture`・`CraftHoldInput` の `OnPointer*` ほか）の両方。ローカル関数・ラムダで書いたものも指摘しない（どちらの形でもよい）
 
 ### 5. `[SerializeField]` 必須コンポーネントの冗長 null ガード
 - レッドフラグ: `[SerializeField] private TMP_Text _foo;` のように Prefab / Scene 配線が必須の field に対し、メソッド側で `if (_foo != null) _foo.text = ...;` のような null ガードが付いている

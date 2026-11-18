@@ -16,17 +16,13 @@ namespace Client.Tests.EventMode
         // Keys needed to enable exhibition mode (the switch and the Editor opt-in)
         public static readonly string[] ExhibitionEnableKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
 
-        // EventExhibitionSettingsが受理する唯一の有効値
-        // The only enabled value EventExhibitionSettings accepts
-        private const string EnabledValue = "1";
-
         // SessionStateはnullを持てないため、未設定を表す番兵を置く
         // SessionState cannot hold null, so a sentinel stands for "unset"
         private const string UnsetMarker = "\u0000unset";
 
         public static void EnableExhibitionMode()
         {
-            foreach (var key in ExhibitionEnableKeys) Environment.SetEnvironmentVariable(key, EnabledValue);
+            foreach (var key in ExhibitionEnableKeys) Environment.SetEnvironmentVariable(key, EventExhibitionSettings.EnabledValue);
         }
 
         public static void DisableExhibitionMode()

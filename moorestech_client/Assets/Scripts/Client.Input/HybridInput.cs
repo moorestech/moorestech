@@ -51,7 +51,7 @@ namespace Client.Input
             var pressed = key.HasValue && Keyboard.current != null
                 ? Keyboard.current[key.Value].wasPressedThisFrame
                 : UnityEngine.Input.GetKeyDown(keyCode);
-            return Suppress(pressed, InputSuppressionScope.Keyboard);
+            return InputSuppressionFilter.FilterKeyPress(pressed, InputSuppressionScope.Keyboard, keyCode == KeyCode.Escape);
         }
 
         public static bool GetKey(KeyCode keyCode)
@@ -60,7 +60,7 @@ namespace Client.Input
             var held = key.HasValue && Keyboard.current != null
                 ? Keyboard.current[key.Value].isPressed
                 : UnityEngine.Input.GetKey(keyCode);
-            return Suppress(held, InputSuppressionScope.Keyboard);
+            return InputSuppressionFilter.FilterKeyPress(held, InputSuppressionScope.Keyboard, keyCode == KeyCode.Escape);
         }
 
         // 解放通知を抑止するとホールド系修飾キーが押しっぱなしで固着するためGetKeyUpは抑止を通さない
@@ -89,13 +89,6 @@ namespace Client.Input
         {
             var control = GetMouseButtonControl(button);
             return control != null ? control.isPressed : UnityEngine.Input.GetMouseButton(button);
-        }
-
-        private static bool Suppress(bool value, InputSuppressionScope scope)
-        {
-            if (!value || !WebUiInputExclusivity.IsSuppressed(scope)) return value;
-            WebUiInputExclusivity.ProbeSuppressed(scope);
-            return false;
         }
 
         private static UnityEngine.InputSystem.Controls.ButtonControl GetMouseButtonControl(int button)
@@ -133,6 +126,7 @@ namespace Client.Input
                 KeyCode.W => Key.W,
                 KeyCode.S => Key.S,
                 KeyCode.Tab => Key.Tab,
+                KeyCode.Escape => Key.Escape,
                 KeyCode.F3 => Key.F3,
                 KeyCode.LeftShift => Key.LeftShift,
                 KeyCode.LeftControl => Key.LeftCtrl,

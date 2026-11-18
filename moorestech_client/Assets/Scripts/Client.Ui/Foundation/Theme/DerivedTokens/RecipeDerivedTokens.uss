@@ -1,0 +1,39 @@
+/* Recipe 族（RecipeRow・RecipeActionButton・RecipeListScrollView）の手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens of the Recipe family (RecipeRow, RecipeActionButton, RecipeListScrollView); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* C4-c: レシピ部品（RecipeRow・RecipeActionButton・RecipeListScrollView）。Web の CSS module の直書き色とつまみの既定（設計書 A-46・A-126）。半透明色は Web の α のまま書く（UI は sRGB 空間で合成する） */
+    /* C4-c: recipe parts (RecipeRow, RecipeActionButton, RecipeListScrollView); Web CSS-module literal colors and knob defaults (design A-46, A-126). Translucent colors keep the Web alpha as-is (UI composites in sRGB) */
+    --recipe-row-border: rgba(60, 145, 215, 0.12); /* web: RecipeBox .recipeBox の border rgb(60 145 215 / 12%) */
+    --recipe-row-face: rgba(59, 80, 175, 0.1); /* web: .recipeBox の background rgb(59 80 175 / 10%) */
+    --recipe-row-ring: rgba(20, 75, 135, 0.35); /* web: .recipeBox の box-shadow 0 0 0 1.2px rgb(20 75 135 / 35%) */
+    --recipe-row-bracket: #2fd0f0; /* web: .recipeBox::before/::after の linear-gradient(#2fd0f0, #2fd0f0) */
+    --recipe-row-glow: rgba(0, 205, 255, 0.25); /* web: .recipeBox の box-shadow 0 0 2px 0 rgb(0 205 255 / 25%) */
+    --recipe-row-bracket-shadow: rgba(47, 188, 255, 0.3); /* web: .recipeBox::before/::after の filter drop-shadow(0 0 1px rgb(47 188 255 / 30%)) */
+    --recipe-duration-box-height: 17px; /* calc: var(--recipe-duration-text-size) + 4px; 秒数の箱。字の上端は字の大きさの箱より約 2px 上に出るので、上に 4px の逃げを足して overflow: hidden で切らない（RecipeRow.uss） */
+    --recipe-duration-baseline-shift: 2.353px; /* calc: var(--recipe-duration-text-size) * 0.181; web: .recipeDuration の line-height: 1 の基線。逃げで箱が高くなっても字の大きさの 18.1% だけ下げる */
+    --recipe-action-face-start: var(--recipe-action-background-start); /* web: .recipeActionButton の background: var(--recipe-action-background) */
+    --recipe-action-face-middle: var(--recipe-action-background-middle);
+    --recipe-action-face-end: var(--recipe-action-background-end);
+    --recipe-action-border-width: 1px; /* web: Mantine Button の border calc(0.0625rem * scale) solid transparent（:disabled も 1px）。background の shorthand は padding-box 起点・repeat なので、枠の帯に隣の 1 枚の端が回り込む（A-128）。研究は border: 0 で 0px */
+    --recipe-action-hover-start: #2680dd; /* web: .craftButton:hover:not(:disabled) の linear-gradient(90deg, #2680dd, #45bcf5, #6cebfa) */
+    --recipe-action-hover-middle: #45bcf5;
+    --recipe-action-hover-end: #6cebfa;
+    --recipe-action-disabled-start: var(--recipe-action-background-start); /* web: .craftButton:disabled の background: var(--recipe-action-background)（無効でもグラデを保つ） */
+    --recipe-action-disabled-middle: var(--recipe-action-background-middle);
+    --recipe-action-disabled-end: var(--recipe-action-background-end);
+    --recipe-action-text: var(--text-high-contrast); /* web: .recipeActionButton の color */
+    --recipe-action-disabled-text: rgba(255, 255, 255, 0.8); /* web: .craftButton:disabled の color rgb(255 255 255 / 80%) */
+    --recipe-action-width: var(--recipe-craft-button-width); /* web: .craftButton の width・min-width */
+    --recipe-action-height: var(--recipe-action-button-height); /* web: .recipeActionButton の height・min-height */
+    --recipe-action-padding-block: 0px; /* web: .craftButton の padding: 0 */
+    --recipe-action-font-size: 12px; /* web: .craftButton の font-size */
+    --recipe-action-letter-spacing: 12px; /* web: .craftButton の letter-spacing 0.12em。UITK の字間は字の大きさ/100 × 値なので ×100 の px（A-70） */
+    --recipe-action-text-shadow-offset: 1px; /* web: .craftButton の text-shadow 4 枚（上下左右 1px）のずれ。UITK も同じ文の字 4 つをずらして重ねる。研究は 0px で影なし */
+    --recipe-action-text-shadow: rgba(0, 40, 80, 0.55); /* web: text-shadow の rgb(0 40 80 / 55%) */
+    --recipe-action-active-offset: 1px; /* web: Mantine Button の .mantine-active:active の translateY(1px) */
+    --research-action-disabled-face: rgb(50, 52, 67); /* web: research .researchButton:disabled の background。RecipeActionButton の研究の組が --recipe-action-disabled-* へ当てる */
+    --research-action-disabled-opacity: 0.6; /* web: research .researchButton:disabled の opacity: 0.6。RecipeActionButton が研究の無効へ filter: opacity() の群で当てる */ /* look-exception: LX-76 */
+    --research-action-width: auto; /* web: research .researchButton は幅の指定なし（置き場所の幅に従う）。S4-research が画面で上書きする */
+    --research-action-height: auto; /* web: research .researchButton は高さの指定なし（padding 8px 0 と行の高さ normal）。S4-research が画面で上書きする */
+    --recipe-list-gap: var(--recipe-entry-gap); /* web: RecipeListScrollArea の listGap。機械のレシピ選択は --machine-recipe-row-gap へ上書き */
+}

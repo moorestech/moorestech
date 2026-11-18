@@ -1,0 +1,35 @@
+/* web: web@6248097123/src/features/challenge/CurrentChallengeHud.module.css（.label・.rule・.objectives）と features/modeHud/style.module.css（.label・.details） */
+/* 2 画面の同形の CSS を 1 部品にまとめ、違いはつまみで受ける。項目どうしの間隔と本文の文字は画面が持つ */
+/* web: web@6248097123/src/features/challenge/CurrentChallengeHud.module.css (.label, .rule, .objectives) and features/modeHud/style.module.css (.label, .details) */
+/* Merges the two screens' identical CSS into one component with knobs for the differences; item spacing and body text stay with the screens */
+
+.hud-section-heading {
+    flex-direction: column;
+}
+
+.hud-section-heading__label {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: var(--hud-label-rule-gap);
+    margin-left: 0;
+    padding: 0;
+    color: var(--text-muted);
+    font-size: var(--hud-label-font-size);
+    letter-spacing: var(--hud-label-letter-spacing);
+    /* 行の箱は継いだ line-height 1.55（設計書 A-221 の写し方。字は箱の縦中央） */
+    /* The line box is the inherited line-height 1.55 (design A-221; glyphs sit at the box's vertical centre) */
+    min-height: var(--hud-label-line-box);
+    --localized-label-line-box: var(--hud-label-line-box);
+    -unity-text-align: middle-left;
+    -unity-font-style: normal;
+    white-space: normal;
+}
+
+.hud-section-heading__rule {
+    width: var(--hud-rule-width);
+}
+
+.hud-section-heading__list {
+    flex-direction: column;
+    margin-top: var(--hud-rule-list-gap);
+}

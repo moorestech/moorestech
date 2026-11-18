@@ -1,0 +1,32 @@
+/* 群の 2 層。どちらも左上を原点に拡大・縮小し、見た目は置き場の箱と重なる。--pixel-filter-group は倍率の変化でスタイルの解決の事象を受けるための印（設計書 A-226） */
+/* The two group layers; both scale about the top-left so they visually coincide with the host box. --pixel-filter-group marks the element so it receives style resolution on scale changes (design A-226) */
+.pixel-filter-group {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    transform-origin: 0 0;
+    --pixel-filter-group: 1;
+}
+
+.pixel-filter-group__content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    transform-origin: 0 0;
+}
+
+/* 流れに入る形: 中身の大きさで置き場を広げる（変形は layout に効かない） */
+/* Flow form: the content sizes the host (transforms do not affect layout) */
+.pixel-filter-group--flow {
+    position: relative;
+    flex-grow: 1;
+}
+
+.pixel-filter-group--flow > .pixel-filter-group__content {
+    position: relative;
+    flex-grow: 1;
+}

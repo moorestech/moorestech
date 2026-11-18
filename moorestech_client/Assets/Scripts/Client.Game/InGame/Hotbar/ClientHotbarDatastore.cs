@@ -45,7 +45,7 @@ namespace Client.Game.InGame.Hotbar
         }
 
         // 選択要求をUIStateが1回消費するキュー（前例 BuildMenuSelection）
-        // Queues a web-originated key/click selection for UIState to consume once (precedent: BuildMenuSelection)
+        // Queues a Client.Ui.State (screen operation) key/click selection for UIState to consume once (precedent: BuildMenuSelection)
         public void EnqueueSelectRequest(int slot)
         {
             _pendingSelectRequest = slot;

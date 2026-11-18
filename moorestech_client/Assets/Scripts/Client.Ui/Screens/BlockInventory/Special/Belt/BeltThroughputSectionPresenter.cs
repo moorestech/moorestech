@@ -1,0 +1,78 @@
+using Client.Input.ArrowKeys;
+using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Logic.Belt;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Routing;
+using UniRx;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.BlockInventory.Special.Belt
+{
+    /// <summary>
+    /// ベルトの流量の区画の Presenter。詳細と ←/→ を Attach から Detach まで購読し、窓の選択（既定 180・端で止まる）と出し入れ（IsApplicable）を持つ（Web BeltThroughputSection の useState と keydown）
+    /// Presenter of the belt throughput section; subscribes to details and ←/→ from Attach to Detach, owning the window choice (default 180, stops at the ends) and visibility (Web useState and keydown)
+    /// </summary>
+    public sealed class BeltThroughputSectionPresenter : BlockInventorySectionBase
+    {
+        private readonly BeltThroughputSectionView _view;
+        private readonly ISpecialBlockDetailModel _model;
+        private readonly IHorizontalArrowKeySource _arrowKeys;
+        private readonly UiRoutingState _routing;
+        private readonly IBlockInventoryPanelSource _panelSource;
+        private readonly BeltWindowCursor _cursor = new();
+        private BeltThroughputDetail _belt;
+
+        public override VisualElement Root => _view;
+
+        public BeltThroughputSectionPresenter(BeltThroughputSectionView view, ISpecialBlockDetailModel model, IHorizontalArrowKeySource arrowKeys, UiRoutingState routing, IBlockInventoryPanelSource panelSource)
+        {
+            _view = view;
+            _model = model;
+            _arrowKeys = arrowKeys;
+            _routing = routing;
+            _panelSource = panelSource;
+        }
+
+        public override void Attach(OpenBlockInventoryPanel panel)
+        {
+            // 詳細の変化と矢印の押下を Detach まで聞く
+            // Listen to detail changes and arrow presses until Detach
+            AddSubscription(_model.Current.Subscribe(detail =>
+            {
+                _belt = detail.TryGetBelt(out var belt) ? belt : null;
+                Draw();
+            }));
+            AddSubscription(_arrowKeys.OnArrowPressed.Subscribe(OnArrowPressed));
+        }
+
+        protected override void ResetSectionStateOnDetach()
+        {
+            // 外れたら窓を既定へ戻す（購読の解除と適用可否は基底が戻す）
+            // Reset the window when detached (the base unsubscribes and resets applicability)
+            _cursor.Reset();
+            _belt = null;
+        }
+
+        private void OnArrowPressed(HorizontalArrowKey key)
+        {
+            // ベルトが無い・最前の画面がブロックのパネルでないなら切り替えない（Web の readActiveLayer() === "blockInventory"。ポーズ等が上に重なると背面は動かない）
+            // Do not switch without a belt or unless the front screen is the block panel (Web readActiveLayer() === "blockInventory"; nothing moves behind a pause overlay)
+            // silent-ok: ベルト以外のブロック・閉じた画面・重なった画面の矢印はこの区画の操作ではない / 切り替わらないなら L1 と録画（R-12）で気づく
+            if (_belt == null || !BlockInventoryScreenVisibility.IsShown(_routing.Current.Value, _panelSource.Current.Value)) return;
+            _cursor.Step(_belt, key);
+            Draw();
+        }
+
+        private void Draw()
+        {
+            // 窓が選べなければ出さない（Web の selected 無しの return null）。出し入れは親の SetItemShown（D-23）
+            // Hide when no window can be selected (Web returns null without a selection); the parent's SetItemShown applies it (D-23)
+            BeltThroughputWindow selected = null;
+            var applicable = _belt != null && BeltThroughputLogic.TrySelectBeltWindow(_belt.Windows, _cursor.SelectedTicks, out selected);
+            SetApplicable(applicable);
+            if (applicable) _view.Render(BeltThroughputLogic.RowDisplay(selected), _belt.RecentSecondBars());
+        }
+    }
+}

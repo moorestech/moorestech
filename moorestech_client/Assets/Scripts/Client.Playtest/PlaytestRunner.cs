@@ -1,11 +1,13 @@
 using System;
 using System.Threading;
 using Client.Playtest.Core;
+using Client.Playtest.Input;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
 using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Client.Playtest
 {
@@ -41,13 +43,24 @@ namespace Client.Playtest
                 // Wait for game initialization, then start recording and run the scenario
                 PlaytestRecorder recorder = null;
                 using var lifetime = new CancellationTokenSource();
-                var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
+                // シナリオが替える InputSystem の設定を控え、成否によらず終わりに戻す（設定はアセットなので Play を止めても残る）
+                // Snapshot InputSystem settings the scenario may change and restore them at the end (they are an asset and outlive Play)
+                var savedInputSettings = (InputSystem.settings.backgroundBehavior, InputSystem.settings.editorInputBehaviorInPlayMode);
+
+                // 注入入力が非前面の Editor でも Game View へ届くよう、台本の前に Runner が入れる（前の実行の残りに頼らない）
+                // The Runner sets this before the scenario so injected input reaches the Game View even in a background Editor (no reliance on a previous run's leftovers)
+                InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
                 try
                 {
+                    // 例外でも走行中フラグと入力設定の復元を通すため try の中で準備する
+                    // Prepare inside the try so an exception still reaches the running-flag and settings restore
+                    SemanticInput.EnsureDevices();
+                    var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
-                    // UI照会口を開き、CEF時のみ入力転送
-                    // Open the UI query entry; forward input only with CEF
+                    // UI照会口を開く
+                    // Open the UI query entry
                     PlaytestUiLocatorSession.Start();
 
                     // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す
@@ -73,9 +86,10 @@ namespace Client.Playtest
                     lifetime.Cancel();
                 }
 
-                // 成否にかかわらず転送を止め、次回実行へ照会応答を持ち越さない
-                // Stop forwarding and discard pending lookups regardless of success or failure
+                // 成否にかかわらず転送を止めて設定を戻し、次回実行へ照会応答も入力設定も持ち越さない
+                // Stop forwarding and restore settings regardless of outcome so neither lookups nor input settings carry over
                 PlaytestUiLocatorSession.Stop();
+                (InputSystem.settings.backgroundBehavior, InputSystem.settings.editorInputBehaviorInPlayMode) = savedInputSettings;
 
                 // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
                 // Clean up and write the result (result.json's appearance signals completion)

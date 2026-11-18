@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.UI.ProgressBar
 {
     /// <summary>
-    ///     画面固定の進捗バーの論理状態。表示は Web UI が ui.progress topic 経由で描く
-    ///     Logical state of the screen progress bar; the Web UI renders it through the ui.progress topic
+    ///     画面固定の進捗バーの論理状態。表示は ProgressHudPresenter が描く
+    ///     Logical state of the screen progress bar; ProgressHudPresenter renders it
     /// </summary>
     public class ProgressBarState
     {

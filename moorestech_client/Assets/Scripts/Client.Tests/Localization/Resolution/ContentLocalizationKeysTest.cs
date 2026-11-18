@@ -9,6 +9,8 @@ namespace Client.Tests.Localization.Resolution
         private const string GuidSegment = "01234567-89ab-cdef-0123-456789abcdef";
         private static readonly Guid ContentGuid = Guid.Parse(GuidSegment);
 
+        /// <web-test file="src/shared/i18n/contentKeys.test.ts">builds %s with the C# &lt;namespace&gt;.&lt;lowercase D guid&gt;.&lt;field&gt; format</web-test>
+        /// <web-test file="src/shared/i18n/contentKeys.test.ts">declares the %s.%s row that C# and Web both depend on</web-test>
         [Test]
         public void 宣言表の全行が小文字D形式Guidの導出キーを生成する()
         {

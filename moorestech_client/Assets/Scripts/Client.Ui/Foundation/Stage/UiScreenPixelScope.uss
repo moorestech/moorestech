@@ -1,0 +1,8 @@
+/* web: Mantine Modal・eventLanguageGate の Overlay は Portal で --ui-scale を掛けない（app/App.tsx の stage の外）。UITK は舞台の倍率を箱の scale で打ち消す（設計書 A-41） */
+/* web: Mantine Modal and the eventLanguageGate Overlay are portals without --ui-scale (outside the stage in app/App.tsx); UITK cancels the stage scale with this box's scale (design A-41) */
+.ui-screen-pixel-scope {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: left top;
+}

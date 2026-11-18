@@ -1,0 +1,149 @@
+/* web: web@6248097123/src/features/recipe/views/RecipeActionButton.module.css・RecipeBox.module.css:186-212（.craftButton）・research/style.module.css:131-148（.researchButton）。既定はクラフトで、研究は .recipe-action-button--research が研究の組を持つ（A-190） */
+/* web: web@6248097123/src/features/recipe/views/RecipeActionButton.module.css, RecipeBox.module.css:186-212 (.craftButton) and research/style.module.css:131-148 (.researchButton); defaults to craft and .recipe-action-button--research holds the research set (A-190) */
+
+/* 既定テーマの .unity-button に勝つため 2 クラスで当てる。面は描く子が持つので背景は透明 */
+/* Two classes so these beat the default theme's .unity-button; the drawing child owns the face, so the background is clear */
+.recipe-action-button.unity-button {
+    width: var(--recipe-action-width);
+    min-width: var(--recipe-action-width);
+    height: var(--recipe-action-height);
+    min-height: var(--recipe-action-height);
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+    transition-duration: 0s;
+}
+
+/* 既定テーマのホバー・押下の面と縮みを打ち消す */
+/* Cancel the default theme's hover/press face and shrink */
+.recipe-action-button.unity-button:hover,
+.recipe-action-button.unity-button:active {
+    background-color: transparent;
+    scale: 1 1;
+}
+
+/* 押下は Mantine Button の :active の沈み（研究は 0px へ上書き） */
+/* Press is the Mantine Button :active sink (research overrides it to 0px) */
+.recipe-action-button.unity-button:active:enabled {
+    translate: 0 var(--recipe-action-active-offset);
+}
+
+/* 無効は既定テーマの半透明を付けない（クラフトは Web も opacity 1） */
+/* Disabled skips the default theme's translucency (craft is opacity 1 on the Web too) */
+.recipe-action-button.unity-button:disabled {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* 群はボタンいっぱいに広がり、ボタンの上下の余白は群の中身が持つ（面は中身の余白ごと覆う） */
+/* The group fills the button and its content carries the button's block padding (the face covers the padding too) */
+.recipe-action-button > .pixel-filter-group {
+    flex-grow: 1;
+    align-self: stretch;
+}
+
+.recipe-action-button > .pixel-filter-group > .pixel-filter-group__content {
+    padding-top: var(--recipe-action-padding-block);
+    padding-bottom: var(--recipe-action-padding-block);
+}
+
+/* 研究の無効は面と文字を 1 枚の群にして淡くする（Web の opacity は群に掛かる。要素の opacity は子ごとに掛かり文字が明るく出る） */
+/* Research disabled fades face and label as one group (the Web opacity applies to the group; element opacity applies per child and brightens the label) */
+.recipe-action-button--research.unity-button:disabled > .pixel-filter-group {
+    filter: opacity(var(--research-action-disabled-opacity));
+}
+
+/* 面の 3 色。描く子が CustomStyleResolvedEvent で読む。ホバーは有効なときだけ、無効は後に置いて勝たせる */
+/* Face colors read by the drawing child in CustomStyleResolvedEvent; hover only while enabled, disabled placed after so it wins */
+.recipe-action-button .recipe-action-button__face {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 1;
+    --recipe-action-button-face-start: var(--recipe-action-face-start);
+    --recipe-action-button-face-middle: var(--recipe-action-face-middle);
+    --recipe-action-button-face-end: var(--recipe-action-face-end);
+    --recipe-action-button-face-border-width: var(--recipe-action-border-width);
+}
+
+.recipe-action-button:hover:enabled .recipe-action-button__face {
+    --recipe-action-button-face-start: var(--recipe-action-hover-start);
+    --recipe-action-button-face-middle: var(--recipe-action-hover-middle);
+    --recipe-action-button-face-end: var(--recipe-action-hover-end);
+}
+
+.recipe-action-button:disabled .recipe-action-button__face {
+    --recipe-action-button-face-start: var(--recipe-action-disabled-start);
+    --recipe-action-button-face-middle: var(--recipe-action-disabled-middle);
+    --recipe-action-button-face-end: var(--recipe-action-disabled-end);
+}
+
+/* 文言。影は下の層が描くので縁を付けない */
+/* Label; the layer below draws the shadow, so no outline */
+.recipe-action-button .recipe-action-button__label {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    opacity: 1;
+    color: var(--recipe-action-text);
+    font-size: var(--recipe-action-font-size);
+    letter-spacing: var(--recipe-action-letter-spacing);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* 文言の影の層。文言と同じ箱（padding の内側）に重ね、ずらす幅は C# が読んで字ごとに当てる（Web の上下左右 1px の text-shadow 4 枚） */
+/* Label shadow layer over the label's box (inside the padding); C# reads the shift and applies it per copy (the Web four-way 1px text-shadow) */
+.recipe-action-button .recipe-action-button__label-shadow {
+    position: absolute;
+    top: var(--recipe-action-padding-block);
+    bottom: var(--recipe-action-padding-block);
+    left: 0;
+    right: 0;
+    --recipe-action-button-text-shadow-offset: var(--recipe-action-text-shadow-offset);
+}
+
+.recipe-action-button .recipe-action-button__label-shadow-glyph {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    color: var(--recipe-action-text-shadow);
+    font-size: var(--recipe-action-font-size);
+    letter-spacing: var(--recipe-action-letter-spacing);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden; /* 文言と同じく箱で切り、長い文言で影だけはみ出さない / Clip like the label so a long text does not leave the shadow sticking out */
+}
+
+.recipe-action-button:disabled .recipe-action-button__label {
+    color: var(--recipe-action-disabled-text);
+}
+
+/* 研究の組（Web research/style.module.css:131-148 の .researchButton）。素の button なのでホバーで面を変えず、沈まず、枠・影なし。寸法だけは画面が祖先で --research-action-width/height を上書きしてよい */
+/* Research set (Web .researchButton in research/style.module.css:131-148); a plain button, so no hover face, no sink, no border or shadow. Only the size may be overridden by a screen ancestor through --research-action-width/height */
+.recipe-action-button--research {
+    --recipe-action-hover-start: var(--recipe-action-background-start);
+    --recipe-action-hover-middle: var(--recipe-action-background-middle);
+    --recipe-action-hover-end: var(--recipe-action-background-end);
+    --recipe-action-disabled-start: var(--research-action-disabled-face);
+    --recipe-action-disabled-middle: var(--research-action-disabled-face);
+    --recipe-action-disabled-end: var(--research-action-disabled-face);
+    --recipe-action-disabled-text: var(--text-default);
+    --recipe-action-width: var(--research-action-width);
+    --recipe-action-height: var(--research-action-height);
+    --recipe-action-padding-block: 8px;
+    --recipe-action-font-size: 14px;
+    --recipe-action-letter-spacing: 0px;
+    --recipe-action-text-shadow-offset: 0px;
+    --recipe-action-active-offset: 0px;
+    --recipe-action-border-width: 0px;
+}

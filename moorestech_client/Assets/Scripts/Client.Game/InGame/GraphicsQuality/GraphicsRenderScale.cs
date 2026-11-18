@@ -19,5 +19,12 @@ namespace Client.Game.InGame.GraphicsQuality
                 _ => throw new System.ArgumentOutOfRangeException(nameof(renderScale), renderScale, null),
             };
         }
+
+        // 表示と Web 契約で使う整数の百分率
+        // Integer percentage used by the display and the web contract
+        public static int ToPercent(this GraphicsRenderScale renderScale)
+        {
+            return (int)System.Math.Round(renderScale.ToScale() * 100f);
+        }
     }
 }

@@ -1,0 +1,28 @@
+using Client.Input.KeyPress;
+using Client.Ui.Screens.Recipe;
+using Client.Ui.State.Recipe.Screen;
+using VContainer;
+using VContainer.Unity;
+
+namespace Client.Starter.Registration.GameUi.Screens
+{
+    // レシピ画面（ビューアと一覧）の登録。解放済み機械レシピの源 UnlockedMachineRecipeSource は MainGameUiRegistration の共有サービスが持つ
+    // Registers the recipe screen (viewer and list); the UnlockedMachineRecipeSource is owned by MainGameUiRegistration's shared services
+    internal static class RecipeGameUiRegistration
+    {
+        public static void Register(ContainerBuilder builder)
+        {
+            // State: 選択・モデル（カタログとクラフトの操作は MainGameUiStateRegistration）。モデルは Initialize で購読するので entry point（前例 ResearchTreeModel）
+            // State: selection and model (the catalog and craft commands are in MainGameUiStateRegistration); the model subscribes in Initialize, so it is an entry point (precedent ResearchTreeModel)
+            builder.Register<RecipeItemSelection>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<RecipeScreenModel>().AsSelf();
+
+            // Esc の選択解除は UiRoutingState と CloseUI の口を受ける entry point（前例 ResearchSelectionStore）
+            // Esc clearing is an entry point taking UiRoutingState and the CloseUI port (precedent ResearchSelectionStore)
+            builder.Register<CloseUiKeyPressSource>(Lifetime.Singleton).As<ICloseUiKeyPressSource>();
+            builder.RegisterEntryPoint<RecipeSelectionCloseReset>();
+
+            builder.RegisterEntryPoint<RecipeScreenPresenter>();
+        }
+    }
+}

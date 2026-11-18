@@ -95,16 +95,19 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.Hotbar.UnlockConnectTool("電線");
     await p.GiveItem("銅のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "電線");
+    // UITK の通常画面はカーソルがロックされ UI を押せないので、左 Alt で解いて枠を押す（前例 uitk-hotbar-and-bp-modal）
+    // The UITK game screen locks the cursor so UI cannot be clicked; free it with left Alt and click the slot (precedent uitk-hotbar-and-bp-modal)
+    SemanticInput.KeyDown(Key.LeftAlt); await UniTask.DelayFrame(3);
     await p.ClickUi("hotbar-slot-0");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
+    SemanticInput.KeyUp(Key.LeftAlt); await UniTask.DelayFrame(3);
     await AimAtClickCollider(generatorObject);
     p.Assert(BlockClickDetectUtil.TryGetCursorOnBlock(out var sourceTarget) && sourceTarget == generatorObject, "電線起点クリック前の実ヒットが発電機");
     await p.ClickPlace();
     await p.AimAt(new Vector3(9.5f, 34f, 12.7f));
     p.Assert(BlockClickDetectUtil.TryGetCursorOnBlock(out var destinationTarget) && destinationTarget == minerObject, "電線終点クリック前の実ヒットが採掘機");
     await p.ClickPlace();
-    await p.Until(() => generatorWire.ContainsWireConnection(minerBlock.BlockInstanceId) &&
-                        minerWire.ContainsWireConnection(generatorBlock.BlockInstanceId), 15f, "実操作で双方向電線接続");
+    await p.Until(() => generatorWire.ContainsWireConnection(minerBlock.BlockInstanceId) && minerWire.ContainsWireConnection(generatorBlock.BlockInstanceId), 15f, "実操作で双方向電線接続");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Generating &&
                         Detail().GeneratedElectricPower > 0f, 30f, "実需要へ供給して発電中");
     var activeRpmEnough = false;
@@ -141,10 +144,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
             await p.RunOnServer("蒸気を補給する", () => fluid.AddLiquid(new FluidStack(1d, steamId), default));
         }
     }
-    GearToElectricGeneratorBlockStateDetail Detail()
-    {
-        return generatorObject.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
-    }
+    GearToElectricGeneratorBlockStateDetail Detail() => generatorObject.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
     async UniTask AimAtClickCollider(BlockGameObject blockObject)
     {
         var collider = blockObject.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
@@ -185,11 +185,11 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         }
         var detail = Detail();
         var current = detail.GeneratedElectricPower.ToString("F0", CultureInfo.InvariantCulture);
-        p.Note($"server={detail.GenerationState}, RPM={detail.CurrentRpm:F1}, supplied={detail.GeneratedElectricPower:F1}; DOM={rows[0].Text} / {rows[1].Text}");
-        p.Assert(rows.All(row => row.IsFound), "状態・供給電力・歯車・両ネットワークのDOM行がある");
-        p.Assert(rows[0].Text == expectedState, $"DOM状態文字列: {expectedState}");
-        p.Assert(detail.GenerationState.ToString() == (expectedState == "発電中" ? "Generating" : expectedState == "待機中（需要なし）" ? "Idle" : "Stopped"), "DOM状態がサーバーenumと一致");
-        p.Assert(rows[1].Text == $"供給電力 {current} / 最大 100", "DOM供給量がサーバー値と一致");
+        p.Note($"server={detail.GenerationState}, RPM={detail.CurrentRpm:F1}, supplied={detail.GeneratedElectricPower:F1}; 要素={rows[0].Text} / {rows[1].Text}");
+        p.Assert(rows.All(row => row.IsFound), "状態・供給電力・歯車・両ネットワークの要素の行がある");
+        p.Assert(rows[0].Text == expectedState, $"要素の状態文字列: {expectedState}");
+        p.Assert(detail.GenerationState.ToString() == (expectedState == "発電中" ? "Generating" : expectedState == "待機中（需要なし）" ? "Idle" : "Stopped"), "要素の状態がサーバーenumと一致");
+        p.Assert(rows[1].Text == $"供給電力 {current} / 最大 100", "要素の供給量がサーバー値と一致");
         p.Assert(expectPositivePower ? detail.GeneratedElectricPower > 0f : Mathf.Approximately(detail.GeneratedElectricPower, 0f), "サーバー供給量");
         p.Assert(expectedState != "待機中（需要なし）" || rows[4].Text.Contains("需要なし"), $"待機電力網は需要なし: {rows[4].Text}");
         p.Assert(rows[0].ScreenRect.yMax > rows[1].ScreenRect.yMax && rows[1].ScreenRect.yMax > rows[2].ScreenRect.yMax && rows[2].ScreenRect.yMax > rows[3].ScreenRect.yMax &&

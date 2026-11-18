@@ -53,6 +53,20 @@ class TrackRefixRecurrenceTest(unittest.TestCase):
         self.assertEqual(out["out"], {"stuck": True, "promoted": 1})
         self.assertEqual(out["result"]["findings"][0]["severity"], "Critical")
 
+    def test_critical_recurring_from_prior_warning_keeps_critical_without_promotion(self):
+        history = [{"round": "r1", **finding("w1", "Warning", None)}]
+        out = run({"critical_count": 1, "findings": [finding("w1", "Critical", "r1")]}, 2, history)
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(out["out"], {"stuck": False, "promoted": 0})
+        self.assertEqual(out["result"]["findings"][0]["severity"], "Critical")
+        self.assertTrue(any("前周 Warning" in line for line in out["logs"]))
+
+    def test_round_history_keeps_warnings_for_next_round_reference(self):
+        history = []
+        run_out = run({"critical_count": 0, "findings": [finding("w1", "Warning", None)]}, 1, history)
+        self.assertTrue(run_out["ok"], run_out)
+        self.assertEqual([h["severity"] for h in run_out["history"]], ["Warning"])
+
 
 if __name__ == "__main__":
     unittest.main()

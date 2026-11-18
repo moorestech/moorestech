@@ -58,8 +58,8 @@ namespace Client.Game.InGame.Tutorial
             });
         }
 
-        // D&D操作の説明矢印。from→toのanchor間ループはWeb側が描く
-        // D&D guide arrow; the web side draws the looping motion between the anchors
+        // D&D操作の説明矢印。from→toのanchor間ループはUITK側が描く
+        // D&D guide arrow; the UITK side draws the looping motion between the anchors
         public ITutorialView AddDragGuide(string fromAnchorId, string toAnchorId)
         {
             return AddElement(new TutorialDragGuideElementData
@@ -70,8 +70,8 @@ namespace Client.Game.InGame.Tutorial
             });
         }
 
-        // キー操作ヒント。表示可否はWeb側判定
-        // Key-control hint; visibility is decided web-side
+        // キー操作ヒント。表示可否はUITK側判定
+        // Key-control hint; visibility is decided on the UITK side
         public ITutorialView AddKeyControlHint(string tutorialGuid, string keyName, string uiState)
         {
             return AddElement(new TutorialKeyControlElementData
@@ -93,11 +93,6 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        public bool HasSessionId(string sessionId)
-        {
-            return _sessions.Any(session => session.TutorialSessionId == sessionId);
-        }
-
         public void RemoveElement(string sessionId, string elementId)
         {
             var session = _sessions.Find(value => value.TutorialSessionId == sessionId);
@@ -115,8 +110,8 @@ namespace Client.Game.InGame.Tutorial
             return new TutorialOverlayElementView(this, session.TutorialSessionId, element.ElementId);
         }
 
-        // WebUIモード外ではBeginSessionを経ず追加されるため、challenge無しsessionで受ける
-        // Outside web UI mode elements arrive without BeginSession, so accept them into a challenge-less session
+        // BeginSessionより前に足された要素も落とさず、challenge無しsessionで受ける
+        // Elements added before any BeginSession are kept in a challenge-less session instead of being dropped
         private TutorialSessionData GetOrCreateApplyTarget()
         {
             var session = _sessions.Find(value => value.ChallengeId == _applyTargetChallengeId);

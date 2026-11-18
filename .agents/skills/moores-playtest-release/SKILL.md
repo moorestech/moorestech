@@ -5,17 +5,18 @@ description: moorestech のプレイテスト配布を通しで行う。最新 o
 
 # moores-playtest-release
 
-工程の正本は `scripts/playtest/README.md` と `scripts/playtest/release-playtest.sh`。このスキルは、標準スクリプトが止まる Steam 認証、Mac 版の確認、反映、パッチノートを補う。パッチノートだけを頼まれたら手順 3 だけを行う。スクリプトのパスは本体 clone 直下からの相対で書いている（`.agents/skills/moores-playtest-release/scripts/`）。
+工程の正本は `scripts/playtest/README.md` と `scripts/playtest/release-playtest-windows.sh`（Windows 版・Mac 版とも配布ビルド機〈Windows〉で焼く標準経路）。配布ビルド機が使えないときだけ Mac で焼く `scripts/playtest/release-playtest.sh` を使う。このスキルは、標準スクリプトが止まる Steam 認証、Mac 版の確認、反映、パッチノートを補う。パッチノートだけを頼まれたら手順 3 だけを行う。スクリプトのパスは本体 clone 直下からの相対で書いている（`.agents/skills/moores-playtest-release/scripts/`）。
 
 ## 前提条件
 
-- Mac mini の本体 clone（`~/hermes-agent/data/repos/moorestech`）から実行する。worktree はスクリプトが作る。
+- Mac mini の本体 clone（`~/hermes-agent/data/repos/moorestech`）から実行する。標準経路は Windows 側の `C:\dev\worktrees\moorestech\release-bake` を使い回して焼き（Library を持ち越すため）、予備経路は Mac に worktree を作る。
+- 標準経路は env.sh の `MOORESTECH_WINBUILD_HOST`（配布ビルド機の ssh 宛先）と、Windows 側の Unity 6000.3.8f1 の Mac Build Support（Mono）・`C:\dev\tools\rcodesign\apple-codesign-0.29.0-x86_64-pc-windows-msvc\rcodesign.exe` が要る。
 - `~/hermes-agent/data/services/playtest/env.sh` に次の変数がある。README に載っている変数と `MOORESTECH_STEAM_OP_HELPER`（1Password ラッパーのパス）、`MOORESTECH_STEAM_OP_ITEM`（Steam 資格の項目 ID）。このファイルは並列セッションと共有しているので、`>` で作り直さず追記する。
 - 成果物は `~/hermes-agent/data/services/playtest/runs/<label>/` に置く。label は `playtest-YYYYMMDD-HHMM`。
 
 ## 手順
 
-### 1. ビルド（約70分）
+### 1. ビルド（標準経路は約20分。予備経路は約70分）
 
 先に `MOORESTECH_STEAM_STATE_ROOT`（専用永続ディレクトリ）を env.sh に設定する。認証は共通ランナー `scripts/playtest/steam_auth/run.py` の専用HOMEに保存され、Desktop Steamから分離される。
 
@@ -26,7 +27,7 @@ cd ~/hermes-agent/data/repos/moorestech && git fetch -q origin
 . ~/hermes-agent/data/services/playtest/env.sh
 export MOORESTECH_STEAM_BUILD_LABEL=playtest-$(date +%Y%m%d-%H%M)
 RUNS=~/hermes-agent/data/services/playtest/runs
-scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$MOORESTECH_STEAM_BUILD_LABEL.release.log 2>&1   # Bash の run_in_background で起動
+scripts/playtest/release-playtest-windows.sh "$(git rev-parse origin/master)" > $RUNS/$MOORESTECH_STEAM_BUILD_LABEL.release.log 2>&1   # Bash の run_in_background で起動
 ```
 
 - 渡すのは SHA か `origin/master`。ローカルの `master` は渡さない（fetch で進まないので古いコミットを焼く）。
@@ -35,7 +36,7 @@ scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$M
 
 ### 2. アップロード（steamcmd が `Invalid Password` で止まったとき）
 
-`release-playtest.sh` はビルド前に保存資格を確認する。ビルド中に資格が失効すると、完了後のログインで落ちることがある。ログに `Cached credentials not found` → `ERROR (Invalid Password)` と出た場合がそれで、promotion.md は作られず、worktree も削除済みで終わっている。成果物は run-dir に残っているので、再ビルドはしない。代わりに次を Bash の run_in_background で起動する。
+どちらの経路もビルド前に保存資格を確認する。ビルド中に資格が失効すると、完了後のログインで落ちることがある。ログに `Cached credentials not found` → `ERROR (Invalid Password)` と出た場合がそれで、promotion.md は作られず、worktree も削除済みで終わっている。成果物は run-dir に残っているので、再ビルドはしない。代わりに次を Bash の run_in_background で起動する。
 
 ```bash
 .agents/skills/moores-playtest-release/scripts/upload_and_verify.sh $RUNS/<label> > $RUNS/<label>.upload-verify.log 2>&1   # run_in_background
@@ -81,13 +82,14 @@ python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-
 
 - 手順 4 の Mac 確認がまだなのにユーザーが反映を指示したときだけ、後者を使う。その場合は「Mac は未確認」と報告する。
 - スクリプトは次の 2 点を確かめてから `SetAppBuildLive` を呼び、読み戻しで一致を確かめて `released.json` を書く。ログに `[verify] passed` があること。コミットは release.log の `commit=` から読む。`released.json` は次回のパッチノートで比較元になる。
-- Steamworks Web UI での手作業は不要。
+- Steamworks の管理画面での手作業は不要。
 
 ## Gotchas
 
 - SteamCMDの通常配布と認証ヘルパーは共通の隔離ランナーを使う。実HOMEやDesktop設定へのsymlinkを指定しない。同じstate rootで並行実行すると理由を示して停止する。Desktop起動後に失敗したら、保存先と実行経路を照合し、実測せず「毎回承認が必要」と説明しない。
 - Steam Guard の承認待ちは約 1 分しかない。バックグラウンドで黙って待つと承認が間に合わず、2 回失敗する。プロンプトを検知したらすぐ伝える。
 - 検証機の通し検証中は、検証用の報告を本番の取り込みに拾わせないこと。README は `services.json` から playtest-ingest を外す方法を書いているが、このスキルではその代わりに、`upload_and_verify.sh` で `ingest.sh` と同じロックを握る。`ingest.sh` は受け口に触れる前にロックを取れなければ終わるので、これで防げる。共有設定の書き換えも supervisor の再起動も要らない。
+- 予備経路の `release-playtest.sh` は Mac mini の Unity で焼く。Mac mini で Unity を止めている間は使わず、配布ビルド機の復旧を待つ。
 - `release-playtest.sh` は終了時に `moores-wt rm` を呼ぶが、未登録の残骸ディレクトリ（`worktrees/moorestech/build-<sha8>`）が残ることがある。残っていても報告だけにする。
 - 同梱する master data の元は、pin と一致する detached worktree（`moorestech_master/pin-*`）。長時間ビルドの途中で同梱元の HEAD が進むと、Mac ビルドが BuildInfoWriter の strict 検査で落ちる。そのときは pin に合わせて Mac ビルドだけやり直す。
 

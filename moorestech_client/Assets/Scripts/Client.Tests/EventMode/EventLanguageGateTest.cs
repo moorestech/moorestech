@@ -1,3 +1,4 @@
+using Client.Ui.State.Commands;
 using Client.Ui.State.EventMode;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Client.Tests.EventMode
         {
             var gate = new EventLanguageGate(true);
 
-            Assert.AreEqual(EventLanguageSelectionResult.Applied, gate.TrySelectLanguage("japanese"));
+            Assert.IsInstanceOf<UiCommandAccepted>(gate.SelectLanguage("japanese"));
 
             Assert.IsFalse(gate.IsWaitingSelection);
             Assert.IsTrue(gate.WaitForSelectionAsync().Status.IsCompleted());
@@ -42,7 +43,7 @@ namespace Client.Tests.EventMode
         {
             var gate = new EventLanguageGate(true);
 
-            Assert.AreEqual(EventLanguageSelectionResult.UnknownLanguage, gate.TrySelectLanguage("klingon"));
+            Assert.AreEqual(UiCommandRejectReason.UnknownLanguage, ((UiCommandRejected)gate.SelectLanguage("klingon")).Reason);
 
             Assert.IsTrue(gate.IsWaitingSelection);
         }
@@ -53,14 +54,26 @@ namespace Client.Tests.EventMode
         public void 二度目の選択は既に選択済みを返し状態を変えない()
         {
             var gate = new EventLanguageGate(true);
-            gate.TrySelectLanguage("japanese");
+            gate.SelectLanguage("japanese");
 
             var changedCount = 0;
             gate.OnWaitingChanged.Subscribe(_ => changedCount++);
 
-            Assert.AreEqual(EventLanguageSelectionResult.AlreadySelected, gate.TrySelectLanguage("english"));
+            var rejected = (UiCommandRejected)gate.SelectLanguage("english"); Assert.AreEqual(UiCommandRejectReason.LanguageAlreadySelected, rejected.Reason); Assert.AreEqual("already_selected", rejected.ToWireCode());
             Assert.IsFalse(gate.IsWaitingSelection);
             Assert.AreEqual(0, changedCount);
+        }
+
+        // 選択済み起動は待たず開く
+        // Started with a language chosen, it opens without waiting
+        [Test]
+        public void 待たずに始めたゲートは待ち合わせが即完了し選択は選択済みで拒否する()
+        {
+            var gate = new EventLanguageGate(false);
+
+            Assert.IsFalse(gate.IsWaitingSelection);
+            Assert.AreEqual(UniTaskStatus.Succeeded, gate.WaitForSelectionAsync().Status);
+            Assert.AreEqual(UiCommandRejectReason.LanguageAlreadySelected, ((UiCommandRejected)gate.SelectLanguage("japanese")).Reason);
         }
 
         [Test]
@@ -70,7 +83,7 @@ namespace Client.Tests.EventMode
             var changedCount = 0;
             gate.OnWaitingChanged.Subscribe(_ => changedCount++);
 
-            gate.TrySelectLanguage("english");
+            gate.SelectLanguage("english");
 
             Assert.AreEqual(1, changedCount);
         }

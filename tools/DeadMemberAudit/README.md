@@ -219,7 +219,7 @@ VContainerのライフサイクル（`IInitializable.Initialize`・`IStartable.S
   `IMessagePackFormatter<T>`実装（`BlockIdMessagePackFormatter`等）も`Serialize`/`Deserialize`が
   フォーマッタ経由でしか呼ばれない
 - **Newtonsoft.Json**: 約40箇所の`JsonConvert.DeserializeObject<T>`、191箇所の`[JsonProperty]`。
-  `Game.Block/Blocks/**/*SaveJsonObject`群と`Client.WebUiHost`の`*Dto`群が該当
+  `Game.Block/Blocks/**/*SaveJsonObject`群などが該当
 - **Unity JsonUtility / SerializeField**: `[SerializeField]`は431箇所。`.prefab`/`.unity`のYAMLから復元される
 
 **対応**: 型が`[MessagePackObject]`/`[JsonObject]`/`[DataContract]`を持つか、
@@ -239,7 +239,6 @@ VContainerのライフサイクル（`IInitializable.Initialize`・`IStartable.S
 
 - `IPacketResponse`は`Server.Protocol/PacketResponseCreator.cs`のコンストラクタで
   `_packetResponseDictionary.Add(tag, new XxxProtocol(serviceProvider))` と**明示的に`new`**している。属性スキャンなし
-- Web UIのアクションハンドラも`WebUiGameBinder.cs`で`hub.RegisterAction(new XxxActionHandler(...))`と明示的
 - `SendMessage`/`BroadcastMessage`、`Invoke("...")`/`InvokeRepeating("...")`/`StartCoroutine("...")`、
   `MakeGenericType`/`MakeGenericMethod` は**リポジトリ内に1件も無い**ため、対応する除外規則は入れていない
 

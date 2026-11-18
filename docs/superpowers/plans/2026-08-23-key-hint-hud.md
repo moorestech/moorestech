@@ -133,7 +133,7 @@ git commit -m "feat(i18n): 操作ヒント用のキー名・文言ローカラ�
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/KeyHint.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/IUIState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs`
@@ -148,7 +148,7 @@ git commit -m "feat(i18n): 操作ヒント用のキー名・文言ローカラ�
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/SkitState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/TrainHUDScreenState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs`
 
 **Interfaces:**
 - Consumes: Task 1 の `LocalizationKeys.Ui.KeyHint.Key.*` / `LocalizationKeys.Ui.KeyHint.Text.*`
@@ -159,7 +159,7 @@ git commit -m "feat(i18n): 操作ヒント用のキー名・文言ローカラ�
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs` を新規作成する。
+`moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs` を新規作成する。
 
 ```csharp
 using System.Linq;

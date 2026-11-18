@@ -1,3 +1,4 @@
+using Client.Ui.State.Commands;
 using Client.Ui.State.EventMode;
 using System;
 using System.Collections;
@@ -5,9 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
-using Client.Tests.WebUi.Gate;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
@@ -46,24 +44,10 @@ namespace Client.Tests.EventMode
         [Test]
         public void 出展モードでなければ即座に完了し監視も作らない()
         {
-            var task = EventModeStartGate.WaitForLanguageSelectionAsync(CancellationToken.None);
+            var task = EventModeStartGate.WaitOnGameUiAsync(EventExhibitionSettings.FromEnvironment(), new EventModeStartGateGameUiTest.RecordingGateScreen(new List<string>()), new EventIdleQuitWatcherArmer(), CancellationToken.None);
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             Assert.AreEqual(0, Object.FindObjectsByType<EventIdleQuitWatcher>(FindObjectsSortMode.None).Length);
-        }
-
-        // 通常モードでも言語ゲートのtopicは登録する。Web側は無条件に購読し、未登録だとWS再接続後にrestoringが解けず全UIが操作不能になる
-        // The language-gate topic is registered even outside exhibition mode; the web subscribes unconditionally, and a missing topic leaves restoring stuck after a WS reconnect
-        [Test]
-        public void 出展モードでなくても言語ゲートのtopicとactionを待機なしで登録する()
-        {
-            var hub = new WebSocketHub();
-
-            var task = EventModeStartGate.WaitForLanguageSelectionWithHubAsync(hub, EventExhibitionSettings.FromEnvironment(), CancellationToken.None);
-
-            Assert.IsTrue(task.Status.IsCompletedSuccessfully());
-            StartGateTopicAssert.AssertWaiting(hub, EventLanguageGateTopic.TopicName, false);
-            Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
         // PRの中核である「言語選択を待ってから武装する」順序を、武装窓口の呼ばれ方で押さえる
@@ -103,18 +87,13 @@ namespace Client.Tests.EventMode
             var armer = new RecordingIdleWatchArmer(gate);
 
             var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer, CancellationToken.None);
-            Assert.AreEqual(EventLanguageSelectionResult.Applied, gate.TrySelectLanguage("english"));
+            Assert.IsInstanceOf<UiCommandAccepted>(gate.SelectLanguage("english"));
 
             yield return order.ToCoroutine();
 
             Assert.AreEqual(new[] { IdleTimeoutSeconds }, armer.ArmedTimeoutSeconds.ToArray());
             Assert.IsFalse(armer.WasWaitingWhenArmed);
         }
-
-        // WebUiHost未起動のフォールバックはEditModeで検証できない（DontDestroyOnLoadがPlayMode専用APIのため）。
-        // The no-WebUiHost fallback is not EditMode-testable because DontDestroyOnLoad is a PlayMode-only API.
-        // 当該分岐はコードレビューとReleaseビルドの通し確認（ADR 0040「実機確認」）で担保する。
-        // That branch is covered by code review and the Release build walkthrough recorded in ADR 0040.
 
         // 武装の呼ばれた回数・引数と、その瞬間のゲート状態を記録して順序を観測する
         // Records the arming calls, their argument, and the gate state at that moment to observe the order

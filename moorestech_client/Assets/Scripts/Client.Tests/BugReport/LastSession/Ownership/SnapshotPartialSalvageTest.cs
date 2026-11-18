@@ -8,6 +8,7 @@ using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
+using Client.Tests.BugReport.Bundle;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -64,7 +65,7 @@ namespace Client.Tests.BugReport
                 artifacts = PreviousSessionSalvage.Salvage(_request);
                 Assert.IsTrue(artifacts.Missing.Exists(item => item.Item == "snapshots" && item.Reason == moveFailure));
             }
-            _bundle = CrashBundleWriter.Write(artifacts, "partial", RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
+            _bundle = CrashBundleWriter.Write(artifacts, "partial", RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot, TestBugReportOutboxRoot.Directory);
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(_bundle, BugReportBundleLayout.ManifestFileName)));
             Assert.AreEqual(1, ((JArray)manifest["snapshotFiles"]).Count);
             Assert.IsTrue(((JArray)manifest["missing"]).Any(item => (string)item["item"] == "snapshots" && (string)item["reason"] == moveFailure));
@@ -148,7 +149,7 @@ namespace Client.Tests.BugReport
         public void 所有印だけを直接箱へ渡してもmanifestは資料欠損を示す()
         {
             var artifacts = TestPreviousSessionArtifacts.Unclean(_request.LastSessionDirectory, null, _snapshots, null, new List<string>());
-            _bundle = CrashBundleWriter.Write(artifacts, "owner only", RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
+            _bundle = CrashBundleWriter.Write(artifacts, "owner only", RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot, TestBugReportOutboxRoot.Directory);
             Assert.IsNotNull(_bundle);
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(_bundle, BugReportBundleLayout.ManifestFileName)));
             Assert.AreEqual(0, ((JArray)manifest["snapshotFiles"]).Count);

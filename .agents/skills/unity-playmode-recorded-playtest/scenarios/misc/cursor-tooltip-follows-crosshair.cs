@@ -1,15 +1,9 @@
 // メニューから自由行動へ戻る遷移でカーソルツールチップがクロスヘア基準に出ることを検証する
 // Verifies the cursor tooltip anchors on the crosshair when returning from a menu to free play
 //
-// 再現前提は「Web側のpointerがクロスヘア以外の場所に居る」こと。注入カーソルを隅へ動かし、
-// ツールチップDOMがその隅へ追従したことを確かめてから、メニュー往復でロック遷移を踏む。
-// 開幕スキット直後を契機にしない理由: スキット中はWeb UIが丸ごとunmountされ、pointerが初期値(0,0)のまま
-// 残るため、隅へ退避させた前提そのものをDOMで確認できない（この経路の実測は task-5-report.md 参照）。
-// The precondition is that the Web-side pointer sits somewhere other than the crosshair: the injected cursor
-// is parked in a corner and the tooltip DOM is confirmed to have followed it there, before the menu round
-// trip triggers the lock transition.
-// Why not the post-skit moment: the Web UI unmounts during the skit, leaving the pointer at its initial
-// (0,0), so the corner precondition itself cannot be confirmed in the DOM (measurements in task-5-report.md).
+// UITK ではロック中のツールチップをポインタではなく画面中央に置くので、隅へ注入しても中央近くに居続けることを主張する。
+// UITK places the locked tooltip at the screen centre rather than the pointer, so the scenario asserts it stays
+// near the centre even after the cursor is injected into a corner.
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
@@ -65,13 +59,14 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
 
     p.Assert(focused, "小石へのフォーカスでツールチップ表示がUnity側から発火した");
 
-    // 注入カーソルを画面隅へ寄せ、ツールチップDOMが隅へ追従したことで前提の到達を確かめる
-    // Park the injected cursor in a screen corner and confirm the precondition landed via the tooltip DOM
+    // 注入カーソルを画面隅へ寄せ、ロック中なのでツールチップが中央に居続けることを確かめる
+    // Park the injected cursor in a corner and confirm the tooltip stays centred while locked
     var corner = new Vector2(Screen.width - 40f, 40f);
-    p.Note($"注入カーソルを画面隅{corner}へ寄せる（不具合の再現前提）");
+    var screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+    p.Note($"注入カーソルを画面隅{corner}へ寄せる");
     SemanticInput.MouseMoveTo(corner);
     await p.WaitSeconds(1.5f);
-    p.Assert(await IsTooltipNearAsync(corner, "隅へ退避したカーソル"), "退避先の隅にツールチップが追従した（前提がWeb側へ届いた）");
+    p.Assert(await IsTooltipNearAsync(screenCenter, "クロスヘア"), "ロック中は隅へ注入してもツールチップが中央近くに居続ける");
 
     // インベントリを開閉してGameplayへ戻す（ここでカーソルがロックされる）
     // Open and close the inventory to return to Gameplay, which is where the cursor gets locked
@@ -82,9 +77,8 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     p.WarpPlayer(standPosition);
     await p.Until(() => Tooltip().GetPresentation().Visible, 20f, "自由行動復帰後にツールチップが再表示される");
 
-    // ツールチップDOMの再配置はWS往復ぶん遅れて届くため、クロスヘアへ寄るまで数秒ポーリングする
-    // The tooltip DOM repositions a WS round trip later, so poll for a few seconds until it settles on the crosshair
-    var screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+    // ツールチップ要素の再配置は遅れて届くことがあるため、クロスヘアへ寄るまで数秒ポーリングする
+    // The tooltip element may reposition a little later, so poll for a few seconds until it settles on the crosshair
     var nearCrosshair = false;
     for (var attempt = 0; attempt < 10 && !nearCrosshair; attempt++)
     {
@@ -109,7 +103,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
         var tooltip = await PollUntilQueryAsync("cursor-tooltip", 20);
         if (!tooltip.IsFound)
         {
-            p.Note($"ツールチップDOMが見つからない（期待位置={expectedLabel}{expectedScreenPoint}）");
+            p.Note($"ツールチップ要素が見つからない（期待位置={expectedLabel}{expectedScreenPoint}）");
             return false;
         }
 

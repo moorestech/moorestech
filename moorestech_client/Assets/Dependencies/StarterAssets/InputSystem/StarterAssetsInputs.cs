@@ -67,8 +67,9 @@ namespace StarterAssets
 		public bool analogMovement;
 
 #if !UNITY_IOS || !UNITY_ANDROID
+		// カーソルのロックは InputManager.MouseCursorVisible だけが書く（フォーカス復帰の再適用は UIStateControl が担う）
+		// Only InputManager.MouseCursorVisible writes the cursor lock (UIStateControl reapplies it when focus returns)
 		[Header("Mouse Cursor Settings")]
-		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 #endif
 
@@ -148,20 +149,6 @@ namespace StarterAssets
             if (newSprintState && _otherButtonPressedInEvent) _sprintResolver.OnOtherButtonPressed();
             ApplySprint();
 		}
-
-#if !UNITY_IOS || !UNITY_ANDROID
-
-		private void OnApplicationFocus(bool hasFocus)
-		{
-			SetCursorState(cursorLocked);
-		}
-
-		private void SetCursorState(bool newState)
-		{
-			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
-		}
-
-#endif
 
 	}
 	

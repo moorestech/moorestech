@@ -9,23 +9,10 @@
 # 起動方法
 mooresech_clientをUnityで開きMainGameシーンを再生してください
 
-## 初回セットアップ（CEF / Git LFS）
+## 初回セットアップ（Git LFS）
 
-Git LFS をインストールした後、Unityで開く**前に**OS別のセットアップスクリプトを実行してください。
-
-```bash
-# macOS / Linux
-./scripts/setup-cef.sh
-```
-
-```powershell
-# Windows PowerShell
-.\scripts\setup-cef.ps1
-```
-
-スクリプトは Git LFS を設定し、CEF の UPM キャッシュを再生成可能な状態にします。
-Unity 起動時にも LFS ポインタの残存を検査し、問題があれば同じ復旧コマンドを Console に表示します。
-方式の詳細と clean worktree 手順は `docs/webui/design/cef-binary-integration.md` を参照してください。
+Git LFS をインストールし、clone の前に `git lfs install` を 1 回実行してください。
+非公開アセット（`moorestech_client/Assets/PersonalAssets/moorestech-client-private`）の録画用 ffmpeg が LFS で管理されており、ビルドの同梱で LFS ポインタのままだと止まります。
 
 # コーディングエージェントの使用について
 

@@ -1,0 +1,48 @@
+/* バグ報告の欄。寸法は web@6248097123/src/features/pauseMenu/style.module.css の .description / .status / .fieldLabel を写す */
+/* Web は欄の各行を子画面の Stack gap=md に直に並べるので、行の間はどれも 16px */
+/* Bug-report form; sizes copy .description / .status / .fieldLabel in web@6248097123/src/features/pauseMenu/style.module.css */
+/* The Web lays every row straight into the sub-page Stack gap=md, so each row is 16px apart */
+
+.bug-report {
+    --bug-report-muted-text: var(--text-muted);
+    flex-direction: column;
+}
+
+/* 入力欄の見出しと状態行は従属の文字色（Mantine の本文 16px・行高 1.55）。状態行は長い理由を折り返す */
+/* The field caption and status lines use secondary text (Mantine body 16px, line height 1.55); status lines wrap long reasons */
+.bug-report__field-label,
+.bug-report__status {
+    min-height: 25px;
+    margin: 0;
+    padding: 0;
+    color: var(--bug-report-muted-text);
+    white-space: normal;
+    -unity-text-align: middle-left;
+}
+
+.bug-report__field-label {
+    margin-bottom: var(--mantine-spacing-md);
+}
+
+.bug-report__status {
+    margin-top: var(--mantine-spacing-md);
+}
+
+/* 外側の箱の寸法をトークンで決める。中の TextField と入力要素を箱いっぱいに伸ばすのは GameTextField の USS */
+/* The outer box size comes from the tokens; GameTextField's USS stretches the inner TextField and input to fill it */
+.bug-report__description {
+    flex-shrink: 0;
+    width: var(--bug-report-textarea-width);
+    height: var(--bug-report-textarea-height);
+    margin-top: var(--mantine-spacing-md);
+}
+
+.bug-report__recovery {
+    flex-direction: column;
+}
+
+/* 送信・再送・書き出しは FormButton（Mantine Button filled）。行の間は Web の子画面 Stack gap=md の 16px */
+/* Send, resend and export are FormButton (Mantine Button filled); rows are 16px apart like the Web sub-page Stack gap=md */
+.bug-report .bug-report__button {
+    margin-top: var(--mantine-spacing-md);
+}

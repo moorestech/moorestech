@@ -1,19 +1,18 @@
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.GameUiExceptions;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.Submit;
-using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Playtest.Progress;
-using Client.WebUiHost.Health;
 using VContainer;
 using VContainer.Unity;
 
 namespace Client.Starter.Registration
 {
     /// <summary>
-    /// バグ報告の確保と進行記録の登録。集めない起動（リモート接続・WebUI無し）では記録を取る側を一切登録しない。
-    /// Registers bug-report capture and the progress record; boots that collect nothing (remote connection, no web UI) register none of the recording side.
+    /// バグ報告の確保と進行記録の登録。集めない起動（リモート接続）では記録を取る側を一切登録しない。
+    /// Registers bug-report capture and the progress record; boots that collect nothing (remote connection) register none of the recording side.
     /// </summary>
     internal static class PlaytestRecordRegistration
     {
@@ -25,6 +24,7 @@ namespace Client.Starter.Registration
 
             // ポーズメニューのtopicと報告actionは確保セッション・書き出し口・進行記録の窓口を必ず受け取るので、どちらの起動でも登録する
             // The pause-menu topic and the report action always take the capture session, writer and progress window, so both boots register them
+            builder.Register<IBugReportOutboxRoot, GameSystemBugReportOutboxRoot>(Lifetime.Singleton);
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
             builder.Register<BugReportSubmitter>(Lifetime.Singleton);
@@ -38,11 +38,11 @@ namespace Client.Starter.Registration
                 return;
             }
 
-            // バグ報告の常時記録（ログリング・録画リング）と確保の起点
-            // Always-on capture for bug reports (log ring, frame recording ring) and the capture triggers
+            // バグ報告の常時記録（ログリング・UI の例外の数え手・録画リング）と確保の起点
+            // Always-on capture for bug reports (log ring, UI exception tally, frame recording ring) and the capture triggers
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
+            builder.RegisterEntryPoint<GameUiExceptionTally>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
-            builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();

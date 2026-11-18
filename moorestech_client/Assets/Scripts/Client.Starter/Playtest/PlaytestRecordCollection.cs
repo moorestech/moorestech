@@ -8,8 +8,8 @@ namespace Client.Starter.Playtest
     /// </summary>
     public static class PlaytestRecordCollection
     {
-        // 集めないのはリモート接続だけ。同意はタイトルで済んでいるので WebUiHost の起動有無は条件にしない（ADR 0065）
-        // Only a remote connection collects nothing; the consent was settled at the title, so whether WebUiHost started is no longer a condition (ADR 0065)
+        // 集めないのはリモート接続だけ。同意はタイトルで済んでいるので UI の起動の状態は条件にしない（ADR 0065）
+        // Only a remote connection collects nothing; the consent was settled at the title, so the UI boot state is not a condition
         public static bool Decide(bool isRemoteConnection)
         {
             if (!isRemoteConnection) return true;

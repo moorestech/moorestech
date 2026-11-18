@@ -6,12 +6,15 @@
 # The scenario file is a C# snippet for execute-dynamic-code (must call PlaytestRunner.Run and return the run dir)
 #
 # usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]
+# 終了コード: 0 = シナリオ成功、1 = 失敗（preflight・boot・ready・結果）、2 = コード片がコンパイルできず1行も実行されなかった（シナリオ・boot のコード片・preflight のドライランのどれでも）
+# Exit codes: 0 = scenario passed, 1 = failure (preflight, boot, ready, result), 2 = a code snippet did not compile and ran zero lines (the scenario, the boot snippet, or the preflight dry run)
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_PATH="${1:?usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]}"
 SCENARIO_FILE="${2:?scenario .cs file required}"
 source "$SCRIPT_DIR/fixed-world-environment.sh"
+source "$SCRIPT_DIR/edc-client.sh"
 
 # 固定worldの入力契約をmaster解決やpreflightより前に確定する
 # Resolve the fixed-world input contract before master resolution or preflight
@@ -54,42 +57,22 @@ if [[ -z "$MASTER_DIR" ]]; then
 fi
 READY_TIMEOUT="${PLAYTEST_READY_TIMEOUT:-300}"
 RESULT_TIMEOUT=420
+# boot とシナリオ投入の再試行回数（秒数は EDC_NO_TIMEOUT_SECONDS で外から切らない）
+# Retry count for boot and scenario injection (no outside time limit, see EDC_NO_TIMEOUT_SECONDS)
+EDC_LONG_CALL_ATTEMPTS=8
 
-extract_json() { sed -n '/^{/,$p'; }
-json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
 csharp_quote() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
 
-# domain reloadが残したCLI Loop設定の退避を、boot後を含む全EDC試行前に復元する
-# Restore CLI Loop settings left backed up by domain reload before every EDC attempt, including post-boot calls
-restore_cli_loop_settings() {
-    local settings="$PROJECT_PATH/UserSettings/UnityMcpSettings.json"
-    local backup="${settings}.bak"
-    [[ -f "$settings" || ! -f "$backup" ]] || mv "$backup" "$settings"
-}
-
-edc() {
-    # ドメインリロード直後はEDCが失敗するため、成功するまで最大8回リトライする
-    # EDC fails right after a domain reload, so retry up to 8 times until it succeeds
-    local attempt response success
-    for attempt in $(seq 1 8); do
-        restore_cli_loop_settings
-        response=$(uloop execute-dynamic-code --project-path "$PROJECT_PATH" --code "$1" 2>/dev/null | extract_json)
-        success=$(echo "$response" | json_get Success)
-        if [[ "$success" == "True" ]]; then
-            echo "$response"
-            return 0
-        fi
-        sleep 5
-    done
-    echo "$response"
-    return 1
-}
-
 echo "== preflight =="
-"$SCRIPT_DIR/preflight.sh" "$PROJECT_PATH" "$MASTER_DIR" || exit 1
+"$SCRIPT_DIR/preflight.sh" "$PROJECT_PATH" "$MASTER_DIR"
+PREFLIGHT_STATUS=$?
+# preflight のコンパイル失敗（2）は区別したまま返し、他の失敗は 1 にする
+# Pass preflight's compile failure (2) through unchanged; any other failure becomes 1
+if [[ "$PREFLIGHT_STATUS" -eq 2 ]]; then exit 2; fi
+if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then exit 1; fi
 
 echo "== boot play mode =="
-IS_PLAYING=$(edc 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
+IS_PLAYING=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
 if [[ "$IS_PLAYING" == "True" ]]; then
     # PlayMode中は必ず停止してから正規bootする。汚染セッション（前回クラッシュのNREスパム等）に
     # シナリオを注入するとresult.json未生成の沈黙タイムアウトになる（2026-07-18実測: 420秒沈黙）。
@@ -111,7 +94,41 @@ else
     MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
     BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
 fi
-SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
+SESSION_DIR_BEFORE_BOOT_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;')
+SESSION_DIR_BEFORE_BOOT_STATUS=$?
+SESSION_DIR_BEFORE_BOOT=$(printf '%s' "$SESSION_DIR_BEFORE_BOOT_RESPONSE" | json_get Result)
+BOOT_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" "$BOOT_CODE")
+BOOT_STATUS=$?
+# 起動コード片がコンパイルできないときは理由を出して止める（PlayMode に入っていないので停止は不要）
+# When the boot snippet does not compile, print the reason and stop (not in PlayMode yet, so no stop needed)
+if [[ "$BOOT_STATUS" -eq 2 ]]; then
+    echo "NG: boot snippet compile failed — PlaytestBoot の API が変わった可能性"
+    printf '%s' "$BOOT_RESPONSE" | print_compile_errors
+    exit 2
+fi
+SESSION_DIR=$(echo "$BOOT_RESPONSE" | json_get Result)
+# 1 回目の応答が PlayMode 突入で空になり再送が "already playing" を返したときは、直前に停止を発行しているので 1 回目の起動の置き場を SessionState から取る
+# 起動前の置き場の取得に失敗していたら比べられないので回収せず NG のまま止める。起動前と同じ置き場でも 1 回目は起動していないので NG
+# If the first reply was lost to the PlayMode entry and the resend says "already playing", take the first boot's dir from SessionState (we issued a stop just before)
+# If the pre-boot dir lookup failed we cannot compare, so do not recover and stay NG; the same dir as before the boot also means no boot happened, so NG
+# PlaytestBoot.AlreadyPlayingReply と同じ文字列 / same string as PlaytestBoot.AlreadyPlayingReply
+if [[ "$SESSION_DIR" == "ERROR: already playing" ]]; then
+    if [[ "$SESSION_DIR_BEFORE_BOOT_STATUS" -ne 0 ]]; then
+        # 起動前の置き場が無く比べられないので回収せず理由を出す
+        # No pre-boot dir to compare against, so skip recovery and say why
+        echo "WARN: pre-boot session dir lookup failed (status=$SESSION_DIR_BEFORE_BOOT_STATUS); not recovering the lost boot reply"
+    else
+        RECOVERED_DIR=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return Client.Playtest.Core.PlaytestPaths.SessionDirectory;' | json_get Result)
+        if [[ -n "$RECOVERED_DIR" && "$RECOVERED_DIR" != "$SESSION_DIR_BEFORE_BOOT" ]]; then
+            echo "WARN: boot reply was lost on PlayMode entry; using the session dir of that boot: $RECOVERED_DIR"
+            SESSION_DIR="$RECOVERED_DIR"
+        else
+            # 取り直しが空か起動前と同じなら 1 回目は起動していないので回収せず理由を出す
+            # Empty or unchanged dir means the first boot never happened, so skip recovery and say why
+            echo "WARN: recovered session dir is empty or unchanged ($RECOVERED_DIR); not recovering"
+        fi
+    fi
+fi
 # Windows(git bash)ではUnityが "C:\..." 形式の絶対パスを返すので、ドライブ文字始まりも絶対パスとして扱う
 # On Windows (git bash) Unity returns "C:\..."-style absolute paths, so a drive-letter prefix also counts as absolute
 is_absolute_path() { case "$1" in /*|[A-Za-z]:*) return 0;; *) return 1;; esac; }
@@ -135,7 +152,16 @@ done
 echo "ready after ~${WAITED}s"
 
 echo "== inject scenario: $SCENARIO_FILE =="
-SCENARIO_RESPONSE=$(edc "$(cat "$SCENARIO_FILE")")
+SCENARIO_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" "$(cat "$SCENARIO_FILE")")
+SCENARIO_STATUS=$?
+# コンパイルできないシナリオは1行も実行されていない。検証0件を緑に見せないよう専用の終了コードで止める
+# A scenario that does not compile ran zero lines; stop with a dedicated exit code so zero checks never look green
+if [[ "$SCENARIO_STATUS" -eq 2 ]]; then
+    echo "NG: scenario compile failed — シナリオは1行も実行されていません: $SCENARIO_FILE"
+    printf '%s' "$SCENARIO_RESPONSE" | print_compile_errors
+    uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped" || echo "WARN: play mode stop failed（手動停止: uloop control-play-mode --project-path $PROJECT_PATH --action stop）"
+    exit 2
+fi
 RUN_DIR=$(echo "$SCENARIO_RESPONSE" | json_get Result)
 if ! is_absolute_path "$RUN_DIR"; then
     echo "NG: scenario injection failed:"

@@ -1,0 +1,115 @@
+/* web: src/features/recipe/panels/RecipeViewer.tsx（style）・RecipeViewer.module.css・views/RecipeContent.tsx・views/ItemHeader.module.css・views/RecipeBox.module.css（.machineInfo*） */
+/* web: src/features/recipe/panels/RecipeViewer.tsx (style), RecipeViewer.module.css, views/RecipeContent.tsx, views/ItemHeader.module.css, views/RecipeBox.module.css (.machineInfo*) */
+.recipe-viewer {
+    align-self: flex-start;
+    align-items: center;
+    margin-top: 2px;
+    translate: 0.391px -0.391px;
+}
+
+/* 選択時は左右パネルと等高、未選択時は低め（Web の panelHeight。確定値で、件数で伸びない） */
+/* Match the side panels when selected and stay short otherwise (Web panelHeight; a settled value that never grows with the count) */
+.recipe-viewer #recipe-viewer {
+    width: 337.2px;
+    min-width: 0;
+    height: 300px;
+}
+
+.recipe-viewer--selected #recipe-viewer {
+    height: 432.983px;
+}
+
+.recipe-viewer .recipe-viewer__hint {
+    margin: auto;
+    -unity-text-align: middle-center;
+}
+
+.recipe-viewer .recipe-viewer__content {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.recipe-viewer .recipe-viewer__no-recipes {
+    margin-top: var(--mantine-spacing-sm); /* web: RecipeContent の <Stack gap="sm"> */
+}
+
+/* 見出し（Web .itemHeader・.itemName）。字間 0.01em は UITK の「字の大きさ/100 × 値」で 1px（A-70） */
+/* Header (Web .itemHeader, .itemName); letter-spacing 0.01em is 1px in UITK's "font size / 100 x value" unit (A-70) */
+.recipe-viewer .item-header {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.recipe-viewer .item-header__name {
+    align-self: center;
+    min-width: 58.715px;
+    height: 19.963px;
+    margin: 4.8px 0 0 0;
+    padding: 0;
+    font-size: 19.75px;
+    letter-spacing: 1px;
+    text-shadow: none; /* look-exception: LX-135 */ /* web は ±0.3px 0 0 rgb(0 0 0 / 55%) の 2 本。UITK の 0.3px の影は字の濃さを変えず、字の外に明るい点を出すので描かない */
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.recipe-viewer .item-header__rule {
+    align-self: center;
+    width: 276.743px;
+    height: 9px;
+    margin-top: 2.72px;
+    --item-header-rule-color: var(--item-header-rule-face);
+}
+
+.recipe-viewer .item-header__diamond {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    translate: -50% -50%;
+    rotate: 45deg;
+    border-width: 1px;
+    border-color: var(--item-header-diamond-border);
+}
+
+/* 列（Web .recipeListScroll）。calc の余白は RecipeEntryList が 2 つのつまみから当てる */
+/* List (Web .recipeListScroll); RecipeEntryList derives the calc spacing from the two knobs */
+.recipe-viewer .recipe-entry-list {
+    flex-grow: 1;
+    min-height: 0;
+    --recipe-entry-list-clip-inset: var(--tutorial-anchor-clip-inset);
+    --recipe-entry-list-stack-gap: var(--mantine-spacing-sm);
+}
+
+/* 縦バーは広げたクリップ領域のぶん内へ詰める（つまみは S4-recipe Task 9 の GameScrollView） */
+/* Inset the vertical bar by the widened clip region (knobs from GameScrollView, S4-recipe Task 9) */
+.recipe-viewer .recipe-list-scroll-view {
+    --game-scroll-view-scrollbar-inset-top: var(--tutorial-anchor-clip-inset);
+    --game-scroll-view-scrollbar-inset-bottom: var(--tutorial-anchor-clip-inset);
+    --game-scroll-view-scrollbar-inset-right: var(--tutorial-anchor-clip-inset);
+}
+
+/* 機械の情報欄（Web .machineInfo・.machineInfoIcon・.machineInfoText）。Text は margin 0・line-height 1 */
+/* Machine info column (Web .machineInfo, .machineInfoIcon, .machineInfoText); Text has margin 0 and line-height 1 */
+.recipe-viewer .machine-recipe-entry__info {
+    align-items: center;
+}
+
+.recipe-viewer .machine-recipe-entry__block-icon {
+    width: var(--recipe-info-icon-size);
+    height: var(--recipe-info-icon-size);
+}
+
+.recipe-viewer .machine-recipe-entry__block-name {
+    margin: 0;
+    padding: 0;
+    height: var(--recipe-info-text-size); /* web: line-height: 1（USS に行の高さが無いので箱の高さ＝字の大きさ） */
+    color: var(--text-muted);
+    font-size: var(--recipe-info-text-size);
+    max-width: var(--recipe-action-width);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -unity-text-align: middle-center;
+}

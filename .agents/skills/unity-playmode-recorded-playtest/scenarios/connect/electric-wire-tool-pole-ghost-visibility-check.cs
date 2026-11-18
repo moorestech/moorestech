@@ -1,8 +1,10 @@
 using Game.Context;
 // 電線ツールの電柱ゴースト可視性の回帰チェック: 選択中の電柱種のゴーストが描画されることを通常設置と比較して確認する
-// 名前ラベルだけ出てプレビューGameObjectがSetActive(true)されない不具合の再発を防ぐ
+// ゴースト評価は通るのにプレビューGameObjectがSetActive(true)されない不具合の再発を防ぐ
+// 電柱名のゴーストラベルは削除され（437dee26f3）後継のカーソルツールチップにも電柱名の行が無いため、評価の成否は選択中の電柱名で見る
 // Regression check that the wire tool draws the selected pole-type ghost, compared against normal placement.
-// Guards against the defect where only the name label appeared because the preview GameObject was never activated.
+// Guards against the defect where the ghost evaluated but the preview GameObject was never activated.
+// The pole-name ghost label was removed (437dee26f3) and the cursor tooltip has no pole-name line, so evaluation is read via the selected pole name.
 using System;
 using System.Linq;
 using System.Reflection;
@@ -13,11 +15,11 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.UnlockState;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -25,6 +27,13 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("electric-wire-tool-pole-ghost-visibility-check", options, async p =>
 {
+    // 背景EditorではInputSystemがデバイスを無効化し注入が届かないため、焦点無視へ切り替え再有効化する
+    // A background Editor disables keyboard/mouse so injection never lands; switch to ignore-focus and re-enable
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
     await p.SetupFlatGround();
     p.WarpPlayer(new Vector3(8f, 34f, -6f));
     await p.WaitSeconds(0.5f);
@@ -48,9 +57,9 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-visibility-check", opti
     var placeController = resolver.Resolve<PlaceSystemStateController>();
     var contextField = typeof(ElectricWireConnectSystem).GetField("_context", BindingFlags.NonPublic | BindingFlags.Instance);
     var toolContext = (ElectricWireToolContext)contextField.GetValue(wireSystem);
-    TextMeshPro PoleNameLabel() => UnityEngine.Object
-        .FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-        .FirstOrDefault(t => t.gameObject.name == "ElectricWirePoleNameLabel");
+    // 選択中の電柱名はプロダクションと同じ公開APIから引く
+    // Read the selected pole name through the same public API production uses
+    string SelectedPoleName() => toolContext.PoleSelection.TryGetSelectedPole(out _, out var selectedMaster) ? selectedMaster.Name : null;
 
     // ===== 電線ツール側 =====
     // ===== Wire tool side =====
@@ -71,11 +80,10 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-visibility-check", opti
     await p.AimAt(aimPoint);
     await UniTask.DelayFrame(10);
 
-    // ゴースト評価は成功している（名前ラベルが選択中の電柱名で表示される）
-    // The ghost evaluation succeeds: the name label shows the selected pole name
-    var label = PoleNameLabel();
-    p.Assert(label != null && label.gameObject.activeInHierarchy, "電線ツール: 電柱名ラベルは表示される（ゴースト評価自体は成功している）");
-    p.Note($"電線ツールの名前ラベル='{label?.text}'");
+    // ゴースト評価の前提: 解放済みの電柱が選ばれている
+    // Premise of the ghost evaluation: an unlocked pole is selected
+    var poleName = SelectedPoleName();
+    p.Assert(poleName == "電柱", $"電線ツール: 解放済みの電柱が選択されている 実際:'{poleName}'");
 
     // プレビューGameObjectも有効化され、電柱ゴーストが実際に描画される
     // The preview GameObject is activated as well, so the pole ghost is actually drawn

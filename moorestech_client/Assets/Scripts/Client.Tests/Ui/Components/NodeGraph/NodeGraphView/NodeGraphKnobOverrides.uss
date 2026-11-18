@@ -1,0 +1,7 @@
+/* NodeGraph の部品 L1 だけが当てる祖先のつまみの上書き。画面が自分のルートでつまみを上書きする形を写す（設計書 §3.2-3） */
+/* 値は既定と見分けが付くように選んだもので、Web の画面の値ではない */
+/* Ancestor knob overrides applied only by NodeGraph component L1 tests; mirrors a screen overriding knobs at its root (design §3.2-3) */
+/* Values are chosen to differ from the defaults; they are not Web screen values */
+.node-graph-knob-probe {
+    --tutorial-anchor-clip-inset: 20px;
+}

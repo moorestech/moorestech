@@ -1,0 +1,12 @@
+using System.IO;
+using UnityEngine;
+
+// 武装を解き、シナリオが言語を戻せずに落ちていたら選ぶ前の言語へ戻す。戻せたときだけ控えを消し、結果を語で返す
+// Disarm; if the scenario died before restoring the language, restore the pre-choice one; delete the note only on success and return the result as words
+var disarmed = Client.Playtest.Boot.PlaytestEventLanguageGateBoot.Disarm();
+var note = Path.Combine(Application.dataPath, "..", "PlaytestResults", "scratch", "event-language-gate", "language-before.txt");
+if (!File.Exists(note)) return $"{disarmed} / language-untouched";
+var code = File.ReadAllText(note).Trim();
+if (!Client.Localization.Localize.TrySetChosenLanguage(code)) return $"{disarmed} / language-restore-failed ({code}; note kept: {note})";
+File.Delete(note);
+return $"{disarmed} / language-restored ({code})";

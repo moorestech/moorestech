@@ -75,14 +75,59 @@ namespace Client.Tests.Starter
             Assert.AreEqual(ShutdownFlushResult.Flushed, shutdown.GetAwaiter().GetResult());
         }
 
+        [Test]
+        public void FireGameShutdownAsync_FailedParticipantMakesAggregateFlushFailed()
+        {
+            GameShutdownEvent.ResetForNewSession();
+            var failed = new ControllableShutdownParticipant();
+            var flushed = new ControllableShutdownParticipant();
+            GameShutdownEvent.RegisterParticipant(failed);
+            GameShutdownEvent.RegisterParticipant(flushed);
+
+            var shutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+            failed.Complete(ShutdownFlushResult.FlushFailed);
+            flushed.Complete(ShutdownFlushResult.Flushed);
+
+            Assert.AreEqual(ShutdownFlushResult.FlushFailed, shutdown.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void ResetForNewSession_DropsPendingParticipantSoFireDoesNotWait()
+        {
+            GameShutdownEvent.ResetForNewSession();
+            GameShutdownEvent.RegisterParticipant(new ControllableShutdownParticipant());
+            GameShutdownEvent.ResetForNewSession();
+
+            var shutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+
+            Assert.AreEqual(ShutdownFlushResult.Flushed, shutdown.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void RegisterParticipant_SameParticipantTwiceIsFlushedOnce()
+        {
+            GameShutdownEvent.ResetForNewSession();
+            var participant = new ControllableShutdownParticipant();
+            GameShutdownEvent.RegisterParticipant(participant);
+            GameShutdownEvent.RegisterParticipant(participant);
+
+            var shutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+            participant.Complete(ShutdownFlushResult.Flushed);
+
+            Assert.AreEqual(ShutdownFlushResult.Flushed, shutdown.GetAwaiter().GetResult());
+            Assert.AreEqual(1, participant.FlushCallCount);
+        }
+
         // 完了タイミングをテストが握る参加者。PlayerLoop無しのEditModeでも決定的に進められる
         // A participant whose completion the test drives, so EditMode without a PlayerLoop stays deterministic
         private class ControllableShutdownParticipant : IGameShutdownParticipant
         {
             private readonly UniTaskCompletionSource<ShutdownFlushResult> _flushCompletionSource = new();
+            public int FlushCallCount { get; private set; }
 
             public UniTask<ShutdownFlushResult> FlushOnShutdownAsync()
             {
+                FlushCallCount++;
                 return _flushCompletionSource.Task;
             }
 

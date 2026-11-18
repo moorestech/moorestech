@@ -52,10 +52,10 @@ return PlaytestRunner.Run("ui-place-then-open-machine", options, async p =>
     await p.WaitUiState(UIStateEnum.SubInventory, 10f);
     p.Assert(p.CurrentUiState == UIStateEnum.SubInventory, "F単押しで機械UI（SubInventory）へ遷移した");
 
-    // Unity側の状態だけでなく、Web側のblock inventoryパネルが実際に描画されていることまで確かめる
-    // Verify not only the Unity-side state but that the web block inventory panel is actually rendered
+    // Unity側の状態だけでなく、UITK の block inventory パネルが実際に描画されていることまで確かめる
+    // Verify not only the Unity-side state but that the UITK block inventory panel is actually rendered
     var blockInventoryDom = await PlaytestUiElementOps.FindUi("block-inventory");
-    p.Note($"[Web UI DOM] block-inventory found={blockInventoryDom.IsFound}");
-    p.Assert(blockInventoryDom.IsFound, "Web側のblock inventoryパネルが描画されている");
+    p.Note($"[UITK 要素] block-inventory found={blockInventoryDom.IsFound}");
+    p.Assert(blockInventoryDom.IsFound, "UITK の block inventory パネルが描画されている");
     await p.Screenshot("02-machine-ui-opened");
 });

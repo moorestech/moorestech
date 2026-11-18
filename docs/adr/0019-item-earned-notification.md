@@ -46,3 +46,7 @@
 - 加算のたびに行が再マウントされるため、入場のスライドインが再生される。数値だけを差し替える案は、除去が退場アニメ駆動である以上「生存尺のリセット」と両立しない。
 - 配色は既存の既定色（`--text-high-contrast`）のまま。獲得専用の色トークンは足さない。
 - `ItemEarned` はクールダウン免除なので、将来この経路に高頻度の発火点（自動採掘等）を足すとワイヤの通知量が発火回数に比例する。ブロックによる自動採掘は別経路（`VanillaGearMapObjectMinerProcessorComponent`）で今回の対象外。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。集約は UITK の通知の Model（`NotificationModel`）が行い、合流は行の `LifetimeEpoch` を進めて生存尺を回し直す。購読はイベント列（`NotificationFeed`）で、名前は `GameContentPresentation` が Guid から解く。サーバーが ItemId だけを送る点は変わらない。

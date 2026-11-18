@@ -1,0 +1,54 @@
+/* S/Client.Ui/Screens/Skit/Parts/Toolbar/SkitToolbar.uss */
+/* web: web@6248097123/src/features/skit/controls/SkitToolbar.module.css の .toolbar・.toolButton と skitTokens.css の --skit-tool-icon-shadow */
+/* 実画面の右上に並ぶ面を持たないツール。IconButton の寸法をボタン枠と同寸へ局所上書きし、図形の色は状態ごとに IconButton のルートの色のつまみで渡す */
+/* web: web@6248097123/src/features/skit/controls/SkitToolbar.module.css .toolbar and .toolButton, plus --skit-tool-icon-shadow in skitTokens.css */
+/* Faceless tools in the screen's top-right; IconButton's size is locally overridden to the frame size and the glyph color is passed per state through IconButton's root colour knob */
+
+.skit-toolbar {
+    position: absolute;
+    top: var(--skit-toolbar-inset-top);
+    right: var(--skit-toolbar-inset-right);
+    flex-direction: row;
+}
+
+/* 既定は Tokens.uss の :root にあるので、要素自身に宣言すれば継承より勝つ（--icon-button-icon-size が効くのは既定の × だけで、図形の寸法は下の .skit-tool-glyph が持つ。Web と同じ上書きを写す） */
+/* The defaults live on :root in Tokens.uss, so declaring on the element beats inheritance (--icon-button-icon-size only sizes the default cross; the glyph size is set on .skit-tool-glyph below; mirrors the Web override) */
+/* --skit-tool-icon-opacity は Web で 1 なので filter を掛けない。1 未満になったら IconButton の中身を PixelFilterGroup に入れて群へ filter を掛ける（A-226） */
+/* --skit-tool-icon-opacity is 1 on the Web, so no filter is applied; if it drops below 1, wrap the IconButton content in a PixelFilterGroup and filter the group (A-226) */
+.skit-toolbar .skit-toolbar__tool {
+    --icon-button-size: var(--skit-tool-button-size);
+    --icon-button-icon-size: var(--skit-tool-button-size);
+    margin-left: var(--skit-tool-gap);
+}
+
+.skit-toolbar .skit-toolbar__tool--lead {
+    margin-left: 0;
+}
+
+.skit-toolbar .skit-tool-glyph {
+    --skit-tool-glyph-stroke: var(--skit-tool-icon-stroke-width);
+    --skit-tool-glyph-shadow-color: var(--skit-window-face);
+    --skit-tool-glyph-shadow-offset: 1px; /* look-exception: LX-52 */
+    width: var(--skit-tool-button-size);
+    height: var(--skit-tool-button-size);
+}
+
+/* 通常の色は IconButton のルートのつまみで渡す（Web SkitToolbar.module.css の .toolButton の color）。IconButton の既定（2 クラス）とは同じ詳細度で、tss で後に読む画面の USS が勝つ */
+/* 有効時のホバーは IconButton の :hover:enabled（2 クラス＋2 擬似）が --text-high-contrast にし、自動 ON の上でも白になる（Web の :not(:disabled):hover が [data-enabled] より強いのと同じ） */
+/* The normal colour goes through IconButton's root knob (Web SkitToolbar.module.css .toolButton color); it ties IconButton's two-class default, and this screen USS wins by loading later in the tss */
+/* Enabled hover is IconButton's :hover:enabled (two classes plus two pseudo-classes) setting --text-high-contrast, which also wins over auto-on, as the Web :not(:disabled):hover beats [data-enabled] */
+.skit-toolbar .skit-toolbar__tool {
+    --icon-button-color: var(--text-high-contrast);
+}
+
+/* 自動送り ON だけシアンで灯す（同じ 2 クラスで後に置く） */
+/* Only auto-advance ON lights cyan (same two classes, placed later) */
+.skit-toolbar .skit-toolbar__tool--active {
+    --icon-button-color: var(--select-cyan);
+}
+
+/* 押せないツールは従属テキストへ減衰させる。2 クラス＋擬似で自動 ON にも勝つ（Web の :disabled が後に来て勝つのと同じ） */
+/* Unpressable tools fade to secondary text; two classes plus a pseudo-class beat auto-on too (as the later Web :disabled wins) */
+.skit-toolbar .skit-toolbar__tool:disabled {
+    --icon-button-color: var(--text-muted);
+}

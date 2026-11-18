@@ -1,6 +1,8 @@
+using System;
 using Game.Fluid.Sync.Diff;
 using Game.Fluid.Sync.Replica;
 using Game.Fluid.Sync.State;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.FluidNetwork
@@ -13,14 +15,20 @@ namespace Client.Game.InGame.FluidNetwork
         // Absent until the join-time full state arrives; the ordered buffer flushes nothing before it, so no diff can come first
         public FluidNetworkReplica Replica { get; private set; }
 
-        // 組み直しとtickのたびに進む版。表示側は購読でなく、描画更新の順番の中でこの版を見て作り直す
-        // Advances on every re-assembly and tick; the view compares this inside its explicit update order instead of subscribing
+        // 組み直しとtickで進む版
+        // Advances on re-assembly and tick; the UI subscribes to OnReplicaVersionChanged
         public int ReplicaVersion { get; private set; }
+
+        // 複製と版を進め終えた後に版を流す。購読者の例外は呼び手へ同期で戻る（前例 TrainUnitClientCache.OnUnitApplied と同じ）
+        // Emits the version after the replica and version have advanced; a subscriber's exception returns synchronously to the caller (same as the precedent TrainUnitClientCache.OnUnitApplied)
+        public IObservable<int> OnReplicaVersionChanged => _replicaVersionChanged;
+        private readonly Subject<int> _replicaVersionChanged = new();
 
         public void ApplyFullState(FluidNetworkFullState fullState)
         {
             Replica = FluidNetworkReplicaAssembler.Assemble(fullState);
             ReplicaVersion++;
+            _replicaVersionChanged.OnNext(ReplicaVersion);
         }
 
         // サーバーと同じtickを再生する。falseは複製がサーバーと食い違った印
@@ -29,6 +37,9 @@ namespace Client.Game.InGame.FluidNetwork
         {
             var consistent = Replica.Tick(diff);
             ReplicaVersion++;
+            // 食い違い（false）でも複製は進んでいるので流す。食い違いの扱いは呼び手のまま
+            // Emit even when diverged (false) since the replica did advance; the caller still owns the divergence handling
+            _replicaVersionChanged.OnNext(ReplicaVersion);
             return consistent;
         }
 

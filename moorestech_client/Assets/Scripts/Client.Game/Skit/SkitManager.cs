@@ -94,8 +94,8 @@ namespace Client.Game.Skit
                 var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
                 var commands = CommandForgeLoader.LoadCommands(commandsToken);
 
-                // 会話表示はWeb UIが唯一の担い手のため常にブロッキング表示を開始する（ADR 0052）
-                // Web UI is the sole dialogue presenter, so blocking presentation always begins (ADR 0052)
+                // 会話表示はUIが唯一の担い手のため常にブロッキング表示を開始する（ADR 0052）
+                // The UI is the sole dialogue presenter, so blocking presentation always begins (ADR 0052)
                 SkitPresentationStateStore.Instance.BeginBlocking(_skitActionController);
                 presentationStarted = true;
 

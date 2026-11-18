@@ -1,0 +1,41 @@
+/* 画面（ポーズ・HUD・持ち物・列車・研究・レシピビューア・ホットバー）が使う手書きの派生トークン。Web が color-mix・半透明・直書きで出す色と寸法を前計算し、各行に web の元の式と決め方を残す（設計書 §3.1） */
+/* Hand-written derived tokens used by screens (pause, HUD, inventory, train, research, recipe viewer, hotbar); precomputes colors and sizes the Web derives with color-mix, translucency or literals, each row keeping the web source and how it was settled (design §3.1) */
+:root {
+    /* ポーズの枠の面と線。Web の pauseMenu/style.module.css の .panel が直書きする色 */
+    --pause-menu-face: rgba(16, 20, 28, 0.92); /* web: rgb(16 20 28 / 92%) */
+    --pause-menu-border: rgb(73, 76, 82); /* web: rgb(255 255 255 / 24%) over (16,20,28) */
+
+    /* S2-hud: 画面の幕と列車乗車 HUD の面。Web が直書きする半透明（設計書 A-55） */
+    /* S2-hud: the screen backdrop and the train riding HUD face, translucent colors the Web writes inline (design A-55) */
+    --screen-backdrop-face: rgba(0, 0, 0, 0.42); /* web: App.module.css .backdrop の rgb(0 0 0 / 42%) */
+    --train-riding-hud-face: rgba(31, 31, 31, 0.82); /* web: trainHud/style.module.css の color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent) */
+
+    /* ── S4-inventory: 持ち物のグリッドの枠の内側の色（Web GRID_STYLE の --face-inset-color。画面 USS に色を直書きしないためトークンにする） */
+    /* ── S4-inventory: inner face colour of inventory grid slots (Web GRID_STYLE --face-inset-color; a token so the screen USS holds no colour literal) */
+    --inventory-slot-face-inset-color: rgb(50, 52, 67); /* web: InventoryPanel GRID_STYLE "--face-inset-color": "rgb(50 52 67)" */
+
+    /* ── S4-train: 駅名の入力欄の幅。Web は幅を指定せず、<input type="text"> の UA 既定（size=20）が MooresUI JP 16px で 200.19px（border-box・mock-host の 1280×720 で getBoundingClientRect 実測） */
+    /* ── S4-train: station name field width; the Web sets none, so the UA default for <input type="text"> (size=20) measures 200.19px in MooresUI JP 16px (border-box, getBoundingClientRect on mock-host 1280x720) */
+    --train-station-name-input-width: 200px; /* web: TrainStationNameSection の input（textAreaField .field は寸法を持たない）。UA の size=20 の幅の実測 */
+
+    /* S4-research: 研究ノードのロックの減光。Web .node[data-locked] の opacity をそのまま使う（半透明は Web の値で書く。設計書 A-52） */
+    /* S4-research: dimming of locked research nodes; uses the Web .node[data-locked] opacity as is (translucency is written with Web values; design A-52) */
+    --research-node-locked-opacity: 0.45; /* web: .node[data-locked] { opacity: 0.45 } */
+
+    /* S4-recipe: レシピビューアの見出しと一覧のつまみ。Web が直書きする色をそのまま使う（半透明は Web の値で書く。設計書 A-52） */
+    /* S4-recipe: recipe viewer header and item list thumb; uses the colors the Web writes inline as is (translucency is written with Web values; design A-52) */
+    --item-header-rule-face: rgba(132, 137, 151, 0.78); /* web: ItemHeader.module.css .itemHeaderRule の rgb(132 137 151 / 78%) */
+    --item-header-diamond-border: #b8c0cc; /* web: ItemHeader.module.css .itemHeaderRule::after の border 1px solid #b8c0cc */
+    --item-list-scroll-thumb-face: rgba(255, 255, 255, 0.88); /* web: ItemListPanel.module.css のつまみ rgb(255 255 255 / 88%) */
+    --item-list-scroll-track-face: rgba(0, 0, 0, 0); /* web: ItemListPanel.module.css の scrollbar background: transparent */
+
+    /* S3-hotbar-modal: 世界の上に直に置くホットバーの色と減光。Web の HotbarPanel/style.module.css の直書きをそのまま使う（半透明は Web の値で書く。設計書 A-52） */
+    /* S3-hotbar-modal: colors and dimming for the hotbar placed directly over the world; uses the literals in the Web HotbarPanel/style.module.css as is (translucency is written with Web values; design A-52) */
+    --hotbar-bevel-c1: rgb(125, 127, 133); /* web: .cell の bevel-c1 = rgb(125 127 133) */
+    --hotbar-bevel-c2: rgb(116, 118, 125); /* web: .cell の bevel-c2・bevel-c3 = rgb(116 118 125) */
+    --hotbar-number-tab-face: rgba(50, 52, 67, 0.68); /* web: .num の background rgb(50 52 67 / 68%) */
+    --hotbar-number-tab-border: rgba(156, 158, 166, 0.55); /* web: .num の border rgb(156 158 166 / 55%) */
+    --hotbar-number-tab-text: rgb(226, 229, 238); /* web: .num の color #e2e5ee */
+    --hotbar-select-disabled-opacity: 0.55; /* web: .hotbarFrame[data-select-disabled] の opacity 0.55 */ /* look-exception: LX-76 */
+    --hotbar-unresolved-opacity: 0.4; /* web: .cell[data-unresolved] の opacity 0.4 */ /* look-exception: LX-76 */
+}

@@ -1,0 +1,40 @@
+/* 見本の並びと、画面が書く局所上書き（機械のレシピ選択・研究）の写し。値は Task 3・4 の L1 の上書きの組と同じ */
+/* Sample layout and copies of the screens' local overrides (machine recipe selection and research); values match the Task 3 and 4 L1 override sets */
+.recipe-gallery {
+    padding: 16px;
+}
+
+.recipe-gallery__row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.recipe-gallery__row > * {
+    margin-right: 12px;
+}
+
+/* Web machineRecipeSelectionList.module.css:24-27 の .list */
+/* Web .list in machineRecipeSelectionList.module.css:24-27 */
+.recipe-gallery__machine-selection {
+    --recipe-row-padding-block: 5.6px;
+    --recipe-slot-size-max: 32px;
+    --recipe-list-gap: var(--machine-recipe-row-gap);
+}
+
+/* Web machineRecipeSelectionList.module.css の .name（項目の上辺のレシピ名。行高 1 なので高さは字の大きさ、下の 0.25rem は margin で写す） */
+/* Web .name in machineRecipeSelectionList.module.css (recipe name on the entry's top edge; line-height 1 makes the height the font size, the 0.25rem below becomes a margin) */
+.recipe-gallery__entry-name {
+    height: var(--recipe-info-text-size);
+    margin: 0 0 4px 0;
+    padding: 0 var(--recipe-row-padding-inline);
+    font-size: var(--recipe-info-text-size);
+    color: var(--text-muted);
+    -unity-text-align: middle-left;
+}
+
+/* 研究の詳細ペインの寸法の写し（Web .researchButton は幅の指定なしで本文の幅 253 いっぱい。高さは S4-research が実測で決め直す。D-15） */
+/* Copy of the research detail pane size (Web .researchButton has no width and fills the 253 body; S4-research re-measures the height; D-15) */
+.recipe-gallery__research {
+    --research-action-width: 253px;
+}

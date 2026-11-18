@@ -1,0 +1,163 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
+using System.Linq;
+using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using Client.Localization;
+using Client.PlaytestReceiver.Delivery;
+using Client.PlaytestReceiver.Recovery;
+using Client.Tests.Ui.Components;
+using Client.Tests.Ui.Screens.Settings;
+using Client.Tests.Ui.TestDoubles;
+using Client.Tests.Ui.TestHost;
+using Client.Ui.Foundation.Input.OsCursor;
+using Client.Ui.Screens.BugReport;
+using Client.Ui.Screens.PauseMenu;
+using Client.Ui.State.PauseMenu;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Screens.PauseMenu
+{
+    /// <summary>
+    /// ポーズ画面のトップ・子画面・切断表示・ロケール印・書きかけの保持を確かめる（L1。Web の pauseMenu.spec.ts・PauseMenuPanel.test.ts）
+    /// Verifies the pause-menu top, sub-pages, disconnected line, locale marker and draft retention (L1; Web pauseMenu.spec.ts and PauseMenuPanel.test.ts)
+    /// </summary>
+    public class PauseMenuViewTest : ScreenTestHost
+    {
+        private RecordingPauseMenuCommands _commands;
+        private BugReportDraft _draft;
+        private PauseMenuView _view;
+
+        [SetUp]
+        public void MountPauseMenu()
+        {
+            _commands = new RecordingPauseMenuCommands();
+            _draft = new BugReportDraft();
+            _view = Mount(new PauseMenuView(_commands, new RecordingSettingsCommands(), Toasts, _draft, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))));
+            _view.SetShown(true);
+            _view.Redraw(FakePauseMenuModel.Page(PauseMenuPage.Top), FakeSettingsModel.Default());
+            simulate.FrameUpdate();
+        }
+
+        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">トップは4ボタンだけを出し、言語選択と報告欄を出さない</web-test>
+        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">設定ボタンはsettingsへのshow_pageを送る</web-test>
+        [Test]
+        public void トップは4ボタンだけを出し言語選択と報告欄を出さず各ボタンがコマンドを1回出す()
+        {
+            Assert.AreEqual(1, _view.Query("pause-menu").ToList().Count);
+            Assert.AreEqual(4, _view.Query<Button>().ToList().Count);
+            Assert.IsNull(_view.Q("language-select"));
+            Assert.IsNull(_view.Q("bug-report-description"));
+
+            simulate.Click(Find<Button>(_view, "pause-menu-save"));
+            simulate.Click(Find<Button>(_view, "pause-menu-save-and-quit"));
+            simulate.Click(Find<Button>(_view, "pause-menu-open-settings"));
+            simulate.Click(Find<Button>(_view, "pause-menu-open-bug-report"));
+            CollectionAssert.AreEqual(
+                new[] { PauseMenuCommandKind.Save, PauseMenuCommandKind.SaveAndQuit, PauseMenuCommandKind.ShowPage, PauseMenuCommandKind.ShowPage },
+                _commands.Issued.Select(record => record.Kind));
+            Assert.AreEqual(PauseMenuPage.Settings, _commands.Issued[2].Page);
+            Assert.AreEqual(PauseMenuPage.BugReport, _commands.Issued[3].Page);
+        }
+
+        [Test]
+        public void ボタンの間隔はWebのStack_gap_mdの16pxで部品のmargin0に負けない()
+        {
+            var buttons = _view.Query<Button>().ToList();
+            Assert.AreEqual(0f, buttons[0].resolvedStyle.marginTop);
+            for (var i = 1; i < buttons.Count; i++) Assert.AreEqual(16f, buttons[i].resolvedStyle.marginTop, buttons[i].name);
+        }
+
+        [Test]
+        public void ボタンの幅は整理ボタンの既定幅でなく本文の並びが決める()
+        {
+            // Web pauseMenu/style.module.css の --panel-action-button-width: auto。既定幅のままだと長い名前が折り返す
+            // Web pauseMenu/style.module.css --panel-action-button-width: auto; the default width would wrap long labels
+            var defaultWidth = ThemeTokenFile.ResolvePixels("--panel-action-button-width");
+            foreach (var button in _view.Query<Button>().ToList())
+            {
+                Assert.Greater(Mathf.Abs(button.resolvedStyle.width - defaultWidth), 0.5f, $"{button.name} width {button.resolvedStyle.width}");
+            }
+        }
+
+        [Test]
+        public void トップの題とアンカーはWebと同じ綴り()
+        {
+            Assert.AreEqual("Pause Menu", _view.Q<Label>(className: "pause-menu__title").PlainText());
+            Assert.IsTrue(Frame().ClassListContains(AnchorIds.PauseMenu));
+            Assert.IsTrue(Find<Button>(_view, "pause-menu-save").ClassListContains(AnchorIds.PauseSave));
+            Assert.IsTrue(Find<Button>(_view, "pause-menu-save-and-quit").ClassListContains(AnchorIds.PauseBack));
+            Assert.IsTrue(Find<Button>(_view, "pause-menu-open-settings").ClassListContains(AnchorIds.PauseSettings));
+            Assert.IsTrue(Find<Button>(_view, "pause-menu-open-bug-report").ClassListContains(AnchorIds.PauseBugReport));
+        }
+
+        /// <web-test file="e2e/tests/system/pauseMenu.spec.ts">pause_menu.currentの切断状態を表示する</web-test>
+        [Test]
+        public void 切断状態を赤字の1行で表示する()
+        {
+            var line = Find<Label>(_view, "pause-menu-disconnected");
+            Assert.IsFalse(IsShown(line));
+
+            _view.RenderPauseMenu(new PauseMenuViewModel(PauseMenuPage.Top, true, FakePauseMenuModel.Capture(BugReportCaptureStatus.Ready), PlaytestDeliveryAllSent.Instance, PlaytestExportIdle.Instance));
+            simulate.FrameUpdate();
+            Assert.IsTrue(IsShown(line));
+            Assert.AreEqual("Disconnected from server", line.PlainText());
+            Assert.AreEqual(new Color(0xff / 255f, 0x87 / 255f, 0x87 / 255f), line.resolvedStyle.color);
+        }
+
+        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">バグ報告の書きかけはトップへ戻って再び開いても残る</web-test>
+        [Test]
+        public void バグ報告の書きかけはトップへ戻って再び開いても残る()
+        {
+            ShowPage(PauseMenuPage.BugReport);
+            Assert.AreEqual("Bug report", _view.Q<Label>(className: "pause-menu__title").PlainText());
+            Find<TextField>(_view, "bug-report-description").value = "keep me";
+            Assert.AreEqual("keep me", _draft.Description);
+
+            ShowPage(PauseMenuPage.Top);
+            Assert.IsNull(_view.Q("bug-report-description"));
+            ShowPage(PauseMenuPage.BugReport);
+            Assert.AreEqual("keep me", Find<TextField>(_view, "bug-report-description").value);
+        }
+
+        [Test]
+        public void ロケール印は言語の切り替えで名前を差し替える()
+        {
+            Assert.IsNotNull(_view.Q("pause-menu-locale-english"));
+            Localize.TrySetChosenLanguage("japanese");
+            // 言語の購読は Presenter が持つ（PauseMenuScreenSubscriptionTest）ので、ここでは描く口を呼ぶ
+            // The presenter owns the language subscription (PauseMenuScreenSubscriptionTest), so call the render port here
+            _view.RenderLocaleMarker();
+            Assert.IsNotNull(_view.Q("pause-menu-locale-japanese"));
+            Assert.IsNull(_view.Q("pause-menu-locale-english"));
+            Assert.AreEqual("ポーズメニュー", _view.Q<Label>(className: "pause-menu__title").PlainText());
+        }
+
+        [Test]
+        public void トップの枠は中身の高さで中央に置かれる()
+        {
+            simulate.FrameUpdate();
+            var frame = Frame();
+            Assert.Less(frame.worldBound.height, 640f);
+            Assert.AreEqual(360f, frame.worldBound.center.y, 1f);
+            var saveAndQuit = Find<Button>(_view, "pause-menu-open-bug-report");
+            Assert.LessOrEqual(saveAndQuit.worldBound.yMax, frame.worldBound.yMax + 0.5f);
+        }
+
+        private VisualElement Frame()
+        {
+            return Find<VisualElement>(_view, "pause-menu");
+        }
+
+        private void ShowPage(PauseMenuPage page)
+        {
+            // スクロールバーの出し入れで 2 回目のレイアウトが走るので、2 フレーム進めて落ち着かせる
+            // Showing or hiding the scroller triggers a second layout, so advance two frames to settle
+            _view.RenderPauseMenu(FakePauseMenuModel.Page(page));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+        }
+    }
+}

@@ -353,7 +353,7 @@
 - `AppErrorBoundary` の代わり（「UI の例外に誰が気づくか」）: UITK のビューの例外は、LogError とバグ報告の manifest に出す
 
 **最後の束の完了条件**
-- 共通条件（§2.0）を満たす。ラダー 5 `uitk-challenge-gate`（§4.4）が緑
+- 共通条件（§2.0）を満たす。段階 5 のラダー `uitk-challenge-gate`（§4.4 の表の 6 本目。段階 4 が 2 本持つので通し番号はラダー 6）が緑
 - 全体スイッチの UITK 側で、DSL の Web ロケータが一度も要素を返さない（ログで確かめる）
 - 台帳の全行が UITK で作られ、G1 の未記帳が全束で 0
 
@@ -370,7 +370,7 @@
 **切替 PR の作り方**（agent 既定。裁定は「切替と撤去を続けて入れる」「PR の中でだけビルドと検証機を通す」「マージはユーザー」）
 - 最後の束が `feature/uitk` に入ったら、`feature/uitk` の上で下の撤去 5a〜5e をこの順にレーンとして積む。切替 PR は `feature/uitk` から master への 1 本で、切替と撤去を両方運ぶ（PR #1589 は閉じ、新しく作る）
 - 撤去を積み始めたら、全体スイッチの Web 側は使えなくなる。積む前に、全体スイッチの Web 側と UITK 側で全録画を回しておく
-- 切替 PR の中で、Windows と Mac のビルドを回し、Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh` を通す。ラダー 6 本と全録画を CEF の存在しないビルドで流す。IME を CEF を含まない配布ビルドで一巡する（§4.9）。オーナーの目視もここで 1 回（§2.0）
+- 切替 PR の中で、Windows と Mac のビルドを回し、Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh` を通す。ラダー 6 本と全録画を CEF の存在しないビルドで流す（DSL は Editor 専用なので、CEF パッケージの無い HEAD の Editor で流す。A-259）。IME を CEF を含まない配布ビルドで一巡する（§4.9）。オーナーの目視もここで 1 回（§2.0）
 - G1 は切替 PR で全束を `切替済み` にし、全行の所有者を `UITK` にする（§4.7）
 - `feature/uitk` 上で Web を触ったコミット（§2.2 の休止の撤去・撤去 5c の `moorestech_web/` 削除・取り込み以外の Web 変更）も、G1 は各束の未記帳として数える。切替 PR の前に各束の「## 追従記録」へ `捨てた（理由）` で記帳し、ローカルで `.github/scripts/check-uitk-web-follow.py --base origin/master --head feature/uitk` を回して 0 件を見る。切替 PR は head=`feature/uitk` から出す（中継ブランチ禁止）。台帳と G1 の workflow は切替 PR の中では消さない（merge ref から workflow が消えると G1 が起動せず、required check が空のまま未記帳で切替がマージされうる）。切替 PR のマージ後に別 PR で両方まとめて消す（台帳だけ消すと G1 が落ちる）
 - 最終検証中に master へ Web の更新が入ったら、取り込んで追従を記帳し、影響箇所を再検証してから切り替える（裁定）。撤去後の取り込みは、master 側の Web の変更が消したファイルとの衝突になる。消す側で解決し、中身は UITK 側へ写して記帳する
@@ -381,10 +381,10 @@
 | 区分 | 中身 |
 |---|---|
 | 5a 起動配線と共存機構 | 起動配線: `Client.Starter` の `WebUiStartup`、`InitializeScenePipeline.cs:73` の `KestrelPort`、`MainGameInitializationFinalizer` の `Bind`、`EventModeStartGate` の Hub 依存。共存機構: 全体スイッチ、DSL の Web ロケータ、`UiPointerHitTest` と `UiInputExclusivity` の Web の項、manifest の CEF の値と無応答の判定（master へ切り出した CEF 停止の記録）、Web ホストを起動しない Editor スイッチ |
-| 5b CEF と配布工程 | `jp.juha.cefunity`（manifest 45 行目）。`CefUnity` を参照する 3 ファイル（`Client.WebUiHost/Cef/WebUiCefNavigator.cs`、`Client.Playtest/WebUi/CefScreenMapper.cs`、`Client.Playtest/WebUi/CefInputForwarder.cs`）。MainGameUI.prefab の CEF 一式（Canvas〈Overlay・sortingOrder 0。実測〉・RawImage・`CefUnityBrowserSample`・`WebUiCefNavigator`）を `uloop execute-dynamic-code` で外す。`CefRuntimeBundler` と `BuildPipeline` からの呼び出し、`CefPackageLfsValidator`、`scripts/setup-cef.*`、CI の CefUnity 事前取得。`scripts/playtest/lib/release-artifact.sh` の CEF helper 検査とその契約テスト（`scripts/playtest/tests/test-release-playtest-mac.sh`）、`scripts/playtest/README.md` の CEF raw input の確認。共用部品は消さずに整理する（`CefLfsPointer` は中立な名前へ改名。ffmpeg と Harmony の同梱検査が使う。`EnvironmentScrubOnEditorLoad` は `Client.ExternalProcess` 側へ移す） |
-| 5c Web ホストと Web 資産 | `Client.WebUiHost`（asmdef ごと）、C# の通信契約テスト（131 件）、`WebUiActionInvoker`、`Client.Playtest/WebUi/PlaytestDomQuery`、`Client.Tests` のうち WebUiHost を参照する 67 ファイル（実測）、`moorestech_web/`、CI の `webui-test` ジョブ・`needs_webui`・pnpm の step、`WebUiProductionArtifactBuilder`、`StreamingAssets/WebUi` とその `.gitignore` |
-| 5d NuGet | AspNetCore 系（裁定 3 で HttpListener の場合）と、使われなくなった `Microsoft.Extensions.*`。依存グラフを確かめてから消す。`packages.config` は 74 件で、47 件が `Microsoft.AspNetCore.*` か `Microsoft.Extensions.*`（実測）。`ModelContextProtocol 0.2.0-preview.3` は client と server の scripts に `using` が無い（実測）。未使用なら同じ PR で外す（推測） |
-| 5e 文書・スキル・改名・ADR・bd | 改名: `WebPinId`（13 か所。実測）、`LocalizationKeys.Ui.Blueprint.WebModal*`、`VanillaSchema/challenges.yml` の `web anchor id`（3 か所。実測）、`WebUiGateAuditTest`（名前を変え、対象を付け替えて残す）。スキル: `ref-webui-design` を廃止して `ref-uitk-design` を完成させ、moores-code-review の ts/tsx 観点 12 本を撤去し、DSL のスキル文書を更新する。文書: `docs/webui` を archive にして入口を `docs/uitk` にし、`docs/development/macmini/unity-editor.md` の CEF の節を消す。ADR と裁定の改訂か廃止の記録（§7.3）。bd: CEF 関連の open 課題 12 件（shipping §1.2）と `moorestech-cgm` を、閉じるか台帳へ転記する。台帳 `docs/uitk/TODO.md` と G1 の workflow・スクリプト・テストはこの区分に含めず、切替 PR のマージ後に別 PR で消す（切替 PR で消すと G1 が起動せず未記帳のままマージされうるため） |
+| 5b CEF と配布工程 | `jp.juha.cefunity`（manifest 44 行目）。CEF の型を使う C#（Navigator・Playtest の 2 本・テストの BlockActionScene の 2 本）と asmdef 3 本。MainGameUI.prefab の子 `CefUnity`（RawImage・`CefUnityBrowserSample`・`WebUiCefNavigator`）と、ルートの Canvas・CanvasScaler・GraphicRaycaster・CanvasGroup のコンポーネント（GameObject と uGUI の描画部品を持たない子 4 本は残す）を `uloop execute-dynamic-code` で外す。`CefRuntimeBundler` と `BuildPipeline` からの呼び出し、`CefPackageLfsValidator`、`scripts/setup-cef.*`、CI の CefUnity 事前取得。`scripts/playtest/lib/release-artifact.sh` の CEF helper 検査とその契約テスト（`scripts/playtest/tests/test-release-playtest-mac.sh`）、`scripts/playtest/README.md` の CEF raw input の確認。共用部品は消さずに整理する（`CefLfsPointer` は中立な名前へ改名。ffmpeg と Harmony の同梱検査が使う。`EnvironmentScrubOnEditorLoad` は `Client.ExternalProcess` 側へ移す） |
+| 5c Web ホストと Web 資産 | `Client.WebUiHost`（asmdef ごと）、C# の通信契約テスト（131 件）、`WebUiActionInvoker`、`Client.Playtest/WebUi/PlaytestDomQuery`、`Client.Tests` のうち WebUiHost を参照する 67 ファイル（実測）、`moorestech_web/`、CI の `webui-test` ジョブ・`needs_webui`・pnpm の step、`WebUiProductionArtifactBuilder`、`StreamingAssets/WebUi` とその `.gitignore`（`.gitignore` の行は撤去前の作業コピーの残骸を無視する 3 行〈`StreamingAssets/WebUi/`・`WebUi.meta`・`/moorestech_web/`〉として残し、X-cleanup が G4 の許可リストの行と一緒に消す。X-5c D-40・D-41） |
+| 5d NuGet | AspNetCore 系（裁定 3 で HttpListener の場合）と、使われなくなった `Microsoft.Extensions.*`。依存グラフを確かめてから消す。`packages.config` は 74 件で、47 件が `Microsoft.AspNetCore.*` か `Microsoft.Extensions.*`（実測）。`ModelContextProtocol 0.2.0-preview.3` は使い手 0（実測）。MCP の 13 件（client は Extensions 系 8 件と重なる）を同じ PR で外した（X-5d・A-256） |
+| 5e 文書・スキル・改名・ADR・bd | 改名: `WebPinId`（13 か所。実測）、`LocalizationKeys.Ui.Blueprint.WebModal*`、`VanillaSchema/challenges.yml` の `web anchor id`（3 か所。実測）、`WebUiGateAuditTest`（名前を変え、対象を付け替えて残す）。スキル: `ref-webui-design` を廃止して `ref-uitk-design` を完成させ、moores-code-review の ts/tsx 観点 12 本を撤去し、DSL のスキル文書を更新する。文書: `docs/webui` を archive にして入口を `docs/uitk` にし、`docs/development/macmini/unity-editor.md` の CEF の節を消す。ADR と裁定の改訂か廃止の記録（§7.3）。bd: CEF 関連の open 課題 12 件（shipping §1.2）を、閉じるか、中身が同じなら題を直し、中身が変わるなら bd の新しい課題へ写す（台帳は X-cleanup で消えるので転記先にしない）。`moorestech-cgm` は §0 のとおり移行では閉じず、題を UITK のトーストに直して残す。台帳 `docs/uitk/TODO.md` と G1 の workflow・スクリプト・テストはこの区分に含めず、切替 PR のマージ後に別 PR で消す（切替 PR で消すと G1 が起動せず未記帳のままマージされうるため） |
 
 - 5a を先にする。起動しなくなれば、残りは参照されないコードになる
 - 5b を 5c より先にする。5c を先に出すと、`MainGameUI.prefab` に missing script（guid `592d2edb…`＝`WebUiCefNavigator`）が残ったまま CEF が起動し続ける
@@ -402,7 +402,7 @@
 - **asmdef**: 描画の `Client.Ui` と画面状態の `Client.Ui.State`（段階 0 で新設済み）の 2 つにする。名前に技術名（Uitk）を入れない（Web という名前の改名を繰り返さないため）。参照の向きは `Client.Game` ← `Client.Ui.State` ← {`Client.Ui`・`Client.WebUiHost`}。`Client.Ui` は描画と操作だけを持ち、画面状態・ViewModel・UI コマンドは `Client.Ui.State` に置く。`Client.Ui.State` を `Client.Ui` に含めないのは、長命ブランチの中で `Client.Ui` が全体スイッチを通じて WebUiHost を触るため（WebUiHost も状態を読むので、同じアセンブリだと循環する）。`Client.Game` はどちらも参照せず、ゲーム側から UI へ頼む要求（モーダル等）はインターフェース越しにする。DI は既存の VContainer、イベントは UniRx
 - **ディレクトリ**: 基盤 `Client.Ui/Foundation/{Root,Layers,Routing,Input,Motion,Tooltip,DragDrop,Modal,Anchor,Text,Theme}`、部品 `Client.Ui/Components/<部品>`、画面 `Client.Ui/Screens/<機能>/`。AGENTS.md の上限（1 ディレクトリ 10 ファイル、1 ファイル 200 行）に合わせる
 - **3 層**: View は VisualElement を組むだけで、MonoBehaviour に依存しない。Presenter はモデルを購読して View へ push し、操作を型付きコマンドへ渡す。Mount は `GameUiRoot` に載せる薄い層。テストでは `UITestFixture` の `rootVisualElement` に同じ View を組める（tests §5.3）
-- **アセットのロード**: UXML と USS は機能の横に置き、1 か所の `UiAssetCatalog` を通してロードする。起動時に全部ロードし、欠けていたら起動の段階で止める（AGENTS.md「必須の値は最も早い段階で止める」）。L2 で参照パスの実在を検査する
+- **アセットのロード**: USS は機能の横に置き、`GameUiTheme.tss` に `@import` で束ねる。部品の ctor は `StyleSheet` を受けない（F1 で段階 1 の `UiAssetCatalog` を撤去。設計書 [A-2]）。束ね漏れは L2（`UiThemeImportBundleTest`）で止める
 - **実行時の形**: `GameUiRoot` は MainGameUI.prefab に事前配置し、シングルトンの規約どおり Awake で `_instance` を設定する。パネルは 1 枚で、Pick とフォーカスが 1 枚の中で閉じる
 
 ### 3.2 データ購読層
@@ -641,7 +641,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 | 3 | `uitk-build-bp` | B → 検索 → エントリをホットバーへドラッグ → 選んで設置 → BP をコピーして名前を付ける（検索語と BP 名は SetText） |
 | 4 | `uitk-production-loop` | Tab → 長押しクラフト → 石窯に燃料と素材を入れる（掴み・Shift・右ドラッグ）→ 取り出す → 整理 |
 | 4 | `uitk-research-train` | 研究を 1 つ完了 → 駅名を日本語で付ける（駅名は SetText）→ 時刻表を組んで自動運転を入れる |
-| 5 | `uitk-challenge-gate` | チャレンジ一覧を開く → 出展モードの言語ゲートを通る |
+| 5 | `uitk-challenge-gate` | 出展モードの言語ゲートを日本語で通る → T でチャレンジ一覧を開いて閉じる（ゲートは DI より前に 1 回だけ出て、無操作はアプリ終了でゲートへ戻らないので、この順でしか 1 本で通せない。A-249） |
 
 本文と駅名は SetText で入れ、IME は §4.9 の合成キーで確かめる。
 
@@ -717,7 +717,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 | 1 | manifest・prefab・配布ビルドに CEF が無い | manifest と lock に `jp.juha.cefunity` が無い。MainGameUI.prefab に CEF の Canvas・RawImage が無い。配布ビルドの Windows `Plugins/x86_64` と Mac `PlugIns/cef-unity-server.app` に CEF のファイルが 0（`release-artifact.sh` で検査） |
 | 2 | G4 が緑 | `Client.WebUiHost`・`moorestech_web/`・Web 用の Kestrel が無いことを含む |
 | 3 | 遠隔実行が検証機で動く | Windows 検証機で、ADR 0072 の完了条件 3 点（有効時に結果が返る、Harmony で差し込める、オプション無しでは開かない）を確かめる |
-| 4 | 全録画とラダーが、CEF の存在しないビルドで緑 | ラダー 6 本と全録画。壊れている 10 本は直すか削除して bd `moorestech-wwxy` を閉じる |
+| 4 | 全録画とラダーが、CEF の存在しないビルドで緑 | ラダー 6 本と全録画（DSL は Editor 専用なので、CEF パッケージの無い HEAD の Editor で流す。A-259）。壊れている 10 本は直すか削除して bd `moorestech-wwxy` を閉じる |
 | 5 | 切替ビルド（切替と撤去を含むビルド）が playtest で 1 周期通る | 1 周期 ＝ 切替ビルドを playtest へ反映してから 7 日以上、かつその間の Discord と受け口の報告を 1 回見た後（2026-10-26 版の R3 の定義をそのまま使う。agent 既定）。UI が原因で進行を阻む不具合が 0 か、全件修正済み。戻すときは切替前のビルドへ戻す（§7.4） |
 
 文書・スキル・ADR・bd の後片付けは、撤去の 5e の作業項目に置く。

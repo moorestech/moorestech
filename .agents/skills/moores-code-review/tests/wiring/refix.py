@@ -37,7 +37,6 @@ class RefixWiringTest(unittest.TestCase):
             (run_dir / "checks.json").write_text(json.dumps({
                 "deterministic": {"confirmed": [], "candidates": {}},
                 "dead_member": {"status": "skipped", "candidates": []},
-                "ts_dead_code": {"status": "skipped", "candidates": []},
                 "reviewers": [{"path": str(moores_rev), "model": "fable"}],
                 "verifiers_to_launch": [],
                 "summary": {"errors": []},

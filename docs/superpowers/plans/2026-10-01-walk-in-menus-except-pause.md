@@ -42,7 +42,7 @@
 | ファイル | 責務 | 変更 |
 |---|---|---|
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/{PlayerInventory,ChallengeList,ResearchTree,BuildMenu,SubInventory}State.cs` | 移動停止宣言 | `LocksPlayerMovement()` を `false` に |
-| `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateMovementLockDeclarationTest.cs` | 宣言の全件表 | 期待値更新・改名 |
+| `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateMovementLockDeclarationTest.cs` | 宣言の全件表 | 期待値更新・改名 |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Interact/Selection/InteractOverlap.cs` | 近傍探索の共通部品（レイヤマスク・バッファ拡張込み） | 新規（`InteractTargetSelector` の `OverlapNearby` を切り出し） |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Interact/Selection/InteractTargetSelector.cs` | 候補選定 | `InteractOverlap` を呼ぶよう変更 |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Interact/Selection/InteractReachQuery.cs` | 「対象がまだ手の届く範囲か」 | 新規 |
@@ -106,7 +106,7 @@
 ### Task 1: 移動停止をポーズメニューだけにする
 
 **Files:**
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateMovementLockDeclarationTest.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateMovementLockDeclarationTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlayerInventoryState.cs:88-91`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/SubInventoryState.cs:167-170`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/ChallengeListState.cs:41-44`
@@ -169,7 +169,7 @@ Expected: 全件 PASS（`UIStateControlTest.画面の宣言どおりに自機の
 - [ ] **Step 5: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateMovementLockDeclarationTest.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/
+git add moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateMovementLockDeclarationTest.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/
 git commit -m "feat(ui-state): メニュー中も歩けるようにし、移動を止めるのはポーズメニューだけにする"
 ```
 
@@ -362,7 +362,7 @@ git commit -m "feat(interact): 近傍探索を共通化し開いた対象がま�
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/SubInventoryState.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/SubInventory/SubInventoryStateHints.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Models/SubInventorySourceModelTest.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs`（`using` 追加のみ）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/UIStateKeyHintCatalogTest.cs`（`using` 追加のみ）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Interact/Reach/SubInventoryReachTargetTest.cs`
 
 **Interfaces:**

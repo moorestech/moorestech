@@ -1,0 +1,25 @@
+/* web: app/App.module.css の .stage（1280×720 を --ui-scale 倍して中央）と .viewportOverlay（実画面いっぱい）。UITK は PanelSettings の Expand が倍率を持つので舞台は固定寸法で中央に置く */
+/* web: .stage (1280x720 scaled by --ui-scale, centered) and .viewportOverlay (full real screen) in app/App.module.css; in UITK the PanelSettings Expand owns the scale, so the stage is a fixed size centered */
+.game-ui-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.ui-stage-frame__viewport {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ui-stage-frame__stage {
+    width: 1280px;
+    height: 720px;
+    flex-shrink: 0;
+}

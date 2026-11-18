@@ -1,0 +1,43 @@
+using Client.Ui.Foundation.Root;
+using UnityEngine;
+using VContainer.Unity;
+
+namespace Client.Ui.Foundation.Composite
+{
+    /// <summary>
+    /// パネルを sRGB 合成の RT へ描かせ、画面の大きさを追う（A-180・A-183）
+    /// Draws the panel into the sRGB composite RT and follows the screen size (A-180, A-183)
+    /// </summary>
+    /// <remarks>
+    /// DI より前に GameUiPreDiFoundation が作って Initialize し、DI へは ITickable として渡す（S5-gate D-2）。パネルを差し替えるので root.panel を控える入口より先に立つ
+    /// GameUiPreDiFoundation builds and initializes it before DI and hands it to DI as an ITickable (S5-gate D-2); it swaps the panel, so it starts before entry points that keep root.panel
+    /// </remarks>
+    public sealed class GameUiSrgbCompositeInstaller : IInitializable, ITickable
+    {
+        private readonly GameUiRoot _gameUiRoot;
+        private UiSrgbPanelTarget _panelTarget;
+
+        public GameUiSrgbCompositeInstaller(GameUiRoot gameUiRoot)
+        {
+            _gameUiRoot = gameUiRoot;
+        }
+
+        public void Initialize()
+        {
+            _panelTarget = new UiSrgbPanelTarget(_gameUiRoot.GetPanelDocument());
+        }
+
+        // 画面の大きさの変化通知が無いので毎フレーム比べる（前例 ScreenFrameReader）
+        // No screen-size change notification exists, so compare every frame (precedent ScreenFrameReader)
+        public void Tick()
+        {
+            // silent-ok: 生成失敗は Initialize の例外として初期化の失敗（MainGameSceneLoadedHandler の LogError。RT を作れないときはアプリ終了、それ以外はメインメニュー）になり Tick は回らない / 開発者は Console の最初の例外で、プレイヤーはアプリの終了かメインメニューへ戻ることで気づく
+            if (_panelTarget == null) return;
+
+            // 作れない大きさは SyncToSize が LogError を出して前の RT のまま戻る（ここで投げると VContainer の Tick ループごと止まる）
+            // For an uncreatable size SyncToSize logs an error and keeps the previous RT (throwing here would stop VContainer's whole Tick loop)
+            _panelTarget.SyncToSize(Screen.width, Screen.height);
+            UiSrgbCompositeSource.ReportWhenNotComposited();
+        }
+    }
+}

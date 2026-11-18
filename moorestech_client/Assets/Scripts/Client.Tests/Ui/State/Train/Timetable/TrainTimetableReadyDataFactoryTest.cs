@@ -1,0 +1,137 @@
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Client.Tests.Ui.State.Train.Fakes;
+using Client.Ui.State.Train.Logic;
+using Client.Ui.State.Train.Timetable;
+using Game.Train.Diagram;
+using Game.Train.RailGraph;
+using Game.Train.Unit;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Client.Tests.Ui.State.Train.Timetable
+{
+    public class TrainTimetableReadyDataFactoryTest
+    {
+        private static readonly List<TrainTimetableStation> Stations = new() { TrainTestData.Unnamed, TrainTestData.North };
+
+        [Test]
+        public void 停車駅の名前は駅一覧から引き引けない位置は空名で警告は集合が変わったときだけ()
+        {
+            var factory = new TrainTimetableReadyDataFactory();
+            var snapshot = Snapshot(StopAt(TrainTestData.North.Position), StopAt(new Vector3Int(99, 0, 0)));
+
+            // 初回は欠けの集合が変わるので 1 回警告する
+            // The first build changes the missing set, so it warns once
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found.*99"));
+            Assert.IsTrue(factory.TryCreate(snapshot, Stations, out var data));
+            Assert.AreEqual("北駅", data.Stops[0].Name);
+            Assert.AreEqual(string.Empty, data.Stops[1].Name);
+
+            // 同じ集合ではもう警告しない
+            // The same set does not warn again
+            Assert.IsTrue(factory.TryCreate(snapshot, Stations, out _));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void 未知のSideがあれば作らずErrorログは入ったとき1回で回復後はまた出る()
+        {
+            var factory = new TrainTimetableReadyDataFactory();
+            var broken = Snapshot(new TrainTimetableStop(TrainTestData.North.Position, (StationNodeSide)99, TrainDiagram.DepartureConditionType.WaitForTicks, 20));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
+            Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
+
+            // 同じ異常の間は 2 回目を出さない
+            // The same anomaly is not reported a second time
+            Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
+            LogAssert.NoUnexpectedReceived();
+
+            // 正常で旗が戻り、次の異常は再び出る
+            // Healthy clears flag; next anomaly reports again
+            Assert.IsTrue(factory.TryCreate(Snapshot(StopAt(TrainTestData.North.Position)), Stations, out _));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
+            Assert.IsFalse(factory.TryCreate(broken, Stations, out _));
+        }
+
+        [Test]
+        public void 未知のSideで捨てた後に届き直した列車は同じ欠けでも警告し直す()
+        {
+            var factory = new TrainTimetableReadyDataFactory();
+            var missing = Snapshot(StopAt(new Vector3Int(99, 0, 0)));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found.*99"));
+            Assert.IsTrue(factory.TryCreate(missing, Stations, out _));
+
+            // 未知の端で一度捨てると、欠けの旗も下りる
+            // Discarding once for an unknown side also lowers the missing-station flag
+            LogAssert.Expect(LogType.Error, new Regex(@"\[TrainTimetableModel\] discarding timetable with unknown side"));
+            Assert.IsFalse(factory.TryCreate(Snapshot(new TrainTimetableStop(TrainTestData.North.Position, (StationNodeSide)99, TrainDiagram.DepartureConditionType.WaitForTicks, 20)), Stations, out _));
+
+            // 同じ欠けで戻ると警告がもう一度出る（出なければ Expect が満たされず落ちる）
+            // Coming back with the same missing set warns again (the Expect fails otherwise)
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found.*99"));
+            Assert.IsTrue(factory.TryCreate(missing, Stations, out _));
+        }
+
+        [Test]
+        public void 中身が同じ用意済みは流し直さず読込中と使えないは同じ値で流さない()
+        {
+            // 貨車の中身の更新だけでは時刻表の行を作り直さない（R-5）
+            // A car contents update alone does not rebuild the timetable rows (R-5)
+            var first = TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1));
+            var same = TrainTimetableViewState.Ready(TrainTestData.NorthOnly(TrainTestData.Unit1));
+            Assert.IsTrue(TrainTimetableViewState.IsSameState(first, same));
+
+            // 自動運転だけ・停車駅だけ・現在位置だけ・駅一覧だけが違っても流し直す
+            // A difference in only auto-run, only the stops, only the current index, or only the station list still republishes
+            var northOnly = TrainTestData.NorthOnly(TrainTestData.Unit1);
+            var autoRunOnly = TrainTimetableViewState.Ready(TrainTestData.Ready(TrainTestData.Unit1, true, TrainTestData.Added(TrainTestData.NoStops, TrainTestData.North)));
+            var stopsOnly = TrainTimetableViewState.Ready(TrainTestData.Ready(TrainTestData.Unit1, false, TrainTestData.Added(TrainTestData.Added(TrainTestData.NoStops, TrainTestData.North), TrainTestData.Unnamed)));
+            var indexOnly = TrainTimetableViewState.Ready(new TrainTimetableReadyData(TrainTestData.Unit1, false, 1, northOnly.Stops, northOnly.Stations));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, autoRunOnly));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, stopsOnly));
+            var stationsOnly = TrainTimetableViewState.Ready(new TrainTimetableReadyData(TrainTestData.Unit1, false, 0, northOnly.Stops, new List<TrainTimetableStation> { TrainTestData.North }));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, indexOnly));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, stationsOnly));
+            Assert.IsTrue(TrainTimetableViewState.IsSameState(TrainTimetableViewState.Loading, TrainTimetableViewState.Loading));
+            Assert.IsFalse(TrainTimetableViewState.IsSameState(first, TrainTimetableViewState.Loading));
+        }
+
+        [Test]
+        public void 用意済みは列車IDと自動運転と現在の番号と端と座標と駅一覧をそのまま運ぶ()
+        {
+            // 北駅の前端と、駅の無い (9,0,0) の後端に停まる自動運転の列車
+            // An auto-run train stopping at the north station's front and at the station-less (9,0,0) back
+            var far = new Vector3Int(9, 0, 0);
+            var snapshot = new TrainTimetableSnapshot(TrainTestData.Unit1, true, 1, new[]
+            {
+                new TrainTimetableStop(TrainTestData.North.Position, StationNodeSide.Front, TrainDiagram.DepartureConditionType.WaitForTicks, 20),
+                new TrainTimetableStop(far, StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, 20),
+            });
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[TrainTimetableModel\] station blocks not found"));
+
+            Assert.IsTrue(new TrainTimetableReadyDataFactory().TryCreate(snapshot, Stations, out var data));
+
+            Assert.AreEqual(TrainTestData.Unit1, data.TrainUnitInstanceId);
+            Assert.IsTrue(data.IsAutoRun);
+            Assert.AreEqual(1, data.CurrentIndex);
+            Assert.AreEqual(StationNodeSide.Front, data.Stops[0].Side);
+            Assert.AreEqual(TrainTestData.North.Position, data.Stops[0].Position);
+            Assert.AreEqual("北駅", data.Stops[0].Name);
+            Assert.AreEqual(StationNodeSide.Back, data.Stops[1].Side);
+            Assert.AreEqual(far, data.Stops[1].Position);
+            Assert.AreSame(Stations, data.Stations);
+        }
+
+        private static TrainTimetableStop StopAt(Vector3Int position)
+        {
+            return new TrainTimetableStop(position, StationNodeSide.Back, TrainDiagram.DepartureConditionType.WaitForTicks, 20);
+        }
+
+        private static TrainTimetableSnapshot Snapshot(params TrainTimetableStop[] stops)
+        {
+            return new TrainTimetableSnapshot(TrainTestData.Unit1, false, 0, stops);
+        }
+    }
+}

@@ -1,0 +1,12 @@
+/* トークンの正本。値はこのファイルで直す（出所 web: web@6248097123/src/app/slotTokens.css。生成器は切替で撤去した） */
+/* Source of truth for the tokens; edit values here (source web: web@6248097123/src/app/slotTokens.css; the generator was deleted at the switch) */
+:root {
+    --face-inset: 0px;
+    --bevel-1: 0.782875px;
+    --bevel-2: 1.565749px;
+    --bevel-3: 1.565749px;
+    --bevel-c1: rgb(56, 58, 72);
+    --bevel-c2: rgb(104, 106, 120);
+    --bevel-c3: rgb(104, 106, 120);
+    --slot-ghost-opacity: 0.35;
+}

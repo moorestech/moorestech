@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -12,6 +13,15 @@ namespace Client.Input
         private static PlayableInputManager playable;
         private static UIInputManager ui;
         private static MoorestechInputSettings _instance;
+        private static readonly Subject<bool> CursorLockChangedSubject = new();
+
+        // カーソルロックが変わった時に、新しいロック状態（true=ロック）を書き換えた後で流す
+        // Publishes the new lock state (true = locked) after writing it, whenever the cursor lock changes
+        public static IObservable<bool> OnCursorLockChanged => CursorLockChangedSubject;
+
+        // ロック状態の正本。唯一の書き手 MouseCursorVisible が書いた値を持つ（batchmode は Cursor.lockState への代入を捨て None のまま返すため、Cursor から読み戻さない）
+        // Source of truth for the lock; holds what the only writer MouseCursorVisible wrote (batchmode drops writes to Cursor.lockState and keeps returning None, so it is never read back from Cursor)
+        public static bool IsCursorLocked { get; private set; }
         public static PayerInputManager Player => player ??= new PayerInputManager(Instance);
         public static PlayableInputManager Playable => playable ??= new PlayableInputManager(Instance);
         public static UIInputManager UI => ui ??= new UIInputManager(Instance);
@@ -34,8 +44,15 @@ namespace Client.Input
             // The cursor freezes while locked, so every lock path centers it first to match the crosshair
             if (!isVisible) WarpMouseCursorToScreenCenter();
 
+            var wasLocked = IsCursorLocked;
+            var isLocked = !isVisible;
             Cursor.visible = isVisible;
-            Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.lockState = isLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            IsCursorLocked = isLocked;
+
+            // 同じ状態の再指定では流さない
+            // Re-applying the same state does not publish
+            if (wasLocked != isLocked) CursorLockChangedSubject.OnNext(isLocked);
         }
 
         public static void WarpMouseCursorToScreenCenter()
@@ -82,8 +99,8 @@ namespace Client.Input
             ClickPosition = new InputKey(settings.Playable.ClickPosition);
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation, InputSuppressionScope.Keyboard);
 
-            // Web UIのテキスト入力中に世界へ漏れないようキーボード抑止スコープに入れる
-            // Keep both under the keyboard suppression scope so Web UI text input never leaks into the world
+            // UIのテキスト入力中に世界へ漏れないようキーボード抑止スコープに入れる
+            // Keep both under the keyboard suppression scope so UI text input never leaks into the world
             Interact = new InputKey(settings.Playable.Interact, InputSuppressionScope.Keyboard);
             Ride = new InputKey(settings.Playable.Ride, InputSuppressionScope.Keyboard);
         }
@@ -103,6 +120,7 @@ namespace Client.Input
         public readonly InputKey OpenMenu;
         public readonly InputKey QuestUI;
         public readonly InputKey SwitchHotBar;
+        public readonly InputKey SkitAdvance;
         
         public UIInputManager(MoorestechInputSettings settings)
         {
@@ -118,82 +136,10 @@ namespace Client.Input
             OneStackCraft = new InputKey(settings.UI.OneStackCraft, InputSuppressionScope.Keyboard);
             QuestUI = new InputKey(settings.UI.QuestUI, InputSuppressionScope.Keyboard);
             ItemDirectMove = new InputKey(settings.UI.ItemDirectMove, InputSuppressionScope.Keyboard);
-        }
-    }
-    
-    public class InputKey
-    {
-        private readonly InputAction _inputAction;
-        private readonly InputSuppressionScope? _suppressionScope;
 
-        public InputKey(InputAction key) : this(key, null)
-        {
+            // スキットの送りの Enter。入力欄の Enter と取り合わないようキーボード抑止スコープに入れる
+            // Skit-advance Enter; keep it under the keyboard suppression scope so it never competes with text-field Enter
+            SkitAdvance = new InputKey(settings.UI.SkitAdvance, InputSuppressionScope.Keyboard);
         }
-
-        public InputKey(InputAction key, InputSuppressionScope suppressionScope) : this(key, (InputSuppressionScope?)suppressionScope)
-        {
-        }
-
-        private InputKey(InputAction key, InputSuppressionScope? suppressionScope)
-        {
-            _inputAction = key;
-            _suppressionScope = suppressionScope;
-            key.started += _ => { if (!IsSuppressed()) OnGetKeyDown?.Invoke(); };
-            key.performed += _ => { if (!IsSuppressed()) OnGetKey?.Invoke(); };
-            // 解放待ちラッチへ、入力抑止中も実解放を届ける
-            // Deliver releases during suppression so release-wait latches can reset
-            key.canceled += _ => OnGetKeyUp?.Invoke();
-        }
-        
-        public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame() || TestKeyDown);
-        public bool GetKey => ReadButton(_inputAction.IsPressed());
-        public bool GetKeyUp => ReadButton(_inputAction.WasReleasedThisFrame());
-        
-        // このキーに割り当てた実コントロールか（修飾キー判定で自分自身を除くため）
-        // Whether the control is bound to this key (to exclude itself when detecting modifier use)
-        public bool IsBoundControl(InputControl control)
-        {
-            return _inputAction.controls.Contains(control);
-        }
-
-        public event Action OnGetKeyDown;
-        public event Action OnGetKey;
-        public event Action OnGetKeyUp;
-        
-        public TValue ReadValue<TValue>() where TValue : struct
-        {
-            var value = _inputAction.ReadValue<TValue>();
-            if (IsSuppressed())
-            {
-                if (!EqualityComparer<TValue>.Default.Equals(value, default)) WebUiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
-                return default;
-            }
-            return value;
-        }
-
-        private bool ReadButton(bool value)
-        {
-            if (!value || !IsSuppressed()) return value;
-            WebUiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
-            return false;
-        }
-
-        private bool IsSuppressed()
-        {
-            return _suppressionScope.HasValue && WebUiInputExclusivity.IsSuppressed(_suppressionScope.Value);
-        }
-
-#if UNITY_EDITOR
-        // EditModeテストではInputSystemの押下がWasPressedThisFrameへ届かないため、押下だけをテストから差し込む
-        // In EditMode tests an Input System press never reaches WasPressedThisFrame, so tests inject the press itself
-        private bool TestKeyDown { get; set; }
-
-        internal void SetKeyDownForTest(bool isKeyDown)
-        {
-            TestKeyDown = isKeyDown;
-        }
-#else
-        private bool TestKeyDown => false;
-#endif
     }
 }

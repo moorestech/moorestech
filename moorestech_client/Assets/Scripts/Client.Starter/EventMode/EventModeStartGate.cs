@@ -1,10 +1,7 @@
 using Client.Ui.State.EventMode;
 using System.Threading;
 using Client.Input;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace Client.Starter.EventMode
 {
@@ -14,37 +11,24 @@ namespace Client.Starter.EventMode
     /// </summary>
     public static class EventModeStartGate
     {
-        public static UniTask WaitForLanguageSelectionAsync(CancellationToken ct)
+        // 描く系は UITK だけなので、MainGameStarter が DI より前に GameUiRoot の層へ用意した画面で言語ゲートを出して待つ
+        // UITK is the only drawing system, so show the language gate on the screen MainGameStarter prepared on a GameUiRoot layer before DI, and wait
+        public static UniTask WaitForLanguageSelectionAsync(IEventLanguageGateScreen screen, CancellationToken ct)
         {
-            return WaitForLanguageSelectionWithHubAsync(Client.WebUiHost.Boot.WebUiHost.Hub, EventExhibitionSettings.FromEnvironment(), ct);
+            return WaitOnGameUiAsync(EventExhibitionSettings.FromEnvironment(), screen, new EventIdleQuitWatcherArmer(), ct);
         }
 
-        // hubと設定を引数で受ける本体。Kestrelを立てずに通常モードの無条件登録を検証できるよう分ける（PlaytestStartGatesと同形）
-        // The body takes the hub and settings so the unconditional registration in normal mode is verifiable without Kestrel (same shape as PlaytestStartGates)
-        internal static async UniTask WaitForLanguageSelectionWithHubAsync(WebSocketHub hub, EventExhibitionSettings settings, CancellationToken ct)
+        // UITK のゲートの待ち。出す前提（層のパネル・言語の一覧）は土台の Initialize と生成時のビルドが保証するので、英語開始の縮退は無い（S5-gate D-3）
+        // The UITK gate's wait; the foundation's Initialize and the generator's build guarantee the preconditions (layer panel, language list), so there is no English fallback (S5-gate D-3)
+        internal static async UniTask WaitOnGameUiAsync(EventExhibitionSettings settings, IEventLanguageGateScreen screen, IEventIdleWatchArmer armer, CancellationToken ct)
         {
-            // topicの登録は出展モードか否かに関わらず無条件に行う。条件付き登録だとWeb側の購読が固着する
-            // Registration happens unconditionally regardless of exhibition mode; conditional registration would wedge the web-side subscription
-            EventLanguageGate gate = null;
-            if (hub != null) gate = EventLanguageGateBinder.Bind(hub, settings.IsEnabled);
-
+            // silent-ok: 通常の起動に言語ゲートは無い / 出展モードで起動したのにゲートが出なければ来場者と録画（uitk-event-language-gate）がその場で気づく
             if (!settings.IsEnabled) return;
 
-            var armer = new EventIdleQuitWatcherArmer();
+            var gate = new EventLanguageGate(true);
+            screen.Open(gate);
 
-            // 画面を出せないなら無人ブースを止めない方を採る。英語のまま開始し監視だけ始める
-            // With no screen to show, keeping the unattended booth alive wins: start in English and only begin watching
-            if (hub == null)
-            {
-                Debug.LogError("EventModeStartGate: WebUiHostが起動しておらず言語選択を出せないため英語のまま開始します");
-                armer.ArmIdleWatch(settings.IdleTimeoutSeconds);
-                return;
-            }
-
-            // 来場者が言語ボタンを押せるよう待機中は実カーソルを出す。選択後のロックはGameScreenStateの入場が担う
-            // Show the real cursor while waiting so visitors can press a language button; GameScreenState re-locks it after the choice
             ShowCursorAfterSceneStartAsync(ct).Forget();
-
             await AwaitSelectionThenArmAsync(gate, settings.IdleTimeoutSeconds, armer, ct);
         }
 
@@ -64,8 +48,8 @@ namespace Client.Starter.EventMode
         {
             await gate.WaitForSelectionAsync().AttachExternalCancellation(ct);
 
-            // 選択の継続はaction処理スタックの中で走る。ここで手放さないと初期化の間WSの受信ループが止まる
-            // The continuation resumes inside the action's stack, so yielding here keeps the WS receive loop alive during initialization
+            // 選択の継続は UITK のクリックの処理の中で走る。ここで手放して初期化をクリックの外で進める
+            // The continuation resumes inside the UITK click handling, so yield here to run initialization outside the click
             await UniTask.Yield();
 
             // 武装は選択より後にしか起こらない。待機中は監視個体が存在しないので無操作終了は起こり得ない

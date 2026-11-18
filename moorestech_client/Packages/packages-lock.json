@@ -477,13 +477,6 @@
       },
       "hash": "7746d058e39c5de6b3bde667d5a852f9b8c89fdc"
     },
-    "jp.juha.cefunity": {
-      "version": "https://github.com/KurisuJuha/cef-unity.git?path=cef-unity-unityproject/Assets/CefUnity",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "012281d0ee1d2c272567ff8c20aaaae8dafafc85"
-    },
     "tech.moores.server": {
       "version": "file:../../moorestech_server/Assets/Scripts",
       "depth": 0,

@@ -1,7 +1,7 @@
 # 0032. 操作ヒントの正はUIStateが持ち、Web UIの左下HUDへtopicで配る
 
 日付: 2026-08-23
-状態: 採択
+状態: 採択（2026-11-16 ADR 0101 で読み替え: UITK 切替）
 
 ## Context
 
@@ -82,3 +82,7 @@
 ## 関連する既知の問題（本ADRの対象外）
 
 master時点で `mods/moorestechAlphaMod_8/master/map.json` の `mapObjects` 全195件に `terrainSurroundEffectType` が無く、`map/map.json` の全2002件に `clusterId` / `clusterCenterX` / `clusterCenterZ` が無いため、スキーマ必須化（`VanillaSchema/map.yml`、`Game.Map.Interface/Json/MapInfoJson.cs`）に対してmaster dataが追従しておらず**ゲームが起動しない**。本ADRの検証時はscratchpadに複製して埋めることで回避した。別タスクで是正する。
+
+## 改訂（UITK 切替）
+
+2026-11-16 ADR 0101 で読み替え。操作ヒントの正が各 `IUIState` にある決定は保つ。topic で Web へ配る経路は、UITK の `KeyHintHudModel` が `GetKeyHints()` を直接読む形に置き換わった。描画は `Client.Ui/Screens/KeyHints/`。

@@ -1,0 +1,10 @@
+/* L1 の検査用: 部品はつまみ --slot-size を var() で読み、画面のルートがつまみを上書きする（設計書 §3.2-3） */
+/* For L1: the part reads the --slot-size knob via var(), and a screen root overrides the knob (design §3.2-3) */
+.knob-probe-part {
+    width: var(--slot-size);
+    height: var(--slot-size);
+}
+
+.knob-probe-screen {
+    --slot-size: 64px;
+}

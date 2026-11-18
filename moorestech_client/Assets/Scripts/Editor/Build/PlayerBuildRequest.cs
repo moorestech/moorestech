@@ -58,5 +58,6 @@ namespace Client.Editor.Build
         AddressablesBuildFailed,
         PlayerBuildFailed,
         MacSigningFailed,
+        PreRemovalStreamingAssetsCleanupFailed,
     }
 }

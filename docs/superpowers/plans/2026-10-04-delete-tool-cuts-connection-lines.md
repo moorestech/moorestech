@@ -4769,7 +4769,7 @@ git commit -m "feat(client): 削除ツールの照準を最前面かつドラッ
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Fakes/FakeDeleteTarget.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/FakeRemovalRestoreSender.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDeleteSelectionTest.cs` / `DragDeleteSelectionCategoryTest.cs` / `DragDeleteDenyReasonTest.cs`（コンストラクタ追従）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/RightShortPressTransitionTest.cs:67` / `UIStateCameraInteractionTest.cs:91` / `UIStateFocusRestorationTest.cs:118`（`DeleteObjectState` 第1引数を `new FakeRemovalRestoreSender()` に）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/Control/RightShortPressTransitionTest.cs:67` / `UIStateCameraInteractionTest.cs:91` / `UIStateFocusRestorationTest.cs:118`（`DeleteObjectState` 第1引数を `new FakeRemovalRestoreSender()` に）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/RemoveOperationRecordTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/RemovedRailTest.cs`
 

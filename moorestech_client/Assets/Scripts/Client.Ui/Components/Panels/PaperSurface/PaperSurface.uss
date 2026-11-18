@@ -1,0 +1,12 @@
+/* web: @mantine/core 8.3.18 styles/Paper.css（.m_1b7284a3）。暗色の既定は面 --mantine-color-body・角丸 --mantine-radius-default・影なし */
+/* Web は withBorder を使わない（ChallengeNodeCard・TrainRidingHud・CursorTooltip）ので枠を持たない。文字色は持たず継承する */
+/* web: @mantine/core 8.3.18 styles/Paper.css (.m_1b7284a3); dark defaults are face --mantine-color-body, radius --mantine-radius-default, no shadow */
+/* The Web never uses withBorder (ChallengeNodeCard, TrainRidingHud, CursorTooltip), so there is no border; text color is inherited */
+
+.paper-surface {
+    background-color: var(--paper-face);
+    border-top-left-radius: var(--paper-radius);
+    border-top-right-radius: var(--paper-radius);
+    border-bottom-right-radius: var(--paper-radius);
+    border-bottom-left-radius: var(--paper-radius);
+}

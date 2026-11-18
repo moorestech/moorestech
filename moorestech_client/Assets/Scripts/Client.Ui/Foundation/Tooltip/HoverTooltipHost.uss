@@ -1,0 +1,14 @@
+/* web: shared/ui/HoverTooltip/index.tsx（Mantine Tooltip を Portal へ出す。既定の transition は fade 100ms）。顔の見た目は TooltipFace（Hover） */
+/* web: shared/ui/HoverTooltip/index.tsx (Mantine Tooltip in a portal; default transition fade 100ms); the face look belongs to TooltipFace (Hover) */
+.hover-tooltip-host {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 100ms;
+}
+
+.hover-tooltip-host--shown {
+    opacity: 1;
+}
