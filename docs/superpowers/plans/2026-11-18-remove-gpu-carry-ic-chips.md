@@ -42,7 +42,7 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 層の置き場所・機構・死活表とも前例どおり。注目点4件は判断記録 J6〜J8 に記載
 - Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
 
 ---
@@ -418,7 +418,7 @@ grep -rn "GPU\|データセンター\|DataCenter\|金属3Dプリンタ\|金属�
 
 出た箇所を次の規則で直す:
 - 録画シナリオ: GPU・GPU衛星を作って積む手順を「ICチップLv1 を20個（Lv2 なら20個）積む」に替える。期待する計算データは1便あたり Lv1:20・Lv2:40 のまま。GPU設計・金属超精密加工・GPULvN の研究を完了させる手順は消し、ロケット技術の前提は半導体製造だけにする。`tier9-2-modules-gpu.cs` は GPU の部分を消してモジュールだけにする（ファイル名は `tier9-2-modules.cs` に改名し、シナリオ一覧やスキル本文に旧名があれば直す）。`tier9-8-data-center.cs` は消す。
-- 画面文言: 「GPU衛星の入口」は「ICチップの入口」に替える（出所は grep で出たローカライズ元。マスタの `localization.csv` にあれば Task 2 の PR に含め、本体の生成物 `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` はキー名が変わらなければ触らない）。状態「衛星待ち」の文言は「ICチップ待ち（1便20個）」の意味に替える。e2e の期待文字列も合わせる。
+- 画面文言: 「GPU衛星の入口」は「ICチップの入口」に替える（出所は grep で出たローカライズ元。マスタの `localization.csv` にあれば Task 2 の PR に含め、本体の生成物 `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` はキー名が変わらなければ触らない）。状態「衛星待ち」の文言は「積荷が1便ぶんそろうのを待っています」の意味に替える（個数はマスタの値なので文言に書かない）。e2e の期待文字列も合わせる。
 - `V7ToV8` のマイグレーションとテスト用 mod は触らない（過去のセーブ変換と、本番マスタから独立したテスト資産）。
 
 - [ ] **Step 3: CONTEXT.md を直す**
@@ -474,3 +474,5 @@ Expected: 4本とも result.json が成功。失敗したら原因（シナリ�
 - J4 クライアントの DataCenter・金属3Dプリンタのプレハブとアドレスは消さない。出所: agent前提（Unity 固有ファイルの手編集は禁止で、マスタから参照が消えれば読まれない）。
 - J5 unityプレイ録画テストを Task 4 に含める（拠点の昇降というランタイム挙動に触れるため）。
 - J6 1便の個数の問い合わせは `IOrbitalArrivalService` に足す。出所: agent前提（積荷の種類による分岐は到着サービスだけが持つ、という ADR 0091 の作り）。
+- J7 `SpaceElevatorBaseParamValidator.cs` の「運ぶ積荷は1便1個」の検査を消す。出所: agent前提（ADR 0102 の「昇降機が1回に運ぶ個数を積荷表の1便の個数に変える」。上限は `OrbitalPayloadMasterValidator.cs` の「Lv1 のスタック上限以下」が見ており、入口スロット1つに1便ぶんが入ることはそれで保証される）。
+- J8 拠点の待ちの文言に個数（20）を書かない。出所: agent前提（個数はマスタの値で、画面へ送る経路を新しく作らないため、書くとマスタ変更で表示がずれる）。
