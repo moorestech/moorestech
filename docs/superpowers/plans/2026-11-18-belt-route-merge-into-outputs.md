@@ -338,6 +338,28 @@ git commit -m "feat: ベルトの経路設置を直線ベルト手持ちだけ�
         }
 ```
 
+同じファイルに、避け続ける例外（出力口が1段下の下り坂へ繋がっている配置）のテストも足す。
+
+```csharp
+        // 出力口が1段下の下り坂へ繋がっているとき、出力口の正面は坂の真上なので経路に使わない。使うと坂への接続を奪う（ADR 0102）
+        // When an output feeds a down slope one level below, the cell in front of it is the slope's head and stays unused; using it would steal the slope's connection (ADR 0102)
+        [Test]
+        public void FrontOfAnOutputFeedingADownSlopeBelowStaysUnused()
+        {
+            var grid = FlatGrid();
+            grid.MarkBlockCell(new Vector3Int(4, 1, 1));
+            grid.AddOutputEdge(BeltRouteEdge.FromFace(new Vector3Int(4, 1, 1), BlockDirection.North, 1));
+            grid.MarkBlockCell(new Vector3Int(4, 0, 2));
+            grid.MarkSlopeHead(new Vector3Int(4, 1, 2));
+            var query = new BeltRouteQuery(new Vector3Int(2, 1, 2), BlockDirection.East, false, new Vector3Int(7, 1, 2), BlockDirection.East, false);
+            var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(query);
+
+            Assert.IsTrue(result.HasPlan);
+            BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "slope head in front of an output");
+            Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(4, 1, 2)));
+        }
+```
+
 - [ ] **Step 3: 搬送テストを足す（合流して両方の荷物が届く）**
 
 `BeltRouteConveyanceTest` の末尾に足す。
@@ -929,5 +951,6 @@ git commit -m "test: ベルト経路の出力口合流・出力口の面の向�
 - 始点選び中、R と確定クリックを同じフレームに押したときだけ、始点の向きが回転前になる（agent前提・既知の割り切り）。理由: `BeltRouteCursorHit.TryResolve` は Ctrl 分岐の判定（R が出口切替になる）より前に要り、R の回転はその後に置く必要がある。`BeltConveyorPlaceSystem.cs` は200行ちょうどで、順序を直す行を足せない。人の操作で同フレームになることは実質無い。
 - テストを足すことと `.decisions/2026-11-07-ベルト経路のテストは利用者が見る挙動を守るものだけ残す.md` の関係（agent前提）: 足すのは利用者が見る挙動（出力口の前で合流して荷物が届く・終点が下り坂になる・出力口の面で向きが決まる）を守るものだけで、同裁定の趣旨に沿う。壁時計の閾値は置かない。
 - 坂・分岐器を手持ちにした左ドラッグは、通常ブロックと同じドラッグ列になる（同じ高さに横一列）。出所: ユーザー裁定 2026-11-18 原文「他ブロックと同じように単発設置で良い」の字義（他ブロックと同じ）。ADR 0050 の「毎セル+1段の階段」は置き換え（ADR 0102 §1）。
+- このセッションで本体が直接実装する。出所: ユーザー裁定 2026-11-18「2 ok」（質問「実装をこのセッションで私が進めてよいですか」への回答）。
 - セーブ形式は変えない（設置時のクライアント判定だけの変更）。マイグレーションは不要。
 - 反証検査（fresh-context・opus、2026-11-18）: Critical 1件（録画シナリオの荷物の受け渡しに入出力口の無い「木のチェスト」を使っていた → 「鉄のミニコンベアチェスト」へ修正済み）、Warning 1件（Task 1 Step 11 の grep の期待値 → 検索範囲を絞って修正済み）、設計判断 0件。反証できなかった主張（証明ではない。コードの読みで反例が出なかっただけで、未実行・未網羅）: 出力口の前に置いても既存の接続が付け替わらない（サーバーは辺と同じ高さのセルを先に選び、1つ下が受け手になり得るのは坂のときだけで、その真上は坂の真上の規則で置けない）／テスト用ベルトの横入力で合流が成立する／下り坂の終点の探索・組み立て・参照ソルバの条件が一致する／出力口の面ビットの読み方。終点が出力口の面のとき R の向きにする変更（ユーザー裁定）は検査開始後に入れたもので、単体テストの期待値（終点=キーの向き）は本体が手で追って確認した。
