@@ -150,7 +150,9 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     p.Note("GameScreen中に電線をAltホールドでミドルクリックしてスポイトする");
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
     var wireColliders = WireWithColliders().GetComponentsInChildren<Collider>(true);
-    await p.PickWithAltHold(wireColliders[wireColliders.Length / 2].bounds.center);
+    // 中央の区間はアバターの頭と重なるので、電柱A寄り 1/4 の区間を狙う
+    // The middle segment overlaps the avatar's head, so aim at the segment a quarter of the way from pole A
+    await p.PickWithAltHold(wireColliders[wireColliders.Length / 4].bounds.center);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: 電線ピックでPlaceBlockへ遷移");
     var wireTarget = placeController.CurrentTarget as ConnectToolPlacementTarget;
     p.Assert(wireTarget != null, "項目1: CurrentTargetがConnectToolPlacementTargetになる");

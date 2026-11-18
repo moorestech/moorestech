@@ -49,10 +49,10 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         // ===== Lay rails =====
         p.Note("レール橋脚2本を直設置しノードを結線する");
 
-        // 今の機関車は 38 ブロックを約 8 秒で走り切るので、15 秒以上走るよう間隔140ブロックで配置する
-        // Today's locomotive covers 38 blocks in about 8 s, so space piers 140 blocks apart to keep it running 15+ s
+        // 今の機関車は 38 ブロックを約 8 秒で走り切るので、15 秒以上の余裕をもって走るよう間隔200ブロックで配置する
+        // Today's locomotive covers 38 blocks in about 8 s, so space piers 200 blocks apart to keep it running well past 15 s
         var pierAPos = new Vector3Int(10, 32, 4);
-        var pierBPos = new Vector3Int(10, 32, 144);
+        var pierBPos = new Vector3Int(10, 32, 204);
 
         await PlacePierDirect(pierAPos);
         await PlacePierDirect(pierBPos);
@@ -92,7 +92,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         // A.Front→B.Front辺上に、B.Frontへ長い助走を残して配置する（先頭がlist[0]へ向かう）
         // Sit the train on the A.Front→B.Front edge with a long approach to B.Front (head moves toward list[0])
         var trainLength = TrainLengthConverter.ToRailUnits(carMaster.Length);
-        var runDistance = 118 * 1024;
+        var runDistance = 178 * 1024;
         var railPosition = new RailPosition(new List<IRailNode> { railB.FrontNode, railA.FrontNode }, trainLength, runDistance);
         var placeResponse = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(railPosition, trainCarGuid, CancellationToken.None);
         p.Assert(placeResponse != null && placeResponse.Success, $"車両設置プロトコル成功 (failure={placeResponse?.FailureType})");
