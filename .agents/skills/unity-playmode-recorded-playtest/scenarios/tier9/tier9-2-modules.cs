@@ -45,7 +45,7 @@ return PlaytestRunner.Run("tier9-2-modules", new PlaytestRunOptions { Record = t
     // Terrain (mesas, rocks) spawns in front of the assemblers and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
-    p.WarpPlayer(new Vector3(8f, 32.5f, -9f));
+    p.WarpPlayer(new Vector3(1.5f, 32.5f, -9f));
 
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）
     // Mark the semiconductor and S1 research done with all prerequisites (unlock actions are replayed)
@@ -53,11 +53,11 @@ return PlaytestRunner.Run("tier9-2-modules", new PlaytestRunOptions { Record = t
     await p.RunOnServer("半導体製造と S1 の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
-    // 電気精密組立機（幅7）を4台並べて給電し、各レシピを選んで材料を入れる
-    // Place four powered electric precision assemblers (7 wide), select each recipe and insert its inputs
+    // 電気精密組立機（幅7）を足場（x -25〜25）に収まるよう x -14 から4台並べて給電し、各レシピを選んで材料を入れる
+    // Place four powered electric precision assemblers (7 wide) from x -14 so they fit the scaffold (x -25..25), select each recipe and insert its inputs
     p.Note("電気精密組立機4台でモジュール4種のレシピを選び材料を入れる");
     var crafters = new IBlock[productRecipes.Length];
-    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(i * 8, 32, 0), BlockDirection.North);
+    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(-14 + i * 8, 32, 0), BlockDirection.North);
     await PowerAll();
     for (var i = 0; i < productRecipes.Length; i++)
     {
@@ -68,7 +68,7 @@ return PlaytestRunner.Run("tier9-2-modules", new PlaytestRunOptions { Record = t
     foreach (var crafter in crafters) await p.WaitBlockGameObject(crafter.BlockPositionInfo.OriginalPos);
     // 列の南へ着地し、設置演出が終わって機械が描画される最初の完成(品質モジュール)まで待ってから撮る
     // Land south of the row and wait for the first product (quality module), by which the placement effect has finished, then shoot
-    p.WarpPlayer(new Vector3(13.5f, 32.5f, -8f));
+    p.WarpPlayer(new Vector3(1.5f, 32.5f, -14f));
     await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
     await p.Until(() => Count(crafters[0], productRecipes[0].product) > 0, 60f, $"{productRecipes[0].product} crafted");
     await p.Screenshot("01-assemblers");

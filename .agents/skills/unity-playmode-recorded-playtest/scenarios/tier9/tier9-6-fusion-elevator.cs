@@ -110,9 +110,11 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     await p.WaitSeconds(3f);
     p.Assert(Detail().Status == SpaceElevatorBaseStatus.WaitingSatellite && Inlet().InventoryItems[0].Count == countPerLaunch - 1, $"1便に満たないと昇らず入口に残る status={Detail().Status} inlet={Inlet().InventoryItems[0].Count}");
     await p.Screenshot("04-elevator-waiting-payload");
+    // 昇り始めで状態表示が変わると閉じるボタンの位置がずれてクリックが外れるため、そろえる前に UI を閉じる
+    // Close the UI before topping up; the status change at climb start shifts the close button and the click misses
+    await CloseUi();
     await p.RunOnServer($"ICチップLv1 を{countPerLaunch}個にそろえる", () => Inlet().SetItem(0, payloadId, countPerLaunch));
     await p.Until(() => Detail().Status is SpaceElevatorBaseStatus.Climbing or SpaceElevatorBaseStatus.LowPower, 15f, "昇降が始まった");
-    await CloseUi();
     var startY = climberObject.localPosition.y;
     p.WarpPlayer(new Vector3(elevatorPos.x + 4.5f, 32.5f, -20f));
     for (var frame = 0; frame < 40; frame++) { SemanticInput.MouseDragBy(new Vector2(0f, 4f)); await UniTask.Yield(); }
