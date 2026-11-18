@@ -23,8 +23,9 @@ var options = new PlaytestRunOptions { Record = true };
 
 return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
 {
-    // 開幕スキットを飛ばしてゲーム画面へ戻す（前例どおりの DSL）
-    // Skip the opening skit and return to the game screen (the precedent DSL)
+    // 実ワールドのまま環境を整え、開幕スキットを飛ばしてゲーム画面へ戻す（前例 quality-fps-measure と同じ DSL）
+    // Set up on the real world, skip the opening skit and return to the game screen (same DSL as quality-fps-measure)
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { CreateFlatGround = false });
     await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     await p.SkipOpeningSkitIfPlaying();
     await p.ExitToGameScreen();
