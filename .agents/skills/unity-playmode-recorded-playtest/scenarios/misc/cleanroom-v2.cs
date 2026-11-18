@@ -56,19 +56,21 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
         await p.RunOnServer("清浄機にフィルター5個を装填する", () => filterInventory.SetItem(0, filterItemId, 5));
     }
 
-    // 発電機を部屋の外に設置してガソリンを直接注入し、電線で清浄機と機械へ給電する
-    // Place a gasoline generator outside, fuel it directly, and wire power to the filters and machine
+    // 発電機を部屋の外に設置してガソリンを直接注入し、広範囲電柱を経て清浄機と機械へ給電する（発電機から直に張ると接続数と距離が足りない）
+    // Place a gasoline generator outside, fuel it directly, and power the filters and machine through a wide-range pole (direct wires from the generator run out of connections and reach)
     var generatorBlock = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-15, 32, -15), BlockDirection.North);
     var gasolineId = MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"));
     var genConn = generatorBlock.GetComponent<IElectricWireConnector>();
+    var poleConn = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(-2, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
     var freeCost = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
     var wired = new List<bool>();
     await p.RunOnServer("発電機に給油して清浄機と機械へ配線する", () =>
     {
         generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, gasolineId), default);
-        foreach (var consumer in filterBlocks.Append(machineBlock)) wired.Add(ElectricWireSystemUtil.TryConnectBothSides(genConn, consumer.GetComponent<IElectricWireConnector>(), freeCost));
+        wired.Add(ElectricWireSystemUtil.TryConnectBothSides(genConn, poleConn, freeCost));
+        foreach (var consumer in filterBlocks.Append(machineBlock)) wired.Add(ElectricWireSystemUtil.TryConnectBothSides(poleConn, consumer.GetComponent<IElectricWireConnector>(), freeCost));
     });
-    p.Assert(wired.Count == 3 && wired.All(w => w), "wire gen->filters and machine");
+    p.Assert(wired.Count == 4 && wired.All(w => w), $"wire gen->pole->filters and machine ({string.Join(",", wired)})");
 
     // 密閉部屋が検出され、給電された清浄機によりクラスAが成立するのを待つ
     // Wait for the sealed room to be detected and promoted to class A by the powered filters
