@@ -70,8 +70,7 @@ namespace Game.Block.Blocks.SpaceElevator
         // 入口の受入定義を配信側と共有する
         // Share the inlet acceptance definition with the publisher
         public static IReadOnlyList<ItemId> GetCarriedPayloadItemIds(SpaceElevatorBaseBlockParam param) => param.CarriedPayloadItemGuids.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToList();
-        internal bool IsCarriedPayload(ItemId itemId) { return _countPerLaunchByCarriedPayload.ContainsKey(itemId); }
-        internal int GetCountPerLaunch(ItemId carriedPayloadItemId) { return _countPerLaunchByCarriedPayload[carriedPayloadItemId]; }
+        private bool IsCarriedPayload(ItemId itemId) { return _countPerLaunchByCarriedPayload.ContainsKey(itemId); }
         // 入口の中身を見る。運べないアイテムはマスタを変えた後のロードでだけ残る
         // Peek at the inlet; a non-carried item only remains after loading with a changed master
         internal SatelliteInletState PeekSatellite(out ItemId satelliteId)
@@ -80,13 +79,13 @@ namespace Game.Block.Blocks.SpaceElevator
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
             satelliteId = stack.Id;
             if (stack.Count == 0) return SatelliteInletState.MissingPayload;
-            if (!IsCarriedPayload(stack.Id)) return SatelliteInletState.NotCarried;
+            if (!_countPerLaunchByCarriedPayload.TryGetValue(stack.Id, out var countPerLaunch)) return SatelliteInletState.NotCarried;
             // silent-ok: 1便に満たない積荷は通常の待機 / プレイヤーは拠点UIの積荷待ちと入口の個数で気づく
-            return stack.Count < GetCountPerLaunch(stack.Id) ? SatelliteInletState.MissingPayload : SatelliteInletState.Carriable;
+            return stack.Count < countPerLaunch ? SatelliteInletState.MissingPayload : SatelliteInletState.Carriable;
         }
-        // 全量が戻せるときだけ入口へ確定する
-        // Commit to the inlet only when the entire satellite stack fits
-        internal bool TryReturnSatelliteWithoutEvent(IItemStack satellite) { return SpaceElevatorInventoryRestorer.TryReturnToInletWithoutEvent(_itemDataStoreService, SatelliteSlot, satellite); }
+        // ロード時に昇降中の積荷を1便ぶんへ正規化し、昇らせない分は入口・出口へ戻す（入らなければ消す）
+        // Normalize a climbing payload to one launch on load, returning the rest to the inlet or outlets (discarding what does not fit)
+        internal IItemStack TakeLaunchableClimbingPayloadOnLoad(IItemStack savedPayload) { return SpaceElevatorInventoryRestorer.TakeLaunchableClimbingPayloadOnLoad(savedPayload, _countPerLaunchByCarriedPayload, _itemDataStoreService, _outputSlots, BlockInstanceId); }
         // 収納確認から取り出しまでを在庫の所有者が完結する
         // The inventory owner checks capacity and takes the satellite together
         internal SatelliteTakeResult TryTakeSatelliteForClimb(out IItemStack satellite, out ItemId satelliteId)
@@ -96,7 +95,7 @@ namespace Game.Block.Blocks.SpaceElevator
             var inlet = PeekSatellite(out satelliteId);
             // silent-ok: 通常の入口待機 / 呼出側が理由を状態詳細と初回ログへ反映する
             if (inlet != SatelliteInletState.Carriable) return inlet == SatelliteInletState.MissingPayload ? SatelliteTakeResult.MissingPayload : SatelliteTakeResult.NotCarried;
-            var countPerLaunch = GetCountPerLaunch(satelliteId);
+            var countPerLaunch = _countPerLaunchByCarriedPayload[satelliteId];
             // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
             if (!InventoryInsertItem.TryFillAllPreferringExisting(_arrivalService.PreviewArrivalOutputs(satelliteId, countPerLaunch), CopyOutlets())) return SatelliteTakeResult.OutputBlocked;
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
