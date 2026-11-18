@@ -44,12 +44,16 @@ return PlaytestRunner.Run("tier9-7-antimatter-final-research", new PlaytestRunOp
     p.WarpPlayer(new Vector3(5f, 32.5f, -12f));
     var deuterium = MasterHolder.FluidMaster.GetFluidId(deuteriumGuid);
     var finalResearch = MasterHolder.ResearchMaster.GetResearch(finalResearchGuid);
+    // 最終研究までの本線が 半導体製造 → ロケット技術 → 軌道エレベーターの建設・核融合炉 → 反物質爆弾 であることを確かめる
+    // Check the main line to the final research is semiconductor -> rocket tech -> orbital elevator / fusion -> antimatter bomb
+    var chain = WithPrerequisites(finalResearch.PrevResearchNodeGuids).ToHashSet();
+    p.Assert(new[] { "019e3ad9-46e2-73fd-9555-8c1d0245d26d", "01a167cf-af9d-7f31-817c-3069b4f6e499", "01a16291-4094-7369-a87f-5dfe2197d25e", "019e3af0-297f-726e-8a02-0a8518124e6d", "019e3aef-a149-746b-8fad-159e0434cb51" }.All(g => chain.Contains(Guid.Parse(g))), $"最終研究の前提 {chain.Count} 件に本線の5研究が入っている");
     await p.RunOnServer("最終研究の前提を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(finalResearch.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(finalResearch.PrevResearchNodeGuids, new[] { finalResearchGuid }, 15f, "最終研究の前提だけが完了扱いになった");
 
-    // 反物質製造装置と電気汎用工作装置を置き、核融合炉で給電する。炉の出力が製造装置の要求以上であることを先に確かめる
-    // Place the antimatter maker and the electric workshop powered by a fusion reactor; first check the reactor output covers the maker
-    p.Note("反物質製造装置と電気汎用工作装置を置き、核融合炉から給電する");
+    // 反物質製造装置と爆弾のレシピの機械（電気精密組立機）を置き、核融合炉で給電する。炉の出力が製造装置の要求以上であることを先に確かめる
+    // Place the antimatter maker and the bomb recipe's machine (electric precision assembler) on fusion power; first check the reactor output covers the maker
+    p.Note("反物質製造装置と電気精密組立機を置き、核融合炉から給電する");
     var antimatterRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(antimatterRecipeGuid);
     var bombRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(bombRecipeGuid);
     var maker = await p.PlaceBlockDirect(MasterHolder.BlockMaster.GetBlockMaster(antimatterRecipe.BlockGuid).Name, new Vector3Int(2, 32, 0), BlockDirection.North);

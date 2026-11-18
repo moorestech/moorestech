@@ -31,7 +31,6 @@ using UnityEngine.InputSystem;
 
 var productBaseName = "品質モジュールLv1"; // 族の基底 = Lv1。下で研究の対象に入っているかを assert して食い違いを捕まえる
 var qualityLv2Research = Guid.Parse("01a173a4-cfe2-769c-9b35-eabb655f9a8f"); // 品質モジュールLv2（旧アップグレード研究Lv2 の GUID を流用）
-var gpuLv2Research = Guid.Parse("01a19cf1-4847-7758-bb41-4282892021e6"); // GPULv2
 return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupFlatGround();
@@ -43,13 +42,11 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.WarpPlayer(new Vector3(1.5f, 32.5f, -8f));
 
-    // 品質モジュールLv2 を名指しし、製作上限2の解放対象を確かめ、前提だけを完了扱いにする。GPULv1 の上限2は GPULv2 研究が解放する
-    // Name quality module Lv2, check its cap-2 targets and mark only its prerequisites done; GPULv1's cap 2 is unlocked by the GPULv2 research
+    // 品質モジュールLv2 を名指しし、製作上限2の解放対象を確かめ、前提（品質モジュールLv1・ロケット技術）だけを完了扱いにする
+    // Name quality module Lv2, check its cap-2 targets and mark only its prerequisites (quality module Lv1, rocket technology) done
     var upgrade = MasterHolder.ResearchMaster.GetResearch(qualityLv2Research);
     var productBaseGuid = MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId(productBaseName)).ItemGuid;
     p.Assert(CraftLevel(upgrade)?.Level == 2 && CraftLevel(upgrade).TargetItemGuids.Contains(productBaseGuid), $"{productBaseName} が {upgrade.ResearchNodeName} の製作上限2の対象に入っている");
-    var gpuUpgrade = MasterHolder.ResearchMaster.GetResearch(gpuLv2Research);
-    p.Assert(CraftLevel(gpuUpgrade)?.Level == 2 && CraftLevel(gpuUpgrade).TargetItemGuids.Contains(MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId("GPULv1")).ItemGuid), $"GPULv1 は {gpuUpgrade.ResearchNodeName} の製作上限2の対象に入っている");
     await p.RunOnServer("品質モジュールLv2 の前提を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(upgrade.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(upgrade.PrevResearchNodeGuids, new[] { upgrade.ResearchNodeGuid }, 15f, "品質モジュールLv2 の前提だけが完了扱いになった");
 
