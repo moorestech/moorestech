@@ -15,7 +15,6 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.EnergySystem;
 using Game.UnlockState;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -50,15 +49,6 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     await p.PlaceBlockDirect("電柱", existingPolePos, BlockDirection.North);
     await p.WaitBlockGameObject(existingPolePos);
 
-    TextMeshPro AutoConnectLabel() => UnityEngine.Object
-        .FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-        .FirstOrDefault(t => t.gameObject.name == "AutoConnectWireCostLabel");
-    string AutoConnectLabelText()
-    {
-        var label = AutoConnectLabel();
-        return label != null && label.gameObject.activeInHierarchy ? label.text : string.Empty;
-    }
-
     var wireCount = p.CountItem("銅のワイヤー");
     p.Note($"所持している銅のワイヤーは{wireCount}本（電柱1本の建設コストちょうど＝配線用の余剰なし）");
 
@@ -69,10 +59,12 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     await p.AimAt(PlaytestUiOps.PlaceAimPoint("電柱", targetPos, BlockDirection.North));
     await UniTask.DelayFrame(5);
 
-    // 電線不足の文言が自動接続プレビューのラベルに出る
-    // The shortage text appears on the auto-connect preview label
-    await p.Until(() => AutoConnectLabelText().Contains("アイテム不足： 銅のワイヤー"), 10f, "受け入れ6: 電線不足時に『アイテム不足： 銅のワイヤー』が表示される");
-    p.Note($"自動接続プレビューのラベル表示='{AutoConnectLabelText()}'");
+    // 電線不足の文言はカーソルのツールチップ（UITK）に出る（自動接続の世界ラベルは撤去済み）
+    // The shortage text appears on the UITK cursor tooltip (the auto-connect world label was removed)
+    await PlaytestUiElementOps.WaitUiTextContains("cursor-tooltip", "アイテム不足： 銅のワイヤー", 10f);
+    var shortageTooltip = await PlaytestUiElementOps.FindUi("cursor-tooltip");
+    p.Assert(shortageTooltip.Text.Contains("アイテム不足： 銅のワイヤー"), "受け入れ6: 電線不足時に『アイテム不足： 銅のワイヤー』が表示される");
+    p.Note($"カーソルのツールチップ表示='{shortageTooltip.Text}'");
     await p.Screenshot("01-wire-shortage-label");
 
     // クリックしても設置されない
@@ -90,8 +82,10 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     await p.GiveItem("銅のワイヤー", 20);
     await p.AimAt(PlaytestUiOps.PlaceAimPoint("電柱", targetPos, BlockDirection.North));
     await UniTask.DelayFrame(5);
-    await p.Until(() => AutoConnectLabelText().StartsWith("電線 x"), 10f, "対照: 補充後はコスト表示（電線 xN）へ変わる");
-    p.Note($"補充後のラベル表示='{AutoConnectLabelText()}'");
+    await PlaytestUiElementOps.WaitUiTextContains("cursor-tooltip", "電線 x", 10f);
+    var costTooltip = await PlaytestUiElementOps.FindUi("cursor-tooltip");
+    p.Assert(costTooltip.Text.Contains("電線 x") && !costTooltip.Text.Contains("アイテム不足"), "対照: 補充後はコスト表示（電線 xN）へ変わる");
+    p.Note($"補充後のツールチップ表示='{costTooltip.Text}'");
     await p.Screenshot("03-after-wire-supplied");
 
     await p.ClickPlace();
