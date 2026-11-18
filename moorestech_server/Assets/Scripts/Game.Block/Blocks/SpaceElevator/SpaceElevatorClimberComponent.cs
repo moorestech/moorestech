@@ -15,8 +15,8 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
-    // 拠点の昇降機。衛星を1つずつ電力で昇らせ、頂上で軌道到着サービスへ渡して成果を出口へ入れる。成果が入りきらなければ昇り始めず、頂上でも待つ
-    // The base's climber: lifts satellites one at a time with power and hands each over at the top; it neither starts nor hands over while the result would not fit
+    // 拠点の昇降機。積荷を1便ぶんずつ電力で昇らせ、頂上で軌道到着サービスへ渡して成果を出口へ入れる。成果が入りきらなければ昇り始めず、頂上でも待つ
+    // The base's climber: lifts one launch worth of payload at a time with power and hands it over at the top; it neither starts nor hands over while the result would not fit
     public class SpaceElevatorClimberComponent : ISpaceElevatorBase, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
     {
         public bool IsConnected { get; private set; }
