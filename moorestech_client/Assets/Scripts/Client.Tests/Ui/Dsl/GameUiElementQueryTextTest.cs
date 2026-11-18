@@ -44,8 +44,8 @@ namespace Client.Tests.Ui.Dsl
             Assert.AreEqual("供給電力 0 / 最大 100", Find().Text);
         }
 
-        // 隠れた子のラベル（設定の復旧通知など）は連結に入れない
-        // A hidden child label (such as a settings recovery notice) is left out of the concatenation
+        // 隠れた子（復旧通知など）は連結しない
+        // A hidden child (e.g. recovery notice) is not concatenated
         [Test]
         public void ContainerSkipsHiddenDescendantLabels()
         {

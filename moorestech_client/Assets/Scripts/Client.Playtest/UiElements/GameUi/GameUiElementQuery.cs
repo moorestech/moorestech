@@ -46,8 +46,8 @@ namespace Client.Playtest.UiElements.GameUi
                 return builder.ToString();
             }
 
-            // 子孫から照会した要素までの間に display:none・visibility:hidden が無い
-            // No display:none or visibility:hidden between the descendant and the queried element
+            // 途中に display:none・hidden が無い
+            // No display:none or hidden on the path up to the container
             bool IsShownWithin(VisualElement descendant, VisualElement container)
             {
                 for (var current = descendant; current != null && current != container; current = current.hierarchy.parent)
