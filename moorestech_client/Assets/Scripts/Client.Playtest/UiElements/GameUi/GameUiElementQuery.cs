@@ -36,8 +36,8 @@ namespace Client.Playtest.UiElements.GameUi
                 if (element is TextField field) return field.value;
                 if (element is TextElement textElement && !string.IsNullOrEmpty(WordsOf(textElement))) return WordsOf(textElement);
 
-                // 箱と、文字を子のラベルへ持つボタンは見えている子孫の文字を順に連結する（Web は出さない要素を DOM に置かないので、隠れたラベルは数えない）
-                // A container or a button whose text lives in a child label concatenates visible descendant texts in order (Web keeps unshown elements out of the DOM, so hidden labels do not count)
+                // 箱と、文字を子のラベルへ持つボタンは見えている子孫の文字を順に連結する（Web の innerText と同じく隠れた子は数えない）
+                // A container or a button whose text lives in a child label concatenates visible descendant texts in order (hidden children do not count, like Web innerText)
                 var builder = new StringBuilder();
                 foreach (var descendant in element.Query<TextElement>().ToList())
                 {

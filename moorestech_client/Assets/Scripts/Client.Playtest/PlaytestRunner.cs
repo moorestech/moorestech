@@ -53,7 +53,10 @@ namespace Client.Playtest
                     // The Runner sets focus-ignoring input and re-enables devices before the scenario so a background Editor still gets injected input (no reliance on leftovers)
                     // 焦点を持たないまま始まった PlayMode ではデバイスが無効のまま残り、設定だけでは戻らない。例外でも復元を通すため try の中で行う
                     // A PlayMode started without focus leaves devices disabled and settings alone do not restore them; done inside the try so restore still runs
-                    PlaytestUiOps.PrepareBackgroundInput();
+                    // 録画は裏タブの GameView だと timeScale=0 に止まるので前面化まで入れ、録画しない実行は GameView に頼らない
+                    // Recording stalls at timeScale=0 with a hidden Game View, so bring it front; runs without recording do not rely on Game View
+                    if (options.Record) PlaytestUiOps.PrepareBackgroundInput();
+                    else PlaytestUiOps.EnableBackgroundInput();
                     var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
