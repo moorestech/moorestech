@@ -19,7 +19,7 @@
 - R5 宇宙エレベーター拠点の `carriedPayloadItemGuids` が ICチップLv1〜5。昇降機は1回に20個を入口から取り、240秒後に発射台と同じ計算データを出口へ出す。入口が20個未満なら昇らず待つ。
 - R6 研究コスト: 品質モジュールLv1 から計算データ40 を外す。ロケット技術から計算データ200 を外す（ICチップLv1 2000・鋼鉄板1000・コンピュータ300）。他の研究コストは変えない。
 - R7 ロケット技術の解放物: 機械レシピ（ロケット筐体素材・ロケット燃料）、レシピ表示（ロケット筐体素材・ロケット燃料・計算データ）、ブロック（ロケット発射台）。
-- R8 mooreseditor で nodeGraph を開いて保存し直しても research.json の解放が変わらない（意味差分0件）。
+- R8 mooreseditor で nodeGraph を開いて保存し直しても research.json の解放（`unlockItemRecipeView`・`unlockBlock`）と前提（`prevResearchNodeGuids`）が変わらない（意味差分0件）。
 - R9 半導体製造から最終研究まで、各研究のコストに要るアイテムが、その研究の前提までの解放物で作れる（詰みが無い）。
 - R10 画面文言とローカライズに「GPU」「データセンター」「金属3Dプリンタ」「金属超精密加工」が残らない。拠点の入口の表示は ICチップを指す。
 
@@ -82,7 +82,12 @@
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestItemId.cs`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBaseMasterValidationTest.cs`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Robustness/SpaceElevatorMultipleOutputTest.cs`
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorClimbTest.cs`（補助 `SetupConnected`・`Inventory` を共有へ移す）
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorTestUtil.cs`
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBaseSaveAndRefundTest.cs`（145行付近のログ期待）
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Recovery/SpaceElevatorLoadFailureSaveLoadTest.cs`（101行付近のログ期待）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBulkPayloadClimbTest.cs`（Create。.meta は Unity に作らせる）
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBulkPayloadSaveTest.cs`（Create）
 
 **Interfaces:**
 - Produces: `internal int SpaceElevatorBaseInventoryComponent.GetCountPerLaunch(ItemId carriedPayloadItemId)`（運ぶ積荷だけ引ける。呼ぶ前に `IsCarriedPayload` で確かめる）
@@ -212,7 +217,11 @@
 
 `SpaceElevatorMultipleOutputTest.cs` の `inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite)` 3か所を `inventory.TryCompleteArrival(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1))` に替える。
 
-`SpaceElevatorBulkPayloadClimbTest.cs` を作る（補助は既存の `SpaceElevatorClimbTest` と同じ `SetupConnected`・`Inventory`・`RunSeconds`・`ReadDetail` を使う。セーブ往復は `SpaceElevatorBaseSaveAndRefundTest.cs` が使っている補助をそのまま使う）:
+補助 `SetupConnected` と `Inventory` は `SpaceElevatorClimbTest.cs`（183・193行付近）に `private static` で置かれている。2つを本体ごと `SpaceElevatorTestUtil.cs` へ `public static` で移し、`SpaceElevatorClimbTest.cs` 側の定義を消す（同ファイルは既に `using static ...SpaceElevatorTestUtil` を持つので呼び出しは変えない。ほかのテストに同名の private 複製があれば、それも消して共有を使う）。
+
+Step 3 でログ文言が変わるので、`SpaceElevatorBaseSaveAndRefundTest.cs:145` と `Recovery/SpaceElevatorLoadFailureSaveLoadTest.cs:101` の `LogAssert.Expect` の正規表現「1機だけ昇らせ」を、新しい文言に合う「1便の .* 個だけ昇らせ」に替える（テスト用の衛星は1便1個なので、挙動の期待は変えない）。`grep -rn "1機だけ昇らせ\|衛星1機の成果" moorestech_server/Assets/Scripts/Tests` で他に無いことを確かめる。
+
+`SpaceElevatorBulkPayloadClimbTest.cs` を作る:
 
 ```csharp
 using Game.Block.Interface.State;
@@ -266,7 +275,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 }
 ```
 
-さらに `SpaceElevatorBaseSaveAndRefundTest.cs` に、既存の「昇降中にセーブしてロードすると続きから昇る」型のテストを複写し、積荷を `TestElevatorBulkPayload` 3個に替えたものを1本足す（ロード後に昇り切って成果が7個出ることと、入口が0個のままであることを確かめる）。同ファイルに「昇降中の撤去で積荷が返る」型のテストがあれば、同じく複写して3個が返ることを確かめる。
+さらに `SpaceElevatorBulkPayloadSaveTest.cs` を新しく作る（`SpaceElevatorBaseSaveAndRefundTest.cs` は180行あり、足すと200行を超えるため別ファイルにする）。同ファイルの「昇降中にセーブしてロードすると続きから昇る」型のテストを複写し、積荷を `TestElevatorBulkPayload` 3個に替える（ロード後に昇り切って成果が7個出ることと、入口が0個のままであることを確かめる）。「昇降中の撤去で積荷が返る」型のテストも同じく複写して3個が返ることを確かめる。
+
+`SpaceElevatorBaseInventoryComponent.cs` は今197行。Step 1〜2 の追加で200行を超えたら、ロード復元まわり（`LoadState` 相当と `TryReturnSatelliteWithoutEvent`）を既存の `SpaceElevatorInventoryRestorer.cs` へ寄せて200行以下に収める。
 
 - [ ] **Step 7: コンパイルしテストを通す**
 
@@ -337,7 +348,7 @@ git -C /Users/katsumi/moorestech_master worktree add -b feature/remove-gpu-simpl
 mooreseditor はアイテム・ブロックの解放をノードの位置から作り直すので、research.json と同じ結果になるようにノードを直す。
 
 - 消した研究6本・アイテム10個・ブロック2個・機械レシピ13本に対応するノードと、それらにつながる辺を消す（材料の札として置かれた複製ノードも含む。GUID で全件探す）。
-- 研究ノードの前提の辺を R2 に合わせる。
+- 研究ノードの前提の辺を R2 に合わせる。mooreseditor は保存時に `prevResearchNodeGuids` もノードの辺から作り直す（`exportToMasterResearchPatch.ts` の `record.prevResearchNodeGuids = dependencyMap.get(...)`）ので、辺が R2 と1本でも違うと次の保存で前提が黙って変わる。
 - 計算データのアイテムノードを、ロケット技術の解放に割り当たる位置へ動かす。割り当ての規則は `/Users/katsumi/WebstormProjects/mooreseditor` の `spatialUnlock.ts`（`calculateResearchUnlocks`）を読む。
 - 消した研究が占めていた場所が空くので、ロケット技術・品質モジュールLv1 の研究ノードを半導体製造の右隣へ寄せ、ノード同士が重ならないようにする（ノードの実寸は幅と高さがアイテム数で変わる。重なりの確認は mooreseditor で開いて目で見るか、矩形の交差を数える）。
 - ほかのアイテム・ブロックノードの割り当てが変わらないことを Step 7 で確かめる。
@@ -348,16 +359,16 @@ mooreseditor の実コードを Node で動かし、nodeGraph から research.js
 
 ```bash
 cd /Users/katsumi/WebstormProjects/mooreseditor && git status -sb | head -2
-grep -rn "calculateResearchUnlocks\|updateClearedActions" src --include='*.ts' -l
+grep -rn "calculateResearchUnlocks\|updateClearedActions\|prevResearchNodeGuids" plugins/node-graph/src --include='*.ts' -l
 ```
 
-上で出る `spatialUnlock.ts`・`exportToMasterResearchPatch.ts` を scratchpad へ複写し（相対 import を `.ts` つきに書き換える）、`node --experimental-strip-types` で「nodeGraph を読む → 解放を計算 → research.json の各研究の `unlockItemRecipeView`・`unlockBlock` と集合で比べる」ドライバを書いて走らせる。前回の実例が `/private/tmp/claude-501/-Users-katsumi-moorestech/ea0c3b75-736a-45ea-bca8-b60b69bceaeb/scratchpad/editor-save/driver.ts` に残っていれば流用する（無ければ書き直す）。
+上で出る `spatialUnlock.ts`・`exportToMasterResearchPatch.ts` を scratchpad へ複写し（相対 import を `.ts` つきに書き換える）、`node --experimental-strip-types` で「nodeGraph を読む → 解放を計算 → research.json の各研究の `unlockItemRecipeView`・`unlockBlock`・`prevResearchNodeGuids` と集合で比べる」ドライバを書いて走らせる。前回の実例が `/private/tmp/claude-501/-Users-katsumi-moorestech/ea0c3b75-736a-45ea-bca8-b60b69bceaeb/scratchpad/editor-save/driver.ts` に残っていれば流用する（無ければ書き直す）。
 
 Expected: 差分 0 件。差分が出たら、その研究とアイテムの名前を見てノードの位置（Step 6）か research.json（Step 5）のどちらが R7 と違うかを直す。
 
 - [ ] **Step 8: 詰みが無いことを確かめる（R9）**
 
-scratchpad のスクリプトで、研究を前提の順にたどり、各研究の `consumeItems` の全アイテムについて「それを出力する機械レシピ・クラフトレシピ・採掘・`orbitalPayloads` の成果のどれかが、その研究の前提（推移閉包）までに解放されている」ことを確かめる。計算データは「ロケット発射台が解放済みで、積荷の ICチップLv1 が作れる」ことを条件にする。半導体製造より前の研究は今回変えていないので、半導体製造以降の研究だけ見ればよい。
+scratchpad のスクリプトで、研究を前提の順にたどり、各研究の `consumeItems` の全アイテムについて「それを出力する機械レシピ・クラフトレシピ・採掘・`orbitalPayloads` の成果のどれかが、その研究の前提（推移閉包）までに解放されている」ことを確かめる。計算データは「ロケット発射台が解放済みで、積荷の ICチップLv1 が作れる」ことを条件にする。レベル付きアイテム（`items.json` の `levelFamilies` の Lv2 以降。ICチップLv2〜5・モジュールLv2〜5 など）は専用のレシピを持たず、Lv1 のレシピのレベル継承で作られるので、「同じ系列の Lv1 が作れる」ことを条件にする（ICチップは、半導体製造で解放される精密切断機のレシピがシリコンダイLv1〜5 を同時に出す）。半導体製造より前の研究は今回変えていないので、半導体製造以降の研究だけ見ればよい。
 
 Expected: 作れないアイテムを要求する研究が0件。とくに 品質モジュールLv2（計算データ400）がロケット技術の後であること、ロケット技術が計算データを要求しないこと。
 
@@ -398,6 +409,8 @@ gh pr create --title "GPU関連を消しICチップをそのまま軌道へ運�
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-7-antimatter-final-research.cs`
 - Delete: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-8-data-center.cs`
 - Modify: `moorestech_web/webui/e2e/tests/block/spaceElevator/spaceElevator.spec.ts` と、その文言の出所
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-1a-chip-line.cs`（30行付近で研究「GPU設計」の GUID `01a167f3-bd74-73f8-8c43-1869db833299` を持ち、112行付近で前提を引く。消した研究を引くと null 参照で落ちる）
+- Modify: `Localization/localization.csv`（本体。488・492行付近の「GPU衛星を待っています」「GPU衛星の入口」）
 - Modify: `CONTEXT.md`
 
 - [ ] **Step 1: ピンを更新する**
@@ -408,13 +421,15 @@ gh pr create --title "GPU関連を消しICチップをそのまま軌道へ運�
 
 ```bash
 grep -rn "GPU\|データセンター\|DataCenter\|金属3Dプリンタ\|金属超精密\|01a167ed-27\|01a167cf-af8b\|01a167cf-af8e\|01a167cf-af9[147]\|01a19f64-4833" \
-  .agents/skills moorestech_web/webui/src moorestech_web/webui/e2e moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts CONTEXT.md \
-  --include='*.cs' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.json' | grep -v "ForUnitTest\|Tests.Module\|/Tests/\|V7ToV8\|Rail\|lilToon\|steamworks\|Recorder\|IconCapture\|MapGeneration"
+  .agents/skills moorestech_web/webui/src moorestech_web/webui/e2e moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts Localization CONTEXT.md \
+  --include='*.cs' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.json' --include='*.csv' | grep -v "ForUnitTest\|Tests.Module\|/Tests/\|V7ToV8\|Rail\|lilToon\|steamworks\|Recorder\|IconCapture\|MapGeneration"
 ```
+
+消した研究6本の GUID（Task 2 Step 5 で控える。GPU設計は `01a167f3-bd74-73f8-8c43-1869db833299`、GPULv2〜5 は `01a19cf1-4847…`・`01a19cf1-4852…`・`01a19cf1-485d…`・`01a19cf1-4867…`、金属超精密加工は research.json から引く）でも同じ場所を grep する。
 
 出た箇所を次の規則で直す:
 - 録画シナリオ: GPU・GPU衛星を作って積む手順を「ICチップLv1 を20個（Lv2 なら20個）積む」に替える。期待する計算データは1便あたり Lv1:20・Lv2:40 のまま。GPU設計・金属超精密加工・GPULvN の研究を完了させる手順は消し、ロケット技術の前提は半導体製造だけにする。`tier9-2-modules-gpu.cs` は GPU の部分を消してモジュールだけにする（ファイル名は `tier9-2-modules.cs` に改名し、シナリオ一覧やスキル本文に旧名があれば直す）。`tier9-8-data-center.cs` は消す。
-- 画面文言: 「GPU衛星の入口」は「ICチップの入口」に替える（出所は grep で出たローカライズ元。マスタの `localization.csv` にあれば Task 2 の PR に含め、本体の生成物 `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` はキー名が変わらなければ触らない）。状態「衛星待ち」の文言は「積荷が1便ぶんそろうのを待っています」の意味に替える（個数はマスタの値なので文言に書かない）。e2e の期待文字列も合わせる。
+- 画面文言: 出所は本体の `Localization/localization.csv`。「GPU衛星の入口」は「ICチップの入口」に、ほかの列（英語など）も同じ意味に替える。キー名は変えないので、生成物 `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` は触らない。状態「衛星待ち」の文言は「積荷が1便ぶんそろうのを待っています」の意味に替える（個数はマスタの値なので文言に書かない）。e2e の期待文字列も合わせる。
 - `V7ToV8` のマイグレーションとテスト用 mod は触らない（過去のセーブ変換と、本番マスタから独立したテスト資産）。
 
 - [ ] **Step 3: CONTEXT.md を直す**
@@ -443,15 +458,20 @@ git add -A . && git commit -m "feat(tier9): マスタの GPU 削除に追従す�
 **Files:**
 - 実行のみ（Task 3 で直したシナリオ）
 
+- [ ] **Step 0: 消した物を持つワールドが読み込めることを確かめる（J10）**
+
+テスト用のワールド（録画スキルのワールド複写の手順で作る。`Saves/` に作ったら終わりに `list-work-saves.sh` で探して消す）に、ピン更新前のマスタで GPULv1・GPU衛星Lv1 をインベントリへ入れ、データセンターを1台置いてセーブする。ピンを新しいマスタに替えてロードし、ロードが完了して、GPU・データセンターが消えた状態で始まることを確かめる。落ちたら、落ちた箇所とログを添えてユーザーへ報告する（移行ステップを足すかは裁定事項）。
+
 - [ ] **Step 1: 発射台と拠点を実プレイで確かめる**
 
 unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で次を走らせる（マスタは Task 3 のピンに合わせた worktree）:
 - `tier9-4-rocket-launch`: ICチップLv1 20個を積んで打ち上げ、出口に計算データ20個が出る。
 - `tier9-6-fusion-elevator`: 接続済みの拠点の入口に ICチップLv1 を19個入れても昇らず、20個目で昇り、240秒後に計算データ20個が出る（シナリオ内の待ち時間は既存の書き方に合わせる）。
+- `tier9-1a-chip-line`: GPU設計を経ずにチップのラインが組める（直したシナリオが落ちない）。
 - `tier9-5-compute-research`: ロケットで得た計算データで品質モジュールLv2 の研究が完了できる。
 - `tier9-7-antimatter-final-research`: 半導体製造 → ロケット技術 → 軌道エレベーターの建設・核融合炉 → 反物質爆弾 → 最終研究 が、消した研究を経ずに完了できる。
 
-Expected: 4本とも result.json が成功。失敗したら原因（シナリオの古い手順か、マスタか、Task 1 のコードか）を切り分けて直し、通るまで繰り返す。録画と result.json は worktree の gitignore 下に置く。
+Expected: 5本とも result.json が成功。失敗したら原因（シナリオの古い手順か、マスタか、Task 1 のコードか）を切り分けて直し、通るまで繰り返す。録画と result.json は worktree の gitignore 下に置く。
 
 ### Task 5: 全ブランチレビュー
 
@@ -472,6 +492,7 @@ Expected: 4本とも result.json が成功。失敗したら原因（シナリ�
 - J6 1便の個数は拠点の在庫コンポーネントが生成時にマスタの積荷表から読む。到着サービスには問い合わせを足さない。出所: agent前提（ADR 0091「1便の個数はマスタの表から引く」と発射台の `RocketLaunchPadSlotLayout` の前例。Phase 2.6 の検査7で、到着サービスへ足す初案が ADR 0091 の線引きとずれると分かり直した）。
 - J7 `SpaceElevatorBaseParamValidator.cs` の「運ぶ積荷は1便1個」の検査を消す。出所: agent前提（ADR 0102 の「昇降機が1回に運ぶ個数を積荷表の1便の個数に変える」。上限は `OrbitalPayloadMasterValidator.cs` の「Lv1 のスタック上限以下」が見ており、入口スロット1つに1便ぶんが入ることはそれで保証される）。
 - J8 拠点の待ちの文言に個数（20）を書かない。出所: agent前提（個数はマスタの値で、画面へ送る経路を新しく作らないため、書くとマスタ変更で表示がずれる）。
+- J10 消したアイテム・ブロック・研究を持つワールドは、既存のロード時の刈り込み（`moorestech_server/Assets/Scripts/Game.SaveLoad/Pruning/MissingMasterPruner.cs`。マスタに無いブロック・アイテム・研究をセーブから外して読み込む）に任せ、今回は移行ステップを足さない。出所: agent前提（ADR 0102 の「手当てしない」。Task 4 の前に、GPU を持つ手元のワールドが刈り込まれて読み込めることを1回確かめる）。
 - J9 Phase 2.6 の弱い当たり: 「空」と「1便に足りない」を入口の状態 `Empty` 1つに入れる（J1）／出口に収まるかの判定が取り出し時と到着時の2か所にある（既存の作りのまま）。出所: agent前提（どちらもプレイヤーに見える差が無い）。
 
 ## 本PR外のリファクタ提案
