@@ -34,6 +34,10 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async p =>
 {
     await p.SetupFlatGround();
+    // 開幕スキット中は主カメラが無く画面が Story のままなので、飛ばして GameScreen へ戻ってから組み立てる
+    // The opening skit leaves no main camera and the screen in Story, so skip it and return to GameScreen before building
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
 
     // クライアントDIはClientDIContext経由で解決する
     // Resolve client-side DI singletons via ClientDIContext

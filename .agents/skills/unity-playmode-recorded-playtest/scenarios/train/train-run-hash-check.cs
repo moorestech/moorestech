@@ -38,6 +38,10 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
     try
     {
         await p.SetupFlatGround();
+        // 開幕スキット中は主カメラが無く画面が Story のままなので、飛ばして GameScreen へ戻ってから組み立てる
+        // The opening skit leaves no main camera and the screen in Story, so skip it and return to GameScreen before building
+        await p.SkipOpeningSkitIfPlaying();
+        await p.ExitToGameScreen();
         p.WarpPlayer(new Vector3(16f, 33.5f, 17f));
         await p.WaitSeconds(0.5f);
 
