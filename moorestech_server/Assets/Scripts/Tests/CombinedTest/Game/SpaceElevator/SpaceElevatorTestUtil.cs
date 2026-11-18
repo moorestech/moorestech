@@ -1,9 +1,12 @@
 using System;
 using Core.Update;
+using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Orbit;
+using Game.SpaceElevator;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
 using Server.Protocol;
@@ -49,6 +52,28 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             // The test mod's cable launches carry 50 per launch
             var orbital = ServerContext.GetService<IOrbitalArrivalService>();
             for (var launched = 0; launched < count; launched += 50) orbital.Arrive(ForUnitTestItemId.TestElevatorCable, 50);
+        }
+
+        public static IBlock SetupConnected(float power)
+        {
+            CreateServer();
+            return PlaceConnectedBase(power);
+        }
+
+        // 電力とケーブルを与え接続済みにした拠点を置く
+        // Place a base that is powered, supplied with cables and already connected
+        public static IBlock PlaceConnectedBase(float power)
+        {
+            var elevatorBase = PlaceBase(Vector3Int.zero);
+            PowerBase(elevatorBase, Vector3Int.zero, power);
+            LaunchCables(100);
+            ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
+            return elevatorBase;
+        }
+
+        public static SpaceElevatorBaseInventoryComponent Inventory(IBlock elevatorBase)
+        {
+            return elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
         }
 
         public static void RunSeconds(double seconds)

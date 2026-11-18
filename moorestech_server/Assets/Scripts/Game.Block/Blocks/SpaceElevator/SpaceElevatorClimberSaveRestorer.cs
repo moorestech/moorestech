@@ -45,14 +45,21 @@ namespace Game.Block.Blocks.SpaceElevator
                 return (ServerContext.ItemStackFactory.CreatEmpty(), 0);
             }
 
-            // 昇降機は1機ずつ運ぶ。壊れたセーブで2機以上あれば1機だけ昇らせ、余りを入口へ戻す
-            // The climber carries one at a time; a broken save with more keeps one climbing and returns the rest to the inlet
-            if (1 < satellite.Count)
+            // 昇降機は1便ぶんを運ぶ。マスタの変更や壊れたセーブで個数が合わなければ、1便ぶんだけ昇らせ余りを入口へ戻す
+            // The climber carries one launch worth; on a mismatch keep one launch climbing and return the rest to the inlet
+            var countPerLaunch = inventory.GetCountPerLaunch(satellite.Id);
+            if (satellite.Count < countPerLaunch)
             {
-                Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星が {satellite.Count} 機セーブにあるため、1機だけ昇らせ残りを入口へ戻します");
-                if (!inventory.TryReturnSatelliteWithoutEvent(ServerContext.ItemStackFactory.Create(satellite.Id, satellite.Count - 1)))
+                Debug.LogError($"[SpaceElevatorBase] 昇降中の積荷 {satellite.Id} が {satellite.Count} 個で1便の {countPerLaunch} 個に足りないため、昇降を取り消して入口へ戻します");
+                if (!inventory.TryReturnSatelliteWithoutEvent(satellite)) throw new InvalidOperationException("Space elevator load failed: short payload cannot be returned; preserve the source save");
+                return (ServerContext.ItemStackFactory.CreatEmpty(), 0);
+            }
+            if (countPerLaunch < satellite.Count)
+            {
+                Debug.LogError($"[SpaceElevatorBase] 昇降中の積荷が {satellite.Count} 個セーブにあるため、1便の {countPerLaunch} 個だけ昇らせ残りを入口へ戻します");
+                if (!inventory.TryReturnSatelliteWithoutEvent(ServerContext.ItemStackFactory.Create(satellite.Id, satellite.Count - countPerLaunch)))
                     throw new InvalidOperationException("Space elevator load failed: excess satellites cannot be returned; preserve the source save");
-                satellite = ServerContext.ItemStackFactory.Create(satellite.Id, 1);
+                satellite = ServerContext.ItemStackFactory.Create(satellite.Id, countPerLaunch);
             }
 
             // 残りが負・NaN・無限のセーブは壊れている。最初から昇り直す（0は頂上で出口待ちの正しい値）

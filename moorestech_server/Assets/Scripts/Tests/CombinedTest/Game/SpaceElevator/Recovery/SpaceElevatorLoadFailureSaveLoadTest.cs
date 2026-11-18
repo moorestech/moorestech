@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             else
             {
                 if (scenario != "shrink")
-                    LogAssert.Expect(LogType.Error, new Regex(scenario == "unsupported" ? "運ぶ積荷ではない" : "1機だけ昇らせ"));
+                    LogAssert.Expect(LogType.Error, new Regex(scenario == "unsupported" ? "運ぶ積荷ではない" : "1便の .* 個だけ昇らせ"));
                 LogAssert.Expect(LogType.Error, new Regex(scenario == "shrink" ? "出口縮小.*ロードを中断" : "衛星を全量戻せないためロードを中断"));
                 var error = Assert.Throws<Exception>(() => loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
                 StringAssert.Contains("ロード", error.Message);

@@ -35,7 +35,6 @@ namespace Core.Master.Validator.Block
                 // 初期容量はlong集計し配列を作らない
                 // Share the long initial-stack calculation without allocating preview arrays
                 var result = "";
-                if (payload.CountPerLaunch != 1) result += $"[BlockMaster] Name:{name} carried payload {guid} countPerLaunch must be 1\n";
                 var counts = payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count));
                 var neededSlots = MasterHolder.ItemMaster.CountRequiredSlotsAtLevelOne(counts);
                 if (outputSlots < neededSlots) result += $"[BlockMaster] Name:{name} outputSlotCount {outputSlots} cannot hold payload {guid} ({neededSlots} stacks at level-1 stack)\n";

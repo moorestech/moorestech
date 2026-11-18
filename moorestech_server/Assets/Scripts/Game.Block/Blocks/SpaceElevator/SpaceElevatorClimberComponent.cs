@@ -79,7 +79,7 @@ namespace Game.Block.Blocks.SpaceElevator
             changed |= wasOutputBlocked != _outputBlocked || inventoryChanged;
             // 出口待ちに入ったtickに1回だけ理由をログへ出す（以降はUIの状態表示で伝える）
             // Log the reason once on the tick the outlet wait begins; the UI status carries it afterwards
-            if (!wasOutputBlocked && _outputBlocked) Debug.Log("[SpaceElevatorBase] 衛星1機の成果が出口に入りきらないため、出口が空くまで待ちます");
+            if (!wasOutputBlocked && _outputBlocked) Debug.Log("[SpaceElevatorBase] 1便の成果が出口に入りきらないため、出口が空くまで待ちます");
             // 昇っている間は進みが毎tick動くので毎tick通知する（同一ペイロードはイベント側が送らない）
             // While ascending the progress moves every tick, so notify every tick (the event packet drops identical payloads)
             if (changed || IsAscending) _onChangeBlockState.OnNext(Unit.Default);
@@ -97,7 +97,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
                 // At the top, hand over only when the result fits the outlets; otherwise wait at the top
                 _inventoryChanged = true;
-                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id);
+                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite);
                 // 容量不足は実通知まで待つ。例外時の再試行予約は到着呼出し前に残す
                 // Wait for a real event when full; reserve retries before arrival so exceptions retain them
                 _inventoryChanged = !_outputBlocked;

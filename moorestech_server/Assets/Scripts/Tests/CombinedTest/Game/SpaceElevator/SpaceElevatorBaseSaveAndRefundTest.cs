@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 壊れたセーブを模す。1機だけ昇り、余りの2機は入口へ戻る
             // Mimic a broken save; one satellite keeps climbing and the extra two go back to the inlet
-            LogAssert.Expect(LogType.Error, new Regex("1機だけ昇らせ"));
+            LogAssert.Expect(LogType.Error, new Regex("1便の .* 個だけ昇らせ"));
             var climber = LoadClimber(elevatorBase, save);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
             Assert.AreEqual(2, inventory.GetItem(0).Count);

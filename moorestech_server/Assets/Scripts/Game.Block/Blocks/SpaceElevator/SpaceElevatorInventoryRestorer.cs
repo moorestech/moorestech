@@ -27,5 +27,19 @@ namespace Game.Block.Blocks.SpaceElevator
             // Restore only after verifying every saved item can be retained
             for (var i = 0; i < slotCount && i < items.Count; i++) inventory.SetItemWithoutEvent(i, items[i].ToItemStack());
         }
+
+        // ロード時に積荷を入口へ戻す。全量が戻せるときだけ確定する
+        // Return a payload to the inlet on load, committing only when the whole stack fits
+        internal static bool TryReturnToInletWithoutEvent(OpenableInventoryItemDataStoreService inventory, int inletSlot, IItemStack payload)
+        {
+            var result = inventory.GetItem(inletSlot).AddItem(payload);
+            if (0 < result.RemainderItemStack.Count)
+            {
+                Debug.LogError($"[SpaceElevatorBase] 入口に衛星を全量戻せないためロードを中断します item:{payload.Id} count:{payload.Count}");
+                return false;
+            }
+            inventory.SetItemWithoutEvent(inletSlot, result.ProcessResultItemStack);
+            return true;
+        }
     }
 }
