@@ -43,7 +43,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 層の置き場所・機構・死活表とも前例どおり。注目点4件は判断記録 J6〜J8 に記載
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱2・第3バケツ1 / 強（1便の個数の置き場が ADR 0091 とずれる）は plan を ADR に合わせて直した（J6）。弱2件は J1・J9。第3バケツは末尾の節
 
 ---
 
@@ -51,7 +51,7 @@
 
 | # | 項目 | 配置先 | 機構・前例 |
 |---|---|---|---|
-| 1 | `IOrbitalArrivalService.GetCountPerLaunch(ItemId)` | `Game.Orbit`（積荷表の持ち主） | 積荷の種類による分岐は到着サービスだけが持つ（同インターフェースの冒頭コメント、ADR 0091）。発射台は `RocketLaunchPadSlotLayout` がマスタから同じ値を読むが、あれは「スロット割り当て」の役割で、拠点は入口が1つなので同じ層を作らない |
+| 1 | 運ぶ積荷ごとの1便の個数 | `SpaceElevatorBaseInventoryComponent`（生成時にマスタの積荷表から読んで持つ） | ADR 0091「1便の個数はマスタの表から引く」。発射台の `Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs:26` が生成時に `OrbitalPayloads` の `CountPerLaunch` を読むのと同じ。到着サービスには問い合わせを足さない |
 | 2 | 昇降機が運ぶ個数 | `Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent`（入口の在庫の持ち主） | 「収納確認から取り出しまでを在庫の所有者が完結する」既存の `TryTakeSatelliteForClimb` を広げる |
 | 3 | ロード時の個数の検査 | `SpaceElevatorClimberSaveRestorer`（既存の壊れたセーブの扱い） | 既存の「2機以上なら1機だけ昇らせ余りを戻す」分岐を個数つきに広げる |
 | 4 | マスタ検証 | `Core.Master/Validator/Block/SpaceElevatorBaseParamValidator` | `countPerLaunch must be 1` を外す。上限は `OrbitalPayloadMasterValidator` の「Lv1 のスタック上限以下」が既に見ている |
@@ -73,9 +73,6 @@
 ### Task 1: 昇降機が1便の個数を運ぶ（サーバー）
 
 **Files:**
-- Modify: `moorestech_server/Assets/Scripts/Game.Orbit/IOrbitalArrivalService.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.Orbit/OrbitalArrivalService.cs`
-- Modify: `moorestech_server/Assets/Scripts/Tests/Util/Rocket/FixedOutputArrivalService.cs`（テスト用の実装。インターフェースに追従）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberSaveRestorer.cs`
@@ -88,32 +85,31 @@
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBulkPayloadClimbTest.cs`（Create。.meta は Unity に作らせる）
 
 **Interfaces:**
-- Produces: `int IOrbitalArrivalService.GetCountPerLaunch(ItemId payloadItemId)`（表に無い積荷は `InvalidOperationException`）
+- Produces: `internal int SpaceElevatorBaseInventoryComponent.GetCountPerLaunch(ItemId carriedPayloadItemId)`（運ぶ積荷だけ引ける。呼ぶ前に `IsCarriedPayload` で確かめる）
 - Produces: `internal bool SpaceElevatorBaseInventoryComponent.TryCompleteArrival(IItemStack climbingPayload)`（引数を `ItemId` から昇降中のスタックへ替える）
 - Produces: テスト用 `ForUnitTestItemId.TestElevatorBulkPayload`（1便3個・成果は `TestElevatorReward` 7個）
 
-- [ ] **Step 1: 到着サービスに1便の個数の問い合わせを足す**
+- [ ] **Step 1: 運ぶ積荷ごとの1便の個数を、生成時にマスタから読んで持つ**
 
-`IOrbitalArrivalService.cs` の `IsOrbitalPayload` の下に足す:
-
-```csharp
-        // 1便で運ぶ個数。表に無い積荷は呼び出し側のバグとして例外
-        // Count carried per launch; an unknown payload is a caller bug and throws
-        int GetCountPerLaunch(ItemId payloadItemId);
-```
-
-`OrbitalArrivalService.cs` の `IsOrbitalPayload` の下に足す:
+`SpaceElevatorBaseInventoryComponent.cs` の `private readonly HashSet<ItemId> _carriedPayloads;` を次に替え、コンストラクタの `_carriedPayloads = new HashSet<ItemId>(GetCarriedPayloadItemIds(param));` も替える（運ぶ積荷が積荷表に載っていることは `SpaceElevatorBaseParamValidator` が起動時に保証する）:
 
 ```csharp
-        public int GetCountPerLaunch(ItemId payloadItemId)
-        {
-            if (!_payloadByItemId.TryGetValue(payloadItemId, out var found))
-                throw new InvalidOperationException($"積荷表に無いアイテムの1便の個数を求められました ItemId:{payloadItemId}");
-            return found.CountPerLaunch;
-        }
+        // 運ぶ積荷と、その1便の個数（マスタの積荷表から引く）
+        // Carried payloads and their per-launch counts, read from the master payload table
+        private readonly Dictionary<ItemId, int> _countPerLaunchByCarriedPayload;
 ```
 
-`FixedOutputArrivalService.cs` を開き、同クラスが `PreviewArrivalOutputs` で個数をどう扱っているかに合わせて `public int GetCountPerLaunch(ItemId payloadItemId) => 1;` を足す（このテスト実装は1個1便の固定成果を返す用途）。
+```csharp
+            _countPerLaunchByCarriedPayload = param.CarriedPayloadItemGuids.ToDictionary(
+                guid => MasterHolder.ItemMaster.GetItemId(guid),
+                guid => MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(payload => payload.PayloadItemGuid == guid).CountPerLaunch);
+```
+
+`IsCarriedPayload` を `return _countPerLaunchByCarriedPayload.ContainsKey(itemId);` に替え、その下に足す:
+
+```csharp
+        internal int GetCountPerLaunch(ItemId carriedPayloadItemId) { return _countPerLaunchByCarriedPayload[carriedPayloadItemId]; }
+```
 
 - [ ] **Step 2: 入口から1便ぶんを取る**
 
@@ -128,14 +124,14 @@
             if (stack.Count == 0) return SatelliteInletState.Empty;
             if (!IsCarriedPayload(stack.Id)) return SatelliteInletState.NotCarried;
             // silent-ok: 1便に満たない積荷は通常の待機 / プレイヤーは拠点UIの積荷待ちと入口の個数で気づく
-            return stack.Count < _arrivalService.GetCountPerLaunch(stack.Id) ? SatelliteInletState.Empty : SatelliteInletState.Carriable;
+            return stack.Count < GetCountPerLaunch(stack.Id) ? SatelliteInletState.Empty : SatelliteInletState.Carriable;
         }
 ```
 
 `TryTakeSatelliteForClimb` の後半を次に替える:
 
 ```csharp
-            var countPerLaunch = _arrivalService.GetCountPerLaunch(satelliteId);
+            var countPerLaunch = GetCountPerLaunch(satelliteId);
             // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
             if (!InventoryInsertItem.TryFillAllPreferringExisting(_arrivalService.PreviewArrivalOutputs(satelliteId, countPerLaunch), CopyOutlets())) return SatelliteTakeResult.OutputBlocked;
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
@@ -163,7 +159,7 @@
 
 - [ ] **Step 3: ロード時に個数を1便へそろえる**
 
-`SpaceElevatorClimberSaveRestorer.cs` の「昇降機は1機ずつ運ぶ」ブロック（`if (1 < satellite.Count) { ... }`）を次に替える。`inventory` から1便の個数を引くため、`SpaceElevatorBaseInventoryComponent` に `internal int GetCountPerLaunch(ItemId itemId) { return _arrivalService.GetCountPerLaunch(itemId); }` を足して使う:
+`SpaceElevatorClimberSaveRestorer.cs` の「昇降機は1機ずつ運ぶ」ブロック（`if (1 < satellite.Count) { ... }`）を次に替える。1便の個数は Step 1 の `inventory.GetCountPerLaunch` で引く（直前の `IsCarriedPayload` の分岐を通った後なので必ず引ける）:
 
 ```csharp
             // 昇降機は1便ぶんを運ぶ。マスタの変更や壊れたセーブで個数が合わなければ、1便ぶんだけ昇らせ余りを入口へ戻す
@@ -473,6 +469,11 @@ Expected: 4本とも result.json が成功。失敗したら原因（シナリ�
 - J3 テスト用 mod の GPU 連鎖（`ForUnitTestTier9ChainIds` と `Tier9ComputeLoopEndToEndTest`）は残す。出所: agent前提（本番マスタから独立した「レベル付きアイテムを積荷にして研究素材を得る連鎖」の結合テストで、積荷表の仕組みの回帰を守っている）。
 - J4 クライアントの DataCenter・金属3Dプリンタのプレハブとアドレスは消さない。出所: agent前提（Unity 固有ファイルの手編集は禁止で、マスタから参照が消えれば読まれない）。
 - J5 unityプレイ録画テストを Task 4 に含める（拠点の昇降というランタイム挙動に触れるため）。
-- J6 1便の個数の問い合わせは `IOrbitalArrivalService` に足す。出所: agent前提（積荷の種類による分岐は到着サービスだけが持つ、という ADR 0091 の作り）。
+- J6 1便の個数は拠点の在庫コンポーネントが生成時にマスタの積荷表から読む。到着サービスには問い合わせを足さない。出所: agent前提（ADR 0091「1便の個数はマスタの表から引く」と発射台の `RocketLaunchPadSlotLayout` の前例。Phase 2.6 の検査7で、到着サービスへ足す初案が ADR 0091 の線引きとずれると分かり直した）。
 - J7 `SpaceElevatorBaseParamValidator.cs` の「運ぶ積荷は1便1個」の検査を消す。出所: agent前提（ADR 0102 の「昇降機が1回に運ぶ個数を積荷表の1便の個数に変える」。上限は `OrbitalPayloadMasterValidator.cs` の「Lv1 のスタック上限以下」が見ており、入口スロット1つに1便ぶんが入ることはそれで保証される）。
 - J8 拠点の待ちの文言に個数（20）を書かない。出所: agent前提（個数はマスタの値で、画面へ送る経路を新しく作らないため、書くとマスタ変更で表示がずれる）。
+- J9 Phase 2.6 の弱い当たり: 「空」と「1便に足りない」を入口の状態 `Empty` 1つに入れる（J1）／出口に収まるかの判定が取り出し時と到着時の2か所にある（既存の作りのまま）。出所: agent前提（どちらもプレイヤーに見える差が無い）。
+
+## 本PR外のリファクタ提案
+
+- 既存 `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Save/RocketLaunchPadRetainedItemValidator.cs:41`（ロード時に積荷の個数が1便の個数と同じかを検査）と、新設の `SpaceElevatorClimberSaveRestorer` の個数の分岐は同じ役割。打ち上げ口で共有する形にまとめるかは人が決める。
