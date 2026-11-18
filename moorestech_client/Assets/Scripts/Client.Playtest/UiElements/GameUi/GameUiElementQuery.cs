@@ -36,11 +36,26 @@ namespace Client.Playtest.UiElements.GameUi
                 if (element is TextField field) return field.value;
                 if (element is TextElement textElement && !string.IsNullOrEmpty(WordsOf(textElement))) return WordsOf(textElement);
 
-                // 箱と、文字を子のラベルへ持つボタンは子孫の文字を順に連結する（Web の textContent と同じ扱い）
-                // A container or a button whose text lives in a child label concatenates descendant texts in order, like the Web textContent
+                // 箱と、文字を子のラベルへ持つボタンは見えている子孫の文字を順に連結する（Web は出さない要素を DOM に置かないので、隠れたラベルは数えない）
+                // A container or a button whose text lives in a child label concatenates visible descendant texts in order (Web keeps unshown elements out of the DOM, so hidden labels do not count)
                 var builder = new StringBuilder();
-                foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(WordsOf(descendant));
+                foreach (var descendant in element.Query<TextElement>().ToList())
+                {
+                    if (IsShownWithin(descendant, element)) builder.Append(WordsOf(descendant));
+                }
                 return builder.ToString();
+            }
+
+            // 子孫から照会した要素までの間に display:none・visibility:hidden が無い
+            // No display:none or visibility:hidden between the descendant and the queried element
+            bool IsShownWithin(VisualElement descendant, VisualElement container)
+            {
+                for (var current = descendant; current != null && current != container; current = current.hierarchy.parent)
+                {
+                    var style = current.resolvedStyle;
+                    if (style.display == DisplayStyle.None || style.visibility != Visibility.Visible) return false;
+                }
+                return true;
             }
 
             // 本番のラベルの text は表示用の印を含みうるので、Web の textContent に当たる WordsText を読む
