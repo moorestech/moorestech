@@ -42,7 +42,6 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
 
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）
     // Mark the semiconductor and S1 research done with all prerequisites (unlock actions are replayed)
-    p.Note("半導体製造と S1 の研究を前提ごと完了させる");
     await p.RunOnServer("研究を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
@@ -53,55 +52,54 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     var ipaOutPipe = await p.PlaceBlockDirect("鋼鉄のパイプ", new Vector3Int(2, 33, -15), BlockDirection.North);
     await SelectRecipe(chem, MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.OutputFluids.Any(f => MasterHolder.FluidMaster.GetFluidId(f.FluidGuid) == ipaId)));
 
-    // 部屋を建て、室内に専用機4種（トランジスタ設置用と露光用の EUV 2台）と清浄機2台を置いて工程レシピを選ぶ
-    // Build the room, place the four machine kinds (two EUVs: transistor and exposure) and two air filters inside, and select each stage recipe
-    p.Note("クリーンルームを建て、専用機4種（EUV は2台）と清浄機を置いて給電する");
+    // 部屋を建て、室内に精密切断機2台（切断とダイシング）・EUV 2台（トランジスタ設置と露光）・電気精密組立機（パッケージング）と清浄機2台を置いて工程レシピを選ぶ
+    // Build the room, place two precision cutters (slicing, dicing), two EUVs (transistor, exposure), the electric precision assembler (packaging) and two air filters, and select each stage recipe
+    p.Note("クリーンルームを建て、精密切断機2・EUV 2・電気精密組立機と清浄機を置いて給電する");
     await BuildRoom();
-    var cutter = await PlaceStage("ウェハ切断機", new Vector3Int(2, 33, 1), "シリコンウェハ");
+    var cutter = await PlaceStage("精密切断機", new Vector3Int(2, 33, 1), "シリコンウェハ");
     var transistorEuv = await PlaceStage("EUV露光式半導体製造装置", new Vector3Int(6, 33, 1), "トランジスタ設置済みウェハ");
     var euv = await PlaceStage("EUV露光式半導体製造装置", new Vector3Int(10, 33, 1), "1層パターンウェハ");
-    var dicing = await PlaceStage("ダイシング装置", new Vector3Int(2, 33, 5), "シリコンダイLv1");
-    var packaging = await PlaceStage("パッケージング装置", new Vector3Int(6, 33, 5), "ICチップLv1");
-    foreach (var x in new[] { 10, 12 }) await GiveWithFluids(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 5)), 0, "クリーンルームフィルター", 5);
+    var dicing = await PlaceStage("精密切断機", new Vector3Int(2, 33, 5), "シリコンダイLv1");
+    var packaging = await PlaceStage("電気精密組立機", new Vector3Int(6, 33, 5), "ICチップLv1");
+    // 組立機は液体タンクを持たないので IPA を満たす列から外す
+    // The assembler has no fluid tank, so drop it from the IPA-filled list
+    stages.Remove(packaging);
+    foreach (var z in new[] { 5, 7 }) await GiveWithFluids(await Place("クリーンルーム空気清浄機", new Vector3Int(13, 33, z)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
     await p.WaitForCleanRoom(cutter, true, 30f, "clean room classified");
-    foreach (var cell in new[] { new Vector3Int(14, 36, 10), new Vector3Int(7, 33, 0), new Vector3Int(0, 32, -26) }) await p.WaitBlockGameObject(cell);
+    foreach (var cell in new[] { new Vector3Int(14, 37, 10), new Vector3Int(5, 33, 0), new Vector3Int(0, 32, -26) }) await p.WaitBlockGameObject(cell);
     await p.Screenshot("01-room-and-line");
 
     // IPA が化学プラントから出て、切断 → EUV（トランジスタ設置）→ EUV（露光）の各工程が出力を出す
     // IPA comes out of the chemical plant, then slicing, EUV transistor placement and EUV exposure each produce output
     await p.RunOnServer("IPA・ナフサ・水をタンクいっぱいまで入れる", FillFluids);
     await p.Until(() => ipaOutPipe.GetComponent<Game.Block.Blocks.Fluid.IFluidInventory>().GetFluidInventory().Any(f => f.FluidId == ipaId && f.Amount > 0), 60f, "IPA produced");
-    p.Note("高純度シリコン→ウェハ→EUV(トランジスタ設置)→EUV(露光) の順に各工程へ素材を入れる");
-    await GiveWithFluids(cutter, 0, "高純度シリコン", 20);
+    p.Note("金属シリコン→ウェハ→EUV(トランジスタ設置)→EUV(露光) の順に各工程へ素材を入れる");
+    await GiveWithFluids(cutter, 0, "金属シリコン", 20);
     await p.Until(() => Count(cutter, "シリコンウェハ") > 0, 60f, "wafer sliced");
     await GiveWithFluids(transistorEuv, 0, "シリコンウェハ", 2);
     await p.Until(() => Count(transistorEuv, "トランジスタ設置済みウェハ") > 0, 60f, "transistor wafer made by EUV");
     await GiveWithFluids(euv, 0, "トランジスタ設置済みウェハ", 4);
     await p.Until(() => Count(euv, "1層パターンウェハ") + Count(euv, "失敗したパターンウェハ") > 0, 60f, "EUV layer exposed");
 
-    // ダイシング装置に品質モジュールLv1 を挿す（品質Tier1 の表: Lv2 はレア枠 10%）と、完成ウェハ1枚から Lv1 と Lv2 のダイが出る
-    // With a quality module Lv1 in the dicing machine (tier-1 table: Lv2 is the 10% rare slot), one finished wafer yields Lv1 and Lv2 dies
-    p.Note("ダイシング装置に品質モジュールLv1 を挿し、完成ウェハをダイシングして Lv1/Lv2 ダイを取る");
-    await p.RunOnServer("品質モジュールLv1 をダイシング装置のモジュール欄(末尾)へ挿す", () => Slots(dicing).SetItem(Slots(dicing).GetSlotSize() - ((Mooresmaster.Model.BlocksModule.CleanRoomMachineBlockParam)dicing.BlockMasterElement.BlockParam).ModuleSlotCount, PlaytestItemOps.ResolveItemId("品質モジュールLv1"), 1));
+    // ダイシングの精密切断機に品質モジュールLv1 を挿す（品質Tier1 の表: Lv2 はレア枠 10%）と、完成ウェハ1枚から Lv1 と Lv2 のダイが出る
+    // With a quality module Lv1 in the dicing cutter (tier-1 table: Lv2 is the 10% rare slot), one finished wafer yields Lv1 and Lv2 dies
+    await p.RunOnServer("品質モジュールLv1 をダイシングの精密切断機のモジュール欄(末尾)へ挿す", () => Slots(dicing).SetItem(Slots(dicing).GetSlotSize() - ((Mooresmaster.Model.BlocksModule.CleanRoomMachineBlockParam)dicing.BlockMasterElement.BlockParam).ModuleSlotCount, PlaytestItemOps.ResolveItemId("品質モジュールLv1"), 1));
     await GiveWithFluids(dicing, 0, "完成パターンウェハ", 1);
     await p.Until(() => Count(dicing, "シリコンダイLv1") >= 10 && Count(dicing, "シリコンダイLv2") >= 1, 120f, "Lv1 >= 10 and Lv2 >= 1 dies diced");
     p.Assert(Count(dicing, "シリコンダイLv3") == 0, $"品質Tier1 の表では Lv3 ダイが出ない（Lv1 x{Count(dicing, "シリコンダイLv1")} / Lv2 x{Count(dicing, "シリコンダイLv2")} / Lv3 x{Count(dicing, "シリコンダイLv3")} / 失敗 x{Count(dicing, "失敗したシリコンダイ")}）");
     await ShootMachine(dicing, "02-dies");
 
-    // パッケージングで Lv1 → ICチップLv1、Lv2 → ICチップLv2（継承レシピ）。出力スロットは1つなので Lv1 を取り出してから Lv2 を流す
-    // Packaging turns Lv1 dies into IC chip Lv1 and Lv2 into IC chip Lv2 (inheritance); the single output slot means Lv1 is taken out before Lv2
-    p.Note("Lv1 ダイと Lv2 ダイを順にパッケージングする");
+    // 組立機で Lv1 → ICチップLv1、Lv2 → ICチップLv2（継承レシピ）。Lv1 を取り出してから Lv2 を流す
+    // The assembler turns Lv1 dies into IC chip Lv1 and Lv2 into IC chip Lv2 (inheritance); Lv1 is taken out before Lv2
     await GiveWithFluids(packaging, 1, "ICチップ基板", 2);
     await MoveDies("シリコンダイLv1");
     await p.Until(() => Count(packaging, "ICチップLv1") > 0, 30f, "IC chip Lv1 packaged");
     await ShootMachine(packaging, "03-chips-lv1");
-    p.Note($"ICチップLv1 x{Count(packaging, "ICチップLv1")} を取り出し、Lv2 ダイを入れる");
-    await p.RunOnServer("ICチップLv1 を取り出す", () => { foreach (var slot in Enumerable.Range(0, Slots(packaging).GetSlotSize()).Where(s => Slots(packaging).GetItem(s).Id == PlaytestItemOps.ResolveItemId("ICチップLv1"))) Slots(packaging).SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty()); });
+    await p.RunOnServer($"ICチップLv1 x{Count(packaging, "ICチップLv1")} を取り出す", () => { foreach (var slot in Enumerable.Range(0, Slots(packaging).GetSlotSize()).Where(s => Slots(packaging).GetItem(s).Id == PlaytestItemOps.ResolveItemId("ICチップLv1"))) Slots(packaging).SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty()); });
     await MoveDies("シリコンダイLv2");
     await p.Until(() => Count(packaging, "ICチップLv2") > 0, 30f, "IC chip Lv2 packaged");
     await ShootMachine(packaging, "03-chips");
-    p.Note("段1a 完了");
     #region Internal
     IEnumerable<Guid> WithPrerequisites(IEnumerable<Guid> targets)
     {
@@ -154,7 +152,7 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
         // F reaches 2 m, so land 1 m south of the face, open the machine UI by aiming at it with the Alt cursor, and shoot (same as cleanroom-room-usability)
         var origin = block.BlockPositionInfo.OriginalPos;
         p.WarpPlayer(new Vector3(origin.x + 0.3f, 33.5f, origin.z - 1f));
-        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 33f) < 0.05f, 5f, "床パネルの上(y=33.0)に着地した");
+        await p.Until(() => 32.5f < p.PlayerPosition.y && p.PlayerPosition.y < 33.2f, 5f, "床パネルの板の上(y≈32.85)に着地した");
         SemanticInput.KeyDown(Key.LeftAlt);
         await p.AimAt(new Vector3(origin.x + 1f, 34f, origin.z + 0.5f));
         await p.PressInteract();
@@ -167,16 +165,18 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     }
     async UniTask BuildRoom()
     {
-        // 内寸 x1..13 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 にする
-        // Interior x1..13 / z1..9 / y33..36; the ceiling sits at y37 so the third-person camera (about 2.9 m above the feet) stays under it when opening UIs inside
-        var door = new Vector3Int(7, 33, 0);
+        // 内寸 x1..13 / z1..9 / y33..37。床 y32 と天井 y38 は 5x1x5 のパネルを 5 の倍数の角から敷き、余る z10 の帯はブロックで埋める。ドアは 5x5x1 なので壁を5段にし南の壁の x5..9 を空ける
+        // Interior x1..13 / z1..9 / y33..37; floor y32 and ceiling y38 are 5x1x5 panels from multiple-of-5 corners with the z10 strip in blocks, and walls are five high with x5..9 of the south wall left for the 5x5x1 door
+        var door = new Vector3Int(5, 33, 0);
         for (var x = 0; x <= 14; x++)
         for (var z = 0; z <= 10; z++)
         {
-            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
-            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
+            foreach (var y in new[] { 32, 38 })
+                if (z == 10) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
+                else if (x % 5 == 0 && z % 5 == 0) await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, y, z), BlockDirection.North);
             if (x != 0 && x != 14 && z != 0 && z != 10) continue;
-            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
+            if (z == door.z && door.x <= x && x < door.x + 5) continue;
+            for (var y = 33; y <= 37; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
         }
         await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }

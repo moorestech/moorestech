@@ -1,5 +1,5 @@
-// 出荷マスタ全体で起動し、専用機4種の見た目が互いに違い、EUV のトランジスタ設置は抽選欄なし・露光は失敗率・ダイシングは品質Tierとレベル別割合を出すことを確かめる
-// Boot on the full shipped master and confirm the four machine kinds look distinct, EUV transistor placement has no draw section, exposure shows its fail rate and dicing shows quality tier and level shares
+// 出荷マスタ全体で起動し、専用機2種（精密切断機・EUV）の見た目を撮り、EUV のトランジスタ設置は抽選欄なし・露光は失敗率・精密切断機のダイシングは品質Tierとレベル別割合を出すことを確かめる
+// Boot on the full shipped master, shoot the two machine kinds (precision cutter, EUV) and confirm EUV transistor placement has no draw section, exposure shows its fail rate and the cutter's dicing shows quality tier and level shares
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,7 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-var machineNames = new[] { "ウェハ切断機", "EUV露光式半導体製造装置", "EUV露光式半導体製造装置", "ダイシング装置", "パッケージング装置" };
+var machineNames = new[] { "精密切断機", "EUV露光式半導体製造装置", "EUV露光式半導体製造装置", "精密切断機" };
 var semiconductorResearch = Guid.Parse("019e3ad9-46e2-73fd-9555-8c1d0245d26d");
 return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -44,9 +44,9 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     await p.RunOnServer("半導体製造の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(semiconductorResearch).Select(g => g.ToString()).ToList() }));
     p.Assert((await p.ReadCompletedResearch()).Contains(semiconductorResearch), "semiconductor research completed");
 
-    // 床のパネルを敷き、専用機4種（EUV はトランジスタ設置用と露光用の2台）を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
-    // Lay the panel floor, line up the four machine kinds (two EUVs: transistor and exposure) and shoot their looks (after the placement effect) before the walls go up
-    p.Note("専用機4種（EUV は2台）を1列に置き、見た目の違いを撮る");
+    // 床のパネルを敷き、専用機4台（切断・EUV のトランジスタ設置用と露光用・ダイシング）を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
+    // Lay the panel floor, line up four machines (cutter, two EUVs for transistor and exposure, dicing) and shoot their looks (after the placement effect) before the walls go up
+    p.Note("専用機4台（精密切断機2・EUV 2）を1列に置き、見た目を撮る");
     await Slab(32);
     var machines = new IBlock[machineNames.Length];
     for (var i = 0; i < machineNames.Length; i++) machines[i] = await Place(machineNames[i], new Vector3Int(2 + i * 4, 33, 6));
@@ -57,7 +57,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         var blockObject = await p.WaitBlockGameObject(machine.BlockPositionInfo.OriginalPos);
         await p.Until(() => !blockObject.IsPlayingPlaceAnimation, 15f, $"{machine.BlockMasterElement.Name} の設置演出が終わった");
     }
-    await p.Screenshot("01-five-machines");
+    await p.Screenshot("01-machines");
 
     // 壁・ドア・天井で閉じ、清浄機2台にフィルターを入れて給電し、クラスが付くまで待つ
     // Close the room with walls, door and ceiling, load two air filters, power everything and wait for a class
@@ -77,11 +77,10 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
 
     // 室内に入り、3台の機械UIで抽選欄の行を確かめて撮る
     // Step inside and check and shoot the draw rows in the three machine UIs
-    p.Note("EUV(トランジスタ設置)・EUV(露光)・ダイシングの機械UIを開き、抽選欄を確かめる");
+    p.Note("EUV(トランジスタ設置)・EUV(露光)・精密切断機(ダイシング)の機械UIを開き、抽選欄を確かめる");
     await CheckNoYieldUi(machines[1], "02-euv-transistor-no-role");
     await CheckYieldUi(machines[2], "03-euv-yield", new[] { "clean-room-yield-layer-fail-rate" });
     await CheckYieldUi(machines[3], "04-dicing-yield", new[] { "clean-room-yield-quality-tier", "clean-room-yield-die-loss-rate", "clean-room-yield-level-rate-1", "clean-room-yield-level-rate-2", "clean-room-yield-failed-rate" });
-    p.Note("段3 完了");
 
     #region Internal
     IEnumerable<Guid> WithPrerequisites(Guid target)
@@ -112,15 +111,16 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     }
     async UniTask BuildWallsAndCeiling()
     {
-        // 内寸 x1..21 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 のパネルにする
-        // Interior x1..21 / z1..9 / y33..36; the ceiling is y37 panels so the third-person camera (about 2.9 m above the feet) stays under it inside
-        var door = new Vector3Int(11, 33, 0);
-        await Slab(37);
+        // 内寸 x1..21 / z1..9 / y33..37。ドアは 5x5x1 の壁サイズなので壁を5段にし、南の壁の x9..13 をドアに空けて天井は y38 のパネルにする
+        // Interior x1..21 / z1..9 / y33..37; the door is a 5x5x1 wall piece, so walls are five high, x9..13 of the south wall is left for it and the ceiling is y38 panels
+        var door = new Vector3Int(9, 33, 0);
+        await Slab(38);
         for (var x = 0; x <= 22; x++)
         for (var z = 0; z <= 10; z++)
         {
             if (x != 0 && x != 22 && z != 0 && z != 10) continue;
-            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
+            if (z == door.z && door.x <= x && x < door.x + 5) continue;
+            for (var y = 33; y <= 37; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
         }
         await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
