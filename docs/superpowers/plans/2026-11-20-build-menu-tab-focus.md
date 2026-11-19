@@ -29,6 +29,7 @@
 - `.meta` は手で作らない。Prefab・シーンは触らない。
 - try-catch・partial・`Func<>`・デフォルト引数は使わない。
 - 作業場所: `/Users/sakastudio/hermes-agent/data/worktrees/moorestech/build-menu-tab-focus`（ブランチ `fix/build-menu-tab-focus`、origin/master 28c483852a 起点）。
+- **この plan のコマンドの塊はすべて、先頭で作業場所へ `cd` してから流す**（`cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech/build-menu-tab-focus && …`）。シェルは呼ぶたびに起動したフォルダ（メインのクローン）へ戻るので、`cd` を省くと `scp`・`git add`・`git commit`・`git push` がメインのクローンの master に対して走る。各塊の最初に `git rev-parse --abbrev-ref HEAD` が `fix/build-menu-tab-focus`（赤の確認の間は `tmp/tab-red-check-*`）を返すことを確かめる。subagent へ渡す依頼文にも同じことを書く。
 - PR はマージしない（moorestech は PR 作成まで）。PR 本文の先頭行は報告ページの URL（`CLAUDE.local.macmini.md`「PR の成果物の載せ先」）。
 - 再現の実測は `/Users/sakastudio/hermes-agent/data/repos/moorestech_logs/harness/ui-clarity-kgfsp/tab-focus-repro-report.md`（worktree からは `../moorestech_logs/harness/ui-clarity-kgfsp/tab-focus-repro-report.md` でも開ける）。
 
@@ -106,7 +107,7 @@ Tab キー
 | 検索欄に入力中の Tab → インベントリが開く | 変わらない | 宛先は検索欄の内側の要素で、パネルの根の打ち消しは通す |
 | `PlaceBlock` 中の Tab → ビルドメニューを開き直す | 変わらない | InputSystem の経路で、UITK の選択移動を通らない |
 | 入力欄にフォーカス中の ESC（値を保ってフォーカスだけ外す）、フォーカス無しの ESC・B・右短押し | 変わらない | KeyDown と InputSystem の経路。打ち消すのは NavigationMoveEvent だけ |
-| クラフトのボタンをクリックした後の Enter 長押し、ボタンにフォーカス中の Tab（フォーカスが動かない） | 変わらない | 宛先はボタンで、パネルの根の打ち消しは通す（`CraftHoldKeyTest.cs:78-92` が守る） |
+| クラフトのボタンをクリックした後の Enter 長押し、ボタンにフォーカス中の Tab（フォーカスが動かない） | 変わらない | 宛先はボタンで、パネルの根の打ち消しは通す（要素宛てを通すことは L1 の2本目と Task 1 Step 7 の2つ目の赤の確認が守る。ボタンでフォーカスが動かないことは `CraftHoldKeyTest.cs:78-92` が規則の側で守る） |
 | 入力欄のクリック、ツールチップ、モーダルの入力欄の自動フォーカス、録画 DSL のキー注入 | 変わらない | ポインタの経路・`Focus()` の直接呼び出し・フォーカス中の要素宛て |
 | フォーカス無しの Tab で入力欄にフォーカスが入る（不具合報告フォーム・列車の駅名・モーダルの入力欄を ESC で外した後） | **止まる**（コード上は今できる。実際に押しては未確認） | ビルドメニューと同じ仕組み。入力欄はクリックで使う。Shift+Tab も同じ。2026-08-22 の裁定の決定「`Tab` を無条件に `preventDefault` し、ブラウザnativeのフォーカス移動を封じる」が覆い、代償「Mantine modalのfocus trapとbuild menu検索欄へのフォーカス移動が失われる。いずれもクリックで到達できる」と同じ向き |
 | フォーカス無しの Tab でクラフトのボタンにフォーカスが入り、Enter 長押しでクラフトする | **止まる**（コード上は今できる。実際に押しては未確認） | ボタンは印付きでフォーカスを保てる（`CraftRecipeEntryView.cs:50-51`）。Tab からの入口が無くなる。クリックした後の Enter 長押しは変わらない。2026-08-22 の裁定の理由「native Tabがフォーカスを動かし `:focus-visible` のリングで別ボタンが選択中に見えていた」と、棄却案に書かれた「Enter/Spaceの誤爆」を止める向き |
@@ -247,7 +248,7 @@ namespace Client.Tests.Ui.Input
         }
 ```
 
-(3) `CancelNavigation` メソッド（146〜151 行目）のすぐ上に、次のメソッドを足す:
+(3) `private static void CancelNavigation(EventBase evt)` メソッド（編集前の 146〜151 行目。(2) を入れた後は下へずれるので、メソッド名で探す）のすぐ上に、次のメソッドを足す:
 
 ```csharp
         private static void CancelNavigationAimedAtPanelRoot(NavigationMoveEvent evt)
@@ -264,7 +265,7 @@ namespace Client.Tests.Ui.Input
 
 - [ ] **Step 3: 起動時にパネルの根へ付ける**
 
-`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputInstaller.cs` の `Initialize` を次の形にする（`GameUiInputRules.Attach(root);` の次に3行足す）:
+`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputInstaller.cs` の `Initialize` を次の形にする（`GameUiInputRules.Attach(root);` の次に、空行・コメント2行・呼び出し1行を足す）:
 
 ```csharp
         public void Initialize()
@@ -521,7 +522,7 @@ Expected: 2 件 PASS（パネルの根で数える「規則より前」の件数
 
 ### Task 4: セッション終了可能状態にする
 
-- [ ] **Step 1:** pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する。PR 本文の先頭行に報告ページの URL を張る。PR の報告には次を書く: 原因（再現報告の結論）、赤の確認の結果（Task 1 Step 7・Task 2 Step 4）、ビルドメニュー以外の画面で変わること（死活表の「止まる」2行）、注目点（Web UI 前提の 2026-08-22 の裁定を UITK に当てはめたのは実装側の読み替えであること。ADR 0101 の表に足した行もその読み替え。違っていれば差し戻してもらう）、残り（実際のキーボードでの確認は作者がプレイで行う。確かめる手順: ビルドメニューを開く → 一覧のどこかを1回クリック → Tab → インベントリが開くこと）。
+- [ ] **Step 1:** pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する。PR 本文の先頭行に報告ページの URL を張る。PR の報告には次を書く: 原因（再現報告の結論）、赤の確認の結果（Task 1 Step 7・Task 2 Step 4）、ビルドメニュー以外の画面で変わること（死活表の「止まる」2行）、注目点（Web UI 前提の 2026-08-22 の裁定を UITK に当てはめたのは実装側の読み替えであること。ADR 0101 の表に足した行もその読み替え。違っていれば差し戻してもらう）、残り（実際のキーボードでの確認は作者がプレイで行う。自動テストは IMGUI のキーから選択移動を作る所を通していない。GUI の Editor でなら再現報告 4.3 章と同じ注入で測れる見込みだが、確かめていない。確かめる手順: ビルドメニューを開く → 一覧のどこかを1回クリック → Tab → インベントリが開くこと）。
 - [ ] **Step 2:** 全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認する。使い捨てブランチ（`tmp/tab-red-check-*`）が origin に残っていないことを `git ls-remote --heads origin 'tmp/tab-red-check-*'` で確かめる。PR を出したら `moores-wt rm build-menu-tab-focus` で作業場所を畳む。マージはしない。
 
 ---
@@ -540,5 +541,6 @@ Expected: 2 件 PASS（パネルの根で数える「規則より前」の件数
 - 直し方は案 A（`GameUiInputRules` に入口を足し、パネルの根宛ての選択移動だけ打ち消す）。出所: agent前提（機構の比較は「直し方の比較」節。A だけが実測で効果を確かめてある）
 - 打ち消すのは NavigationMoveEvent だけ。出所: agent前提（パネルの根宛ての決定・取消はフォーカスが無ければ何も起こさず、故障の場面を作れない）
 - 自動テストは IMGUI の実キー経路（`PanelEventHandler` が Tab から選択移動を作る所）を通さない。Task 2 は `PanelEventHandler` と同じ形のイベントを直接送る。`PanelEventHandler` がパネルの根宛てに送ることは、パッケージのソース（`PanelEventHandler.cs:308, 360-375`）と再現報告の計測が根拠。出所: agent前提（batchmode と CI で IMGUI のキーが届かず、届かないとテストが不具合の状態を作れずに通るため）
+- 反証検査（plan を書いた本人でない検査役がリポジトリを読んで欠陥を探す）: 重大 0 件・注意 4 件・設計判断 0 件。注意は全部この plan に反映した（コマンドを作業場所で流す決まり・死活表の根拠・行番号・PR の残りの書き方）。報告: `../moorestech_logs/harness/ui-clarity-kgfsp/tab-plan-v4-refutation.md`、ひとつ前の版への報告: 同じ場所の `tab-plan-v3-refutation.md`。出所: agent前提
 - ランタイム挙動に触れるので EditModeInPlayingTest（Task 2）を入れる。unityプレイ録画テストの代わり。出所: agent前提
 - Mac の Editor を使わず winunity で回す。出所: agent前提（Mac mini の Editor は同時1本で、別のセッションが使用中。`CLAUDE.local.macmini.md`「運用上の注意」）
