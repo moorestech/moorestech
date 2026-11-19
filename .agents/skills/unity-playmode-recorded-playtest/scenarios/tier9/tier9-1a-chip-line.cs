@@ -27,7 +27,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 var research = new[] { "019e3ad9-46e2-73fd-9555-8c1d0245d26d", "01a167f3-bd6b-70c9-be6e-52e41907b21f", "019e3ae2-5005-7439-b242-9b7b3191a2c3", "01a167f3-bd6e-7745-84c0-0e1cf105c2cc",
-    "01a167f3-bd74-73f8-8c43-1869db833299", "01a167f3-bd77-7013-b982-5f4cdf3c86a9", "01a167f3-bd71-707c-b8e6-615063559cc1" }.Select(Guid.Parse).ToArray();
+    "01a167f3-bd77-7013-b982-5f4cdf3c86a9", "01a167f3-bd71-707c-b8e6-615063559cc1" }.Select(Guid.Parse).ToArray();
 return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupFlatGround();

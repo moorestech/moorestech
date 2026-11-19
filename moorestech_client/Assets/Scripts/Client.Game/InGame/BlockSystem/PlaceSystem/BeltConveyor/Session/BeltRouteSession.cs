@@ -68,7 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             var endCellReason = BeltRouteCellJudge.Judge(_world, endCell);
             if (endCellReason != BeltRouteCellBlockReason.None) return BeltRoutePlanResult.EndCellBlocked(endCellReason);
 
-            var query = new BeltRouteQuery(StartCell, StartDirection, IsBranch, endCell, endDirection, holding.AllowsSlopes, holding.IsSplitter);
+            var query = new BeltRouteQuery(StartCell, StartDirection, IsBranch, endCell, endDirection, holding.AllowsSlopes);
             if (_lastQuery != null && _lastQuery.IsSameQuery(query)) return _lastResult;
 
             _lastQuery = query;

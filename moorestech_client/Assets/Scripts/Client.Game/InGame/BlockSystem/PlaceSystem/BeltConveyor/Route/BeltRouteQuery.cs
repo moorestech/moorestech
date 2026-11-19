@@ -11,8 +11,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
     {
         public readonly Vector3Int StartCell;
 
-        // 始点ブロックの向き。通常ベルトは出る向き、分岐器は入る向き
-        // The start block's facing: the exit heading for a normal belt, the entry heading for a splitter
+        // 始点ブロックの出る向き
+        // The start block's exit heading
         public readonly BlockDirection StartDirection;
 
         // 分岐の始点は既存ベルトで、経路に含めず置かない。横の出口から出発する
@@ -22,15 +22,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
         public readonly Vector3Int EndCell;
         public readonly BlockDirection EndDirection;
 
-        // 手持ちファミリーに坂があるか。分岐器ファミリーは水平のみ
-        // Whether the held family has slopes; splitter families route horizontally only
+        // 手持ちファミリーに坂があるか
+        // Whether the held family has slopes
         public readonly bool AllowSlopes;
 
-        // 分岐器手持ち。入口は背面だけ、出口は前後左右の3面で、曲がりは出口側で起きる
-        // Holding a splitter: it takes input only from the back and exits through three faces, so turns happen on the exit side
-        public readonly bool TurnByOutput;
-
-        public BeltRouteQuery(Vector3Int startCell, BlockDirection startDirection, bool startIsExistingBelt, Vector3Int endCell, BlockDirection endDirection, bool allowSlopes, bool turnByOutput)
+        public BeltRouteQuery(Vector3Int startCell, BlockDirection startDirection, bool startIsExistingBelt, Vector3Int endCell, BlockDirection endDirection, bool allowSlopes)
         {
             StartCell = startCell;
             StartDirection = startDirection;
@@ -38,14 +34,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
             EndCell = endCell;
             EndDirection = endDirection;
             AllowSlopes = allowSlopes;
-            TurnByOutput = turnByOutput;
         }
 
         public bool IsSameQuery(BeltRouteQuery other)
         {
             return StartCell == other.StartCell && StartDirection == other.StartDirection && StartIsExistingBelt == other.StartIsExistingBelt &&
-                   EndCell == other.EndCell && EndDirection == other.EndDirection && AllowSlopes == other.AllowSlopes &&
-                   TurnByOutput == other.TurnByOutput;
+                   EndCell == other.EndCell && EndDirection == other.EndDirection && AllowSlopes == other.AllowSlopes;
         }
     }
 }

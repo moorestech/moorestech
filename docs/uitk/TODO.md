@@ -230,6 +230,7 @@
 | 4 | bbb442bbeb | 捨てた | Web のテスト cleanRoomLogic.test.ts のコメントだけの直し。UITK に写すものが無い |
 | 4 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
 | 4 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
+| 4 | 11f9436cf0 | 捨てた | master の GPU 削除に追従した Web e2e（spaceElevator.spec.ts）の期待文言「GPU衛星の入口」→「ICチップの入口」の差し替えだけ。文言本体は同じコミットの localization.csv（ui.blockInventory.spaceElevatorSatelliteInput）で、UITK の SpaceElevatorBodyView は同じキーを読むので取り込みで自動的に揃う。spec 自体は Web 撤去で消した |
 | 5 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
 | 5 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
 | 5 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |

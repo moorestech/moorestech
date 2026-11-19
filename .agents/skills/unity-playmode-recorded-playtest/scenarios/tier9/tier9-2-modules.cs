@@ -1,5 +1,5 @@
-// 出荷マスタ全体で起動し、S1 の研究後に 4種のモジュールLv1 と GPULv1 が作れ、Lv2 チップは製作上限で拒まれることを確かめる
-// Boot on the full shipped master and confirm the four Lv1 modules and GPULv1 are craftable after S1 research, and Lv2 chips are refused by the craft cap
+// 出荷マスタ全体で起動し、S1 の研究後に 4種のモジュールLv1 が電気精密組立機で作れ、Lv2 チップは製作上限で拒まれることを確かめる
+// Boot on the full shipped master and confirm the four Lv1 modules are craftable on electric precision assemblers after S1 research, and Lv2 chips are refused by the craft cap
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,25 +29,23 @@ using UnityEngine.InputSystem;
 var research = new[]
 {
     "019e3ad9-46e2-73fd-9555-8c1d0245d26d", "01a167f3-bd6b-70c9-be6e-52e41907b21f", "019e3ae2-5005-7439-b242-9b7b3191a2c3",
-    "01a167f3-bd6e-7745-84c0-0e1cf105c2cc", "01a167f3-bd74-73f8-8c43-1869db833299", "01a167f3-bd77-7013-b982-5f4cdf3c86a9",
-    "01a167f3-bd71-707c-b8e6-615063559cc1",
+    "01a167f3-bd6e-7745-84c0-0e1cf105c2cc", "01a167f3-bd77-7013-b982-5f4cdf3c86a9", "01a167f3-bd71-707c-b8e6-615063559cc1",
 }.Select(Guid.Parse).ToArray();
 var productRecipes = new (string recipe, string product)[]
 {
     ("01a167f3-bd88-747d-b30e-13f23f169ce4", "品質モジュールLv1"), ("01a167f3-bd8b-7732-badd-8c1a011f7c26", "速度モジュールLv1"),
     ("01a167f3-bd8e-7525-af33-5cce09108374", "省エネモジュールLv1"), ("01a167f3-bd90-7307-91a6-e45243f99379", "生産性モジュールLv1"),
-    ("01a167f3-bd94-76d2-ada6-617fdbf3d9b3", "GPULv1"),
 };
-return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record = true }, async p =>
+return PlaytestRunner.Run("tier9-2-modules", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupFlatGround();
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "GameScreen とメインカメラに戻った");
-    // 地形(メサ・岩)が工作装置の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
-    // Terrain (mesas, rocks) spawns in front of the workshops and blocks aim and view, so stop its display and spawning
+    // 地形(メサ・岩)が組立機の手前に湧いて照準と画面を塞ぐので、地形の表示と生成を止める
+    // Terrain (mesas, rocks) spawns in front of the assemblers and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
-    p.WarpPlayer(new Vector3(8f, 32.5f, -9f));
+    p.WarpPlayer(new Vector3(1.5f, 32.5f, -9f));
 
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）
     // Mark the semiconductor and S1 research done with all prerequisites (unlock actions are replayed)
@@ -55,11 +53,11 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     await p.RunOnServer("半導体製造と S1 の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
-    // モジュールと GPU のレシピは電気精密組立機（7x4x5）にあるので、平らな足場に収まるよう 3 台と 2 台の 2 列で 8 間隔に並べて給電し、各レシピを選んで材料を入れる
-    // The module and GPU recipes live on the electric precision assembler (7x4x5), so place them 8 apart in rows of three and two to stay on the flat scaffold, power them, select each recipe and insert its inputs
-    p.Note("電気精密組立機5台でモジュール4種と GPULv1 のレシピを選び材料を入れる");
+    // 電気精密組立機（幅7）を足場（x -25〜25）に収まるよう x -14 から4台並べて給電し、各レシピを選んで材料を入れる
+    // Place four powered electric precision assemblers (7 wide) from x -14 so they fit the scaffold (x -25..25), select each recipe and insert its inputs
+    p.Note("電気精密組立機4台でモジュール4種のレシピを選び材料を入れる");
     var crafters = new IBlock[productRecipes.Length];
-    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(i % 3 * 8, 32, i / 3 * 8), BlockDirection.North);
+    for (var i = 0; i < productRecipes.Length; i++) crafters[i] = await p.PlaceBlockDirect("電気精密組立機", new Vector3Int(-14 + i * 8, 32, 0), BlockDirection.North);
     await PowerAll();
     for (var i = 0; i < productRecipes.Length; i++)
     {
@@ -70,19 +68,19 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     foreach (var crafter in crafters) await p.WaitBlockGameObject(crafter.BlockPositionInfo.OriginalPos);
     // 列の南へ着地し、設置演出が終わって機械が描画される最初の完成(品質モジュール)まで待ってから撮る
     // Land south of the row and wait for the first product (quality module), by which the placement effect has finished, then shoot
-    p.WarpPlayer(new Vector3(11.5f, 32.5f, -12f));
+    p.WarpPlayer(new Vector3(1.5f, 32.5f, -14f));
     await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
     await p.Until(() => Count(crafters[0], productRecipes[0].product) > 0, 60f, $"{productRecipes[0].product} crafted");
-    await p.Screenshot("01-workshops");
+    await p.Screenshot("01-assemblers");
 
-    // 5製品の Lv1 がそれぞれ出る（最後は GPU の組立機が GPULv1 を本当に出すところ）
-    // Each of the five products comes out at Lv1 (last is the GPU assembler really producing GPULv1)
+    // 4製品の Lv1 がそれぞれ出る（最後の生産性モジュールの機械を撮る）
+    // Each of the four products comes out at Lv1 (shoot the last, productivity-module assembler)
     for (var i = 0; i < productRecipes.Length; i++)
     {
         var index = i;
         await p.Until(() => Count(crafters[index], productRecipes[index].product) > 0, 60f, $"{productRecipes[index].product} crafted");
     }
-    await ShootMachine(crafters[4], "02-modules-gpu");
+    await ShootMachine(crafters[productRecipes.Length - 1], "02-modules");
 
     // 製作上限 Lv1 のため ICチップLv2 は品質モジュールの組立機へ入らない（品質モジュールLv2 の研究まで）
     // With the craft cap at Lv1, IC chip Lv2 does not enter the quality-module assembler (until the quality module Lv2 research)
@@ -148,14 +146,14 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
 
     async UniTask PowerAll()
     {
-        // 発電機 → 広範囲電柱 → 組立機5台へ配線する（結線で電力網の再構築は自動で予約される）
-        // Wire generator -> wide-range pole -> the five assemblers (wiring schedules the network rebuild)
+        // 発電機 → 広範囲電柱 → 組立機4台へ配線する（結線で電力網の再構築は自動で予約される）
+        // Wire generator -> wide-range pole -> the four assemblers (wiring schedules the network rebuild)
         var generator = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-12, 32, -20), BlockDirection.North);
         var gasoline = MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"));
         var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(-2, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
         var free = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
         var wired = new List<(bool connected, string label)>();
-        await p.RunOnServer("発電機に給油して組立機5台へ配線する", () =>
+        await p.RunOnServer("発電機に給油して組立機4台へ配線する", () =>
         {
             generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(2000, gasoline), default);
             wired.Add((ElectricWireSystemUtil.TryConnectBothSides(generator.GetComponent<IElectricWireConnector>(), pole, free), "wire generator -> pole"));

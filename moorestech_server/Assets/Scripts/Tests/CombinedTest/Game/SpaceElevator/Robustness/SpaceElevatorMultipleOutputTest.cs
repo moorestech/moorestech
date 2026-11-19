@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 実挿入も同じ配置となり、両出口だけを通知する
             // Real insertion uses the same placement and notifies both outlets only
-            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite));
+            Assert.IsTrue(inventory.TryCompleteArrival(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1)));
             Assert.AreEqual(1, arrival.Previews);
             Assert.AreEqual(1, arrival.Arrivals);
             AssertOutputs(inventory);
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(0, inventory.GetItem(1).Count);
             if (matchingMetadata)
             {
-                Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite));
+                Assert.IsTrue(inventory.TryCompleteArrival(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1)));
                 AssertOutputs(inventory);
                 Assert.IsInstanceOf<TestMeta1>(inventory.GetItem(2).GetMeta("quality"));
             }
@@ -93,7 +93,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             // Add two to the existing eight and put only the remaining three into the empty slot
             Assert.IsTrue(InventoryInsertItem.TryFillAllPreferringExisting(outputs, inventory.InventoryItems.Skip(1).ToList()));
             Assert.AreEqual(8, inventory.GetItem(2).Count);
-            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite));
+            Assert.IsTrue(inventory.TryCompleteArrival(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1)));
             Assert.AreEqual(10, inventory.GetItem(2).Count);
             Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, inventory.GetItem(1).Id);
             Assert.AreEqual(3, inventory.GetItem(1).Count);

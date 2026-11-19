@@ -21,7 +21,7 @@ export STEAM_WEB_API_KEY=<Steam Web API の publisher key>
 
 ## 配布工程
 
-Windows と Mac（Apple Silicon）の配布ビルドを焼き、1つの Steam ビルドに両 depot を入れて `playtest-staging` へ上げる。Windows は検証機で通し検証し、Mac は `promotion.md` の手順で人が確認する。`playtest` への反映は確認後に Steamworks Web UI で手動実行する。
+Windows と Mac（Apple Silicon）の配布ビルドを配布ビルド機（Windows）で焼き（予備は Mac で焼く。「使い方」節）、1つの Steam ビルドに両 depot を入れて `playtest-staging` へ上げる。Windows は検証機で通し検証し、Mac は `promotion.md` の手順で人が確認する。`playtest` への反映は確認後に Steamworks Web UI で手動実行する。
 用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0061 を正とする。
 
 `steamcmd +run_app_build` が正常終了した直後に、その `RUN_DIR/build-windows` と `RUN_DIR/build-mac` を削除する。ログ・`steam/`・`verify/`・検証成功時に生成する `promotion.md` は残し、他の run は触らない。
@@ -66,13 +66,30 @@ SteamCMD は `scripts/playtest/steam_auth/run.py` を通す。子プロセスだ
 
 通常リリースもビルド前にこの保存資格検査を実施する。資格拒否が確認された場合は初回認証をやり直す。使用中なら先行処理の終了を待ち、接続失敗・タイムアウトなら通信を確認する。設定不備・実行先不在は設定を直して再検査する。隔離はDesktopとの設定衝突を防ぐもので、Steam側のトークン失効を防ぐものではない。秘密値・生のPTY出力を共有ログへ残さない。
 
-### 使い方
+### 使い方（標準経路: 配布ビルド機〈Windows〉で焼く）
+
+Windows で焼けるものは Windows で焼く（裁定 `.decisions/2026-11-17-配布ビルドはWindowsで焼けるものはWindowsで焼きMacでしか焼けないものだけMacで焼く.md`）。Mac 版も Windows 機で焼けるようになったので、Windows 版・Mac 版とも配布ビルド機で焼く。
+
+```bash
+. ~/hermes-agent/data/services/playtest/env.sh
+cd ~/hermes-agent/data/repos/moorestech   # メインクローンから実行する
+scripts/playtest/release-playtest-windows.sh <SHA または origin/master>
+```
+
+- env.sh の `MOORESTECH_WINBUILD_HOST`（配布ビルド機の ssh 宛先）が要る。無ければビルド前に止まる。
+- 配布ビルド機では `C:\dev\worktrees\moorestech\release-bake` を使い回して焼く（Library を持ち越すため）。Unity 6000.3.8f1 の Mac Build Support（Mono）と rcodesign（ad-hoc 署名）が入っていること。焼きは Windows 側で切り離して走り、`release-bake` の job の `result.json` を待って `runs/<label>/build-windows/`・`build-mac/` へ持ち帰る。
+- 持ち帰った後の検査（構成・出所・ad-hoc 署名・arm64・実行権。下の予備経路の箇条書きと同じ検査）は Mac の `codesign`・`lipo` で行う。だから入口は Mac mini のまま。以降の Steam へのアップロード・Windows 検証機の通し検証・`promotion.md` は予備経路と同じ。
+- `<commit>` の渡し方、必須 env とラベルの検査、`origin/$MOORESTECH_BUILD_BRANCH` に含まれることの検査は予備経路と同じ（下の箇条書き）。
+
+### 予備経路: Mac で焼く（配布ビルド機が使えないとき）
 
 ```bash
 . ~/hermes-agent/data/services/playtest/env.sh
 cd ~/hermes-agent/data/repos/moorestech   # メインクローンから実行する
 scripts/playtest/release-playtest.sh <SHA または origin/master>
 ```
+
+配布ビルド機が落ちている・ssh が通らない・Windows 側の Unity が壊れているときだけ使う。Mac mini の Unity を使うので、Mac mini で Unity を止めている間は使えない。
 
 - **メインクローン（`moores-wt` が worktree を作る clone）から実行する。** fetch とコミット解決はスクリプトを置いた clone で行い、
   worktree はメインクローンで作るため、別 clone（pr-review の baseline clone 等）から実行すると解決した object が無いことがある。

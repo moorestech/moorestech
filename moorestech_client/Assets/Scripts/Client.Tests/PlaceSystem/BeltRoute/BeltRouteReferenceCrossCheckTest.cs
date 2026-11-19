@@ -47,7 +47,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 var grid = BeltRouteRandomizedSearchTest.BuildRandomGrid(random, BoxSize);
                 if (!TryPickQuery(random, grid, out var query)) continue;
                 compared++;
-                var label = $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt}";
+                var label = $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} branch:{query.StartIsExistingBelt}";
 
                 var result = new BeltRoutePlanner(grid, RecoverySlack).Plan(query);
                 var rule = new BeltRouteTransitionRule(grid, query);
@@ -89,12 +89,11 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             if (!TryPickFreeCell(random, grid, near ? nearMin : Vector3Int.zero, near ? nearMax : grid.Size, out var end) || start == end) return false;
 
             var startIsExistingBelt = random.Next(10) == 0;
-            var turnByOutput = !startIsExistingBelt && random.Next(5) == 0;
-            var allowSlopes = !turnByOutput && random.Next(5) != 0;
+            var allowSlopes = random.Next(5) != 0;
             var startDirection = (BlockDirection)random.Next(4);
             var endDirection = (BlockDirection)random.Next(4);
             if (startIsExistingBelt) grid.MarkBlockCell(start);
-            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, endDirection, allowSlopes, turnByOutput);
+            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, endDirection, allowSlopes);
             return true;
         }
 

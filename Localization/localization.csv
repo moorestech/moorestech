@@ -482,11 +482,11 @@ ui.blockInventory.spaceElevatorConnect,Connect,Connect,接続する,Verbinden,�
 ui.blockInventory.spaceElevatorPool,Cable pool: {pool} / {required},Cable pool: {pool} / {required},ケーブルのプール: {pool} / 必要 {required},Kabelvorrat: {pool} / {required},케이블 풀: {pool} / {required}
 ui.blockInventory.spaceElevatorStatusInsufficientCable,Not enough cable. Launch graphene cables to fill the pool,Not enough cable. Launch graphene cables to fill the pool,ケーブルが足りません。グラフェンケーブルを打ち上げてプールを満たしてください,Nicht genug Kabel. Starte Graphenkabel,케이블이 부족합니다. 그래핀 케이블을 발사하세요
 ui.blockInventory.spaceElevatorStatusReadyToConnect,Not connected; ready to connect,Not connected; ready to connect,未接続（接続できます）,Nicht verbunden; bereit,연결 안 됨 (연결 가능)
-ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a GPU satellite,Waiting for a GPU satellite,GPU衛星を待っています,Warte auf GPU-Satelliten,GPU 위성 대기 중
+ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a full launch of IC chips,Waiting for a full launch of IC chips,ICチップが1便ぶんそろうのを待っています,Warte auf eine volle Startladung IC-Chips,IC 칩이 한 번 운송분만큼 모이기를 기다리는 중
 ui.blockInventory.spaceElevatorStatusClimbing,Climbing,Climbing,昇降中,Steigt auf,상승 중
 ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbing slowly (low power),電力不足で遅くなっています,Langsam (zu wenig Strom),전력 부족으로 느려짐
 ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until the result fits,Output full; waiting until the result fits,出口が満杯のため、成果が入るまで待っています,Ausgang voll; wartet bis das Ergebnis passt,출구가 가득 차 결과가 들어갈 때까지 대기 중
-ui.blockInventory.spaceElevatorSatelliteInput,GPU satellite input,GPU satellite input,GPU衛星の入口,GPU-Satelliten-Eingang,GPU 위성 입구
+ui.blockInventory.spaceElevatorSatelliteInput,IC chip input,IC chip input,ICチップの入口,IC-Chip-Eingang,IC 칩 입구
 ui.blockInventory.spaceElevatorResultOutput,Result output,Result output,成果の出口,Ergebnisausgang,결과 출구
 ui.blockInventory.spaceElevatorStatusInletBlocked,Remove the unsupported item from the inlet,Remove the unsupported item from the inlet,入口の運べないアイテムを取り出してください,Entferne den nicht transportierbaren Gegenstand aus dem Eingang,입구에서 운반할 수 없는 아이템을 꺼내세요
 ui.blockInventory.detailLoading,Waiting for status,Waiting for status,状態の取得を待っています,Warte auf Status,상태를 기다리는 중입니다
