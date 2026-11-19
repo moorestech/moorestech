@@ -59,16 +59,25 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         // The large interior machine; negative filterCount means no room
         protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount)
         {
-            var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), 4).ToArray();
-            var detail = MachineTestDetails.Detail(MachineRecipeSelection.Selected(MachineTestDetails.RecipeA), MachineTestDetails.Unbound(new MachineSlotLayout(2, 1, 1)), 0.42f);
-            var fluids = new[] { BlockFluidSlotState.Filled(Water, 50, 100), BlockFluidSlotState.Empty(100) };
-            var panel = MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, slots);
-            var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, MachineTestDetails.Catalog(MachineTestDetails.RecipeA, MachineTestDetails.RecipeB), 1);
-            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
-            if (0 <= filterCount) ContextModel.Set(Room(filterCount));
-            var shell = OpenShell(panel);
+            var shell = OpenCleanRoomMachine(filterCount, new MachineSlotLayout(2, 1, 1), true);
             Assert.IsTrue(shell.View.ClassListContains(BlockInventoryView.LargeClassName), "machine panel is large");
             return shell;
+        }
+
+        // 枠数とレシピ有無を指定する室内機械
+        // The interior machine with the given slot layout and recipe presence
+        protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount, MachineSlotLayout layout, bool withRecipes)
+        {
+            var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), layout.Input + layout.Output + layout.Module).ToArray();
+            var selection = withRecipes ? MachineRecipeSelection.Selected(MachineTestDetails.RecipeA) : MachineRecipeSelection.Unselected;
+            var detail = MachineTestDetails.Detail(selection, MachineTestDetails.Unbound(layout), 0.42f);
+            var fluids = new[] { BlockFluidSlotState.Filled(Water, 50, 100), BlockFluidSlotState.Empty(100) };
+            var panel = MachineTestDetails.Panel(MachineTestDetails.DefaultInstanceId, slots);
+            var catalog = withRecipes ? MachineTestDetails.Catalog(MachineTestDetails.RecipeA, MachineTestDetails.RecipeB) : MachineRecipeCatalog.Empty;
+            var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, catalog, 1);
+            MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
+            if (0 <= filterCount) ContextModel.Set(Room(filterCount));
+            return OpenShell(panel);
         }
 
         private BlockInventoryTestShell OpenShell(BlockInventoryPanelState panel)

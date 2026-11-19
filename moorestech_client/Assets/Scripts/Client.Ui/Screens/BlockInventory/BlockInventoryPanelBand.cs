@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory
 {
     /// <summary>
-    /// 帯の高さと大型の幅を舞台の寸法とトークンから導く（Web の calc() を C# で解く。A-47）
-    /// Derives the band height and large width from the stage size and tokens (solves the Web calc() in C#; A-47)
+    /// 帯の高さと大小パネルの幅を導く（A-47）
+    /// Derives the band height and the large/natural panel widths (A-47)
     /// </summary>
     public sealed class BlockInventoryPanelBand
     {
@@ -26,6 +26,7 @@ namespace Client.Ui.Screens.BlockInventory
         private bool _columnGapResolved;
         private bool _large;
         private bool _stageTooSmallReported;
+        private bool _stageTooNarrowReported;
 
         public BlockInventoryPanelBand(StageColumnsLayout stage, VisualElement shell)
         {
@@ -80,9 +81,19 @@ namespace Client.Ui.Screens.BlockInventory
             _shell.style.maxHeight = band;
             _shell.style.height = _large ? new StyleLength(band) : new StyleLength(StyleKeyword.Auto);
 
-            // silent-ok: 幅のトークンが未解決の間は大型の幅を当てない / 同上の再適用と LogError
+            // silent-ok: 幅のトークンが未解決の間は幅を当てない / 同上の再適用と LogError
             if (!_inventoryWidthResolved || !_columnGapResolved) return;
-            _shell.style.width = _large ? new StyleLength(style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap) : new StyleLength(StyleKeyword.Auto);
+
+            // 大型は viewer〜items の 2 列ぶん（Web .panelLarge の calc）。小型は viewer の列の残り（空の items の列と列の間 2 つを除く）までの中身の幅で、Web の auto の列と justify-self: start の fit-content と同じく舞台の外へ広がらない
+            // Large spans viewer..items (Web .panelLarge calc); natural is content-wide up to the viewer track's remainder (minus the empty items track's two gaps), never spreading past the stage like the Web auto track with justify-self: start fit-content
+            var largeWidth = style.width - style.paddingLeft - style.paddingRight - _inventoryWidth - _columnGap;
+            _shell.style.width = _large ? new StyleLength(largeWidth) : new StyleLength(StyleKeyword.Auto);
+            var naturalMaxWidth = largeWidth - _columnGap;
+            // 舞台が狭すぎて上限が負になるときは 0 に丸め、高さと同じく 1 回だけ警告する
+            // When the stage is too narrow the cap goes negative; clamp to 0 and warn once like the height
+            if (!_large && naturalMaxWidth < 0f && !_stageTooNarrowReported) UnityEngine.Debug.LogWarning($"[BlockInventoryPanelBand] stage width {style.width} leaves no room for a natural panel (inventory {_inventoryWidth}, gap {_columnGap}); max width clamped to 0");
+            _stageTooNarrowReported = !_large && naturalMaxWidth < 0f;
+            _shell.style.maxWidth = _large ? new StyleLength(StyleKeyword.None) : new StyleLength(UnityEngine.Mathf.Max(0f, naturalMaxWidth));
         }
     }
 }

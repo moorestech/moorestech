@@ -20,7 +20,7 @@
 
     /* S4-research: 研究ノードのロックの減光。Web .node[data-locked] の opacity をそのまま使う（半透明は Web の値で書く。設計書 A-52） */
     /* S4-research: dimming of locked research nodes; uses the Web .node[data-locked] opacity as is (translucency is written with Web values; design A-52) */
-    --research-node-locked-opacity: 0.45; /* web: .node[data-locked] { opacity: 0.45 } */
+    --research-node-locked-opacity: 0.45; /* web: .node[data-locked] { opacity: 0.45 } */ /* look-exception: LX-76 */
 
     /* S4-recipe: レシピビューアの見出しと一覧のつまみ。Web が直書きする色をそのまま使う（半透明は Web の値で書く。設計書 A-52） */
     /* S4-recipe: recipe viewer header and item list thumb; uses the colors the Web writes inline as is (translucency is written with Web values; design A-52) */

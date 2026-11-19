@@ -83,9 +83,9 @@ namespace Client.Tests.Ui.Screens.Research
             Assert.AreEqual(locked, card.ClassListContains("research-tree__card--locked"), "locked");
             Assert.AreEqual(stateLabel, Find<Label>(rootVisualElement, $"research-node-state-{guid}").text);
 
-            // ロックだけ減光する
-            // Only locked cards dim
-            Assert.AreEqual(locked, card.resolvedStyle.opacity < 1f, "opacity");
+            // ロックだけ面・枠・アイコンを 1 枚の群にして減光する（要素の opacity は子ごとに掛かりアイコンの白面が明るく残る）
+            // Only locked cards dim, as one group of face, border and icon (element opacity applies per child and leaves the icon face bright)
+            if (locked) Assert.AreEqual(float.Parse(Components.ThemeTokenFile.Resolve("--research-node-locked-opacity"), System.Globalization.CultureInfo.InvariantCulture), Components.GroupOpacity.Read(card), 0.001f); else Components.GroupOpacity.AssertNone(card);
         }
 
         /// <web-test file="src/features/research/ResearchNodeCard.test.ts">状態ラベルはnodeState classNameでアイコン直下に描く</web-test>
