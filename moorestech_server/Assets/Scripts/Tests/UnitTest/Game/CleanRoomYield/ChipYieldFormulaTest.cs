@@ -6,7 +6,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 {
     public class ChipYieldFormulaTest
     {
-        // モジュール無しの表とTier1の十分入れたときの表（Lv1..Lv5）と失敗ダイ
+        // モジュール無しとTier1の表
         // The no-module table and the tier-1 full-module table (Lv1..Lv5) with the failed die
         private static readonly float[] NoModuleLevels = { 0.2f, 0f, 0f, 0f, 0f };
         private const float NoModuleFailed = 0.8f;
@@ -91,7 +91,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 
         #region TestHelper
 
-        // 損失0のTier1の表で混ぜた結果を [Lv1..Lv5, 失敗ダイ] に並べる
+        // 混合結果を[Lv1..Lv5,失敗]に並べる
         // Lay the lossless tier-1 blend out as [Lv1..Lv5, failed die]
         private static double[] Blend(double approachWeight)
         {

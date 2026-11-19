@@ -53,8 +53,17 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         [Test]
         public void FiniteBoundaryValuesAreAcceptedTest([Values(0f, 1f)] float value)
         {
-            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", value, value, value) }));
+            // 倍率は正である必要があるので1に固定し、損失率と失敗率だけ境界を回す
+            // The multiplier must be positive, so fix it at 1 and only sweep the fail and loss rates over the boundary
+            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", 1f, value, value) }));
+        }
 
+        [Test]
+        public void NonPositiveQualityMultiplierIsRejectedTest([Values(0f, -0.5f)] float value)
+        {
+            // 倍率0だと品質モジュールが歩留まりに効かなくなるので起動時に拒否する
+            // A zero multiplier would make quality modules useless for yield, so it is rejected at startup
+            StringAssert.Contains("QualityMultiplier", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", value, 0.1f, 0.1f) }));
         }
 
         [Test]

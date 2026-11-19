@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             (0.25, 0.6),
         };
 
-        // v8 の品質Tier別ダイ表（Lv1..Lv5）と失敗ダイ。Tier0はモジュール無し、Tier1以上は十分入れたときの表
+        // v8の品質Tier別ダイ表
         // v8 per-quality-tier die tables (Lv1..Lv5) and the failed die; tier 0 is without modules, tier 1+ is the full-module table
         private static readonly (float[] levels, float failed)[] TierTables =
         {
@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             (new[] { 0.005f, 0.0075f, 0.0125f, 0.025f, 0.925f }, 0.025f),
         };
 
-        // v8 の品質モジュールLv1〜5の効果値（添字=Tier）
+        // v8の品質効果値（添字=Tier）
         // v8 quality module effect values for Lv1-5 (index = tier)
         private static readonly double[] EffectValueByTier = { 0, 0.04, 0.06, 0.08, 0.10, 0.12 };
 
@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         [Test]
         public void EveryAddedModuleRaisesGoodDiesTest()
         {
-            // どのクラス・Tierでも、0→24個の1個ごとに良品の合計が厳密に増える
+            // 全クラス・Tierで個数ごとに良品増
             // For every class and tier, each added module from 0 to 24 strictly raises the good total
             for (var tier = 1; tier < TierTables.Length; tier++)
             {
@@ -68,7 +68,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         [Test]
         public void GainShrinksWithEveryAddedModuleTest()
         {
-            // 1個増やしたときの増分は、その前の増分以下（2個目以降）
+            // 増分は前の増分以下
             // The gain from one more module never exceeds the previous gain (from the second module on)
             for (var tier = 1; tier < TierTables.Length; tier++)
             {
@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         [Test]
         public void ClassImprovementNeverReducesGoodTotalOrUpperLevelsTest()
         {
-            // クラスを上げると、良品の合計とレア以上の期待値が減らない（Tier1〜4・1〜24個の総当たり）
+            // クラス上昇で良品合計・レア期待値が減らない
             // A better class never lowers the good total or the rare-and-above share (tiers 1-4 x 1-24 modules)
             for (var tier = 1; tier <= 4; tier++)
             {
@@ -105,7 +105,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             }
         }
 
-        // 本番の式（近づき度→損失と表の混合）を通し、ダイシング投入ウェハー1枚あたりのレベル別良品ダイの割合を出す
+        // 本番の式でウェハー1枚あたりの良品割合を出す
         // Run the production formulas (approach weight, then loss and table blend) for the good-die share per diced wafer by level
         private static double[] GoodDieShares((double qualityMultiplier, double dieLossRate) classRow, int tier, int moduleCount)
         {

@@ -8,15 +8,15 @@ namespace Core.Master.Validator
     /// </summary>
     public static class CleanRoomYieldTableRules
     {
-        // 行は良いクラスから順。倍率は0以上で非増加、失敗率と損失率は[0,1]で非減少
-        // Rows run best class first: multipliers are >= 0 and non-increasing, fail and loss rates are in [0,1] and non-decreasing
+        // 行は良いクラスから順。倍率は正で非増加、失敗率と損失率は[0,1]で非減少
+        // Rows run best class first: multipliers are > 0 and non-increasing, fail and loss rates are in [0,1] and non-decreasing
         public static string ValidateClassRows(IReadOnlyList<(string className, float qualityMultiplier, float layerFailRate, float dieLossRate)> rows)
         {
             var logs = "";
             for (var i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
-                if (float.IsNaN(row.qualityMultiplier) || float.IsInfinity(row.qualityMultiplier) || row.qualityMultiplier < 0f) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} QualityMultiplier:{row.qualityMultiplier} must be finite and >= 0\n";
+                if (float.IsNaN(row.qualityMultiplier) || float.IsInfinity(row.qualityMultiplier) || !(0f < row.qualityMultiplier)) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} QualityMultiplier:{row.qualityMultiplier} must be finite and > 0\n";
                 if (float.IsNaN(row.layerFailRate) || float.IsInfinity(row.layerFailRate) || row.layerFailRate < 0f || 1f < row.layerFailRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} LayerFailRate:{row.layerFailRate} must be finite and in [0,1]\n";
                 if (float.IsNaN(row.dieLossRate) || float.IsInfinity(row.dieLossRate) || row.dieLossRate < 0f || 1f < row.dieLossRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} DieLossRate:{row.dieLossRate} must be finite and in [0,1]\n";
                 if (i == 0) continue;

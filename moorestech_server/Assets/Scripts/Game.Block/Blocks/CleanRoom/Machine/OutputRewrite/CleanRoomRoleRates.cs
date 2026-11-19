@@ -20,8 +20,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
             return ChipYieldFormula.ReducedRate(classYield.LayerFailRate, moduleEffect.QualityShift, role.Exposure.MaxFailReduction);
         }
 
-        // ダイシングの率を1回だけ計算する。近づき度で損失を割り引き、モジュール無しの表から品質最高Tier（ダイの最大レベルで頭打ち）の表へ寄せる
-        // Compute dicing rates once; the approach weight discounts loss and moves the no-module table toward the highest quality tier's table (capped at the die's top level)
+        // ダイシングの率を1回で算出
+        // Compute dicing rates once, with the approach weight discounting loss
         public static DicingPreview Dicing(DicingRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
         {
             var approachWeight = ChipYieldFormula.ApproachWeight(moduleEffect.QualityShift, classYield.QualityMultiplier, role.Dicing.QualityApproachScale);

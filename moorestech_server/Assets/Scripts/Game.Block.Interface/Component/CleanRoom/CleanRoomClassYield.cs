@@ -1,8 +1,8 @@
 namespace Game.Block.Interface.Component
 {
     /// <summary>
-    ///     部屋クラスの歩留まり値（ダイシングの品質の効きの倍率・EUVの層失敗率・ダイシングの損失率）。稼働できる部屋の効果だけが持つ
-    ///     Per-class yield values (dicing quality effect multiplier, EUV layer fail rate, dicing loss rate); only an operable room effect carries them
+    ///     部屋クラスの歩留まり値
+    ///     Per-class yield values carried only by an operable room effect
     /// </summary>
     public readonly struct CleanRoomClassYield
     {

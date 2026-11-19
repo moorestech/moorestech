@@ -160,7 +160,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             return RunAndCollect(filter, machine, DiesPerWafer * waferCount, TickCap);
         }
 
-        // クラスAで品質モジュール1個を挿してウェハ2枚を切る（近づき度で表がモジュール無しからTier1へ寄る）
+        // クラスAで品質1個・2枚を切る
         // Dice two wafers in class A with one quality module (the approach weight moves the no-module table toward tier 1)
         private static Dictionary<ItemId, int> DiceInClassAWithModule(Guid moduleItemGuid)
         {
