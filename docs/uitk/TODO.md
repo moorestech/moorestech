@@ -230,6 +230,7 @@
 | 4 | bbb442bbeb | 捨てた | Web のテスト cleanRoomLogic.test.ts のコメントだけの直し。UITK に写すものが無い |
 | 4 | bfa1da0840 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
 | 4 | ebe26dc6e8 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 4 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（PlaytestBeltRouteOps） |
+| 4 | 11f9436cf0 | 捨てた | master の GPU 削除に追従した Web e2e（spaceElevator.spec.ts）の期待文言「GPU衛星の入口」→「ICチップの入口」の差し替えだけ。文言本体は同じコミットの localization.csv（ui.blockInventory.spaceElevatorSatelliteInput）で、UITK の SpaceElevatorBodyView は同じキーを読むので取り込みで自動的に揃う。spec 自体は Web 撤去で消した |
 | 5 | 042cb21d89 | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem・BeltRouteKeyInput） |
 | 5 | 1bd9e0e3cf | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（BeltConveyorPlaceSystem） |
 | 5 | 622953fe5f | 写した | 生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけ（Localization/localization.csv の変更に連動。master の取り込み X-switch-pr）。束 5 の行は i18n（全束）の持ち物として記帳する。写し先は同じコミットの localization.csv と C#（ベルトの2クリック設置の revert） |
@@ -389,7 +390,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）
 
-`moorestech-dww3`（EDC のコンパイル失敗の無言素通し）は W0-tools で閉じ、コンパイルできないシナリオはランナーが exit 2 で止まる。壊れている 10 本は、その UI を移すレーンの締めで直すか削除し、全体スイッチの UITK 側と Web 側の両方で流す（計画 §2.0-2）。X-prerun で全部が片付いたら wwxy を閉じる。
+`moorestech-dww3`（EDC のコンパイル失敗の無言素通し）は W0-tools で閉じ、コンパイルできないシナリオはランナーが exit 2 で止まる。壊れている 10 本は、その UI を移すレーンの締めで直すか削除し、全体スイッチの UITK 側と Web 側の両方で流す（計画 §2.0-2）。X-prerun で全部が片付いたら wwxy を閉じる。post-allrec の全録画で残す 8 本の PASS を見て wwxy を閉じた。
 
 | シナリオ（`scenarios/` から） | 壊れ方 | 束 | 直すレーン | 方針 |
 |---|---|---|---|---|
@@ -401,8 +402,8 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 書き直した（S3-ladder。GameUi・Web とも緑） |
 | `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除した（S3-ladder。後継 extend-chain は GameUi で緑） |
 | `misc/fps-tps-view-toggle-via-ui.cs` | 削除済みの uGUI 型（CrosshairView）を参照 | 3 | S3-ladder | 移植した（S3-ladder。CrosshairVisibility と crosshair の照会。GameUi・Web とも緑） |
-| `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除（ADR 0038 で研究 1〜3 が消え、役目が終わった） |
-| `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 現行の研究 GUID へ書き直す（研究ツリーの UITK 化の後に流す） |
+| `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除した（post-allrec。ADR 0038 で研究 1〜3 が消え、役目が終わった） |
+| `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 書き直した（post-allrec。根→子→孫の研究をマスタから選び、期待のラベルは Localize から引く） |
 
 ## 見た目の例外
 

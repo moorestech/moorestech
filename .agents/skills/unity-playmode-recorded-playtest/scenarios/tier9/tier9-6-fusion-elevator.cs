@@ -1,6 +1,6 @@
 using Game.Context;
-// 出荷マスタで核融合炉を動かして宇宙エレベーター拠点へ給電し、ケーブルで接続して GPU衛星Lv1 が昇り切り出口に成果が出ることを確かめる
-// On the shipped master, run a fusion reactor to power the space elevator base, connect it with cables, and see a GPU satellite Lv1 climb all the way and deliver
+// 出荷マスタで核融合炉を動かして宇宙エレベーター拠点へ給電し、ケーブルで接続して、ICチップLv1 が1便ぶん（20個）そろうまで昇らず、そろうと昇り切り出口に計算データが出ることを確かめる
+// On the shipped master, power the space elevator base from a fusion reactor, connect it with cables, and see IC chips Lv1 wait until one launch (20) is in, then climb and deliver compute data
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,9 +42,9 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.PrepareBackgroundInputAndWaitEnabled(p);
     p.WarpPlayer(new Vector3(0f, 32.5f, -15f));
-    var deuteriumId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("01a167e9-21b2-7bb0-b6a3-0f17d349704e"));
-    var cableId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"));
-    var satelliteId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a167cf-af8b-7894-8de6-593ee30289c0"));
+    var (deuteriumId, cableId) = (MasterHolder.FluidMaster.GetFluidId(Guid.Parse("01a167e9-21b2-7bb0-b6a3-0f17d349704e")), MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab")));
+    var (payloadGuid, computeDataId) = (Guid.Parse("f6dd7835-0845-4877-87d0-b719d037ae7d"), PlaytestItemOps.ResolveItemId("計算データ")); // ICチップLv1
+    var (payloadId, countPerLaunch) = (MasterHolder.ItemMaster.GetItemId(payloadGuid), MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(x => x.PayloadItemGuid == payloadGuid).CountPerLaunch);
 
     // 軌道エレベーターの建設と核融合炉を前提ごと完了扱いにし、拠点が研究から解放されたことを確かめる
     // Mark orbital elevator construction and fusion reactor done with prerequisites, then confirm the base is unlocked by research
@@ -98,31 +98,36 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     await p.ClickUi("space-elevator-connect");
     await p.Until(() => Detail().IsConnected, 10f, "拠点が接続済みになった");
     await p.WaitForCableCount(0, 10f, "プールから1エレベーター分が引かれた");
-    var cableObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Cable").gameObject;
-    var climberObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Climber");
+    var (cableObject, climberObject) = (elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Cable").gameObject, elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Climber"));
     await p.Until(() => cableObject.activeSelf, 10f, "ケーブルが現れた");
     await p.Screenshot("03-elevator-connected");
 
-    // 衛星を入れると電力を使って昇り始める。UI を閉じて南から見上げる
-    // A satellite in the inlet starts climbing on power; close the UI and look up from the south
-    p.Note("GPU衛星Lv1を入口に入れ、昇降機がケーブルを昇ることを確かめる");
+    // 1便に満たない ICチップでは昇らず入口に残り、そろうと電力を使って昇り始める。UI を閉じて南から見上げる
+    // Fewer IC chips than one launch stay waiting in the inlet; a full launch climbs on power. Close the UI and look up from the south
+    p.Note($"ICチップLv1 を{countPerLaunch - 1}個だけ入口に入れ、昇らずに待つことを確かめる");
     await Refuel();
-    await p.RunOnServer("GPU衛星Lv1 を拠点の入口へ入れる", () => elevator.GetComponent<SpaceElevatorBaseInventoryComponent>().SetItem(0, satelliteId, 1));
-    await p.Until(() => Detail().Status is SpaceElevatorBaseStatus.Climbing or SpaceElevatorBaseStatus.LowPower, 15f, "昇降が始まった");
+    await p.RunOnServer($"ICチップLv1 {countPerLaunch - 1}個を拠点の入口へ入れる", () => Inlet().SetItem(0, payloadId, countPerLaunch - 1));
+    await p.WaitSeconds(3f);
+    p.Assert(Detail().Status == SpaceElevatorBaseStatus.WaitingSatellite && Inlet().InventoryItems[0].Count == countPerLaunch - 1, $"1便に満たないと昇らず入口に残る status={Detail().Status} inlet={Inlet().InventoryItems[0].Count}");
+    await p.Screenshot("04-elevator-waiting-payload");
+    // 昇り始めで状態表示が変わると閉じるボタンの位置がずれてクリックが外れるため、そろえる前に UI を閉じる
+    // Close the UI before topping up; the status change at climb start shifts the close button and the click misses
     await CloseUi();
+    await p.RunOnServer($"ICチップLv1 を{countPerLaunch}個にそろえる", () => Inlet().SetItem(0, payloadId, countPerLaunch));
+    await p.Until(() => Detail().Status is SpaceElevatorBaseStatus.Climbing or SpaceElevatorBaseStatus.LowPower, 15f, "昇降が始まった");
     var startY = climberObject.localPosition.y;
     p.WarpPlayer(new Vector3(elevatorPos.x + 4.5f, 32.5f, -20f));
     for (var frame = 0; frame < 40; frame++) { SemanticInput.MouseDragBy(new Vector2(0f, 4f)); await UniTask.Yield(); }
     await p.WaitSeconds(10f);
     p.Assert(climberObject.localPosition.y > startY, $"昇降機が上がった start={startY:F2} now={climberObject.localPosition.y:F2}");
     p.Assert(Detail().ClimbProgress > 0f, $"昇降の進みが増えた progress={Detail().ClimbProgress:F3}");
-    await p.Screenshot("04-elevator-climbing");
+    await p.Screenshot("05-elevator-climbing");
 
     // 昇り切ると到着の表どおりの成果が出口に出る（電力不足で遅くなる分を見込んで待ちは3倍）
     // On reaching the top the arrival-table output appears at the outlet (the wait is tripled for low-power slowdown)
     var climbSeconds = ((SpaceElevatorBaseBlockParam)elevator.BlockMasterElement.BlockParam).ClimbSeconds;
-    var expected = (await p.ReadArrivalOutputs(satelliteId, 1));
-    p.Assert(expected.Count > 0, $"GPU衛星Lv1 1便の到着成果がある（先頭 {MasterHolder.ItemMaster.GetItemMaster(expected[0].Id).Name} x{expected[0].Count}）");
+    var expected = (await p.ReadArrivalOutputs(payloadId, countPerLaunch)).Where(s => s.Id == computeDataId).Sum(s => s.Count);
+    p.Assert(countPerLaunch == 20 && expected == 20, $"ICチップLv1 の1便は20個で、到着成果は計算データ20個（{countPerLaunch} 個 → {expected} 個）");
     p.Note($"昇降 {climbSeconds} 秒を早送りせずに待つ");
     var deadline = Time.realtimeSinceStartup + climbSeconds * 3f + 10f;
     for (var second = 0; !Delivered() && Time.realtimeSinceStartup < deadline; second++)
@@ -130,10 +135,10 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         if (second % 10 == 0) await Refuel();
         await UniTask.Delay(1000);
     }
-    await p.Until(Delivered, 0f, "昇り切って出口に成果が出た");
+    await p.Until(Delivered, 0f, $"昇り切って出口に計算データ{expected}個が出た");
     await OpenBlock(elevatorPos, 4.5f);
     await p.UntilUiElement("space-elevator-output-grid", 10f);
-    await p.Screenshot("05-elevator-delivered");
+    await p.Screenshot("06-elevator-delivered");
     await CloseUi();
 
     // 接続済みの拠点を撤去すると1エレベーター分がプールへ戻る
@@ -161,7 +166,8 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         return MessagePack.MessagePackSerializer.Deserialize<SpaceElevatorBaseStateDetail>(detail.Value);
     }
 
-    bool Delivered() => elevator.GetComponent<SpaceElevatorBaseInventoryComponent>().InventoryItems.Skip(1).Any(s => s.Id == expected[0].Id && s.Count > 0);
+    SpaceElevatorBaseInventoryComponent Inlet() => elevator.GetComponent<SpaceElevatorBaseInventoryComponent>();
+    bool Delivered() => Inlet().InventoryItems.Skip(1).Where(s => s.Id == computeDataId).Sum(s => s.Count) == expected;
 
     // 炉のタンクは数十秒で空になるので、長い待ちの前と間に満タンまで入れ直す（溢れた分は捨てる）
     // The reactor tank empties within tens of seconds, so top it up before and during long waits (overflow is dropped)
@@ -188,11 +194,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         await p.UntilUiElement("block-inventory-close", 10f);
     }
 
-    async UniTask CloseUi()
-    {
-        await p.ClickUi("block-inventory-close");
-        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-    }
+    async UniTask CloseUi() { await p.ClickUi("block-inventory-close"); await p.WaitUiState(UIStateEnum.GameScreen, 10f); }
 
     #endregion
 });

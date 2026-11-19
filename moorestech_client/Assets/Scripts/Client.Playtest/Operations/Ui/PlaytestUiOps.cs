@@ -134,9 +134,19 @@ namespace Client.Playtest.Operations.Ui
             // Edit モードの設定書き換えは PlayMode 終了で戻らないので PlayMode 中に限る
             // Settings written in Edit mode are not restored on PlayMode exit, so require PlayMode
             if (!Application.isPlaying) throw new InvalidOperationException("[PlaytestUiOps] PrepareBackgroundInput は PlayMode 中のみ");
-            // 表タブ化し全入力を GameView へ流す
-            // Show the tab and route all input to Game View
+            // 表タブ化してから入力を整える
+            // Show the tab, then prepare input
             PlaytestGameViewOps.BringToFront();
+            EnableBackgroundInput();
+        }
+
+        // GameView の前面化をせず、焦点無視の設定と全デバイスの有効化だけを行う（GameView の無いレイアウトでも動く）
+        // Only set focus-ignoring input and enable every device, without bringing Game View front (works without a Game View)
+        public static void EnableBackgroundInput()
+        {
+            if (!Application.isPlaying) throw new InvalidOperationException("[PlaytestUiOps] EnableBackgroundInput は PlayMode 中のみ");
+            // 全入力を GameView へ流す
+            // Route all input to Game View
             InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             EnableInjectedInputDevices();

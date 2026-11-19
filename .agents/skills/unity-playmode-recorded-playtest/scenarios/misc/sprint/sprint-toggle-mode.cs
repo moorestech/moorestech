@@ -20,7 +20,10 @@ await PlaytestSetup.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnP
 // Raise the test scaffold above terrain loaded asynchronously
 GameObject.Find("PlaytestFlatGround").transform.position = new Vector3(0f, 300f, 0f);
 GameObject.Find("PlaytestFlatGround").transform.localScale = new Vector3(100f, 4f, 100f);
-await PlaytestSkitOps.SkipOpeningSkit(30f, 15f);
+// 開幕スキットはデバッグ設定 SkitPlaySettings（共用 Editor では他の本が立てて残る）で流れないことがあるので、流れていれば飛ばす
+// The opening skit may not play under the SkitPlaySettings debug flag (left set by other runs on a shared Editor), so skip it only if playing
+await PlaytestSkitOps.SkipOpeningSkitIfPlaying(10f);
+await PlaytestUiOps.WaitUiState(UIStateEnum.GameScreen, 15f);
 SemanticInput.EnsureDevices();
 // Editorの背景入力制限だけを一時解除し、終了時に元へ戻す
 // Temporarily relax only Editor background input restrictions, restoring them at the end
@@ -74,21 +77,21 @@ return PlaytestRunner.Run("sprint-toggle-mode", options, async p =>
         await Measure("b-toggle-walk", false);
         await EndMovement();
 
-        // ベルトの鉛直回転を読み取り専用リフレクションで観測する
-        // Observe belt vertical rotation through read-only reflection
+        // ベルトの向きを読み取り専用リフレクションで観測する（ベルトは経路の設置系 BeltConveyorPlaceSystem の _currentDirection）
+        // Observe the belt direction via read-only reflection (belts use the route placer BeltConveyorPlaceSystem._currentDirection)
         p.Note("c: ベルト配置でShift+R、歩き状態を維持");
         await p.OpenBuildMenuAndSelectBlock("ベルトコンベア");
         var ui = Object.FindFirstObjectByType<UIStateControl>();
         var states = (UIStateDictionary)ReadField(ui, "_uiStateDictionary");
         var placeController = ReadField(states.GetState(UIStateEnum.PlaceBlock), "_placeSystemStateController");
         var belt = ReadField(placeController, "_currentPlaceSystem");
-        var before = (BlockDirection)ReadField(belt, "_currentBlockDirection");
+        var before = (BlockDirection)ReadField(belt, "_currentDirection");
         SemanticInput.KeyDown(Key.LeftShift);
         await p.WaitSeconds(0.5f);
         await p.PressKey(Key.R);
         SemanticInput.KeyUp(Key.LeftShift);
         await p.WaitSeconds(0.5f);
-        var after = (BlockDirection)ReadField(belt, "_currentBlockDirection");
+        var after = (BlockDirection)ReadField(belt, "_currentDirection");
         p.Note($"Shift+R direction: {before} -> {after}; expected={before.HorizonRotation()}, sprint={inputs.sprint}");
         p.Assert(after == before.HorizonRotation(), "Shift+Rでも水平回転");
         p.Assert(!inputs.sprint, "複合Shiftでトグル状態を維持");

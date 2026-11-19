@@ -1,4 +1,3 @@
-using System;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -36,24 +35,11 @@ namespace Game.Block.Blocks.SpaceElevator
                 return (satellite, 0);
             }
 
-            // 運ぶ積荷から外れた衛星は頂上で軌道到着サービスが例外を出すので、昇降を取り消して入口へ戻す
-            // A satellite no longer carried would make the orbital service throw at the top, so cancel the climb and return it to the inlet
-            if (!inventory.IsCarriedPayload(satellite.Id))
-            {
-                Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星 {satellite.Id} は今のマスタで運ぶ積荷ではないため、昇降を取り消して入口へ戻します");
-                if (!inventory.TryReturnSatelliteWithoutEvent(satellite)) throw new InvalidOperationException("Space elevator load failed: unsupported satellite cannot be returned; preserve the source save");
-                return (ServerContext.ItemStackFactory.CreatEmpty(), 0);
-            }
-
-            // 昇降機は1機ずつ運ぶ。壊れたセーブで2機以上あれば1機だけ昇らせ、余りを入口へ戻す
-            // The climber carries one at a time; a broken save with more keeps one climbing and returns the rest to the inlet
-            if (1 < satellite.Count)
-            {
-                Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星が {satellite.Count} 機セーブにあるため、1機だけ昇らせ残りを入口へ戻します");
-                if (!inventory.TryReturnSatelliteWithoutEvent(ServerContext.ItemStackFactory.Create(satellite.Id, satellite.Count - 1)))
-                    throw new InvalidOperationException("Space elevator load failed: excess satellites cannot be returned; preserve the source save");
-                satellite = ServerContext.ItemStackFactory.Create(satellite.Id, 1);
-            }
+            // 今のマスタで1便ぶんとして昇れる分だけを残す。昇らない分は在庫側が戻す
+            // Keep only what can climb as one launch under the current master; the inventory returns the rest
+            satellite = inventory.TakeLaunchableClimbingPayloadOnLoad(satellite);
+            // silent-ok: 昇降の取消は在庫側がLogErrorで理由を出している / 開発者がロード時のログで気づく
+            if (satellite.Id == ItemMaster.EmptyItemId) return (satellite, 0);
 
             // 残りが負・NaN・無限のセーブは壊れている。最初から昇り直す（0は頂上で出口待ちの正しい値）
             // A negative, NaN or infinite remaining time is a broken save; climb again from the start (zero is the valid waiting-at-top value)

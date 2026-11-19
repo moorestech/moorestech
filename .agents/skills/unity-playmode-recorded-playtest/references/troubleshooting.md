@@ -84,7 +84,7 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
 
 ## 6. その他の既知事象
 
-- 新規Editorで `screenshot '...' was not written within 10s` はGame Viewが別タブの背後に隠れている疑い。自worktreeのEditorで `uloop execute-dynamic-code` から `PlaytestGameViewOps.BringToFront()`（Game View を表タブにする）を呼び再実行。該当環境では毎ラン前に実行。`EditorWindow.Focus()` は Editor を OS の前面へ出し、並走する別 Editor のフォーカスを奪うので使わない（入力の準備はシナリオ内で `PlaytestUiOps.PrepareBackgroundInput()`）
+- 新規Editorで `screenshot '...' was not written within 10s` はGame Viewが別タブの背後に隠れている疑い。自worktreeのEditorで `uloop execute-dynamic-code` から `PlaytestGameViewOps.BringToFront()`（Game View を表タブにする）を呼び再実行。該当環境では毎ラン前に実行。`EditorWindow.Focus()` は Editor を OS の前面へ出し、並走する別 Editor のフォーカスを奪うので使わない（入力の準備は `PlaytestRunner.Run` が台本の前に毎回入れる。録画する実行は Game View の前面化まで、録画しない実行は焦点無視とデバイスの有効化だけ）
 
 - **機関車は燃料なしで無言停止する**（エラー・警告ログ一切なし）。auto-run有効・IsDocked=False・diagram正常でも
   マスコン計算が0を返しspeed=0のまま。`p.Until(() => train.CurrentSpeed > 0, ...)`が原因不明でタイムアウトしたら

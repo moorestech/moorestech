@@ -16,7 +16,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         private static BeltRouteSearch RunSearch(BeltRouteGrid grid, Vector3Int end, int maxExpansions, out BeltRouteSearchOutcome outcome)
         {
             var start = new Vector3Int(2, 0, 2);
-            var query = new BeltRouteQuery(start, BlockDirection.East, false, end, BlockDirection.East, true, false);
+            var query = new BeltRouteQuery(start, BlockDirection.East, false, end, BlockDirection.East, true);
             var starts = new[] { (new BeltRouteState(start, BlockDirection.East, BeltRouteCellKind.Straight), BeltRouteCellKindExtension.StraightCost) };
             var search = new BeltRouteSearch();
             outcome = search.Run(new BeltRouteTransitionRule(grid, query), starts, maxExpansions);
@@ -55,7 +55,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             for (var z = 0; z < 200; z++)
             for (var y = 0; y < 3; y++)
                 grid.MarkBlockCell(new Vector3Int(100, y, z));
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(190, 0, 190), BlockDirection.East, true, false);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 2), BlockDirection.East, false, new Vector3Int(190, 0, 190), BlockDirection.East, true);
 
             LogAssert.Expect(LogType.Log, new Regex($"CapReached expansions:{BeltRoutePlanner.MaxExpansions}"));
             var result = new BeltRoutePlanner(grid, BeltRoutePlanner.DefaultRecoverySlack).Plan(query);

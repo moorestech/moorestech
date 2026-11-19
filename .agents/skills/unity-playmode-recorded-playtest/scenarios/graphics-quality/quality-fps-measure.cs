@@ -86,9 +86,10 @@ return PlaytestRunner.Run("quality-fps-measure", new PlaytestRunOptions { Record
             nextKey = nextKey == Key.W ? Key.S : Key.W;
             if (!placed && Time.realtimeSinceStartupAsDouble - started >= 24d)
             {
-                // 原本の地形を変えず、本番UIから床上へ設置する
-                // Place on the existing floor through the production UI without altering terrain
-                origin = new Vector3Int(Mathf.FloorToInt(p.PlayerPosition.x), 96, Mathf.FloorToInt(p.PlayerPosition.z) + 4);
+                // 原本の地形を変えず、本番UIから床上へ設置する。S で後ろへ歩くと追従カメラが振り向くので、設置先は北固定でなくカメラの前方 4m に取る
+                // Place on the existing floor through the production UI without altering terrain; walking back with S turns the follow camera, so the target is 4 m ahead of the camera rather than fixed north
+                var ahead = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized * 4f;
+                origin = new Vector3Int(Mathf.FloorToInt(p.PlayerPosition.x + ahead.x), 96, Mathf.FloorToInt(p.PlayerPosition.z + ahead.z));
                 p.Assert(p.GetBlock(origin) == null, "設置先は空セル");
                 await p.PlaceBlockViaUi("木のチェスト", origin, BlockDirection.North);
                 var view = await p.WaitBlockGameObject(origin);

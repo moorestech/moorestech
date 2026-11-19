@@ -179,20 +179,5 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(scenario == "rejected" || scenario == "empty" ? 0 : scenario == "partial" ? ItemStackLevelDataStore.Instance.GetMaxStack(item) : 2,
                 inventory.GetItem(0).Count);
         }
-
-        private static IBlock SetupConnected(float power)
-        {
-            CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
-            PowerBase(elevatorBase, Vector3Int.zero, power);
-            LaunchCables(100);
-            ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
-            return elevatorBase;
-        }
-
-        private static SpaceElevatorBaseInventoryComponent Inventory(IBlock elevatorBase)
-        {
-            return elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
-        }
     }
 }

@@ -24,7 +24,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
             // 障害を跨ぐ経路を本番の探索で求める
             // Plan a route over the obstacle with the production search
-            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, true, false);
+            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, true);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
             Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "obstacle route");
@@ -59,7 +59,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
             // (2,0,0)の東向きベルトから右（南）へ分岐する
             // Branch from the east-facing belt at (2,0,0) to its right (south)
-            var query = new BeltRouteQuery(new Vector3Int(2, 0, 0), BlockDirection.South, true, new Vector3Int(2, 0, -3), BlockDirection.South, true, false);
+            var query = new BeltRouteQuery(new Vector3Int(2, 0, 0), BlockDirection.South, true, new Vector3Int(2, 0, -3), BlockDirection.South, true);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
             Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "branch route");
@@ -101,7 +101,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.AreEqual(BlockDirection.East, shape.SplitterFacing);
             Assert.AreEqual(BlockDirection.East, shape.BranchExit);
 
-            var query = new BeltRouteQuery(corner, shape.BranchExit, true, new Vector3Int(5, 0, 0), BlockDirection.East, true, false);
+            var query = new BeltRouteQuery(corner, shape.BranchExit, true, new Vector3Int(5, 0, 0), BlockDirection.East, true);
             var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
             Assert.IsTrue(result.HasPlan, "no route");
             BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "corner branch route");
@@ -117,6 +117,62 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             source.SetItem(0, ServerContext.ItemStackFactory.Create(TestItemId, 6));
 
             Assert.IsTrue(TickUntilDelivered(cornerSink, 1, branchSink, 1), $"items did not reach both chests corner:{CountOf(cornerSink)} branch:{CountOf(branchSink)}");
+        }
+
+        // 既存ベルトの末端が向くセルを新しい経路が通り、そこで合流して両方の荷物が同じ終点へ届く（ADR 0103）
+        // A new route passes the cell an existing belt's end points at, merges there, and items from both reach the same end (ADR 0103)
+        [Test]
+        public void RoutePassingAnExistingOutputMergesBothFlows()
+        {
+            var world = BootWorld();
+            var straight = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000009");
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(3, 0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(3, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+
+            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, false);
+            var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
+            Assert.IsTrue(result.HasPlan, "no route");
+            BeltRoutePlanVerifier.AssertValid(BuildGridFromWorld(world), query, result.Plan, "merge route");
+            Assert.IsTrue(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(3, 0, 0)), "route should pass in front of the existing belt end");
+            foreach (var cell in result.Plan.Cells)
+                Assert.IsTrue(world.TryAddBlock(straight, cell.Cell, cell.Facing, Array.Empty<BlockCreateParam>(), out _), $"placement failed at {cell}");
+
+            var routeSource = PlaceChest(world, new Vector3Int(-1, 0, 0));
+            var sideSource = PlaceChest(world, new Vector3Int(3, 0, -3));
+            var sink = PlaceChest(world, new Vector3Int(7, 0, 0));
+            routeSource.SetItem(0, ServerContext.ItemStackFactory.Create(TestItemId, 1));
+            sideSource.SetItem(0, ServerContext.ItemStackFactory.Create(TestItemId, 1));
+
+            Assert.IsTrue(TickUntilDelivered(sink, 2, null, 0), $"both flows did not reach the sink: {CountOf(sink)}");
+        }
+
+        // 分岐器の西の出口は既存ラインへ繋がり、北の出口は空いている。北の出口の前を新しい経路が通っても、既存ラインへ荷物が届き続ける（ADR 0103）
+        // The splitter's west exit feeds an existing line and its north exit is free; a new route passing the north exit must leave the existing line fed (ADR 0103)
+        [Test]
+        public void RoutePassingASplitterExitKeepsTheExistingLineFed()
+        {
+            var world = BootWorld();
+            var straight = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000009");
+            var splitter = ForUnitTestModBlockId.GetBlock("7b3e1a10-0001-4000-8000-000000000012");
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(3, 0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(splitter, new Vector3Int(3, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(2, 0, -1), BlockDirection.West, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(1, 0, -1), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _));
+            Assert.IsTrue(world.TryAddBlock(straight, new Vector3Int(1, 0, -2), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _));
+
+            var query = new BeltRouteQuery(new Vector3Int(0, 0, 0), BlockDirection.East, false, new Vector3Int(6, 0, 0), BlockDirection.East, false);
+            var result = new BeltRoutePlanner(BuildGridFromWorld(world), BeltRoutePlanner.NoRecoverySlack).Plan(query);
+            Assert.IsTrue(result.HasPlan, "no route");
+            Assert.IsTrue(result.Plan.Cells.Any(cell => cell.Cell == new Vector3Int(3, 0, 0)), "route should pass in front of the splitter's free exit");
+            foreach (var cell in result.Plan.Cells)
+                Assert.IsTrue(world.TryAddBlock(straight, cell.Cell, cell.Facing, Array.Empty<BlockCreateParam>(), out _), $"placement failed at {cell}");
+
+            var source = PlaceChest(world, new Vector3Int(3, 0, -3));
+            var existingSink = PlaceChest(world, new Vector3Int(1, 0, -3));
+            var routeSink = PlaceChest(world, new Vector3Int(7, 0, 0));
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(TestItemId, 6));
+
+            Assert.IsTrue(TickUntilDelivered(existingSink, 1, routeSink, 1), $"existing:{CountOf(existingSink)} route:{CountOf(routeSink)}");
         }
     }
 }
