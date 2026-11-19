@@ -82,10 +82,10 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     await GiveWithFluids(euv, 0, "トランジスタ設置済みウェハ", 4);
     await p.Until(() => Count(euv, "1層パターンウェハ") + Count(euv, "失敗したパターンウェハ") > 0, 60f, "EUV layer exposed");
 
-    // ダイシングの精密切断機に品質モジュールLv1 を3個挿す（近づき度で表がモジュール無しから Tier1 へ寄る）と、完成ウェハ4枚から Lv1 と Lv2 のダイが10個以上出る
-    // With three quality module Lv1 in the dicing cutter (the table drifts from no-module toward tier 1 by approach weight), four finished wafers yield 10+ Lv1 and Lv2 dies
+    // 品質モジュールLv1 x3 で表が Tier1 へ寄り、クラスCでは完成ウェハ2枚で Lv2 が約23個（10個以上の確率99.9%）。失敗ダイ約370個は出力1スロット(600)に収まる
+    // Three quality module Lv1 pull the table toward tier 1; in class C two wafers give ~23 Lv2 (P(>=10) 99.9%) and ~370 failed dies that fit one 600-stack output slot
     await p.RunOnServer("品質モジュールLv1 x3 をダイシングの精密切断機のモジュール欄(末尾)へ挿す", () => Slots(dicing).SetItem(Slots(dicing).GetSlotSize() - ((Mooresmaster.Model.BlocksModule.CleanRoomMachineBlockParam)dicing.BlockMasterElement.BlockParam).ModuleSlotCount, PlaytestItemOps.ResolveItemId("品質モジュールLv1"), 3));
-    await GiveWithFluids(dicing, 0, "完成パターンウェハ", 4);
+    await GiveWithFluids(dicing, 0, "完成パターンウェハ", 2);
     await p.Until(() => Count(dicing, "シリコンダイLv1") >= 10 && Count(dicing, "シリコンダイLv2") >= 10, 120f, "Lv1 >= 10 and Lv2 >= 10 dies diced");
     p.Assert(Count(dicing, "シリコンダイLv3") == 0, $"品質Tier1 の表では Lv3 ダイが出ない（Lv1 x{Count(dicing, "シリコンダイLv1")} / Lv2 x{Count(dicing, "シリコンダイLv2")} / Lv3 x{Count(dicing, "シリコンダイLv3")} / 失敗 x{Count(dicing, "失敗したシリコンダイ")}）");
     await ShootMachine(dicing, "02-dies");
