@@ -177,7 +177,7 @@ namespace Client.Tests.Ui.Input
         }
 
         [Test]
-        public void フォーカスが無いときのTab由来の移動は入力欄へフォーカスを移さない()
+        public void NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField()
         {
             Assert.IsNull(panel.focusController.focusedElement);
 
@@ -196,7 +196,7 @@ namespace Client.Tests.Ui.Input
         }
 
         [Test]
-        public void 入力欄にフォーカスがあるときの移動はパネルの根を通り抜けて規則が止める()
+        public void NavigationMoveAimedAtFocusedElementPassesPanelRootAndIsCancelledByRules()
         {
             _textField.Focus();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
@@ -347,11 +347,11 @@ git switch fix/build-menu-tab-focus
 git branch -D tmp/tab-red-check-l1 && git push origin --delete tmp/tab-red-check-l1
 ```
 
-Expected: `フォーカスが無いときのTab由来の移動は入力欄へフォーカスを移さない` が FAIL（`focusedElement` が `guard-text` の内側の要素になる）。もう1本は PASS のまま。
+Expected: `NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField` が FAIL（`focusedElement` が `guard-text` の内側の要素になる）。もう1本は PASS のまま。
 FAIL しなかった場合は、テストが不具合を検出できていない。止めて報告する（合格にして進めない）。
 
 次に、宛先の判定がテストで守られていることも同じ形で確かめる: 使い捨てブランチ `tmp/tab-red-check-l1b` で `CancelNavigationAimedAtPanelRoot` の `if (evt.target != evt.currentTarget) return;` の1行をコメントアウトして同じクラスを回す（手順は上と同じで、ブランチ名だけ変える。`--name fix-build-menu-tab-focus` は同じ）。
-Expected: `入力欄にフォーカスがあるときの移動はパネルの根を通り抜けて規則が止める` が FAIL（下の器へ届く件数が 0）。
+Expected: `NavigationMoveAimedAtFocusedElementPassesPanelRootAndIsCancelledByRules` が FAIL（下の器へ届く件数が 0）。
 
 - [ ] **Step 8: 既存の UI テストが通り続けることを確認する**
 
