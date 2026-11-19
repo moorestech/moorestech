@@ -65,8 +65,7 @@ namespace Client.Ui.Screens.Skit.Parts.Choices
         public void SetInteractive(bool interactive)
         {
             pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
-            if (interactive) _hover.Resume();
-            else _hover.Suspend();
+            _hover.SetPressable(interactive);
         }
 
         private static VisualElement CreateDecor(string className)

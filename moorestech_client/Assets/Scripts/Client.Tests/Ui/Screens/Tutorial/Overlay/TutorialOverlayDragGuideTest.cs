@@ -160,6 +160,27 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         }
 
         [Test]
+        public void 出ている間に隠さず外して載せ直しても流れ続ける()
+        {
+            MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
+            MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
+            _model.Set(Guide());
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(0);
+            var guide = _view.Q<TutorialDragGuideView>();
+            var parent = guide.parent;
+
+            // HideGuide を挟まない detach→attach（外れた時にループは止まる）の後も、載せ直しの解決で動き出す
+            // After a detach and attach without HideGuide (the loop stops on detach), the re-attach resolution restarts it
+            guide.RemoveFromHierarchy();
+            parent.Add(guide);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs((long)(Ms("--tutorial-drag-guide-duration") / 2f));
+            Assert.Greater(guide.resolvedStyle.translate.x, 1f);
+        }
+
+        [Test]
         public void モデルから誘導が消えると誘導のViewも消える()
         {
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);

@@ -113,10 +113,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var input = row.Q(className: "machine-process-row__input");
             var output = row.Q(className: "machine-process-row__output");
 
+            // 基準の幅は両側とも広い方の中身、下限は各自の中身（Web の minmax(auto, 1fr)）
+            // Both sides take the wider content as basis and their own content as floor (Web minmax(auto, 1fr))
+            var widest = System.Math.Max(input[0].layout.width, output[0].layout.width);
             foreach (var side in new[] { input, output })
             {
                 Assert.AreEqual(1f, side.resolvedStyle.flexGrow);
-                Assert.AreEqual(0f, side.resolvedStyle.flexBasis.value);
+                Assert.AreEqual(widest, side.resolvedStyle.flexBasis.value, 0.01f);
+                Assert.AreEqual(side[0].layout.width, side.resolvedStyle.minWidth.value, 0.01f);
             }
             var arrow = row.Q<ProgressArrowGlyph>("machine-progress-arrow");
             Assert.AreEqual(row.worldBound.center.x, arrow.worldBound.center.x, 0.5f);
