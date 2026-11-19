@@ -14,17 +14,18 @@
 2. 伸び幅は個数が増えるほど小さくなる（1個増やしたときの増分が、その前の増分以下）。受け入れ: `ChipYieldFormulaTest.GainShrinksWithEveryAddedModuleTest` が通る。
 3. v8 のマスタ値で、クラスC・品質Lv1 を9個入れたときの良品が、ウェハー1枚あたり約 66.86%（今の約 66.9% と同じ）。受け入れ: `ChipYieldFormulaTest.V8ClassCNineLv1ModulesMatchesTodayTest` が 0.6686±0.0005 で通る。
 4. 表は何 Lv のチップが出るかだけを決める。品質ゲート（最高 Lv が N なら Lv N+2 以上は 0）は、どの重みでも崩れない。受け入れ: `ChipYieldFormulaTest.QualityGateHoldsForEveryWeightTest`。
-5. 個数で減った失敗の分は、最高 Lv の表の良品の割合で各 Lv へ配る（レア枠だけへ回さない）。受け入れ: 混合の式が表を生き残りの重みで混ぜること（`BlendedDieRatesMixesStatesPerDieTest`）。
+5. 個数で減った失敗の分は、最高 Lv の表の良品の割合で各 Lv へ配る（レア枠だけへ回さない）。受け入れ: 混合の式が表を生き残りの内訳の重みで混ぜること（`DicingRatesReturnsLossAndPerSurvivorRatesTest`）。
 6. 部屋クラスを上げても、良品の合計とレア以上の期待値は減らない（Tier1〜4・1〜24個）。受け入れ: `ChipYieldFormulaTest.ClassImprovementNeverReducesGoodTotalOrUpperLevelsTest`。
 7. マスタのダイシング設定に `qualityApproachScale`（正の有限値）を必須で持たせ、`maxRareShift` を消す。受け入れ: 検証器が非有限・0以下を拒否する（`CleanRoomMasterTest.DicingQualityApproachScaleMustBePositiveFiniteTest`）。
 8. v8 マスタ（moorestech_master の cleanRoom.json）を ADR 0104 の値にする: `qualityApproachScale` 0.1335、`maxLossReduction` 0.8、Tier1〜5 の表を「十分入れたときの表」へ。受け入れ: 起動時の検証が通り、Requirement 3 の値が出る。
 9. 品質モジュールの加工時間の延び（1個5%）、モジュール無しの表（Lv1 20%・失敗80%）、露光（EUV）の失敗率の割引（`ReducedRate`）は変えない。
-10. やらないこと: 研究の要求数の変更、クライアント UI の変更、セーブ形式の変更（保存する抽選記録 `DicingPreview` の中身は計算結果だけで形は変わらない）、品質モジュール以外のモジュールの変更。
+10. ダイ表の十分入れた表（Tier1〜最大）の良品の割合（levelRates の合計）は、モジュール無しの表（Tier0）より大きくなければ、起動時のマスタ検証でログを出して止める。受け入れ: `CleanRoomYieldTableRulesTest.FullModuleTableNotBetterThanNoModuleIsRejectedTest` と `V8DieTablesAreValidTest` が通る。
+11. やらないこと: 研究の要求数の変更、クライアント UI の変更、セーブ形式の変更（保存する抽選記録 `DicingPreview` の中身は計算結果だけで形は変わらない）、品質モジュール以外のモジュールの変更。
 
 ## Global Constraints
 
 - ADR: `docs/adr/0104-dicing-quality-modules-saturate-by-count.md`（決定と数値の正）。
-- 式: 近づき度 `w = 1 − exp(−max(0, qualitySum × classQualityMultiplier) ÷ qualityApproachScale)`。無しの生き残り `s0 = 1 − classDieLossRate`、十分入れた生き残り `s1 = 1 − classDieLossRate × (1 − maxLossReduction)`、生き残り `s = (1 − w)s0 + w s1`。ダイ損失率 `= 1 − s = classDieLossRate × (1 − maxLossReduction × w)`。表の重み `t = w s1 ÷ s`（s が 0 なら t = w）。生き残り1個あたりの振り分け `= (1 − t) × QualityTierDieTables[0] + t × QualityTierDieTables[qualityTier]`。
+- 式: 近づき度 `w = 1 − exp(−max(0, qualitySum × classQualityMultiplier) ÷ qualityApproachScale)`。十分入れた損失 `L1 = classDieLossRate × (1 − maxLossReduction)`、ダイ損失率 `loss = (1 − w) × classDieLossRate + w × L1`、生き残り `s = 1 − loss`、十分入れた生き残り `s1 = 1 − L1`。損失率と生き残りは `DicingRates` の中で1回だけ導出する（同じ値を別の式で出し直さない）。表の重み `t = w s1 ÷ s`（s ≤ 0 なら t = w）。生き残り1個あたりの振り分け `= (1 − t) × QualityTierDieTables[0] + t × QualityTierDieTables[qualityTier]`。
 - v8 の値: `qualityApproachScale` 0.1335、`maxLossReduction` 0.8。表（levelRates [Lv1..Lv5] / failedRate）:
   - Tier0: [0.2, 0, 0, 0, 0] / 0.8（変えない）
   - Tier1: [0.83125, 0.11875, 0, 0, 0] / 0.05
@@ -38,8 +39,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / テスト2ファイルの200行超を別クラスへ分割。注目点のうち古いコメント2か所をFilesへ追加、式の組み立てを DicingRates へ寄せた
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強0・弱2・第3バケツ0 / 弱1（表の大小の検証）はユーザー裁定で検証を足す、弱2（生き残り率の二重導出）は未反映（下の『引き継ぎ時点で未反映の計画修正』）
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件（初回）＋ 修正反映後の再検査 違反1件・修正1件 / 初回はテスト2ファイルの200行超を別クラスへ分割・古いコメント2か所を Files へ追加・式の組み立てを DicingRates へ寄せた。再検査はテスト専用 public だった `BlendedDieRates` を private にし、テストは損失0の `DicingRates` で確かめる形へ
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 初回 強0・弱2・第3バケツ0（弱1 表の大小の検証はユーザー裁定で足した・弱2 生き残り率の二重導出は導出を1本にして反映）＋ 修正反映後の再検査 強0・弱1・第3バケツ0（`GoodShare` の二重呼び出しと Tier0 の直書き合計を1本にして反映）
 
 ---
 
@@ -49,7 +50,8 @@
 |---|---|---|
 | `VanillaSchema/cleanRoom.yml` | Modify | dicings から `maxRareShift` を消し `qualityApproachScale` を足す。表の説明を「十分入れたときの表」へ |
 | `moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomDicingValidator.cs` | Modify | `MaxRareShift` の検査を `QualityApproachScale`（正の有限値）の検査へ置き換える |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/Yield/ChipYieldFormula.cs` | Modify | レア枠シフトの式を消し、近づき度・表の混合・損失の割引の3関数にする。`ReducedRate`（EUV 用）は残す |
+| `moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomYieldTableRules.cs` | Modify | `ValidateDieTables` に「Tier1 以上の表の良品の割合が Tier0 より大きい」規則を足す |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/Yield/ChipYieldFormula.cs` | Modify | レア枠シフトの式を消し、近づき度・表の線形混合・ダイシングの率（損失と生き残りを1回で導出）の3関数にする。`ReducedRate`（EUV 用）は残す |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomRoleRates.cs` | Modify | `Dicing` を新しい式でつなぐ |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffect.cs` | Modify | 使われなくなる `HighestQualityModuleEffectValue` を消す |
 | `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/cleanRoom.json` | Modify | `maxRareShift` → `qualityApproachScale: 1.0` |
@@ -58,9 +60,13 @@
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/ChipYieldFormulaTest.cs` | Modify（全面書き換え） | 式の単体（近づき度・損失・混合・品質ゲート） |
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/ChipYieldSaturationCurveTest.cs` | Create | v8 の値での曲線の性質（v8 の基準値・1個ごとに増える・逓減・クラス単調） |
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomRoleRatesTest.cs` | Modify | テスト mod の値での期待値を新しい式へ |
+| `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomYieldTableRulesTest.cs` | Modify | 表の大小の規則のテスト（拒否1件・v8 の値が通る1件）を足す |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/CleanRoomMasterTest.cs` | Modify | dicings の [0,1] 検査のキーを `maxLossReduction` へ |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/CleanRoomDicingMasterValidationTest.cs` | Create | `qualityApproachScale` の検査（既存ファイルが200行を超えないよう分ける） |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleQualityTierTest.cs` | Modify | `AggregateReportsHighestTierEffectValueTest` を消す |
+| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs` | Modify | クラスA・Tier1 1個の機械UIの期待値とコメントを新しい式へ |
+| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomPendingDrawYieldInfoTest.cs` | Modify | 待機中の抽選（Tier1 1個）の期待値とコメントを新しい式へ |
+| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomDicingTest.cs` | Modify（コメントのみ） | 「シフト0で表のまま」の説明を新しい式へ |
 | `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/cleanRoom.json` | Modify（別 repo） | v8 の値 |
 | `.moorestech-external-revisions.json` | Modify | master ピン更新 |
 
@@ -73,6 +79,7 @@
 **Files:**
 - Modify: `VanillaSchema/cleanRoom.yml`
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomDicingValidator.cs`
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomYieldTableRules.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/Yield/ChipYieldFormula.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomRoleRates.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffect.cs`
@@ -83,22 +90,26 @@
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/ChipYieldSaturationCurveTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/CleanRoomDicingMasterValidationTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomRoleRatesTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomYieldTableRulesTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/CleanRoomMasterTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleQualityTierTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomPendingDrawYieldInfoTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomDicingTest.cs`（コメントのみ）
 
 **Interfaces:**
 - Consumes: 生成クラス `DicingsElement`（SourceGenerator）。スキーマ変更後は `QualityApproachScale`（float）を持ち、`MaxRareShift` を持たない。
 - Produces:
   - `public static double ChipYieldFormula.ApproachWeight(double qualityEffectSum, double classQualityMultiplier, double qualityApproachScale)`
-  - `public static double[] ChipYieldFormula.BlendedDieRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double noModuleSurvival, double fullSurvival, double approachWeight, out double blendedFailedRate)`
-  - `public static double ChipYieldFormula.ApproachedLossRate(double classBaseRate, double approachWeight, double maxReduction)`
-  - `public static double[] ChipYieldFormula.DicingRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double classDieLossRate, double maxLossReduction, double approachWeight, out double dieLossRate, out double failedRate)`（損失率と生き残り1個あたりの振り分けを1回で返す。`CleanRoomRoleRates.Dicing` とテストの両方が使う）
+  - `private static double[] ChipYieldFormula.BlendedDieRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double tableWeight, out double blendedFailedRate)`（表の重みだけを受け取る線形の混合。`DicingRates` だけが呼ぶので private。テストは損失0の `DicingRates` で表の重み＝近づき度として確かめる）
+  - `public static double[] ChipYieldFormula.DicingRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double classDieLossRate, double maxLossReduction, double approachWeight, out double dieLossRate, out double failedRate)`（損失率・生き残り・表の重みをここで1回だけ導出し、生き残り1個あたりの振り分けを返す。`CleanRoomRoleRates.Dicing` とテストの両方が使う）
+  - `public static string CleanRoomYieldTableRules.ValidateDieTables(...)`（シグネチャは変えない。Tier1 以上の良品の割合が Tier0 以下ならログを返す規則を足す）
   - `public static double ChipYieldFormula.ReducedRate(double classBaseRate, double qualityEffectSum, double maxReduction)`（既存のまま。EUV 用）
-  - `ChipYieldFormula.ShiftedDieRates` と `MachineModuleEffect.HighestQualityModuleEffectValue` は消える。
+  - `ChipYieldFormula.ShiftedDieRates` と `MachineModuleEffect.HighestQualityModuleEffectValue` は消える。損失の割引を別関数（旧案の `ApproachedLossRate`）としては作らない。
 
 - [ ] **Step 1: スキーマを書き換える**
 
-`VanillaSchema/cleanRoom.yml` の dicings で、`maxRareShift` の3行（コメント2行＋key）と表のコメントを次に置き換える（edit-schema スキルの手順に従い、SourceGenerator を回す）:
+`VanillaSchema/cleanRoom.yml` の dicings で、`- key: maxLossReduction` の行から `- key: qualityTierDieTables` の行まで（いまの84〜92行目。`maxLossReduction` の2行・`maxRareShift` のコメント2行と key・type・表のコメント2行・表の key）を次に置き換える。`maxLossReduction` を二重に書かないこと（edit-schema スキルの手順に従い、SourceGenerator を回す）:
 
 ```yaml
         - key: maxLossReduction
@@ -124,6 +135,57 @@
                 if (float.IsNaN(dicing.QualityApproachScale) || float.IsInfinity(dicing.QualityApproachScale) || !(0f < dicing.QualityApproachScale)) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} QualityApproachScale:{dicing.QualityApproachScale} must be finite and positive\n";
 ```
 
+`CleanRoomYieldTableRules.ValidateDieTables` に表の大小の規則を足す。Tier0 の良品の割合（levelRates の合計）を tier ループの前に求め、ループ内の既存の `default Lv` 検査の次に次の行を置く（2行コメント付き）:
+
+```csharp
+            // 十分入れた表は良品の割合がモジュール無しの表より大きい（混ぜたとき1個ごとに良品が伸びる前提）
+            // A full-module table must have a larger good share than the no-module table, so blending raises good dies per module
+            // silent-ok: 表が0枚なら上の表の枚数の検査がログ済み / 起動時のマスタ検証で止まる
+            var noModuleGoodShare = 0 < tierTables.Count ? GoodShare(tierTables[0].levelRates) : 0f;
+```
+
+（↑ループの前）
+
+```csharp
+                var goodShare = GoodShare(rates);
+                if (0 < tier && !(noModuleGoodShare < goodShare)) logs += $"{prefix} good share {goodShare} must exceed the no-module table's {noModuleGoodShare}\n";
+```
+
+（↑ループ内）。`GoodShare` は既存の `#region Internal` に `static float GoodShare(IReadOnlyList<float> levelRates)`（合計を返す）として足し、Tier0 の計算もこれを使う。
+
+`CleanRoomYieldTableRulesTest.cs` に次の2テストを足す（ファイルが200行を超えるなら `CleanRoomDieTableGoodShareRuleTest.cs` として同ディレクトリへ分ける）:
+
+```csharp
+        [Test]
+        public void FullModuleTableNotBetterThanNoModuleIsRejectedTest()
+        {
+            // Tier1の表を良品10%にするとモジュール無し(20%)を下回り止まる。同じ20%でも止まる
+            // A tier-1 table at 10% good falls below the no-module 20% and is rejected; an equal 20% is rejected too
+            var tables = Tables();
+            tables[1] = (new[] { .08f, .02f, 0f }, .9f);
+            StringAssert.Contains("good share", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+            tables[1] = (new[] { .15f, .05f, 0f }, .8f);
+            StringAssert.Contains("good share", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+        }
+
+        [Test]
+        public void V8DieTablesAreValidTest()
+        {
+            // ADR 0104 の v8 の表はすべての規則を通る
+            // The v8 tables from ADR 0104 pass every rule
+            var tables = new (IReadOnlyList<float>, float)[]
+            {
+                (new[] { .2f, 0f, 0f, 0f, 0f }, .8f),
+                (new[] { .83125f, .11875f, 0f, 0f, 0f }, .05f),
+                (new[] { .025f, .83125f, .11875f, 0f, 0f }, .025f),
+                (new[] { .01f, .02f, .83125f, .11875f, 0f }, .02f),
+                (new[] { .005f, .01f, .015f, .83125f, .11875f }, .02f),
+                (new[] { .005f, .0075f, .0125f, .025f, .925f }, .025f),
+            };
+            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 5));
+        }
+```
+
 - [ ] **Step 4: `ChipYieldFormula.cs` を全面的に書き換える**
 
 ```csharp
@@ -146,16 +208,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
             return 1d - Math.Exp(-effectiveQuality / qualityApproachScale);
         }
 
-        // ダイ1個あたりで「無し」と「十分入れた」状態を近づき度で混ぜ、生き残り1個あたりのレベル別割合と失敗ダイ割合にする
-        // Mix the no-module and full-module states per die by the approach weight, returning per-survivor level rates and the failed-die rate
-        public static double[] BlendedDieRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double noModuleSurvival, double fullSurvival, double approachWeight, out double blendedFailedRate)
+        // モジュール無しの表と最高Tierの表を表の重みで線形に混ぜ、生き残り1個あたりのレベル別割合と失敗ダイ割合にする
+        // Linearly mix the no-module and highest-tier tables by the table weight into per-survivor level rates and the failed-die rate
+        private static double[] BlendedDieRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double tableWeight, out double blendedFailedRate)
         {
-            // 生き残りの内訳で表の重みを決める。良品の合計が近づき度に比例し、1個ごとの伸びが逓減する
-            // Weight the tables by where survivors come from, so the good total is linear in the weight and gains diminish per module
-            var survivors = (1d - approachWeight) * noModuleSurvival + approachWeight * fullSurvival;
-            // silent-ok: 全ダイが損失のとき生き残りの割合は抽選に使われない / 損失率1で全数が失敗ダイになり機械UIにもそう出る
-            var tableWeight = survivors <= 0d ? approachWeight : approachWeight * fullSurvival / survivors;
-
             var levelCount = tierLevelRates.Count;
             var blended = new double[levelCount];
             for (var i = 0; i < levelCount; i++) blended[i] = noModuleLevelRates[i] * (1d - tableWeight) + tierLevelRates[i] * tableWeight;
@@ -163,21 +219,22 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
             return blended;
         }
 
-        // 部屋の損失率を近づき度で割り引く。近づき度1で maxReduction だけ減る
-        // Discount the class loss rate by the approach weight; a weight of one removes maxReduction of it
-        public static double ApproachedLossRate(double classBaseRate, double approachWeight, double maxReduction)
-        {
-            return classBaseRate * (1d - maxReduction * approachWeight);
-        }
-
-        // ダイシングの損失率と、生き残り1個あたりのレベル別割合・失敗ダイ割合を1回で出す
-        // Dicing loss rate plus per-survivor level rates and failed-die rate in one call
+        // ダイ1個あたりで「無し」と「十分入れた」状態を近づき度で混ぜ、損失率と生き残り1個あたりの振り分けを1回で出す
+        // Mix the no-module and full-module states per die by the approach weight, returning the loss rate and per-survivor split in one call
         public static double[] DicingRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double classDieLossRate, double maxLossReduction, double approachWeight, out double dieLossRate, out double failedRate)
         {
-            dieLossRate = ApproachedLossRate(classDieLossRate, approachWeight, maxLossReduction);
-            var noModuleSurvival = 1d - classDieLossRate;
-            var fullSurvival = 1d - ApproachedLossRate(classDieLossRate, 1d, maxLossReduction);
-            return BlendedDieRates(noModuleLevelRates, noModuleFailedRate, tierLevelRates, tierFailedRate, noModuleSurvival, fullSurvival, approachWeight, out failedRate);
+            // 損失率と生き残りはここで1回だけ導出する。十分入れた状態の損失は maxLossReduction だけ減る
+            // Derive the loss and survival only here; the full-module state loses maxLossReduction less
+            var fullModuleLossRate = classDieLossRate * (1d - maxLossReduction);
+            dieLossRate = (1d - approachWeight) * classDieLossRate + approachWeight * fullModuleLossRate;
+            var survival = 1d - dieLossRate;
+            var fullModuleSurvival = 1d - fullModuleLossRate;
+
+            // 生き残りの内訳で表の重みを決める。良品の合計が近づき度に比例し、1個ごとの伸びが逓減する
+            // Weight the tables by where survivors come from, so the good total is linear in the weight and gains diminish per module
+            // silent-ok: 全ダイが損失のとき生き残りの割合は抽選に使われない / 損失率1で全数が失敗ダイになり機械UIにもそう出る
+            var tableWeight = survival <= 0d ? approachWeight : approachWeight * fullModuleSurvival / survival;
+            return BlendedDieRates(noModuleLevelRates, noModuleFailedRate, tierLevelRates, tierFailedRate, tableWeight, out failedRate);
         }
 
         // クラス基準率を品質合計で割り引く。割引の上限は maxReduction（EUV露光の層失敗率に使う）
@@ -275,42 +332,45 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         }
 
         [Test]
-        public void ApproachedLossRateScalesByWeightTest()
+        public void BlendedDieRatesMixesStatesPerDieTest()
         {
-            Assert.AreEqual(0.45, ChipYieldFormula.ApproachedLossRate(0.45, 0, 0.8), 1e-12);
-            Assert.AreEqual(0.27, ChipYieldFormula.ApproachedLossRate(0.45, 0.5, 0.8), 1e-12);
-            Assert.AreEqual(0.09, ChipYieldFormula.ApproachedLossRate(0.45, 1, 0.8), 1e-12);
+            // 損失0なら表の重みは近づき度そのもの。0はモジュール無しの表、1は最高Tierの表、0.5はその真ん中
+            // With no loss the table weight equals the approach weight: 0 is the no-module table, 1 the tier table, 0.5 the middle
+            AssertRates(Blend(0), 0.2, 0, 0, 0, 0, 0.8);
+            AssertRates(Blend(1), 0.83125, 0.11875, 0, 0, 0, 0.05);
+            AssertRates(Blend(0.5), 0.515625, 0.059375, 0, 0, 0, 0.425);
         }
 
         [Test]
-        public void BlendedDieRatesMixesStatesPerDieTest()
+        public void DicingRatesDiscountsLossByWeightTest()
         {
-            // 重み0はモジュール無しの表、重み1は最高Tierの表
-            // Weight 0 is the no-module table and weight 1 the tier table
-            AssertRates(Blend(0.55, 0.91, 0), 0.2, 0, 0, 0, 0, 0.8);
-            AssertRates(Blend(0.55, 0.91, 1), 0.83125, 0.11875, 0, 0, 0, 0.05);
-
-            // 生き残りが同じなら中間は表の真ん中
-            // With equal survival the midpoint is the middle of the tables
-            AssertRates(Blend(1, 1, 0.5), 0.515625, 0.059375, 0, 0, 0, 0.425);
-
-            // 十分入れた側の生き残りが多いほど、生き残りは最高Tierの表へ寄る（表の重み 0.5×0.91÷0.73）
-            // More full-module survivors pull survivors toward the tier table (table weight 0.5 x 0.91 / 0.73)
-            AssertRates(Blend(0.55, 0.91, 0.5), 0.593450, 0.074015, 0, 0, 0, 0.332534);
-
-            // 全ダイが損失のときも合計1を保つ
-            // The sum stays one even when every die is lost
-            Assert.AreEqual(1.0, Blend(0, 0, 0.5).Sum(), 1e-9);
+            // クラスC(損失0.45)・maxLossReduction 0.8: 重み0で0.45、0.5で0.27、1で0.09
+            // Class C (loss 0.45) with maxLossReduction 0.8: 0.45 at weight 0, 0.27 at 0.5, 0.09 at 1
+            foreach (var (weight, expectedLoss) in new[] { (0.0, 0.45), (0.5, 0.27), (1.0, 0.09) })
+            {
+                ChipYieldFormula.DicingRates(NoModuleLevels, NoModuleFailed, Tier1Levels, Tier1Failed, 0.45, 0.8, weight, out var dieLossRate, out _);
+                Assert.AreEqual(expectedLoss, dieLossRate, 1e-12, $"weight {weight}");
+            }
         }
 
         [Test]
         public void DicingRatesReturnsLossAndPerSurvivorRatesTest()
         {
-            // クラスC(損失0.45)・重み0.5: 損失0.27、生き残りの内訳は Blend(0.55, 0.91, 0.5) と同じ
-            // Class C (loss 0.45) at weight 0.5: loss 0.27, survivors split the same as Blend(0.55, 0.91, 0.5)
+            // 十分入れた側の生き残りが多いほど、生き残りは最高Tierの表へ寄る（表の重み 0.5×0.91÷0.73）
+            // More full-module survivors pull survivors toward the tier table (table weight 0.5 x 0.91 / 0.73)
             var rates = ChipYieldFormula.DicingRates(NoModuleLevels, NoModuleFailed, Tier1Levels, Tier1Failed, 0.45, 0.8, 0.5, out var dieLossRate, out var failedRate);
             Assert.AreEqual(0.27, dieLossRate, 1e-12);
             AssertRates(rates.Append(failedRate).ToArray(), 0.593450, 0.074015, 0, 0, 0, 0.332534);
+        }
+
+        [Test]
+        public void DicingRatesKeepsSumWhenEveryDieIsLostTest()
+        {
+            // 損失1・割引0で全ダイが損失のときも、損失率1と生き残りの振り分けの合計1を保つ
+            // With loss 1 and no reduction every die is lost, yet the loss is one and the survivor split still sums to one
+            var rates = ChipYieldFormula.DicingRates(NoModuleLevels, NoModuleFailed, Tier1Levels, Tier1Failed, 1.0, 0.0, 0.5, out var dieLossRate, out var failedRate);
+            Assert.AreEqual(1.0, dieLossRate, 1e-12);
+            Assert.AreEqual(1.0, rates.Sum() + failedRate, 1e-9);
         }
 
         [Test]
@@ -321,7 +381,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             var tier2Levels = new[] { 0.025f, 0.83125f, 0.11875f, 0f, 0f };
             foreach (var weight in new[] { 0.0, 0.1, 0.5, 0.9, 1.0 })
             {
-                var rates = ChipYieldFormula.BlendedDieRates(NoModuleLevels, NoModuleFailed, tier2Levels, 0.025f, 0.55, 0.91, weight, out var failedRate);
+                var rates = ChipYieldFormula.DicingRates(NoModuleLevels, NoModuleFailed, tier2Levels, 0.025f, 0.45, 0.8, weight, out _, out var failedRate);
                 Assert.AreEqual(0.0, rates[3], 1e-12, $"weight {weight} Lv4");
                 Assert.AreEqual(0.0, rates[4], 1e-12, $"weight {weight} Lv5");
                 Assert.AreEqual(1.0, rates.Sum() + failedRate, 1e-6, $"weight {weight} sum");
@@ -330,11 +390,11 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 
         #region TestHelper
 
-        // Tier1の表で混ぜた結果を [Lv1..Lv5, 失敗ダイ] に並べる
-        // Lay the tier-1 blend out as [Lv1..Lv5, failed die]
-        private static double[] Blend(double noModuleSurvival, double fullSurvival, double weight)
+        // 損失0のTier1の表で混ぜた結果を [Lv1..Lv5, 失敗ダイ] に並べる
+        // Lay the lossless tier-1 blend out as [Lv1..Lv5, failed die]
+        private static double[] Blend(double approachWeight)
         {
-            var rates = ChipYieldFormula.BlendedDieRates(NoModuleLevels, NoModuleFailed, Tier1Levels, Tier1Failed, noModuleSurvival, fullSurvival, weight, out var failedRate);
+            var rates = ChipYieldFormula.DicingRates(NoModuleLevels, NoModuleFailed, Tier1Levels, Tier1Failed, 0.0, 0.0, approachWeight, out _, out var failedRate);
             return rates.Append(failedRate).ToArray();
         }
 
@@ -539,6 +599,14 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
 `CleanRoomMaster` の名前空間は既存の `CleanRoomMasterTest.cs` の using（`Core.Master`）に合わせる。
 
+- [ ] **Step 9b: plan 外で同じ値を期待していた既存テストを新しい式へ直す**
+
+テスト mod の値（クラスA 損失0.15・倍率1.0、Tier1 の表 [0.7, 0.1, 0] / 0.2、`qualityApproachScale` 1.0、`maxLossReduction` 0.8）で Tier1 モジュール（効果1.0）1個のとき、近づき度 1−exp(−1)=0.632121、損失 0.074146、表 [0.531130, 0.066226, 0]、失敗 0.402644 になる（反証検査で python 計算済み）。
+
+- `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs` の `DicingShowsQualityTierAndLevelRatesTest`: 損失 `0.03` → `0.074146`、`new[] { 0.7, 0.1, 0d }` → `new[] { 0.531130, 0.066226, 0d }`、失敗 `0.2` → `0.402644`。直前の2行コメント2組（「ダイ損失率は 0.15×…=0.03」「シフト0なので…のまま返る」）を、近づき度 1−exp(−1) で損失が 0.15→0.03 の間を混ぜ、表がモジュール無しから Tier1 へ寄る旨に書き換える。`Tolerance` が 1e-6 より粗いことを確かめ、粗くなければ期待値の桁を合わせる。
+- `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomPendingDrawYieldInfoTest.cs`: Tier1 の抽選の `AssertDicing(..., 0.03, 1, new[] { 0.7, 0.1, 0d }, 0.2)` の2か所を `AssertDicing(..., 0.074146, 1, new[] { 0.531130, 0.066226, 0d }, 0.402644)` にする。46〜47行目のコメントの「失敗枠0.2」を「失敗ダイ約40%」にする（モジュール無しの `0.15 / [0.2,0,0] / 0.8` は変えない）。
+- `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomDicingTest.cs`: 54〜55行目と163〜164行目の「シフト0で表[.7,.1,0]のまま」「倍率1でシフト0になる」を、近づき度で表がモジュール無しから Tier1 へ寄る旨（Lv2 はレアで約37個）に直す。アサートは変えない。
+
 - [ ] **Step 10: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
@@ -567,8 +635,10 @@ git commit -m "feat(cleanroom): ダイシングの品質モジュールを個数
 - [ ] **Step 1: moorestech_master の作業ブランチを用意する**
 
 ```bash
+# MASTER_WT は環境ローカル規約が定める moorestech_master の作業コピー置き場の下の dicing-quality-saturation（絶対パス。`../moorestech_master` はシンボリックリンクのことがあり相対パスはずれる）
+MASTER_WT=<moorestech_master の作業コピー置き場>/dicing-quality-saturation
 git -C ../moorestech_master fetch origin
-git -C ../moorestech_master worktree add ../moorestech_master-wt-dicing -b feature/dicing-quality-saturation origin/master
+git -C ../moorestech_master worktree add $MASTER_WT -b feature/dicing-quality-saturation origin/master
 ```
 
 - [ ] **Step 2: cleanRoom.json を書き換える**
@@ -576,9 +646,9 @@ git -C ../moorestech_master worktree add ../moorestech_master-wt-dicing -b featu
 書式（2スペースインデント・ensure_ascii なし・末尾改行なし）を保って次を当てる。実行前に、原文を同じ設定で読み書きして完全一致することを確かめる。
 
 ```bash
-python3 - <<'PY'
-import json
-p='../moorestech_master-wt-dicing/server_v8/mods/moorestechAlphaMod_8/master/cleanRoom.json'
+MASTER_WT=$MASTER_WT python3 - <<'PY'
+import json, os
+p=os.environ['MASTER_WT']+'/server_v8/mods/moorestechAlphaMod_8/master/cleanRoom.json'
 raw=open(p,encoding='utf-8').read()
 d=json.loads(raw)
 assert json.dumps(d,ensure_ascii=False,indent=2)==raw, 'round-trip mismatch'
@@ -601,7 +671,7 @@ new['qualityTierDieTables']=[
 d['data'][0]['dicings'][0]=new
 open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=2))
 PY
-git -C ../moorestech_master-wt-dicing diff --stat
+git -C $MASTER_WT diff --stat
 ```
 
 Expected: cleanRoom.json だけが変わる。round-trip が一致しない場合は止まって、indent・数値表記を原文に合わせてから当て直す。
@@ -609,15 +679,17 @@ Expected: cleanRoom.json だけが変わる。round-trip が一致しない場�
 - [ ] **Step 3: マスタをコミット・push・PR 作成する**
 
 ```bash
-git -C ../moorestech_master-wt-dicing add server_v8/mods/moorestechAlphaMod_8/master/cleanRoom.json
-git -C ../moorestech_master-wt-dicing commit -m "balance(cleanroom): ダイシングの品質モジュールを個数で逓減しながら効かせる値にする"
-git -C ../moorestech_master-wt-dicing push -u origin feature/dicing-quality-saturation
+git -C $MASTER_WT add server_v8/mods/moorestechAlphaMod_8/master/cleanRoom.json
+git -C $MASTER_WT commit -m "balance(cleanroom): ダイシングの品質モジュールを個数で逓減しながら効かせる値にする"
+git -C $MASTER_WT push -u origin feature/dicing-quality-saturation
 gh pr create -R moorestech/moorestech_master --head feature/dicing-quality-saturation --base master --title "balance(cleanroom): ダイシングの品質モジュールを逓減カーブにする" --body "moorestech 側 ADR 0104 の値（qualityApproachScale 0.1335・maxLossReduction 0.8・十分入れたときの表）。moorestech 側の PR と同時にマージする。"
 ```
 
-- [ ] **Step 4: ピンを更新する**
+- [ ] **Step 4: ピンを更新し、v8 マスタで起動時の検証が通ることを確かめる**
 
-`.moorestech-external-revisions.json` の `moorestech_master` の `commitHash` を Step 3 で push したコミットのハッシュ（`git -C ../moorestech_master-wt-dicing rev-parse HEAD`）にする。`../moorestech_master` を同じコミットにして、v8 マスタで起動時の検証が通ることを確かめる（クライアントの起動検証テスト、または `uloop run-tests --filter-type regex --filter-value "MasterValidation|V8"` のうちこの repo にあるもの）。
+`.moorestech-external-revisions.json` の `moorestech_master` の `commitHash` を Step 3 で push したコミットのハッシュ（`git -C $MASTER_WT rev-parse HEAD`）にする。共有の `../moorestech_master`（全 worktree が共有する実体）の HEAD は動かさない（並走セッションのピンがずれるため）。
+
+v8 マスタの検証は、この repo に v8 の cleanRoom.json を検証するテストが無いので、`$MASTER_WT/server_v8` を mod ディレクトリにしてサーバーの DI を1回組み立て、マスタのロードと起動時の検証が例外・ログ無しで通ることを `uloop execute-dynamic-code` で確かめる（例: `new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions("<$MASTER_WT の絶対パス>/server_v8"))` を実行し、`uloop get-logs --log-type Error` が空）。`MoorestechServerDIContainerOptions` の引数の形は `TestModDirectory.ForUnitTestModDirectory`（`mods` を含むディレクトリ）に合わせる。あわせて Requirement 3 の値（クラスC・Lv1 9個で約66.86%）は `V8ClassCNineLv1ModulesMatchesTodayTest` で確かめ済みとする。ピンは origin/master から枝を切るため今の 8bcc33f より先へ進む（差分は報告に書く）。
 
 - [ ] **Step 5: コミットする**
 
@@ -636,12 +708,6 @@ git commit -m "chore(pin): ダイシングの逓減カーブの値を入れた�
 
 ---
 
-## 引き継ぎ時点で未反映の計画修正（受け取ったセッションが、実装の前にこの plan へ反映する）
-
-1. **生き残り率の導出を1本にする（Phase 2.6 弱2）。** 今の plan では `DicingRates` が損失率を `ApproachedLossRate` で出し、`BlendedDieRates` が中で生き残りを出し直している。`DicingRates` の中で生き残り `s = (1 − w)s0 + w s1` を1回だけ出し、損失率 `= 1 − s`、表の重み `t = (s ≤ 0 ? w : w s1 ÷ s)` を求め、`BlendedDieRates` は表の重み `t` だけを受け取る線形の混合（`BlendedDieRates(noModuleLevelRates, noModuleFailedRate, tierLevelRates, tierFailedRate, double tableWeight, out double blendedFailedRate)`）に変える。テストもそれに合わせる（生き残りで重みが変わるケースは `DicingRatesReturnsLossAndPerSurvivorRatesTest` 側へ。全ダイが損失のケースは `DicingRates(..., classDieLossRate 1, maxLossReduction 0, ...)` で損失1・合計1を確かめる）。
-2. **ダイ表の大小を起動時に検証する（ユーザー裁定 2026-11-20「じゃあ入れといて」、`.decisions/2026-11-20-ダイ表の十分入れた表は良品割合がモジュール無しより大きいことを起動時に検証する.md`）。** Tier1〜5 の表の良品の割合（`1 − failedRate`、すなわち levelRates の合計）が Tier0 の表より大きくなければ、起動時のマスタ検証でログを出して止める。置き場は既存の表の規則 `moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomYieldTableRules.cs`（`ValidateDieTables`）を第一候補にし、呼び出し元をまず grep で確かめる。テストは既存の `Tests/UnitTest/Game/CleanRoomYield/CleanRoomYieldTableRulesTest.cs` に、Tier1 の表を良品10%（failedRate 0.9）にすると止まるケースと、今の v8 の値が通るケースを足す（ファイルが200行を超えるなら別クラスへ）。File Structure・Task 1 の Files・Requirements にも行を足す。
-3. 1・2 を反映したら、変えた範囲に spec-architecture-review（Phase 1〜2.5 と Phase 2.6）を fresh-context で回し直し、その後 moores-writing-plans の反証検査（plan-review-lenses 6本、opus subagent 1体）を回してから実装に入る。
-
 ## 判断記録（ADR）
 
 - 設計 ADR: `docs/adr/0104-dicing-quality-modules-saturate-by-count.md`。裁定: `.decisions/2026-11-20-ダイシングの品質モジュールは個数で逓減しながら効かせる.md`、`.decisions/2026-11-20-品質モジュールで減った失敗分は表の良品の割合どおり各Lvへ配る.md`、`.decisions/2026-11-20-ダイシングの逓減カーブは24個までよく伸ばしクラスCだけ今に合わせ加工時間5パーセントは据え置く.md`。
@@ -652,3 +718,6 @@ git commit -m "chore(pin): ダイシングの逓減カーブの値を入れた�
 - `VanillaSchema/cleanRoom.yml`: dicings の `maxRareShift` を消し `qualityApproachScale` を必須キーで足す。optional・既定値は付けず、テスト mod と v8 マスタの JSON を同じ変更で一括更新する（AGENTS.md「変更の波及を恐れない」。agent前提）。
 - `CleanRoomDicingValidator.cs`: `qualityApproachScale` は正の有限値だけを通す。0 は近づき度の式で割り算になるため起動時の検証で止める（AGENTS.md「必須の値は最も早い段階で止める」。agent前提）。
 - ダイ表の大小の起動時検証を足す: ユーザー裁定 2026-11-20 原文「じゃあ入れといて」（`.decisions/2026-11-20-ダイ表の十分入れた表は良品割合がモジュール無しより大きいことを起動時に検証する.md`）。
+- 生き残り率の導出を1本にする（Phase 2.6 弱2 の反映）: 損失率・生き残り・表の重みは `DicingRates` の中で1回だけ導出し、`BlendedDieRates` は表の重みだけを受け取る線形の混合にする。損失率は `(1−w)×L + w×L×(1−maxLossReduction)` で出し、生き残りはその `1 − 損失率` とする（損失率が浮動小数で負にならない形を採る）。旧案の `ApproachedLossRate` は作らない（agent前提）。
+- ダイ表の大小の検証の置き場は既存の表の規則 `CleanRoomYieldTableRules.ValidateDieTables`（呼び出し元は `CleanRoomDicingValidator` のみ、grep で確認）。同値も拒否する（「大きくなければ止める」の字義どおり）。テストは `CleanRoomYieldTableRulesTest` に拒否1件・v8 の値が通る1件を足す（agent前提）。
+- 反証検査（plan-review-lenses 6本・opus 1体）: Critical 2・Warning 5・設計判断0。反映: plan 外で旧値を期待していた既存テスト2本（GetCleanRoomYieldInfoProtocolTest・CleanRoomPendingDrawYieldInfoTest）と古いコメント（CleanRoomDicingTest）を Step 9b に追加／moorestech_master の作業コピーを規約の置き場の絶対パスに統一（`../moorestech_master` はシンボリックリンクで相対パスがずれる）／v8 マスタの起動時検証を execute-dynamic-code で確かめる手順を追加／共有の `../moorestech_master` の HEAD は動かさない／スキーマの置き換え範囲を行で明記（agent前提）。
