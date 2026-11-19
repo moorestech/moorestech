@@ -38,6 +38,18 @@ namespace Client.Ui.Foundation.Input
         public static void AttachPanelRootGuard(VisualElement panelRoot)
         {
             panelRoot.RegisterCallback<NavigationMoveEvent>(CancelNavigationAimedAtPanelRoot, TrickleDown.TrickleDown);
+
+            #region Internal
+
+            static void CancelNavigationAimedAtPanelRoot(NavigationMoveEvent evt)
+            {
+                // silent-ok: 要素宛ての選択移動は Attach 先の根の CancelNavigation が打ち消すので、ここは通す / 規則を越えた件数 0 を実ゲームの GameUiInputTest が確かめる
+                // silent-ok: a move aimed at an element is cancelled by CancelNavigation on the Attach root, so let it pass here / the in-game GameUiInputTest asserts none gets past the rules
+                if (evt.target != evt.currentTarget) return;
+                CancelNavigation(evt);
+            }
+
+            #endregion
         }
 
         private static void OnFocusIn(FocusInEvent evt)
@@ -148,14 +160,6 @@ namespace Client.Ui.Foundation.Input
             }
 
             #endregion
-        }
-
-        private static void CancelNavigationAimedAtPanelRoot(NavigationMoveEvent evt)
-        {
-            // silent-ok: 要素宛ての選択移動は Attach 先の根の CancelNavigation が打ち消すので、ここは通す / 規則を越えた件数 0 を実ゲームの GameUiInputTest が確かめる
-            // silent-ok: a move aimed at an element is cancelled by CancelNavigation on the Attach root, so let it pass here / the in-game GameUiInputTest asserts none gets past the rules
-            if (evt.target != evt.currentTarget) return;
-            CancelNavigation(evt);
         }
 
         private static void CancelNavigation(EventBase evt)

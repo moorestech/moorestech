@@ -41,15 +41,16 @@ namespace Client.Tests.Ui.Input
             simulate.FrameUpdate();
         }
 
-        [Test]
-        public void NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField()
+        [TestCase(NavigationMoveEvent.Direction.Next)]
+        [TestCase(NavigationMoveEvent.Direction.Previous)]
+        public void NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField(NavigationMoveEvent.Direction direction)
         {
             Assert.IsNull(panel.focusController.focusedElement);
 
             // PanelEventHandler.SendTabEvent と同じく、宛先をパネルの根にして送る
             // Aim the event at the panel root, exactly as PanelEventHandler.SendTabEvent does
             var panelRoot = rootVisualElement.panel.visualTree;
-            using (var tab = NavigationMoveEvent.GetPooled(NavigationMoveEvent.Direction.Next))
+            using (var tab = NavigationMoveEvent.GetPooled(direction))
             {
                 tab.target = panelRoot;
                 panelRoot.SendEvent(tab);
@@ -68,7 +69,9 @@ namespace Client.Tests.Ui.Input
 
             // PanelEventHandler と同じく、宛先をフォーカス中の要素にして送る
             // Aim the event at the focused element, as PanelEventHandler does
-            var focusedBefore = panel.focusController.focusedElement;
+            var focusedBefore = (VisualElement)panel.focusController.focusedElement;
+            var movesAtTarget = 0;
+            focusedBefore.RegisterCallback<NavigationMoveEvent>(_ => movesAtTarget++, TrickleDown.TrickleDown);
             using (var tab = NavigationMoveEvent.GetPooled(NavigationMoveEvent.Direction.Next))
             {
                 tab.target = focusedBefore;
@@ -79,6 +82,7 @@ namespace Client.Tests.Ui.Input
             // パネルの根は通し（下の器まで1件届く）、UIDocument の根の規則が打ち消すのでフォーカスは動かない
             // The panel root lets it through (one reaches the container below) and the root rules cancel it, so focus stays put
             Assert.AreEqual(1, _movesBelowPanelRoot);
+            Assert.AreEqual(0, movesAtTarget);
             Assert.AreSame(focusedBefore, panel.focusController.focusedElement);
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
         }

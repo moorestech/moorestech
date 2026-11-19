@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest.Input;
+using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -45,6 +46,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
             {
                 await LoadMainGame();
                 await UniTask.DelayFrame(5);
+                LogAssert.ignoreFailingMessages = false;
                 var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                 var panel = GameUiRoot.Instance.GetRootElement().panel;
 
@@ -59,8 +61,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
                 Assert.AreEqual(UIStateEnum.BuildMenu, uiStateControl.CurrentState, "前提: ビルドメニューの状態になっている");
                 var search = panel.visualTree.Q<TextField>("build-menu-search");
                 Assert.IsNotNull(search, "前提: ビルドメニューの検索欄がパネルに載っている");
-                for (VisualElement element = search; element != null; element = element.hierarchy.parent)
-                    Assert.AreEqual(DisplayStyle.Flex, element.resolvedStyle.display, $"前提: 検索欄とその祖先が表示中（隠れている要素: {element.GetType().Name} '{element.name}'）");
+                Assert.IsTrue(GameUiElementQuery.IsVisible(search), "前提: 検索欄が表示中");
                 Assert.IsNull(panel.focusController.focusedElement, "前提: パネル内にフォーカスが無い");
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "前提: 入力中の旗が立っていない");
 
