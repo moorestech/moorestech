@@ -16,7 +16,7 @@ description: moorestech のプレイテスト配布を通しで行う。最新 o
 
 ## 手順
 
-### 1. ビルド（約70分）
+### 1. ビルド（標準経路は約20分。予備経路は約70分）
 
 先に `MOORESTECH_STEAM_STATE_ROOT`（専用永続ディレクトリ）を env.sh に設定する。認証は共通ランナー `scripts/playtest/steam_auth/run.py` の専用HOMEに保存され、Desktop Steamから分離される。
 
@@ -89,6 +89,7 @@ python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-
 - SteamCMDの通常配布と認証ヘルパーは共通の隔離ランナーを使う。実HOMEやDesktop設定へのsymlinkを指定しない。同じstate rootで並行実行すると理由を示して停止する。Desktop起動後に失敗したら、保存先と実行経路を照合し、実測せず「毎回承認が必要」と説明しない。
 - Steam Guard の承認待ちは約 1 分しかない。バックグラウンドで黙って待つと承認が間に合わず、2 回失敗する。プロンプトを検知したらすぐ伝える。
 - 検証機の通し検証中は、検証用の報告を本番の取り込みに拾わせないこと。README は `services.json` から playtest-ingest を外す方法を書いているが、このスキルではその代わりに、`upload_and_verify.sh` で `ingest.sh` と同じロックを握る。`ingest.sh` は受け口に触れる前にロックを取れなければ終わるので、これで防げる。共有設定の書き換えも supervisor の再起動も要らない。
+- 予備経路の `release-playtest.sh` は Mac mini の Unity で焼く。Mac mini で Unity を止めている間は使わず、配布ビルド機の復旧を待つ。
 - `release-playtest.sh` は終了時に `moores-wt rm` を呼ぶが、未登録の残骸ディレクトリ（`worktrees/moorestech/build-<sha8>`）が残ることがある。残っていても報告だけにする。
 - 同梱する master data の元は、pin と一致する detached worktree（`moorestech_master/pin-*`）。長時間ビルドの途中で同梱元の HEAD が進むと、Mac ビルドが BuildInfoWriter の strict 検査で落ちる。そのときは pin に合わせて Mac ビルドだけやり直す。
 

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search;
 using Client.Tests.PlaceSystem.BeltRoute.World;
-using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -23,7 +22,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             if (!query.StartIsExistingBelt) Assert.AreEqual(query.StartCell, cells[0].Cell, $"{label}: first cell");
             Assert.AreEqual(query.EndCell, cells[^1].Cell, $"{label}: last cell");
             Assert.AreEqual(query.EndDirection, cells[^1].Facing, $"{label}: last facing");
-            Assert.AreEqual(BeltRouteCellKind.Straight, cells[^1].Kind, $"{label}: last kind");
+            Assert.AreNotEqual(BeltRouteCellKind.Up, cells[^1].Kind, $"{label}: last kind");
 
             var rule = new BeltRouteTransitionRule(grid, query);
             var used = new HashSet<Vector3Int>();
@@ -53,8 +52,8 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 Assert.IsTrue(next.Kind.CanFollow(previous.Kind), $"{label}: peak or valley at {next.Cell}");
                 Assert.IsTrue(rule.IsConnected(previous, next), $"{label}: {previous} -> {next} not connected");
                 var isGoal = i == states.Count - 1;
-                if (isGoal) Assert.IsTrue(rule.CanEnterGoal(previous), $"{label}: goal not enterable from {previous}");
-                else Assert.IsTrue(rule.IsIntermediatePlaceable(next.Cell, next.Kind, previous.Outgoing, next.Outgoing), $"{label}: {next} not placeable mid-route");
+                if (isGoal) Assert.IsTrue(rule.CanEnterGoal(previous, next.Kind), $"{label}: goal not enterable from {previous}");
+                else Assert.IsTrue(rule.IsIntermediatePlaceable(next.Cell, next.Kind), $"{label}: {next} not placeable mid-route");
             }
 
             // 分岐の始点（既存ベルト）からも最初のセルへ繋がること
@@ -66,16 +65,15 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             }
         }
 
-        // 出る向きは次セルへの差分。分岐器は向きが入る側なので差分から復元し、通常ベルトは向きそのもの
-        // The exit heading is the delta to the next cell; a splitter faces its entry so it is recovered from the delta, a normal belt faces its exit
+        // 出る向きは次セルへの差分で、ベルトの向きと一致する
+        // The exit heading is the delta to the next cell and equals the belt's facing
         private static List<BeltRouteState> ToStates(BeltRouteQuery query, IReadOnlyList<BeltRouteCell> cells)
         {
             var states = new List<BeltRouteState>(cells.Count);
             for (var i = 0; i < cells.Count; i++)
             {
                 var outgoing = i + 1 < cells.Count ? BeltRouteDirection.FromStep(cells[i + 1].Cell - cells[i].Cell) : query.EndDirection;
-                if (!query.TurnByOutput) Assert.AreEqual(outgoing, cells[i].Facing, $"belt facing must equal its exit heading at {cells[i].Cell}");
-                else Assert.AreEqual(i == 0 ? query.StartDirection : BeltRouteDirection.FromStep(cells[i].Cell - cells[i - 1].Cell), cells[i].Facing, $"splitter facing must equal its entry heading at {cells[i].Cell}");
+                Assert.AreEqual(outgoing, cells[i].Facing, $"belt facing must equal its exit heading at {cells[i].Cell}");
                 states.Add(new BeltRouteState(cells[i].Cell, outgoing, cells[i].Kind));
             }
             return states;
