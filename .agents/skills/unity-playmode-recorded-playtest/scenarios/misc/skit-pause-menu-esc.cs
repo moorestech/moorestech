@@ -26,8 +26,10 @@ return PlaytestRunner.Run("skit-pause-menu-esc", options, async p =>
     var skitState = (SkitState)dictionary.GetState(UIStateEnum.Story);
     bool MenuOpen() => skitState.SubState == NestedPauseSubStateEnum.PauseMenuScreen;
 
-    // 固定world起動はSkitPlaySettingsKeyで開幕スキットを抑止するため、開幕スキットを直接起動する
-    // Fixed-world boot suppresses the opening skit via SkitPlaySettingsKey, so start the opening skit directly
+    // 起動時の開幕スキットが流れていれば先に飛ばす。重ねて起動すると先に終わった方が再生中の印を下ろし、Esc が通常のポーズへ行く
+    // Skip the boot opening skit first; starting a second one lets whichever ends first clear the playing flag, sending Esc to the normal pause
+    await p.SkipOpeningSkitIfPlaying();
+    await p.WaitUiState(UIStateEnum.GameScreen, 30f);
     p.Note("開幕スキット(100_start_game)を直接起動する");
     skitManager.StartSkit("Vanilla/Skit/skits/100_start_game").Forget();
     await p.Until(() => skitStore.GetCurrent().PresentationState.Mode == "blocking", 60f, "スキット(blocking)開始待ち");

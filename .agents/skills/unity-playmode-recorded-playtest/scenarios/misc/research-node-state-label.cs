@@ -1,53 +1,84 @@
-// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みの研究ノードGUID（837e9697/424be8c1/07d6226c）をCompleteResearchへ送るため、サーバー側でnull参照になり後続の検証へ進めない（ピン先マスタ c219a2f5・ADR 0038）。雛形にしないこと
-// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): sends removed research-node GUIDs (837e9697/424be8c1/07d6226c) to CompleteResearch, which null-references server-side and blocks the rest of the check (pinned master c219a2f5, ADR 0038). Do not use this as a template
-// 研究ノードカードの状態ラベル（完了済み/研究可能/研究不可）の実表示を撮影する
-// Capture the research node card state label (Completed/Available/Unavailable) live
+// 研究ノードカードの状態ラベル（完了済み/研究可能/研究不可）の実表示を撮影する。研究はマスタから選ぶ（根→その子→孫）
+// Capture the research node card state label (Completed/Available/Unavailable) live; nodes are picked from the master (root -> child -> grandchild)
 using System;
+using System.Linq;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Client.Playtest;
+using Client.Playtest.Input;
+using Client.Playtest.Operations;
+using Core.Master;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
+using Mooresmaster.Localization.Generated;
+using Mooresmaster.Model.ResearchModule;
 using UnityEngine.InputSystem;
 
-var research1 = new Guid("837e9697-8586-406e-a0f6-16a010050218");
-var research2 = new Guid("424be8c1-c40c-4644-8104-06934c59b147");
-var research3 = new Guid("07d6226c-ed14-4a6f-aa2a-6fa085fce8ec");
-var options = new PlaytestRunOptions { Record = true };
-return PlaytestRunner.Run("research-node-state-label", options, async p =>
+return PlaytestRunner.Run("research-node-state-label", new PlaytestRunOptions { Record = true }, async p =>
 {
-    var api = Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly;
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    for (var i = 0; i < 10; i++)
-    {
-        var s = skitStore.GetCurrent();
-        if (skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok) break;
-        await p.WaitSeconds(1f);
-    }
-    // 研究1=完了済み、研究2=素材充足で研究可能、研究3=前提未達で研究不可、の3状態を同時に作る
-    // Build all three states at once: research1 completed, research2 researchable with items, research3 blocked by its prerequisite
-    p.Note("研究1を完了させ、研究2の消費アイテムを付与して3状態を作る");
-    api.CompleteResearch(research1);
-    await p.GiveItemDirect("木の板", 2);
-    await p.GiveItemDirect("木の棒", 2);
-    await p.GiveItemDirect("砕いた石材", 2);
-    await p.WaitSeconds(2f);
-    p.Note("Rキーで研究ツリーを開く");
-    await p.PressKey(Key.R);
-    await p.Until(() => p.CurrentUiState == UIStateEnum.ResearchTree, 10f, "研究ツリーへ遷移");
+    // 背景Editorでも注入入力が届くよう焦点無視へ切り替える
+    // Ignore focus so injected input reaches a background Editor
+    InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+    InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+    SemanticInput.EnsureDevices();
+    InputSystem.EnableDevice(Keyboard.current);
+    InputSystem.EnableDevice(Mouse.current);
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
 
-    // 3状態が実際に UITK へ描かれるまで待ってから撮る。出ていなければ落ちるので画像が証跡として機能する
-    // Wait until all three labels actually render before capturing, so a missing state fails instead of yielding a hollow screenshot
-    await AssertStateLabel(research1, "完了済み");
-    await AssertStateLabel(research2, "研究可能");
-    await AssertStateLabel(research3, "研究不可");
+    // 根（前提なし）・前提が根だけの子・前提に子を含む孫をマスタから選ぶ
+    // Pick a root (no prerequisites), a child requiring only the root, and a grandchild requiring the child
+    var all = MasterHolder.ResearchMaster.GetAllResearches();
+    var (research1, research2, research3) = PickChain();
+    p.Note($"完了させる根 {research1.ResearchNodeGuid}／研究可能にする子 {research2.ResearchNodeGuid}／前提未達の孫 {research3.ResearchNodeGuid}");
+
+    // 根を素材付きで完了させ、子の素材を持たせて 3 状態を同時に作る
+    // Complete the root with its cost and hand over the child's cost to build all three states at once
+    await GiveConsumeItems(research1);
+    Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.CompleteResearch(research1.ResearchNodeGuid);
+    await GiveConsumeItems(research2);
+    await p.WaitSeconds(2f);
+
+    // R で研究ツリーを開く
+    // Open the research tree with R
+    await p.PressKey(Key.R);
+    await p.WaitUiState(UIStateEnum.ResearchTree, 10f);
+    await p.UntilUiElement("research-tree", 5f);
+
+    // 3 状態が実際に UITK へ描かれるまで待ってから撮る。出ていなければ落ちるので画像が証跡になる
+    // Wait until all three labels render before capturing, so a missing state fails instead of yielding a hollow screenshot
+    await AssertStateLabel(research1.ResearchNodeGuid, Localize.Get(LocalizationKeys.Ui.Research.Completed));
+    await AssertStateLabel(research2.ResearchNodeGuid, Localize.Get(LocalizationKeys.Ui.Research.StateAvailable));
+    await AssertStateLabel(research3.ResearchNodeGuid, Localize.Get(LocalizationKeys.Ui.Research.StateUnavailable));
     await p.Screenshot("01_research_tree_state_labels");
     p.Assert(p.CurrentUiState == UIStateEnum.ResearchTree, "研究ツリー状態へ遷移した");
 
     #region Internal
 
+    (ResearchNodeMasterElement, ResearchNodeMasterElement, ResearchNodeMasterElement) PickChain()
+    {
+        foreach (var root in all.Where(r => r.PrevResearchNodeGuids.Length == 0 && r.ConsumeItems.Length > 0))
+        foreach (var child in all.Where(r => r.PrevResearchNodeGuids.Length == 1 && r.PrevResearchNodeGuids[0] == root.ResearchNodeGuid && r.ConsumeItems.Length > 0))
+        {
+            var grandchild = all.FirstOrDefault(r => r.PrevResearchNodeGuids.Contains(child.ResearchNodeGuid));
+            if (grandchild != null) return (root, child, grandchild);
+        }
+        throw new InvalidOperationException("根→子→孫の研究の連鎖がマスタに無い");
+    }
+
+    async UniTask GiveConsumeItems(ResearchNodeMasterElement node)
+    {
+        foreach (var consume in node.ConsumeItems)
+        {
+            var itemName = MasterHolder.ItemMaster.GetItemMaster(consume.ItemGuid).Name;
+            var maxStack = Core.Item.ItemStackLevelDataStore.Instance.GetMaxStack(PlaytestItemOps.ResolveItemId(itemName));
+            for (var given = 0; given < consume.ItemCount; given += maxStack) await p.GiveItem(itemName, Math.Min(maxStack, consume.ItemCount - given));
+        }
+    }
+
     async UniTask AssertStateLabel(Guid researchGuid, string expectedLabel)
     {
-        var dom = await Client.Playtest.Operations.PlaytestUiElementOps.FindUi($"research-node-state-{researchGuid}");
+        var dom = await PlaytestUiElementOps.FindUi($"research-node-state-{researchGuid}");
         p.Note($"[UITK 要素] {researchGuid} found={dom.IsFound} text={dom.Text}");
         p.Assert(dom.IsFound && dom.Text == expectedLabel, $"{researchGuid} の状態ラベルが「{expectedLabel}」で描画されている");
     }

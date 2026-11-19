@@ -26,7 +26,6 @@ const string PanelName = "クリーンルームパネル";
 const string WallPanelName = "クリーンルーム壁パネル";
 var outsidePosition = new Vector3(3.5f, 33.5f, -3.5f); // ドア正面の室外（床の上）
 var uiPanelOrigin = new Vector3Int(6, 33, 1); // 壁パネル(5x5x1)を R で東向きに回して UI で置く東の壁。x=6・y33..37・z1..5 を占める
-var hatchCell = new Vector3Int(4, 34, 0); // 南の壁上段のアイテムハッチ
 return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SkipOpeningSkitIfPlaying();
@@ -59,8 +58,8 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     p.Assert(uiPanelInfo.OriginalPos == uiPanelOrigin && uiPanelInfo.BlockDirection == BlockDirection.East, $"R1回で壁パネルが東向きになり x=6・z1..5 を占めた(原点={uiPanelInfo.OriginalPos} 向き={uiPanelInfo.BlockDirection})");
     await p.ExitToGameScreen();
     #endregion
-    // 内寸 x1..5・z1..5・y33..37。東西北の壁は板が室内側に来る向きの壁パネル 1 枚ずつ、ドアとハッチの穴が要る南の壁と四隅の柱はブロック、天井は北向きのパネル 1 枚にする
-    // Interior x1..5 / z1..5 / y33..37; east/west/north walls are one upright panel each with the plate inside, the south wall (door and hatch holes) and corner posts are blocks, the ceiling is one north-facing panel
+    // 内寸 x1..5・z1..5・y33..37。東西北の壁は板が室内側に来る向きの壁パネル 1 枚ずつ、南の壁は 5x5x1 のドア 1 枚、四隅の柱はブロック、天井は北向きのパネル 1 枚にする
+    // Interior x1..5 / z1..5 / y33..37; east/west/north walls are one upright panel each with the plate inside, the south wall is one 5x5x1 door, corner posts are blocks, the ceiling is one north-facing panel
     p.WarpPlayer(outsidePosition);
     await p.PlaceBlockDirect(WallPanelName, new Vector3Int(0, 33, 1), BlockDirection.West);
     await p.PlaceBlockDirect(WallPanelName, new Vector3Int(1, 33, 6), BlockDirection.North);
@@ -68,15 +67,14 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     for (var x = 0; x <= 6; x++)
     for (var y = 33; y <= 37; y++)
     {
-        if (!(x == 3 && y <= 34) && new Vector3Int(x, y, 0) != hatchCell) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, 0), BlockDirection.North);
-        if (x == 0 || x == 6) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, 6), BlockDirection.North);
+        if (x != 0 && x != 6) continue;
+        foreach (var z in new[] { 0, 6 }) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
     }
-    await p.PlaceBlockDirect("クリーンルームドア", new Vector3Int(3, 33, 0), BlockDirection.North);
-    await p.PlaceBlockDirect("クリーンルームアイテムハッチ", hatchCell, BlockDirection.North);
+    await p.PlaceBlockDirect("クリーンルームドア", new Vector3Int(1, 33, 0), BlockDirection.North);
     var filterBlock = await p.PlaceBlockDirect("クリーンルーム空気清浄機", new Vector3Int(1, 33, 5), BlockDirection.North);
     var machineBlock = await p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(3, 33, 3), BlockDirection.North);
     await WirePower(filterBlock, machineBlock);
-    await p.WaitBlockGameObject(new Vector3Int(3, 33, 0));
+    await p.WaitBlockGameObject(new Vector3Int(1, 33, 0));
     // 床(水平)・西・北・UIで置いた東の壁パネルの板が、それぞれ自分の占める範囲の中に描かれる
     // The floor (flat), west, north and UI-placed east wall-panel plates each render inside their own footprint
     foreach (var (origin, size, upright) in new[] { (new Vector3Int(1, 32, -1), new Vector3Int(5, 1, 5), false), (new Vector3Int(0, 33, 1), new Vector3Int(1, 5, 5), true), (new Vector3Int(1, 33, 6), new Vector3Int(5, 5, 1), true), (uiPanelOrigin, new Vector3Int(1, 5, 5), true) })

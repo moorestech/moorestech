@@ -28,7 +28,8 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 
     // 開幕スキット(Story)を表示中はホットバー入力が効かないためSkipインテントで飛ばしGameScreenへ抜ける
     // The opening skit (Story) blocks hotbar input, so skip it via the intent path and reach GameScreen
-    await p.SkipOpeningSkit();
+    await p.SkipOpeningSkitIfPlaying();
+    await p.ExitToGameScreen();
 
     // 橋脚の建設コストとレール接続ツールの消費素材（補強棒材・鉄板）を用意し、ホットバー0/1へ割当てる
     // Stock the pier's construction cost and the rail connect tool's materials (reinforced rod, iron plate), then assign to hotbar 0/1
@@ -55,8 +56,10 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
         await p.WaitBlockGameObject(origin);
     }
 
-    await PlacePier(pierA);
+    // 手前の橋脚Aを先に置くと、奥の橋脚Bへの照準レイがAに当たりBの仮置きがAの上へずれるので、奥のBから置く
+    // Placing the near pier A first makes the aim ray toward the far pier B hit A and shift B's ghost onto A, so place the far B first
     await PlacePier(pierB);
+    await PlacePier(pierA);
     await p.Hotbar.ExitBuildMode(0);
     await p.Screenshot("01-piers-placed");
 
@@ -94,6 +97,10 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
     await p.AimAt(aimA);
     await p.ClickPlace();
     await p.WaitSeconds(0.3f);
+    // 奥の橋脚Bの南端は手前のAに隠れるので、東へずれた位置からカメラ越しに狙う
+    // The far pier B's south end hides behind A, so aim at it from a spot shifted east
+    p.WarpPlayer(new Vector3(16f, 33.5f, 9f));
+    await p.WaitSeconds(0.5f);
     await p.AimAt(aimB);
     await p.ClickPlace();
 

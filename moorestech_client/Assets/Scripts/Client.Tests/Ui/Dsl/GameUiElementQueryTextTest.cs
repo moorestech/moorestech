@@ -44,6 +44,25 @@ namespace Client.Tests.Ui.Dsl
             Assert.AreEqual("供給電力 0 / 最大 100", Find().Text);
         }
 
+        // 隠れた子（復旧通知など）は連結しない
+        // A hidden child (e.g. recovery notice) is not concatenated
+        [Test]
+        public void ContainerSkipsHiddenDescendantLabels()
+        {
+            var box = new VisualElement { name = Testid };
+            box.style.position = Position.Absolute;
+            box.style.width = 400;
+            rootVisualElement.Add(box);
+            Mount(box, "走り");
+            var hiddenNote = new VisualElement();
+            hiddenNote.style.display = DisplayStyle.None;
+            box.Add(hiddenNote);
+            Mount(hiddenNote, "復旧しました");
+            Mount(box, "トグル");
+
+            Assert.AreEqual("走りトグル", Find().Text);
+        }
+
         // LocalizedLabel 以外の派生も WordsText を上書きすれば照会が印を読まない
         // Any other subclass that overrides WordsText keeps the lookup from reading its display tags
         [Test]
