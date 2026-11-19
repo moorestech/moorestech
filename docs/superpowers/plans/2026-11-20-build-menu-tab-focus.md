@@ -37,7 +37,7 @@
 Mac mini の Unity Editor は同時に1本までで、今は別のセッション（worktree `dicing-quality-saturation`）が使っている。**この plan は Mac で Editor を起動せず、コンパイルとテストを全部 Windows 機の `~/bin/winunity` で回す。** 他のセッションの Editor は落とさない。
 
 - コンパイル: `git push` してから `~/bin/winunity compile fix/build-menu-tab-focus`
-- テスト: `git push` してから `~/bin/winunity test fix/build-menu-tab-focus --class "<クラスの完全名>"` か `--regex "<正規表現>"`（EditModeInPlayingTest も同じ口。長いものは `--timeout 1500`）
+- テスト: `git push` してから `~/bin/winunity test fix/build-menu-tab-focus --class "<クラスの完全名>"` か `--regex "<正規表現>"`（EditModeInPlayingTest も同じ口。制限時間は既定の 1800 秒のまま使う）。batchmode で回る。実ゲームのテストが、テストの中身でなく環境の都合（グラフィックスの初期化の警告など）で落ちたときは、同じコマンドに `--editor` を付けて GUI Editor で回し直し、どちらで回したかを報告に書く
 - 結果は `~/.cache/winunity/runs/<runId>/`（`summary.json`・`results.xml`・`log-excerpt.txt`）。失敗はこの3つで読む
 - ブランチは毎回 push 済みであること（Windows が GitHub から取る）。Windows 機が寝ていれば winunity が起こす。枠が埋まっていればエラーにならず空くまで待つ
 - **.meta の持ち帰り**: 新しい .cs とフォルダの .meta は Windows 側の Unity が作る。winunity は .meta を持ち帰らないので、新規ファイルを足したコミットを push → `winunity compile` を流した直後、**次の winunity の実行より前に** scp で取る（次の実行は準備で `git clean -fdq` を流し、未追跡の .meta を消す）。Windows 側の作業場所は `C:/dev/worktrees/moorestech/fix-build-menu-tab-focus`（ブランチ名の `/` を `-` にした名前）。取り忘れて消えたら、もう一度 `winunity compile` を流して取り直す
@@ -45,12 +45,12 @@ Mac mini の Unity Editor は同時に1本までで、今は別のセッショ�
   ```bash
   scp "winbuild:C:/dev/worktrees/moorestech/fix-build-menu-tab-focus/<repo 相対パス>.meta" "<同じ repo 相対パス>.meta"
   ```
-- **赤の確認（修正を外すとテストが落ちることの確認）**: winunity は push 済みのブランチしか回せないので、使い捨てのブランチで行う。手順は各タスクのステップに書いてある。使い捨てブランチは確認の後に消す
+- **赤の確認（修正を外すとテストが落ちることの確認）**: winunity は push 済みのブランチしか回せないので、使い捨てのブランチで行う。手順は各タスクのステップに書いてある。使い捨てブランチは確認の後に消す。回すときは必ず `--name fix-build-menu-tab-focus` を付け、Windows 側の今の作業場所を使い回す（付けないとブランチごとに新しい作業場所ができ、Library 約 80GB を複製する。順番に回すので衝突しない）
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 死活表の「止まる」2行は 2026-08-22 の裁定の原文で覆われると独立に判定。注目点（remarks の引用の欠け・Shift+Tab の表記）を反映（報告: `../moorestech_logs/harness/ui-clarity-kgfsp/tab-plan-v4-arch-review-phase1-2_5.md`）
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強0・弱0・第3バケツ0 / 発火なし。備考1件（裁定の「stopPropagation はしない」の読み分け）を ADR 0101 に足す行と判断記録へ反映（報告: `../moorestech_logs/harness/ui-clarity-kgfsp/tab-plan-v4-arch-review-phase2_6.md`）
 
 ---
 
@@ -84,7 +84,7 @@ Tab キー
 ## 配置と前例
 
 - この直しは新しい決まりを足すものではない。`GameUiInputRules` は、要素にフォーカスがあるときの Tab 由来の選択移動を既に全画面で打ち消している（`Attach` が登録する `CancelNavigation`）。フォーカスが無いときだけ宛先がパネルの根になって規則を通らない穴があり、それをふさぐ。Tab でフォーカスを動かさない決まりの出所は 2026-08-22 のユーザー裁定（`.decisions/2026-08-22-ブラウザのTabフォーカス移動は封じる.md`）。
-- 置き場は既存の `GameUiInputRules`。同クラスの remarks が「全画面に共通するキー・フォーカスの規則はここに登録を足す」と決めている（`GameUiInputRules.cs:12-13`）。
+- 置き場は既存の `GameUiInputRules`。同クラスの remarks が「全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す」と決めている（`GameUiInputRules.cs:12-13`）。パネルの根宛てのものは `Attach` の中では登録できない（比較表の B）ので入口を分け、remarks も書き換える。
 - 付ける側は既存の `GameUiInputInstaller.Initialize`。installer の `Initialize` で `root.panel.visualTree` に部品を付ける前例は `Client.Ui/Foundation/Tooltip/GameUiHoverTooltipInstaller.cs:25-31`。新しい DI 登録は足さない。
 
 ### 直し方の比較
@@ -108,7 +108,7 @@ Tab キー
 | 入力欄にフォーカス中の ESC（値を保ってフォーカスだけ外す）、フォーカス無しの ESC・B・右短押し | 変わらない | KeyDown と InputSystem の経路。打ち消すのは NavigationMoveEvent だけ |
 | クラフトのボタンをクリックした後の Enter 長押し、ボタンにフォーカス中の Tab（フォーカスが動かない） | 変わらない | 宛先はボタンで、パネルの根の打ち消しは通す（`CraftHoldKeyTest.cs:78-92` が守る） |
 | 入力欄のクリック、ツールチップ、モーダルの入力欄の自動フォーカス、録画 DSL のキー注入 | 変わらない | ポインタの経路・`Focus()` の直接呼び出し・フォーカス中の要素宛て |
-| フォーカス無しの Tab で入力欄にフォーカスが入る（不具合報告フォーム・列車の駅名・モーダルの入力欄を ESC で外した後） | **止まる**（コード上は今できる。実際に押しては未確認） | ビルドメニューと同じ仕組み。入力欄はクリックで使う。2026-08-22 の裁定の代償「Mantine modalのfocus trapとbuild menu検索欄へのフォーカス移動が失われる。いずれもクリックで到達できる」に当たる |
+| フォーカス無しの Tab で入力欄にフォーカスが入る（不具合報告フォーム・列車の駅名・モーダルの入力欄を ESC で外した後） | **止まる**（コード上は今できる。実際に押しては未確認） | ビルドメニューと同じ仕組み。入力欄はクリックで使う。Shift+Tab も同じ。2026-08-22 の裁定の決定「`Tab` を無条件に `preventDefault` し、ブラウザnativeのフォーカス移動を封じる」が覆い、代償「Mantine modalのfocus trapとbuild menu検索欄へのフォーカス移動が失われる。いずれもクリックで到達できる」と同じ向き |
 | フォーカス無しの Tab でクラフトのボタンにフォーカスが入り、Enter 長押しでクラフトする | **止まる**（コード上は今できる。実際に押しては未確認） | ボタンは印付きでフォーカスを保てる（`CraftRecipeEntryView.cs:50-51`）。Tab からの入口が無くなる。クリックした後の Enter 長押しは変わらない。2026-08-22 の裁定の理由「native Tabがフォーカスを動かし `:focus-visible` のリングで別ボタンが選択中に見えていた」と、棄却案に書かれた「Enter/Spaceの誤爆」を止める向き |
 
 「止まる」2行は、2026-08-22 のユーザー裁定が既に決めている代償と、その裁定が止めようとした動きである（対応する句を各行に引いた）。その裁定を UITK に当てはめる読み替えは agent 前提なので、PR の報告の注目点に書く（判断記録の「範囲」）。
@@ -220,11 +220,13 @@ namespace Client.Tests.Ui.Input
 }
 ```
 
+このクラスに「打ち消しを付けないとフォーカスが移る」ことを見る対照のテストを足さない。テスト用のパネルはテストクラスごとに1枚で、パネルの根に付けたコールバックは後片付けで消えず、同じクラスの後のテストにも効くため（`EditorUITestFixture` の後片付けは子要素・クラス・スタイルシートだけを消す）。対照は Step 7 の赤の確認で取る。
+
 - [ ] **Step 2: `GameUiInputRules` に入口を足す**
 
 `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` を3か所変える。
 
-(1) クラスの remarks（12〜13 行目）を次に置き換える:
+(1) クラスの remarks（`/// <remarks>` から `/// </remarks>` までの 11〜14 行目の4行）を、次の4行に置き換える（タグを二重にしない）:
 
 ```csharp
     /// <remarks>
@@ -295,7 +297,7 @@ namespace Client.Tests.Ui.Input
 `docs/adr/0101-uitk-switch-revises-web-premised-adrs-and-rulings.md` の `### 裁定（`.decisions/`）` の表で、`| [[2026-10-01-Web UI全体で文字入力欄以外のSpace既定動作を封じる]] |` で始まる行のすぐ上に、次の1行を足す（表の行なので途中で折り返さない）:
 
 ```markdown
-| [[2026-08-22-ブラウザのTabフォーカス移動は封じる]] | 読み替え | `Client.Ui/Foundation/Input/GameUiInputRules.cs`（`Attach` が要素宛ての `NavigationMoveEvent` を、`AttachPanelRootGuard` がフォーカスの無いときにパネルの根宛てに届くものを、TrickleDown で打ち消す） | 「Tab でフォーカスを動かさない。画面ごとに切り替えない」は UITK の根の入力規則で保たれる。代償（Tab で入力欄へ入れない。クリックで到達できる）も同じ。`tabIndex`・Mantine の focus trap の話は Web と一緒に消える |
+| [[2026-08-22-ブラウザのTabフォーカス移動は封じる]] | 読み替え | `Client.Ui/Foundation/Input/GameUiInputRules.cs`（`Attach` が要素宛ての `NavigationMoveEvent` を、`AttachPanelRootGuard` がフォーカスの無いときにパネルの根宛てに届くものを、TrickleDown で打ち消す） | 「Tab でフォーカスを動かさない。画面ごとに切り替えない」は UITK の根の入力規則で保たれる。代償（Tab で入力欄へ入れない。クリックで到達できる）も同じ。裁定の「`stopPropagation` はしない」は Web の keydown を Unity へ届けるための話で、UITK では選択移動のイベントそのものを止める（ゲームは InputSystem から Tab を読むので影響しない）。`tabIndex`・Mantine の focus trap の話は Web と一緒に消える |
 ```
 
 確認: `grep -c "2026-08-22-ブラウザのTabフォーカス移動は封じる" docs/adr/0101-uitk-switch-revises-web-premised-adrs-and-rulings.md` が 1 を返す。
@@ -339,21 +341,20 @@ git switch -c tmp/tab-red-check-l1
 ```bash
 git commit -am "tmp: 赤の確認（パネルの根の打ち消しを外す）"
 git push -u origin tmp/tab-red-check-l1
-~/bin/winunity test tmp/tab-red-check-l1 --class "Client.Tests.Ui.Input.GameUiPanelRootGuardTest"
+~/bin/winunity test tmp/tab-red-check-l1 --name fix-build-menu-tab-focus --class "Client.Tests.Ui.Input.GameUiPanelRootGuardTest"
 git switch fix/build-menu-tab-focus
 git branch -D tmp/tab-red-check-l1 && git push origin --delete tmp/tab-red-check-l1
-~/bin/winunity rm tmp-tab-red-check-l1
 ```
 
 Expected: `フォーカスが無いときのTab由来の移動は入力欄へフォーカスを移さない` が FAIL（`focusedElement` が `guard-text` の内側の要素になる）。もう1本は PASS のまま。
 FAIL しなかった場合は、テストが不具合を検出できていない。止めて報告する（合格にして進めない）。
 
-次に、宛先の判定がテストで守られていることも同じ形で確かめる: 使い捨てブランチ `tmp/tab-red-check-l1b` で `CancelNavigationAimedAtPanelRoot` の `if (evt.target != evt.currentTarget) return;` の1行をコメントアウトして同じクラスを回す（手順は上と同じで、ブランチ名と winunity の名前だけ変える）。
+次に、宛先の判定がテストで守られていることも同じ形で確かめる: 使い捨てブランチ `tmp/tab-red-check-l1b` で `CancelNavigationAimedAtPanelRoot` の `if (evt.target != evt.currentTarget) return;` の1行をコメントアウトして同じクラスを回す（手順は上と同じで、ブランチ名だけ変える。`--name fix-build-menu-tab-focus` は同じ）。
 Expected: `入力欄にフォーカスがあるときの移動はパネルの根を通り抜けて規則が止める` が FAIL（下の器へ届く件数が 0）。
 
 - [ ] **Step 8: 既存の UI テストが通り続けることを確認する**
 
-Run: `~/bin/winunity test fix/build-menu-tab-focus --regex "Client\.Tests\.Ui\.|BuildMenuStateTextInputGuardTest" --timeout 1500`
+Run: `~/bin/winunity test fix/build-menu-tab-focus --regex "Client\.Tests\.Ui\.|BuildMenuStateTextInputGuardTest"`
 Expected: 全件 PASS（この PR の前から落ちているテストがあれば、origin/master の同じテストの結果と並べて報告に書く。新しく落ちたものがあれば止めて原因を調べる）
 
 ---
@@ -429,7 +430,14 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
                 using var backgroundInput = EditorBackgroundInputScope.Open();
                 await UiStateTransitionWait.TransitionTo(uiStateControl, UIStateEnum.BuildMenu);
                 await UniTask.DelayFrame(3);
-                Assert.IsNotNull(panel.visualTree.Q<TextField>("build-menu-search"), "前提: ビルドメニューの検索欄がパネルに載っている");
+
+                // 検索欄はメニューが閉じていてもパネルに載っているので、自分と祖先がすべて表示中であることを前提として確かめる
+                // The search field stays in the panel even while the menu is closed, so assert it and every ancestor are displayed
+                Assert.AreEqual(UIStateEnum.BuildMenu, uiStateControl.CurrentState, "前提: ビルドメニューの状態になっている");
+                var search = panel.visualTree.Q<TextField>("build-menu-search");
+                Assert.IsNotNull(search, "前提: ビルドメニューの検索欄がパネルに載っている");
+                for (VisualElement element = search; element != null; element = element.hierarchy.parent)
+                    Assert.AreEqual(DisplayStyle.Flex, element.resolvedStyle.display, $"前提: 検索欄とその祖先が表示中（隠れている要素: {element.GetType().Name} '{element.name}'）");
                 Assert.IsNull(panel.focusController.focusedElement, "前提: パネル内にフォーカスが無い");
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "前提: 入力中の旗が立っていない");
 
@@ -478,7 +486,7 @@ git add "$D.meta" "$D/BuildMenuTabOpensInventoryTest.cs.meta" && git commit -m "
 
 - [ ] **Step 3: テストが通ることを確認する**
 
-Run: `~/bin/winunity test fix/build-menu-tab-focus --class "Client.Tests.EditModeInPlayingTest.Ui.BuildMenu.BuildMenuTabOpensInventoryTest" --timeout 1500`
+Run: `~/bin/winunity test fix/build-menu-tab-focus --class "Client.Tests.EditModeInPlayingTest.Ui.BuildMenu.BuildMenuTabOpensInventoryTest"`
 Expected: 1 件 PASS
 
 - [ ] **Step 4: 修正前のコードでこのテストが失敗することを確かめる（赤の確認）**
@@ -492,10 +500,9 @@ git switch -c tmp/tab-red-check-play
 ```bash
 git commit -am "tmp: 赤の確認（起動時の打ち消しの取り付けを外す）"
 git push -u origin tmp/tab-red-check-play
-~/bin/winunity test tmp/tab-red-check-play --class "Client.Tests.EditModeInPlayingTest.Ui.BuildMenu.BuildMenuTabOpensInventoryTest" --timeout 1500
+~/bin/winunity test tmp/tab-red-check-play --name fix-build-menu-tab-focus --class "Client.Tests.EditModeInPlayingTest.Ui.BuildMenu.BuildMenuTabOpensInventoryTest"
 git switch fix/build-menu-tab-focus
 git branch -D tmp/tab-red-check-play && git push origin --delete tmp/tab-red-check-play
-~/bin/winunity rm tmp-tab-red-check-play
 ```
 
 Expected: FAIL（`Tab 由来の選択移動でフォーカスが移った: … 'build-menu-search' …` か、その内側の要素の名前）。
@@ -503,7 +510,7 @@ FAIL しなかった場合は、このテストは不具合の状態を作れて
 
 - [ ] **Step 5: 既存の実ゲーム入力テストが通り続けることを確認する**
 
-Run: `~/bin/winunity test fix/build-menu-tab-focus --class "Client.Tests.EditModeInPlayingTest.Ui.GameUiInputTest" --timeout 1500`
+Run: `~/bin/winunity test fix/build-menu-tab-focus --class "Client.Tests.EditModeInPlayingTest.Ui.GameUiInputTest"`
 Expected: 2 件 PASS（パネルの根で数える「規則より前」の件数が変わらない）
 
 ---
@@ -526,7 +533,7 @@ Expected: 2 件 PASS（パネルの根で数える「規則より前」の件数
 - Tab の直しはほかの6件より先に小さな PR で出す。出所: ユーザー裁定 2026-11-20 原文「ビルドメニューでtabキーを押したらインベントリが開くようにしてほしい」、場面の問いへの赤「検索窓に入力が吸われることがある」→ 問い「Tab の直しを、ほかの6件より先に小さな PR で出しますか」→ 選択「A. Tab だけ先に出す (PR は2本)」（`.decisions/2026-11-20-Tabの直しはほかの6件より先に小さなPRで出す.md`。ブランチ `feat/ui-clarity-rocket-cleanroom-dicing` にある）
 - **範囲は全画面（フォーカスが無いときにパネルの根へ届く選択移動を、どの画面でも打ち消す）。** 出所は二段に分かれる。
   - 一段目（決まりそのもの）: ユーザー裁定 2026-08-22 原文「決定: `useWebInputExclusivity` のcaptureフェーズkeydownで `Tab` を無条件に `preventDefault` し、ブラウザnativeのフォーカス移動を封じる。`stopPropagation` はしない。」／棄却案の原文「全ボタンへ `tabIndex={-1}` を付ける（新規ボタンのたびに付け忘れが起きる）／`activeLayer` でレイヤーごとに封殺を切り替える（modal内でだけTabを生かす価値がなく分岐が増える）／CSSで `:focus-visible` を消す（見た目は直るがEnter/Spaceの誤爆とUnityキーボード黙殺は残る）。」／代償の原文「Mantine modalのfocus trapとbuild menu検索欄へのフォーカス移動が失われる。いずれもクリックで到達できる。」（`.decisions/2026-08-22-ブラウザのTabフォーカス移動は封じる.md`）。2026-10-01 の裁定も「Tabと同じく、Web UI全体で…封じる」と、Tab が UI 全体で封じられていることを前提にしている（`.decisions/2026-10-01-Web UI全体で文字入力欄以外のSpace既定動作を封じる.md`）。
-  - 二段目（UITK への当てはめ）: agent前提。2026-08-22 の裁定は Web UI 前提で、ADR 0101 の読み替え表に行が無い。当てはめの根拠は2つ。(1) UITK の `GameUiInputRules.Attach` は既に、要素宛ての `NavigationMoveEvent` を全画面で打ち消している（`GameUiInputRules.cs` の `CancelNavigation`）。(2) ADR 0101 は、同じ並びの 2026-10-01 の Space の裁定を、同じ `GameUiInputRules` への読み替えとして載せている。この plan は ADR 0101 の表に 2026-08-22 の行を足す（Task 1 Step 4）。行の「読み替え」という分類も agent前提で、PR の報告の注目点に書く。
+  - 二段目（UITK への当てはめ）: agent前提。2026-08-22 の裁定は Web UI 前提で、ADR 0101 の読み替え表に行が無い。当てはめの根拠は2つ。(1) UITK の `GameUiInputRules.Attach` は既に、要素宛ての `NavigationMoveEvent` を全画面で打ち消している（`GameUiInputRules.cs` の `CancelNavigation`）。(2) ADR 0101 は、同じ並びの 2026-10-01 の Space の裁定を、同じ `GameUiInputRules` への読み替えとして載せている。この plan は ADR 0101 の表に 2026-08-22 の行を足す（Task 1 Step 4）。行の「読み替え」という分類も agent前提で、PR の報告の注目点に書く。裁定の「`stopPropagation` はしない」は Web の keydown を Unity 側へ届けるための但し書きで、UITK の `CancelNavigation` が選択移動のイベントを `StopImmediatePropagation` で止めることとは対象が違う（ゲームは InputSystem から Tab を読む。Task 2 のテストが Tab でインベントリが開くことを確かめる）。この読み分けも agent前提。
   - 画面ごとに切り替える形（比較表の E）は、一段目の棄却案に当たるので採らない。この範囲について新しい `.decisions/` は作らない。
 - 置く場所を決めている間の Tab は変えない。出所: agent前提（原文は「ビルドメニューで」。2026-11-20 の仕分けシート 03 で「そのまま通す項目」として提示し、異論なし）
 - 検索欄に入力している間の Tab は変えない（今も1回でインベントリが開く）。出所: agent前提（実測で今の挙動を確認。仕分けシート 04 に「そのまま通す項目」として載せた）
