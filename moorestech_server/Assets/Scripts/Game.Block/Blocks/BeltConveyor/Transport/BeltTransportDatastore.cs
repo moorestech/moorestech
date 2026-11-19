@@ -147,14 +147,14 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // Lists the items a block owns (running, buffered, internal segments into its merge) as refunds without changing the assembly
         public IReadOnlyList<IItemStack> GetOwnedRefundItems(BlockInstanceId blockInstanceId)
         {
-            return BeltOwnedItemRefund.GetItems(blockInstanceId, BeltTransportSnapshot.Capture(Assembly));
+            return BeltOwnedItemRefund.GetItems(blockInstanceId, Assembly);
         }
 
         // 搬出元の撤去で消える内部segmentの中身を、組を変えずに返却物として列挙する
         // Lists, without changing the assembly, the contents of internal segments that removing a source would make vanish
         public IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(IBlock block)
         {
-            return BeltConnectionRemovalRefund.GetItems(BeltConnectionRemovalRefund.GetRemovedInputs(block, _worldBlockDatastore), BeltTransportSnapshot.Capture(Assembly));
+            return BeltConnectionRemovalRefund.GetItems(BeltConnectionRemovalRefund.GetRemovedInputs(block, _worldBlockDatastore), Assembly);
         }
 
         // 返却を確定した撤去の直前に呼び、消える内部segmentを空にする。形は再構築まで変えないので、同tickの後続の撤去・再設置・再構築の復元にこの中身が二度出てこない

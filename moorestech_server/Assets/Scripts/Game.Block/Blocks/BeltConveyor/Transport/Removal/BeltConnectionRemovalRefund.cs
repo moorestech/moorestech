@@ -3,7 +3,6 @@ using Core.BeltTransport;
 using Core.Item.Interface;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
-using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -16,19 +15,23 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
     // Identifies the internal segments that vanish when a non-belt source (chest, machine, station...) is removed, and turns their contents into refunds
     internal static class BeltConnectionRemovalRefund
     {
-        internal static IReadOnlyList<IItemStack> GetItems(HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)> removedInputs, BeltTransportSnapshot snapshot)
+        internal static IReadOnlyList<IItemStack> GetItems(HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)> removedInputs, BeltTransportAssembly assembly)
         {
             var items = new List<IItemStack>();
             if (removedInputs.Count == 0) return items;
 
+            // 消える内部segmentだけを引き、全量の列挙と同じsegment番号順に並べる
+            // Look up only the vanishing internal segments, ordered by segment index like a full capture
+            var internalIndices = new List<int>();
+            foreach (var (mergeBlock, direction) in removedInputs)
+                if (assembly.Locator.TryFindInternal(mergeBlock, direction, out var segmentIndex)) internalIndices.Add(segmentIndex);
+            internalIndices.Sort();
+
             // 実状態の個体IDを保って返却する
             // Preserve live item identities in the refund
-            foreach (var record in snapshot.InternalItems)
-            {
-                if (!removedInputs.Contains((record.MergeBlockInstanceId, record.InputDirection))) continue;
-                foreach (var state in record.States)
+            foreach (var segmentIndex in internalIndices)
+                foreach (var state in assembly.Segments[segmentIndex].EnumerateItems())
                     items.Add(ServerContext.ItemStackFactory.Create(state.Item.ItemId, 1, state.Item.ItemInstanceId));
-            }
             return items;
         }
 
