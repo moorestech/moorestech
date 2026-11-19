@@ -17,8 +17,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
 {
     /// <summary>
-    /// 実ゲームで、ビルドメニュー表示中・フォーカス無しの Tab が検索欄へ吸われずインベントリを開くことを確かめる
-    /// Verifies in the real game that Tab opens the inventory instead of being swallowed by the search field while the build menu is shown and nothing is focused
+    /// 実ゲームでのビルドメニュー入力を検証
+    /// Checks build-menu input in the running game.
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class BuildMenuTabOpensInventoryTest
@@ -77,8 +77,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
                 Assert.IsNull(focusedAfterMove, $"Tab 由来の選択移動でフォーカスが移った: {focusedAfterMove?.GetType().Name} '{focusedAfterMove?.name}'");
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "Tab 由来の選択移動で入力中の旗が立った（検索欄へ吸われた）");
 
-                // ゲームが読む InputSystem の Tab でインベントリが開く
-                // The InputSystem Tab the game reads opens the inventory
+                // ゲーム側はInputSystem経由
+                // The game reads Tab through the Input System.
                 await SemanticInput.TapKey(Key.Tab);
                 for (var i = 0; i < InventoryWaitFrameLimit && uiStateControl.CurrentState != UIStateEnum.PlayerInventory; i++) await UniTask.Yield();
                 Assert.AreEqual(UIStateEnum.PlayerInventory, uiStateControl.CurrentState, "Tab でインベントリが開いていない");

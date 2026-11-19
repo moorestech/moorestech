@@ -6,8 +6,8 @@ using VContainer.Unity;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// GameUi のルートとパネルの根へ入力規則を付け、Pick の probe を入力排他へ登録する
-    /// Attaches the input rules to the GameUi root and the panel root, and registers the Pick probe with the input exclusivity
+    /// GameUiとパネルの根に入力規則を登録し、入力排他にPickプローブを登録
+    /// Registers input rules on the GameUi and panel roots and the Pick probe with input exclusivity.
     /// </summary>
     public class GameUiInputInstaller : IInitializable
     {

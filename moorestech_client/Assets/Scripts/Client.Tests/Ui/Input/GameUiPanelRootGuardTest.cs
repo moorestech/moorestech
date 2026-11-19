@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input
 {
     /// <summary>
-    /// フォーカスが無い間にパネルの根へ届く選択移動が入力欄へフォーカスを移さず、要素宛ての選択移動は通すことを実パネルで確かめる（L1）
-    /// Verifies on a real panel that a navigation move reaching the panel root with nothing focused never focuses a text field, while element-aimed moves pass through (L1)
+    /// 実パネルで検証（L1）：根宛てはフォーカス移動を抑止、要素宛ては通過
+    /// On a real panel (L1), root-targeted moves preserve focus and element-targeted moves pass the guard.
     /// </summary>
     public class GameUiPanelRootGuardTest : UiTestHost
     {
@@ -19,8 +19,8 @@ namespace Client.Tests.Ui.Input
         [SetUp]
         public void AttachRulesGuardAndTextField()
         {
-            // パネルの根のすぐ下に、打ち消しを通り抜けた選択移動を数える器を置く
-            // Right under the panel root, place a container that counts navigation moves that got past the guard
+            // ガード通過件数を根の直下で測る
+            // Count moves just below the root after they pass the guard.
             _movesBelowPanelRoot = 0;
             _belowPanelRoot = new VisualElement { name = "guard-below-panel-root", pickingMode = PickingMode.Ignore };
             _belowPanelRoot.StretchToParentSize();
