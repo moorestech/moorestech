@@ -56,11 +56,11 @@ namespace Client.Ui.Screens.Skit.Parts.Toolbar
             UiDisplay.SetShown(_hideUi, controlsShown);
             UiDisplay.SetShown(_showUi, model.Surface == SkitSurface.RestoreOnly);
 
-            // 押せるかは許可で決め、自動 ON だけシアン
-            // Pressability follows allowance; only auto ON is cyan
-            _auto.SetEnabled(model.CanSetAuto);
-            _skip.SetEnabled(model.CanSkip);
-            _hideUi.SetEnabled(model.CanSetUiHidden);
+            // 押せるかは許可で決め、無効の間は指を出さない（Web の .toolButton:disabled）。自動 ON だけシアン
+            // Pressability follows allowance with no hand while disabled (Web .toolButton:disabled); only auto ON is cyan
+            _auto.SetEnabledWithDefaultCursorWhileDisabled(model.CanSetAuto);
+            _skip.SetEnabledWithDefaultCursorWhileDisabled(model.CanSkip);
+            _hideUi.SetEnabledWithDefaultCursorWhileDisabled(model.CanSetUiHidden);
             _auto.EnableInClassList(ActiveToolUssClassName, model.AutoEnabled);
         }
 

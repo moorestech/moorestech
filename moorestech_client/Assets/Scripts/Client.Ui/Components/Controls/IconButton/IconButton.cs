@@ -22,6 +22,8 @@ namespace Client.Ui.Components.Controls
 
         private readonly Subject<Unit> _clicked = new();
         private readonly UiOsCursorHoverRequest _hover;
+        private bool _isInteractive = true;
+        private bool _isCursorEnabled = true;
 
         public IObservable<Unit> OnClicked => _clicked;
 
@@ -53,9 +55,18 @@ namespace Client.Ui.Components.Controls
         // Align pressability with picking and the hand request
         public void SetInteractive(bool interactive)
         {
+            _isInteractive = interactive;
             pickingMode = interactive ? PickingMode.Position : PickingMode.Ignore;
-            if (interactive) _hover.Resume();
-            else _hover.Suspend();
+            _hover.SetPressable(_isInteractive && _isCursorEnabled);
+        }
+
+        // 無効の間は既定のカーソルにする有効切替（Web の .toolButton:disabled の cursor: default）。拾いは保ち、背後へクリックを通さない
+        // Enable toggle that keeps the default cursor while disabled (Web .toolButton:disabled cursor: default); picking stays so clicks never reach behind
+        public void SetEnabledWithDefaultCursorWhileDisabled(bool enabled)
+        {
+            SetEnabled(enabled);
+            _isCursorEnabled = enabled;
+            _hover.SetPressable(_isInteractive && _isCursorEnabled);
         }
     }
 }

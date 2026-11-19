@@ -57,6 +57,7 @@ namespace Client.Playtest
                     // Recording stalls at timeScale=0 with a hidden Game View, so bring it front; runs without recording do not rely on Game View
                     if (options.Record) PlaytestUiOps.PrepareBackgroundInput();
                     else PlaytestUiOps.EnableBackgroundInput();
+                    if (!Keyboard.current.enabled || !Mouse.current.enabled) Debug.LogError($"[PlaytestRunner] injected input will be dropped: keyboard enabled={Keyboard.current.enabled}, mouse enabled={Mouse.current.enabled} after EnableDevice");
                     var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
