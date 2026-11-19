@@ -131,6 +131,35 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             StringAssert.Contains("requires 3 levels", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
         }
 
+        [Test]
+        public void FullModuleTableNotBetterThanNoModuleIsRejectedTest()
+        {
+            // Tier1の表を良品10%にするとモジュール無し(20%)を下回り止まる。同じ20%でも止まる
+            // A tier-1 table at 10% good falls below the no-module 20% and is rejected; an equal 20% is rejected too
+            var tables = Tables();
+            tables[1] = (new[] { .08f, .02f, 0f }, .9f);
+            StringAssert.Contains("good share", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+            tables[1] = (new[] { .15f, .05f, 0f }, .8f);
+            StringAssert.Contains("good share", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+        }
+
+        [Test]
+        public void V8DieTablesAreValidTest()
+        {
+            // ADR 0104 の v8 の表はすべての規則を通る
+            // The v8 tables from ADR 0104 pass every rule
+            var tables = new (IReadOnlyList<float>, float)[]
+            {
+                (new[] { .2f, 0f, 0f, 0f, 0f }, .8f),
+                (new[] { .83125f, .11875f, 0f, 0f, 0f }, .05f),
+                (new[] { .025f, .83125f, .11875f, 0f, 0f }, .025f),
+                (new[] { .01f, .02f, .83125f, .11875f, 0f }, .02f),
+                (new[] { .005f, .01f, .015f, .83125f, .11875f }, .02f),
+                (new[] { .005f, .0075f, .0125f, .025f, .925f }, .025f),
+            };
+            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 5));
+        }
+
         private static (IReadOnlyList<float>, float)[] Tables()
         {
             return new (IReadOnlyList<float>, float)[]

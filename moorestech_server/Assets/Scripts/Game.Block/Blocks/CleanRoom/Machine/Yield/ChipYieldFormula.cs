@@ -9,55 +9,45 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
     /// </summary>
     public static class ChipYieldFormula
     {
-        // Tier tの表に品質シフトを掛けた、良品ダイ1個あたりのレベル別割合 [Lv1..LvMax] と失敗ダイ割合
-        // Per-survivor level rates [Lv1..LvMax] and the failed-die rate after applying the quality shift to tier t's table
-        public static double[] ShiftedDieRates(IReadOnlyList<float> levelRates, float failedRate, int tier, double qualityEffectSum, double classQualityMultiplier, double referenceEffectValue, double maxRareShift, out double shiftedFailedRate)
+        // 品質の効き（効果合計×部屋倍率）から、十分入れたときの表への近づき度 0〜1 を出す。1個ごとに必ず増え、増え方は逓減する
+        // Approach weight 0..1 toward the full-module table from the quality sum times the class multiplier; it always rises per module with diminishing gains
+        public static double ApproachWeight(double qualityEffectSum, double classQualityMultiplier, double qualityApproachScale)
         {
-            var rates = ShiftedRatesWithFailedSlot(levelRates, failedRate, tier, qualityEffectSum, classQualityMultiplier, referenceEffectValue, maxRareShift);
-            var levelCount = levelRates.Count;
-            shiftedFailedRate = rates[levelCount];
-            var shiftedLevelRates = new double[levelCount];
-            Array.Copy(rates, shiftedLevelRates, levelCount);
-            return shiftedLevelRates;
+            var effectiveQuality = Math.Max(0d, qualityEffectSum * classQualityMultiplier);
+            return 1d - Math.Exp(-effectiveQuality / qualityApproachScale);
         }
 
-        // 失敗枠を末尾に置いた計算用の配列。シフトの式はこの並びで書く
-        // Working array with the failed slot at the end; the shift math is written over this layout
-        private static double[] ShiftedRatesWithFailedSlot(IReadOnlyList<float> levelRates, float failedRate, int tier, double qualityEffectSum, double classQualityMultiplier, double referenceEffectValue, double maxRareShift)
+        // モジュール無しの表と最高Tierの表を表の重みで線形に混ぜ、生き残り1個あたりのレベル別割合と失敗ダイ割合にする
+        // Linearly mix the no-module and highest-tier tables by the table weight into per-survivor level rates and the failed-die rate
+        private static double[] BlendedDieRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double tableWeight, out double blendedFailedRate)
         {
-            var levelCount = levelRates.Count;
-            var rates = new double[levelCount + 1];
-            for (var i = 0; i < levelCount; i++) rates[i] = levelRates[i];
-            rates[levelCount] = failedRate;
-
-            // レア枠が無いTier（0と最大）はシフトしない
-            // Tiers without a shiftable rare slot (0 and the top) do not shift
-            if (tier <= 0 || levelCount <= tier) return rates;
-            var rareIndex = tier;
-
-            // 失敗枠は Lv1〜Lv(t-1) と失敗ダイ
-            // The failure slot is Lv1..Lv(t-1) plus the failed die
-            var failureIndices = new int[tier];
-            for (var i = 0; i < tier - 1; i++) failureIndices[i] = i;
-            failureIndices[tier - 1] = levelCount;
-            var failureTotal = 0.0;
-            foreach (var index in failureIndices) failureTotal += rates[index];
-            var shift = Math.Clamp(qualityEffectSum * classQualityMultiplier - referenceEffectValue, -rates[rareIndex], Math.Min(maxRareShift, failureTotal));
-
-            // 正は失敗枠を比例縮小してレアへ、負はレアから失敗ダイへ
-            // Positive shrinks the failure slot proportionally into the rare; negative moves rare into the failed die
-            if (0 < shift)
-            {
-                var keep = (failureTotal - shift) / failureTotal;
-                foreach (var index in failureIndices) rates[index] *= keep;
-            }
-            else rates[levelCount] -= shift;
-            rates[rareIndex] += shift;
-            return rates;
+            var levelCount = tierLevelRates.Count;
+            var blended = new double[levelCount];
+            for (var i = 0; i < levelCount; i++) blended[i] = noModuleLevelRates[i] * (1d - tableWeight) + tierLevelRates[i] * tableWeight;
+            blendedFailedRate = noModuleFailedRate * (1d - tableWeight) + tierFailedRate * tableWeight;
+            return blended;
         }
 
-        // クラス基準率を品質合計で割り引く。割引の上限は maxReduction
-        // Discount a class base rate by the quality sum, capped at maxReduction
+        // ダイ1個あたりで「無し」と「十分入れた」状態を近づき度で混ぜ、損失率と生き残り1個あたりの振り分けを1回で出す
+        // Mix the no-module and full-module states per die by the approach weight, returning the loss rate and per-survivor split in one call
+        public static double[] DicingRates(IReadOnlyList<float> noModuleLevelRates, float noModuleFailedRate, IReadOnlyList<float> tierLevelRates, float tierFailedRate, double classDieLossRate, double maxLossReduction, double approachWeight, out double dieLossRate, out double failedRate)
+        {
+            // 損失率と生き残りはここで1回だけ導出する。十分入れた状態の損失は maxLossReduction だけ減る
+            // Derive the loss and survival only here; the full-module state loses maxLossReduction less
+            var fullModuleLossRate = classDieLossRate * (1d - maxLossReduction);
+            dieLossRate = (1d - approachWeight) * classDieLossRate + approachWeight * fullModuleLossRate;
+            var survival = 1d - dieLossRate;
+            var fullModuleSurvival = 1d - fullModuleLossRate;
+
+            // 生き残りの内訳で表の重みを決める。良品の合計が近づき度に比例し、1個ごとの伸びが逓減する
+            // Weight the tables by where survivors come from, so the good total is linear in the weight and gains diminish per module
+            // silent-ok: 全ダイが損失のとき生き残りの割合は抽選に使われない / 損失率1で全数が失敗ダイになり機械UIにもそう出る
+            var tableWeight = survival <= 0d ? approachWeight : approachWeight * fullModuleSurvival / survival;
+            return BlendedDieRates(noModuleLevelRates, noModuleFailedRate, tierLevelRates, tierFailedRate, tableWeight, out failedRate);
+        }
+
+        // クラス基準率を品質合計で割り引く。割引の上限は maxReduction（EUV露光の層失敗率に使う）
+        // Discount a class base rate by the quality sum, capped at maxReduction (used for the EUV layer fail rate)
         public static double ReducedRate(double classBaseRate, double qualityEffectSum, double maxReduction)
         {
             return classBaseRate * (1d - Math.Clamp(qualityEffectSum, 0d, maxReduction));

@@ -82,12 +82,12 @@ properties:
           type: integer
         - key: maxLossReduction
           type: number
-        # 品質モジュール最高Tierでレア枠へ移せる割合の上限
-        # Cap on the share the quality sum can move into the rare slot
-        - key: maxRareShift
+        # 品質の効果合計×部屋倍率がこの値のとき、表への近づき度が約63%になる尺度
+        # Scale at which the quality sum times the class multiplier brings the approach weight to about 63%
+        - key: qualityApproachScale
           type: number
-        # 品質最高Tier 0〜最大レベルの順に並ぶダイ表。Tier t は Lv t が既定・Lv t+1 がレア・それ未満と失敗ダイが失敗枠
-        # Die tables ordered by highest quality tier 0..max level; tier t has Lv t default, Lv t+1 rare, lower levels and the failed die as the failure slot
+        # 品質最高Tier 0〜最大レベルの順に並ぶダイ表。Tier0はモジュール無し、Tier t≥1 は品質モジュールを十分入れたときの表（Lv t が既定・Lv t+1 がレア・それ未満と失敗ダイが失敗枠）
+        # Die tables ordered by highest quality tier 0..max level; tier 0 is without modules, tier t>=1 is the table with enough quality modules (Lv t default, Lv t+1 rare, lower levels and the failed die as the failure slot)
         - key: qualityTierDieTables
           type: array
           items:

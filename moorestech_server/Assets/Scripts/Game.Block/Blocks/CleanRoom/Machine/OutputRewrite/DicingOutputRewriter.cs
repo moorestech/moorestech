@@ -7,8 +7,8 @@ using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
-    // ダイシング: 1枚を diesPerWafer 個に切り、損失を失敗ダイへ、残りを品質Tierの表（レア枠シフト後）でレベル別か失敗ダイへ振り分ける
-    // Dicing: cut one wafer into diesPerWafer dies, send losses to failed dies and split survivors by the quality tier's shifted table into levels or failed dies
+    // ダイシング: 1枚を diesPerWafer 個に切り、損失を失敗ダイへ、残りを品質の近づき度で混ぜた表でレベル別か失敗ダイへ振り分ける
+    // Dicing: cut one wafer into diesPerWafer dies, send losses to failed dies and split survivors by the table blended by the quality approach weight
     internal static class DicingOutputRewriter
     {
         public static List<IItemStack> Rewrite(DicingRecipeRole role, DicingPreview rates, CleanRoomYieldRollContext context)

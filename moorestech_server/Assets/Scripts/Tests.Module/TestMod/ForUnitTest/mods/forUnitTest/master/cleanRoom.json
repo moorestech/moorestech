@@ -46,7 +46,7 @@
           "failedDieItemGuid": "4bcfd0a6-c9ea-4286-b7f1-1fd38d93ad32",
           "diesPerWafer": 300,
           "maxLossReduction": 0.8,
-          "maxRareShift": 0.2,
+          "qualityApproachScale": 1.0,
           "qualityTierDieTables": [
             {
               "levelRates": [

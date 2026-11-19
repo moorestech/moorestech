@@ -49,8 +49,8 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             inventory.SetItem(FirstModuleSlot, MasterHolder.ItemMaster.GetItemId(TestQualityModuleItemGuid), 1);
             Assert.IsTrue(WaitForClassA(serviceProvider.GetService<CleanRoomDatastore>(), filter, machine, TickCap));
 
-            // 失敗ダイのスロットを満杯にしてウェハを入れ、待機中に抽選を確定させる（失敗枠0.2なので失敗ダイ0個はまず無い）
-            // Fill the failed-die slot and load a wafer so idle fixes a draw (the 0.2 failure slot makes zero failed dies practically impossible)
+            // 失敗ダイのスロットを満杯にしてウェハを入れ、待機中に抽選を確定させる（失敗ダイ約40%なので失敗ダイ0個はまず無い）
+            // Fill the failed-die slot and load a wafer so idle fixes a draw (failed dies at about 40% make zero failed dies practically impossible)
             inventory.SetItem(FailedDieSlot, ForUnitTestItemId.TestFailedDie, FailedDieMaxStack);
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWafer, 1);
             Assert.IsNull(ReadDicing(packet, machine).PendingDraw);
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var view = ReadDicing(packet, machine);
             AssertDicing(view.Dicing, 0.15, 0, new[] { 0.2, 0d, 0d }, 0.8);
             Assert.IsNotNull(view.PendingDraw);
-            AssertDicing(view.PendingDraw, 0.03, 1, new[] { 0.7, 0.1, 0d }, 0.2);
+            AssertDicing(view.PendingDraw, 0.074146, 1, new[] { 0.531130, 0.066226, 0d }, 0.402644);
 
             if (saveReload)
             {
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
                 // Before the first room-effect push a restored machine passes one Halted tick, so advance until it is back to output-blocked Idle
                 RunTicks(filter, machine, 2);
                 Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
-                AssertDicing(ReadDicing(packet, machine).PendingDraw, 0.03, 1, new[] { 0.7, 0.1, 0d }, 0.2);
+                AssertDicing(ReadDicing(packet, machine).PendingDraw, 0.074146, 1, new[] { 0.531130, 0.066226, 0d }, 0.402644);
             }
 
             // 出力を空けると確定済みの抽選で加工が始まり、待っていた抽選は応答から消える

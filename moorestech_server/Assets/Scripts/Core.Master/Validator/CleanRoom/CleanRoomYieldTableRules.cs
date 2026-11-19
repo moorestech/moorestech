@@ -39,6 +39,11 @@ namespace Core.Master.Validator
         {
             var logs = "";
             if (tierTables.Count != dieLevelCount + 1) logs += $"[CleanRoomMaster] {roleLabel} requires {dieLevelCount + 1} quality tier tables (found {tierTables.Count})\n";
+
+            // 十分入れた表は良品の割合がモジュール無しの表より大きい（混ぜたとき1個ごとに良品が伸びる前提）
+            // A full-module table must have a larger good share than the no-module table, so blending raises good dies per module
+            // silent-ok: 表が0枚なら上の表の枚数の検査がログ済み / 起動時のマスタ検証で止まる
+            var noModuleGoodShare = 0 < tierTables.Count ? GoodShare(tierTables[0].levelRates) : 0f;
             for (var tier = 0; tier < tierTables.Count; tier++)
             {
                 var (rates, failedRate) = tierTables[tier];
@@ -58,10 +63,19 @@ namespace Core.Master.Validator
                 }
                 if (float.IsNaN(sum) || float.IsInfinity(sum) || RateTolerance < System.Math.Abs(sum - 1f)) logs += $"{prefix} rates sum to {sum}, not 1\n";
                 if (0 < tier && tier <= dieLevelCount && tier <= rates.Count && !(0f < rates[tier - 1])) logs += $"{prefix} default Lv{tier} must be positive\n";
+                var goodShare = GoodShare(rates);
+                if (0 < tier && !(noModuleGoodShare < goodShare)) logs += $"{prefix} good share {goodShare} must exceed the no-module table's {noModuleGoodShare}\n";
             }
             return logs;
 
             #region Internal
+
+            static float GoodShare(IReadOnlyList<float> levelRates)
+            {
+                var sum = 0f;
+                foreach (var rate in levelRates) sum += rate;
+                return sum;
+            }
 
             static string ValidateRate(string prefix, string name, float value)
             {

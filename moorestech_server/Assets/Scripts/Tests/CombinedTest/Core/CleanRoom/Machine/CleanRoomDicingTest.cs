@@ -51,8 +51,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
         {
             var collected = DiceInClassAWithModule(TestQualityModuleItemGuid);
 
-            // Tier1・クラスA・1個はシフト0で表[.7,.1,0]のまま。Lv2はレア（約50個）で、Lv3は品質ゲートで出ない
-            // Tier 1, class A, one module: zero shift keeps the table [.7,.1,0]; Lv2 is the rare (~50) and the quality gate blocks Lv3
+            // Tier1・クラスA・1個は近づき度で表がモジュール無しからTier1へ寄る。Lv2はレア（約37個）で、Lv3は品質ゲートで出ない
+            // Tier 1, class A, one module: the approach weight moves the no-module table toward tier 1; Lv2 is the rare (~37) and the quality gate blocks Lv3
             var levelOne = CountOf(collected, ForUnitTestItemId.TestDieLv1);
             var levelTwo = CountOf(collected, ForUnitTestItemId.TestDieLv2);
             Assert.Greater(levelOne, levelTwo);
@@ -160,8 +160,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             return RunAndCollect(filter, machine, DiesPerWafer * waferCount, TickCap);
         }
 
-        // クラスAで品質モジュール1個を挿してウェハ2枚を切る（クラスAの倍率1でシフト0になる）
-        // Dice two wafers in class A with one quality module (class A's multiplier of 1 gives zero shift)
+        // クラスAで品質モジュール1個を挿してウェハ2枚を切る（近づき度で表がモジュール無しからTier1へ寄る）
+        // Dice two wafers in class A with one quality module (the approach weight moves the no-module table toward tier 1)
         private static Dictionary<ItemId, int> DiceInClassAWithModule(Guid moduleItemGuid)
         {
             var datastore = CleanRoomHatchTest.CreateServer();

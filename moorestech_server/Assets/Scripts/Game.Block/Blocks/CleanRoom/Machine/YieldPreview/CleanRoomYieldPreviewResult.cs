@@ -85,8 +85,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "layerExposure", ["layerFailRate"] = LayerFailRate };
     }
 
-    // ダイシング: ダイ損失率と、損失を除いた良品に対するシフト後のレベル別割合・失敗ダイ割合
-    // Dicing: die loss rate plus the shifted per-level and failed-die rates over survivors (losses excluded)
+    // ダイシング: ダイ損失率と、損失を除いた生き残りに対する近づき度で混ぜたレベル別割合・失敗ダイ割合
+    // Dicing: die loss rate plus the per-level and failed-die rates blended by the approach weight over survivors (losses excluded)
     public sealed class DicingPreview : CleanRoomYieldPreviewResult
     {
         public double DieLossRate { get; }
