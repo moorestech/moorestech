@@ -1,4 +1,4 @@
-/* web: web@6248097123/src/shared/ui/PlacementTargetFace/style.module.css の .icon（slotContent の .icon）と .label を写す。word-break: break-all は UITK に無い（台帳の見た目の例外の候補） */
+/* web: web@6248097123/src/shared/ui/PlacementTargetFace/style.module.css の .icon（slotContent の .icon）と .label を写す。word-break: break-all は UITK に無い（docs/uitk/look-exceptions.md の候補） */
 /* web: copies .icon (slotContent .icon) and .label in web@6248097123/src/shared/ui/PlacementTargetFace/style.module.css; word-break: break-all has no UITK equivalent (a look-exception candidate) */
 .placement-target-face {
     flex-grow: 1;

@@ -53,8 +53,8 @@ namespace Client.Ui.Foundation.Tooltip
 
         public void Attach(VisualElement pointerRoot, VisualElement layer)
         {
-            // 空き地へ出た移動は根の PointerLeaveEvent で受ける（空き地の中の移動は届かない。台帳の実測）。移動と捕捉の始まりは根で TrickleDown に受ける
-            // A move out to empty space arrives as the root PointerLeaveEvent (moves inside empty space never arrive; ledger measurement); moves and capture starts are received at the root with TrickleDown
+            // 空き地へ出た移動は根の PointerLeaveEvent で受ける（空き地の中の移動は届かない。docs/uitk/measurements.md の実測）。移動と捕捉の始まりは根で TrickleDown に受ける
+            // A move out to empty space arrives as the root PointerLeaveEvent (moves inside empty space never arrive; measured in docs/uitk/measurements.md); moves and capture starts are received at the root with TrickleDown
             _layer = layer;
             layer.Add(_anchor);
             pointerRoot.RegisterCallback<PointerMoveEvent>(OnPointerMove, TrickleDown.TrickleDown);
@@ -85,8 +85,8 @@ namespace Client.Ui.Foundation.Tooltip
             if (pointer != _lastPointer) _dismissed = false;
             _lastPointer = pointer;
 
-            // 捕捉中（押下・ドラッグ中）は対象を持たない。捕捉中も下の要素へ進入が届きうるので（台帳の実測）、進入ではなく捕捉で決める
-            // While captured (press or drag) there is no target; entries can still reach elements underneath (ledger), so decide by capture
+            // 捕捉中（押下・ドラッグ中）は対象を持たない。捕捉中も下の要素へ進入が届きうるので（docs/uitk/measurements.md の実測）、進入ではなく捕捉で決める
+            // While captured (press or drag) there is no target; entries can still reach elements underneath (docs/uitk/measurements.md), so decide by capture
             var panel = _layer.panel;
             Point(panel.GetCapturingElement(evt.pointerId) == null ? panel.Pick(pointer) : null);
         }

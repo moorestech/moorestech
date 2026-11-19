@@ -45,7 +45,7 @@ USS に無い表現（影・グラデ・マスク・grid・状態など）を描
 | CSS | USS での扱い |
 |---|---|
 | `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `Components/Slots/OutlinedCountLabel` を使う（縁だけの Label を後ろに敷き、縁の無い字の Label を上に重ねる 2 層）。`-unity-text-outline` は字の内外に半分ずつ掛かり 12〜19px の細い字を塗りつぶすので、字の上に直に掛けない。縁の値は `--icon-text-stroke-*`（設計書 [A-110]） |
-| `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。台帳の `LX-n` に記帳済み） |
+| `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。`docs/uitk/look-exceptions.md` の `LX-n` に記帳済み） |
 | `font-weight: bold`・`font-synthesis` | 合成の太字は使わない。Mantine の `Title` で描く題だけ `title--heading-face` の Bold（SDF アセット、`Typography.uss`）を使う（`Modal.Title` は除く）。`fw` 指定・`text--bold` は字形を替えない |
 | `font-size`（Mantine の `size`） | 既存の画面と同じ px。13px 下限は無い（設計書 [A-39]） |
 | `text-overflow: ellipsis` | `overflow: hidden`・`white-space: nowrap`・`text-overflow: ellipsis` |
@@ -63,7 +63,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 | 三角・矢印・SVG の `path` | Painter2D の `MoveTo`/`LineTo`/`Fill` | `GamePanelBottomDeco`・`ProgressArrowGlyph` |
 | `box-shadow`（外側のにじみ） | 面の外周に、内側の α から外側の 0 へ落ちる頂点カラーの帯を張る | —（GamePanel の外周の影は元の CSS でも出ないので描かない。設計書 [A-22]） |
 | `box-shadow: inset` 2 層（ベベル） | border の入れ子（子要素 2 つに border を 1 本ずつ） | `SlotFrame` |
-| `outline`・ring | border の入れ子で近似し、差があれば記帳する | `ModeSwitch`（差は台帳の `LX-n` に記帳済み） |
+| `outline`・ring | border の入れ子で近似し、差があれば記帳する | `ModeSwitch`（差は `docs/uitk/look-exceptions.md` の `LX-n` に記帳済み） |
 | `filter: drop-shadow` | 図形の輪郭を少し太らせた α の帯を先に描く | `ProgressArrowGlyph` |
 | `repeating-linear-gradient`（斜線帯） | Painter2D で平行四辺形を繰り返し塗る | 削除モードの帯（modeHud の画面に置く。S2-mode-tooltip が作る） |
 | `background-image`（UI 装飾の画像） | 使わない。図形で描く | — |
@@ -71,7 +71,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 ## 6. 半透明
 
 - α・opacity は CSS の値をそのまま書く。GameUi のパネルは `forceGammaRendering` で sRGB の値のまま RT に描き、URP の最後（`Foundation/Composite` の `UiSrgbCompositeFeature`）に世界を sRGB にしてから重ねるので、Chrome と同じ sRGB 空間の合成になる（設計書 [A-180]〜[A-184]）。地の明るさで値を選び分けたり、α を式で補正したりしない
-- 重なる子を持つ群（枠と中身・面と文字）の `opacity` は `filter: opacity(var(--…))` で群に掛ける。要素の `opacity` は子ごとに掛かり、重なった子が明るく出る。群は Foundation の `PixelFilterGroup` にし、filter は `.<宿主>--<状態> > .pixel-filter-group` に書く（宿主に直に書くと中間 RT が論理 px で取られ、倍率 1.5 以上でぼける）。群にしない状態（`opacity: 1`）には `filter` を付けない（`opacity(1)` でもオフスクリーンに描かれ、暗い色が沈む。台帳 LX-76）（設計書 [A-222]・[A-226]）
+- 重なる子を持つ群（枠と中身・面と文字）の `opacity` は `filter: opacity(var(--…))` で群に掛ける。要素の `opacity` は子ごとに掛かり、重なった子が明るく出る。群は Foundation の `PixelFilterGroup` にし、filter は `.<宿主>--<状態> > .pixel-filter-group` に書く（宿主に直に書くと中間 RT が論理 px で取られ、倍率 1.5 以上でぼける）。群にしない状態（`opacity: 1`）には `filter` を付けない（`opacity(1)` でもオフスクリーンに描かれ、暗い色が沈む。`docs/uitk/look-exceptions.md` の LX-76）（設計書 [A-222]・[A-226]）
 - トークン（`Tokens.uss` 等）と手で書く半透明（`DerivedTokens/*.uss`）は手で書く正本。既存の行のコメントは撤去前の Web 版の値の出所
 - 色の比べ方: ランタイムの PanelSettings（`UiRuntimePanelCapture`）か PlayMode の画面の撮影で比べる（`compare-procedure.md` §3）
 - 最後は実機の撮影で決める。決め直したら決め方のコメントを「実機で据え置き（何を撮って決めたか）」へ書き換える（前例 `--panel-action-hover-face`）

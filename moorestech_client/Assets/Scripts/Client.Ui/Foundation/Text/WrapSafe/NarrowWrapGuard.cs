@@ -9,10 +9,10 @@ namespace Client.Ui.Foundation.Text.WrapSafe
     /// <remarks>
     /// 固まるのは測り（DoMeasure）と描画の両方なので、測りは WrapSafeLabel が狭い幅で折り返さずに測り、描画は箱の幅でここが nowrap を当てる（配置の後の GeometryChangedEvent で当てた inline は同じフレームの配置のやり直しに入り、描画より先に効く）。
     /// 箱の幅を読めるのは配置の後なので、新しく組んだ・非表示から戻った・外された後と、文か字の大きさ・字間が替わった後の最初の測りは受けた制約の幅で決める。測りの来ない固定の箱（幅も高さも決まっている）は、文の差し替え（text の上書き）とスタイルの解決（CustomStyleResolvedEvent）の時に今の箱の幅で決める。
-    /// 内容幅の箱は折り返した最長の行まで縮むので、固まらない幅で折り返して測った幅以上の箱は止めない（止めると 1 行で測り直して箱が戻り、止める／戻すを毎フレーム往復する）。止めた・戻したときだけ開発者向けのログを出す。設計書 A-224・台帳 LX-184
+    /// 内容幅の箱は折り返した最長の行まで縮むので、固まらない幅で折り返して測った幅以上の箱は止めない（止めると 1 行で測り直して箱が戻り、止める／戻すを毎フレーム往復する）。止めた・戻したときだけ開発者向けのログを出す。設計書 A-224・docs/uitk/look-exceptions.md の LX-184
     /// Both measuring (DoMeasure) and rendering freeze, so WrapSafeLabel measures unwrapped at narrow widths and this guard applies nowrap by box width for rendering (inline set in GeometryChangedEvent joins the same frame's layout pass and lands before rendering).
     /// The box width is only known after layout, so the first measure of a new, re-shown or re-attached label, or after its text, font size or spacing changed, decides from the constraint; a fixed box (width and height set) gets no measure, so a text swap (the text override) or a style resolution (CustomStyleResolvedEvent) decides from the current box.
-    /// A content-sized box shrinks to its longest wrapped line, so a box at least as wide as a wrap measured at a safe width is never held (holding re-measures one line, widens the box and toggles every frame). It logs for developers only when it starts or stops holding. Design A-224, ledger LX-184
+    /// A content-sized box shrinks to its longest wrapped line, so a box at least as wide as a wrap measured at a safe width is never held (holding re-measures one line, widens the box and toggles every frame). It logs for developers only when it starts or stops holding. Design A-224, LX-184 in docs/uitk/look-exceptions.md
     /// </remarks>
     internal class NarrowWrapGuard
     {

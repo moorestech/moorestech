@@ -8,8 +8,8 @@ namespace Client.Ui.Foundation.Theme
     /// Reads tokens that a component's USS re-declared through var() as resolved values in C#
     /// </summary>
     /// <remarks>
-    /// :root のトークンは当てた要素の customStyle にしか出ず子へ継承されない。部品は自クラスのルールで --部品-名前: var(--token) と受け直し CustomStyleResolvedEvent で読む。px・ms 付きの値は float では読めないので文字列で読む（docs/uitk/TODO.md の customStyle）
-    /// :root tokens appear only in the customStyle of the element they apply to and are not inherited; components re-declare --component-name: var(--token) in their own class rule and read it in CustomStyleResolvedEvent; values with px or ms cannot be read as float, so they are read as strings (customStyle in docs/uitk/TODO.md)
+    /// :root のトークンは当てた要素の customStyle にしか出ず子へ継承されない。部品は自クラスのルールで --部品-名前: var(--token) と受け直し CustomStyleResolvedEvent で読む。px・ms 付きの値は float では読めないので文字列で読む（docs/uitk/measurements.md の customStyle）
+    /// :root tokens appear only in the customStyle of the element they apply to and are not inherited; components re-declare --component-name: var(--token) in their own class rule and read it in CustomStyleResolvedEvent; values with px or ms cannot be read as float, so they are read as strings (customStyle in docs/uitk/measurements.md)
     /// </remarks>
     public static class UssCustomStyleReader
     {
