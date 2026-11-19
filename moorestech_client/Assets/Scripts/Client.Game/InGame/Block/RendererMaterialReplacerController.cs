@@ -19,16 +19,22 @@ namespace Client.Game.InGame.Block
                 // Ignore TextMeshPro because it causes an error
                 if (renderer.GetComponent<TMPro.TextMeshPro>()) continue;
                 
-                // レンダラーが IgnoreRendererMaterialReplacer の子である場合は無視
-                // Ignore if the renderer is a child of the IgnoreRendererMaterialReplacer
+                // レンダラーが IgnoreRendererMaterialReplacer の子である場合は無視。枠を指定したものは同じ GameObject のレンダラーのその枠だけ残す
+                // Ignore if the renderer is a child of the IgnoreRendererMaterialReplacer; one with slots keeps only those slots of the renderer on its GameObject
                 var isIgnore = false;
+                IReadOnlyList<int> keptMaterialSlots = Array.Empty<int>();
                 foreach (var ignoreParent in ignoreParents)
                 {
-                    isIgnore |= renderer.transform.IsChildOf(ignoreParent.transform);
+                    if (ignoreParent.MaterialSlots.Count == 0)
+                    {
+                        isIgnore |= renderer.transform.IsChildOf(ignoreParent.transform);
+                        continue;
+                    }
+                    if (ignoreParent.gameObject == renderer.gameObject) keptMaterialSlots = ignoreParent.MaterialSlots;
                 }
                 if (isIgnore) continue;
-                
-                _rendererMaterialReplacers.Add(new RendererMaterialReplacer(renderer));
+
+                _rendererMaterialReplacers.Add(new RendererMaterialReplacer(renderer, keptMaterialSlots));
             }
         }
         
