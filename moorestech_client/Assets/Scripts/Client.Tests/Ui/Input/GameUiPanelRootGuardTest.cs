@@ -32,8 +32,7 @@ namespace Client.Tests.Ui.Input
             var rulesRoot = new VisualElement { name = "guard-rules-root", pickingMode = PickingMode.Ignore };
             rulesRoot.StretchToParentSize();
             _belowPanelRoot.Add(rulesRoot);
-            GameUiInputRules.Attach(rulesRoot);
-            GameUiInputRules.AttachPanelRootGuard(rootVisualElement.panel.visualTree);
+            GameUiInputRules.AttachToGameUi(rulesRoot);
 
             _textField = new TextField { name = "guard-text" };
             _textField.style.width = 300;

@@ -4,7 +4,7 @@
 
 **Goal:** ビルドメニューの一覧を開いた状態で Tab を押すと、検索欄へフォーカスが移らずにインベントリが開くようにする。
 
-**Architecture:** GameUi の入力規則（`GameUiInputRules.Attach`）は UIDocument の根に TrickleDown で付いている。フォーカスが無いとき `PanelEventHandler` は Tab 由来の `NavigationMoveEvent` をパネルの根（`panel.visualTree`。UIDocument の根の親）宛てに送るので、規則を通らず、UITK の既定のフォーカス移動が検索欄へフォーカスを移す。同じ `GameUiInputRules` に「パネルの根宛ての選択移動だけを打ち消す」入口を1つ足し、起動時にパネルの根へ付ける。要素宛ての選択移動は今までどおり UIDocument の根の規則が打ち消す。
+**Architecture:** GameUi の入力規則（`GameUiInputRules.Attach`）は UIDocument の根に TrickleDown で付いている。フォーカスが無いとき `PanelEventHandler` は Tab 由来の `NavigationMoveEvent` をパネルの根（`panel.visualTree`。UIDocument の根の親）宛てに送るので、規則を通らず、UITK の既定のフォーカス移動が検索欄へフォーカスを移す。ゲーム起動時は `GameUiInputRules.AttachToGameUi(documentRoot)` が文書へ既存の規則を登録し、パネルの根へその根宛ての選択移動を打ち消すハンドラを登録する。要素宛ての選択移動は今までどおり UIDocument の根の規則が打ち消す。
 
 **Tech Stack:** Unity 6000.3.8f1 / UI Toolkit（C# で組む。UXML なし）/ com.unity.ugui 2.0.0 の `PanelEventHandler` / com.unity.inputsystem 1.18.0 / NUnit（`UiTestHost` の L1、EditModeInPlayingTest）
 
@@ -59,7 +59,7 @@ Mac mini の Unity Editor は同時に1本までで、今は別のセッショ�
 
 | ファイル | 役割 |
 |---|---|
-| Modify `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` | パネルの根宛ての選択移動を打ち消す入口 `AttachPanelRootGuard` を足す |
+| Modify `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` | パネルの根宛ての選択移動を打ち消す入口 `AttachToGameUi` を足す |
 | Modify `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputInstaller.cs:30` | 起動時にパネルの根へ付ける |
 | Modify `docs/adr/0101-uitk-switch-revises-web-premised-adrs-and-rulings.md`（裁定の表） | 2026-08-22 の Tab の裁定が UITK のどこで保たれるかを 1 行足す |
 | Create `moorestech_client/Assets/Scripts/Client.Tests/Ui/Input/GameUiPanelRootGuardTest.cs` | L1: フォーカス無しでパネルの根へ届いた選択移動がフォーカスを動かさない／要素宛ては通す |
@@ -85,14 +85,14 @@ Tab キー
 ## 配置と前例
 
 - この直しは新しい決まりを足すものではない。`GameUiInputRules` は、要素にフォーカスがあるときの Tab 由来の選択移動を既に全画面で打ち消している（`Attach` が登録する `CancelNavigation`）。フォーカスが無いときだけ宛先がパネルの根になって規則を通らない穴があり、それをふさぐ。Tab でフォーカスを動かさない決まりの出所は 2026-08-22 のユーザー裁定（`.decisions/2026-08-22-ブラウザのTabフォーカス移動は封じる.md`）。
-- 置き場は既存の `GameUiInputRules`。同クラスの remarks が「全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す」と決めている（`GameUiInputRules.cs:12-13`）。パネルの根宛てのものは `Attach` の中では登録できない（比較表の B）ので入口を分け、remarks も書き換える。
+- 置き場は既存の `GameUiInputRules`。同クラスの remarks が「全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す」と決めている（`GameUiInputRules.cs:12-13`）。パネルの根宛てのものは `Attach` の中では登録できない（比較表の B）。文書とパネル双方への登録はゲーム起動用の内部メソッドにまとめる。
 - 付ける側は既存の `GameUiInputInstaller.Initialize`。installer の `Initialize` で `root.panel.visualTree` に部品を付ける前例は `Client.Ui/Foundation/Tooltip/GameUiHoverTooltipInstaller.cs:25-31`。新しい DI 登録は足さない。
 
 ### 直し方の比較
 
 | 案 | 中身 | 判定 |
 |---|---|---|
-| **A（採用）: パネルの根で、宛先がパネルの根の選択移動だけ打ち消す** | `GameUiInputRules.AttachPanelRootGuard(panelRoot)` を足し、installer から付ける。打ち消しの本体は既存の `CancelNavigation` | 再現の計測で、パネルの根で NavigationMoveEvent を打ち消すと直ることを確かめてある（2回中2回。外すと再発） |
+| **A（採用）: パネルの根で、宛先がパネルの根の選択移動だけ打ち消す** | `GameUiInputRules.AttachToGameUi(documentRoot)` を足し、installer から付ける。打ち消しの本体は既存の `CancelNavigation` | 再現の計測で、パネルの根で NavigationMoveEvent を打ち消すと直ることを確かめてある（2回中2回。外すと再発） |
 | B: `GameUiInputRules.Attach(root)` の中で `root.panel.visualTree` にも登録する | 入口を増やさない | 採らない。`Attach` はテスト 17 か所から、テストごとの部分木に規則を付けるために呼ばれている。中でパネルの根にも登録すると、渡された部分木の外にまでテストの作用が広がる |
 | C: 発生源で止める（シーンの `EventSystem.sendNavigationEvents` を偽にし、Tab 由来の NavigationMoveEvent を作らせない） | 前例: UI 専用の入力アクション資産で Navigate・Submit・Cancel を発生源から外している | 採らない。`sendNavigationEvents` はシーンの EventSystem の設定で、uGUI と全パネルに効く。GameUi の決まり（選択移動を使わない）がコード（`GameUiInputRules`）とシーンの設定の2か所に分かれ、GameUi を別のシーンで使うと設定を忘れても気づけない。入力欄にフォーカスがある間の Tab（今は1回でインベントリが開く）がこの設定でどう変わるかも測っていない |
 | D: 既定のフォーカス移動に手を付けず、入力欄を Tab の順番から外す（`tabIndex` を負にする） | 既存の機構を止めない | 成り立たない。ビルドメニュー表示中にフォーカスを取れる要素は検索欄の3個のほかにスクロールバーの部品が6個ある（再現報告 3 章）。入力欄を外しても Tab はスクロールバーの部品へフォーカスを移し、`GameUiInputRules.OnFocusIn` が警告を出して外す動きになる。入力欄を足すたびに外し忘れも起きる。2026-08-22 の裁定が棄却した案「全ボタンへ `tabIndex={-1}` を付ける（新規ボタンのたびに付け忘れが起きる）」と同じ形でもある |
@@ -126,7 +126,7 @@ Tab キー
 
 **Interfaces:**
 - Consumes: `GameUiRoot.GetRootElement()`（UIDocument の根。`root.panel.visualTree` がパネルの根）、既存の `private static void GameUiInputRules.CancelNavigation(EventBase evt)`
-- Produces: `public static void GameUiInputRules.AttachPanelRootGuard(VisualElement panelRoot)`（Task 2 は起動済みのゲームで間接的に使う）
+- Produces: `internal static void GameUiInputRules.AttachToGameUi(VisualElement documentRoot)`（Task 2 は起動済みのゲームで間接的に使う）
 
 - [ ] **Step 1: L1 テストを書く**
 
@@ -142,8 +142,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Input
 {
     /// <summary>
-    /// フォーカスが無い間にパネルの根へ届く選択移動が入力欄へフォーカスを移さず、要素宛ての選択移動は通すことを実パネルで確かめる（L1）
-    /// Verifies on a real panel that a navigation move reaching the panel root with nothing focused never focuses a text field, while element-aimed moves pass through (L1)
+    /// 実パネルで検証（L1）：根宛てはフォーカス移動を抑止、要素宛ては通過
+    /// On a real panel (L1), root-targeted moves preserve focus and element-targeted moves pass the guard.
     /// </summary>
     public class GameUiPanelRootGuardTest : UiTestHost
     {
@@ -154,8 +154,8 @@ namespace Client.Tests.Ui.Input
         [SetUp]
         public void AttachRulesGuardAndTextField()
         {
-            // パネルの根のすぐ下に、打ち消しを通り抜けた選択移動を数える器を置く
-            // Right under the panel root, place a container that counts navigation moves that got past the guard
+            // ガード通過件数を根の直下で測る
+            // Count moves just below the root after they pass the guard.
             _movesBelowPanelRoot = 0;
             _belowPanelRoot = new VisualElement { name = "guard-below-panel-root", pickingMode = PickingMode.Ignore };
             _belowPanelRoot.StretchToParentSize();
@@ -167,8 +167,7 @@ namespace Client.Tests.Ui.Input
             var rulesRoot = new VisualElement { name = "guard-rules-root", pickingMode = PickingMode.Ignore };
             rulesRoot.StretchToParentSize();
             _belowPanelRoot.Add(rulesRoot);
-            GameUiInputRules.Attach(rulesRoot);
-            GameUiInputRules.AttachPanelRootGuard(rootVisualElement.panel.visualTree);
+            GameUiInputRules.AttachToGameUi(rulesRoot);
 
             _textField = new TextField { name = "guard-text" };
             _textField.style.width = 300;
@@ -176,15 +175,16 @@ namespace Client.Tests.Ui.Input
             simulate.FrameUpdate();
         }
 
-        [Test]
-        public void NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField()
+        [TestCase(NavigationMoveEvent.Direction.Next)]
+        [TestCase(NavigationMoveEvent.Direction.Previous)]
+        public void NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField(NavigationMoveEvent.Direction direction)
         {
             Assert.IsNull(panel.focusController.focusedElement);
 
             // PanelEventHandler.SendTabEvent と同じく、宛先をパネルの根にして送る
             // Aim the event at the panel root, exactly as PanelEventHandler.SendTabEvent does
             var panelRoot = rootVisualElement.panel.visualTree;
-            using (var tab = NavigationMoveEvent.GetPooled(NavigationMoveEvent.Direction.Next))
+            using (var tab = NavigationMoveEvent.GetPooled(direction))
             {
                 tab.target = panelRoot;
                 panelRoot.SendEvent(tab);
@@ -203,7 +203,9 @@ namespace Client.Tests.Ui.Input
 
             // PanelEventHandler と同じく、宛先をフォーカス中の要素にして送る
             // Aim the event at the focused element, as PanelEventHandler does
-            var focusedBefore = panel.focusController.focusedElement;
+            var focusedBefore = (VisualElement)panel.focusController.focusedElement;
+            var movesAtTarget = 0;
+            focusedBefore.RegisterCallback<NavigationMoveEvent>(_ => movesAtTarget++, TrickleDown.TrickleDown);
             using (var tab = NavigationMoveEvent.GetPooled(NavigationMoveEvent.Direction.Next))
             {
                 tab.target = focusedBefore;
@@ -214,6 +216,7 @@ namespace Client.Tests.Ui.Input
             // パネルの根は通し（下の器まで1件届く）、UIDocument の根の規則が打ち消すのでフォーカスは動かない
             // The panel root lets it through (one reaches the container below) and the root rules cancel it, so focus stays put
             Assert.AreEqual(1, _movesBelowPanelRoot);
+            Assert.AreEqual(0, movesAtTarget);
             Assert.AreSame(focusedBefore, panel.focusController.focusedElement);
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
         }
@@ -225,72 +228,46 @@ namespace Client.Tests.Ui.Input
 
 - [ ] **Step 2: `GameUiInputRules` に入口を足す**
 
-`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` を3か所変える。
-
-(1) クラスの remarks（`/// <remarks>` から `/// </remarks>` までの 11〜14 行目の4行）を、次の4行に置き換える（タグを二重にしない）:
+`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputRules.cs` で部分木用の公開入口 `Attach` を保ち、接続検証と文書・パネルへの登録をこのゲーム用入口にまとめる。
 
 ```csharp
-    /// <remarks>
-    /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す（パネルの根宛てに届くものは AttachPanelRootGuard に足す）。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
-    /// Extension: add panel-wide key/focus rules as registrations in Attach (those aimed at the panel root go in AttachPanelRootGuard); screen-specific keys (arrows, Enter, ...) belong to each screen's presenter
-    /// </remarks>
-```
-
-(2) `Attach` メソッドの閉じ括弧（34 行目）のすぐ下に、次のメソッドを足す:
-
-```csharp
-
-        // フォーカスが無い間、Tab 由来の選択移動は Attach 先の根ではなくパネルの根宛てに届き、上の規則を通らないので、パネルの根で打ち消す
-        // With nothing focused, a Tab-driven navigation move is aimed at the panel root, not the Attach root, and bypasses the rules above, so cancel it on the panel root
-        public static void AttachPanelRootGuard(VisualElement panelRoot)
+        internal static void AttachToGameUi(VisualElement documentRoot)
         {
-            panelRoot.RegisterCallback<NavigationMoveEvent>(CancelNavigationAimedAtPanelRoot, TrickleDown.TrickleDown);
+            // 入力を受け取れない状態でゲームが起動するのを防ぐ
+            // Reject startup when the document cannot receive input.
+            if (documentRoot.panel == null) throw new InvalidOperationException("[GameUiInput] GameUi root is not attached to a panel");
+            Attach(documentRoot);
+
+            // フォーカスが無いときの選択移動は文書の外のパネルの根に届く
+            // Without focus, navigation targets the panel root outside the document.
+            documentRoot.panel.visualTree.RegisterCallback<NavigationMoveEvent>(CancelNavigationAimedAtPanelRoot, TrickleDown.TrickleDown);
+
+            #region Internal
+
+            static void CancelNavigationAimedAtPanelRoot(NavigationMoveEvent evt)
+            {
+                // silent-ok: 要素宛ての選択移動は Attach 先の根の CancelNavigation が打ち消すので、ここは通す / 規則を越えた件数 0 を実ゲームの GameUiInputTest が確かめる
+                // silent-ok: a move aimed at an element is cancelled by CancelNavigation on the Attach root, so let it pass here / the in-game GameUiInputTest asserts none gets past the rules
+                if (evt.target != evt.currentTarget) return;
+                CancelNavigation(evt);
+            }
+
+            #endregion
         }
-```
-
-(3) `private static void CancelNavigation(EventBase evt)` メソッド（編集前の 146〜151 行目。(2) を入れた後は下へずれるので、メソッド名で探す）のすぐ上に、次のメソッドを足す:
-
-```csharp
-        private static void CancelNavigationAimedAtPanelRoot(NavigationMoveEvent evt)
-        {
-            // silent-ok: 要素宛ての選択移動は Attach 先の根の CancelNavigation が打ち消すので、ここは通す / 規則を越えた件数 0 を実ゲームの GameUiInputTest が確かめる
-            // silent-ok: a move aimed at an element is cancelled by CancelNavigation on the Attach root, so let it pass here / the in-game GameUiInputTest asserts none gets past the rules
-            if (evt.target != evt.currentTarget) return;
-            CancelNavigation(evt);
-        }
-
 ```
 
 変更後に `wc -l` で 200 行以下であることを確かめる。
 
 - [ ] **Step 3: 起動時にパネルの根へ付ける**
 
-`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputInstaller.cs` の `Initialize` を次の形にする（`GameUiInputRules.Attach(root);` の次に、空行・コメント2行・呼び出し1行を足す）:
+`moorestech_client/Assets/Scripts/Client.Ui/Foundation/Input/GameUiInputInstaller.cs` の `Initialize` からゲーム用入口を呼ぶ。
 
 ```csharp
         public void Initialize()
         {
-            var root = _gameUiRoot.GetRootElement();
-
-            // パネル未接続では Pick も入力も届かないので起動の段階で止める
-            // Without an attached panel neither Pick nor input works, so stop at startup
-            if (root.panel == null) throw new InvalidOperationException("[GameUiInput] GameUi root is not attached to a panel");
-            GameUiInputRules.Attach(root);
-
-            // フォーカスが無い間の Tab 由来の選択移動はパネルの根宛てに届くので、パネルの根にも打ち消しを付ける
-            // A Tab-driven navigation move with nothing focused is aimed at the panel root, so attach the guard there too
-            GameUiInputRules.AttachPanelRootGuard(root.panel.visualTree);
+            GameUiInputRules.AttachToGameUi(_gameUiRoot.GetRootElement());
             UiInputExclusivity.SetGameUiPointerProbe(_pointerProbe);
         }
-```
-
-クラスの summary（8〜11 行目）も合わせて直す:
-
-```csharp
-    /// <summary>
-    /// GameUi のルートとパネルの根へ入力規則を付け、Pick の probe を入力排他へ登録する
-    /// Attaches the input rules to the GameUi root and the panel root, and registers the Pick probe with the input exclusivity
-    /// </summary>
 ```
 
 - [ ] **Step 4: ADR 0101 の裁定の表に 2026-08-22 の裁定の行を足す**
@@ -298,7 +275,7 @@ namespace Client.Tests.Ui.Input
 `docs/adr/0101-uitk-switch-revises-web-premised-adrs-and-rulings.md` の `### 裁定（`.decisions/`）` の表で、`| [[2026-10-01-Web UI全体で文字入力欄以外のSpace既定動作を封じる]] |` で始まる行のすぐ上に、次の1行を足す（表の行なので途中で折り返さない）:
 
 ```markdown
-| [[2026-08-22-ブラウザのTabフォーカス移動は封じる]] | 読み替え | `Client.Ui/Foundation/Input/GameUiInputRules.cs`（`Attach` が要素宛ての `NavigationMoveEvent` を、`AttachPanelRootGuard` がフォーカスの無いときにパネルの根宛てに届くものを、TrickleDown で打ち消す） | 「Tab でフォーカスを動かさない。画面ごとに切り替えない」は UITK の根の入力規則で保たれる。代償（Tab で入力欄へ入れない。クリックで到達できる）も同じ。裁定の「`stopPropagation` はしない」は Web の keydown を Unity へ届けるための話で、UITK では選択移動のイベントそのものを止める（ゲームは InputSystem から Tab を読むので影響しない）。`tabIndex`・Mantine の focus trap の話は Web と一緒に消える |
+| [[2026-08-22-ブラウザのTabフォーカス移動は封じる]] | 読み替え | `Client.Ui/Foundation/Input/GameUiInputRules.cs`（`Attach` が要素宛ての `NavigationMoveEvent` を、`AttachToGameUi` がフォーカスの無いときにパネルの根宛てに届くものを、TrickleDown で打ち消す） | 「Tab でフォーカスを動かさない。画面ごとに切り替えない」は UITK の根の入力規則で保たれる。代償（Tab で入力欄へ入れない。クリックで到達できる）も同じ。裁定の「`stopPropagation` はしない」は Web の keydown を Unity へ届けるための話で、UITK では選択移動のイベントそのものを止める（ゲームは InputSystem から Tab を読むので影響しない）。`tabIndex`・Mantine の focus trap の話は Web と一緒に消える |
 ```
 
 確認: `grep -c "2026-08-22-ブラウザのTabフォーカス移動は封じる" docs/adr/0101-uitk-switch-revises-web-premised-adrs-and-rulings.md` が 1 を返す。
@@ -327,7 +304,7 @@ git add "$F.meta" && git commit -m "chore: Unity が生成した .meta を追加
 - [ ] **Step 6: L1 テストが通ることを確認する**
 
 Run: `~/bin/winunity test fix/build-menu-tab-focus --class "Client.Tests.Ui.Input.GameUiPanelRootGuardTest"`
-Expected: 2 件 PASS
+Expected: 3 件 PASS（Next・Previous・要素宛て）
 
 - [ ] **Step 7: テストがこの不具合を検出することを確かめる（赤の確認）**
 
@@ -337,7 +314,7 @@ Expected: 2 件 PASS
 git switch -c tmp/tab-red-check-l1
 ```
 
-`GameUiInputRules.AttachPanelRootGuard` の中の `panelRoot.RegisterCallback<NavigationMoveEvent>(...)` の1行をコメントアウトし、
+`GameUiInputRules.AttachToGameUi` の中の `documentRoot.panel.visualTree.RegisterCallback<NavigationMoveEvent>(...)` の1行をコメントアウトし、
 
 ```bash
 git commit -am "tmp: 赤の確認（パネルの根の打ち消しを外す）"
@@ -347,7 +324,7 @@ git switch fix/build-menu-tab-focus
 git branch -D tmp/tab-red-check-l1 && git push origin --delete tmp/tab-red-check-l1
 ```
 
-Expected: `NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField` が FAIL（`focusedElement` が `guard-text` の内側の要素になる）。もう1本は PASS のまま。
+Expected: `NavigationMoveAimedAtPanelRootWithNothingFocusedDoesNotFocusTextField` の Next・Previous が FAIL（フォーカスが `guard-text` に移る）。要素宛ては PASS。
 FAIL しなかった場合は、テストが不具合を検出できていない。止めて報告する（合格にして進めない）。
 
 次に、宛先の判定がテストで守られていることも同じ形で確かめる: 使い捨てブランチ `tmp/tab-red-check-l1b` で `CancelNavigationAimedAtPanelRoot` の `if (evt.target != evt.currentTarget) return;` の1行をコメントアウトして同じクラスを回す（手順は上と同じで、ブランチ名だけ変える。`--name fix-build-menu-tab-focus` は同じ）。
@@ -381,6 +358,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest.Input;
+using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -394,8 +372,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
 {
     /// <summary>
-    /// 実ゲームで、ビルドメニュー表示中・フォーカス無しの Tab が検索欄へ吸われずインベントリを開くことを確かめる
-    /// Verifies in the real game that Tab opens the inventory instead of being swallowed by the search field while the build menu is shown and nothing is focused
+    /// 実ゲームでのビルドメニュー入力を検証
+    /// Checks build-menu input in the running game.
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class BuildMenuTabOpensInventoryTest
@@ -423,6 +401,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
             {
                 await LoadMainGame();
                 await UniTask.DelayFrame(5);
+                LogAssert.ignoreFailingMessages = false;
                 var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                 var panel = GameUiRoot.Instance.GetRootElement().panel;
 
@@ -437,8 +416,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
                 Assert.AreEqual(UIStateEnum.BuildMenu, uiStateControl.CurrentState, "前提: ビルドメニューの状態になっている");
                 var search = panel.visualTree.Q<TextField>("build-menu-search");
                 Assert.IsNotNull(search, "前提: ビルドメニューの検索欄がパネルに載っている");
-                for (VisualElement element = search; element != null; element = element.hierarchy.parent)
-                    Assert.AreEqual(DisplayStyle.Flex, element.resolvedStyle.display, $"前提: 検索欄とその祖先が表示中（隠れている要素: {element.GetType().Name} '{element.name}'）");
+                Assert.IsTrue(GameUiElementQuery.IsVisible(search), "前提: 検索欄が表示中");
                 Assert.IsNull(panel.focusController.focusedElement, "前提: パネル内にフォーカスが無い");
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "前提: 入力中の旗が立っていない");
 
@@ -454,8 +432,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.BuildMenu
                 Assert.IsNull(focusedAfterMove, $"Tab 由来の選択移動でフォーカスが移った: {focusedAfterMove?.GetType().Name} '{focusedAfterMove?.name}'");
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "Tab 由来の選択移動で入力中の旗が立った（検索欄へ吸われた）");
 
-                // ゲームが読む InputSystem の Tab でインベントリが開く
-                // The InputSystem Tab the game reads opens the inventory
+                // ゲーム側はInputSystem経由
+                // The game reads Tab through the Input System.
                 await SemanticInput.TapKey(Key.Tab);
                 for (var i = 0; i < InventoryWaitFrameLimit && uiStateControl.CurrentState != UIStateEnum.PlayerInventory; i++) await UniTask.Yield();
                 Assert.AreEqual(UIStateEnum.PlayerInventory, uiStateControl.CurrentState, "Tab でインベントリが開いていない");
@@ -496,7 +474,7 @@ Expected: 1 件 PASS
 git switch -c tmp/tab-red-check-play
 ```
 
-`GameUiInputInstaller.Initialize` の `GameUiInputRules.AttachPanelRootGuard(root.panel.visualTree);` の1行をコメントアウトし、
+`GameUiInputRules.AttachToGameUi` 内の `documentRoot.panel.visualTree.RegisterCallback<NavigationMoveEvent>(...);` の1行をコメントアウトし、
 
 ```bash
 git commit -am "tmp: 赤の確認（起動時の打ち消しの取り付けを外す）"
@@ -538,7 +516,7 @@ Expected: 2 件 PASS（パネルの根で数える「規則より前」の件数
   - 画面ごとに切り替える形（比較表の E）は、一段目の棄却案に当たるので採らない。この範囲について新しい `.decisions/` は作らない。
 - 置く場所を決めている間の Tab は変えない。出所: agent前提（原文は「ビルドメニューで」。2026-11-20 の仕分けシート 03 で「そのまま通す項目」として提示し、異論なし）
 - 検索欄に入力している間の Tab は変えない（今も1回でインベントリが開く）。出所: agent前提（実測で今の挙動を確認。仕分けシート 04 に「そのまま通す項目」として載せた）
-- 直し方は案 A（`GameUiInputRules` に入口を足し、パネルの根宛ての選択移動だけ打ち消す）。出所: agent前提（機構の比較は「直し方の比較」節。A だけが実測で効果を確かめてある）
+- 直し方は案 A（`GameUiInputRules` に入口を足し、パネルの根宛ての選択移動だけ打ち消す）。ゲーム起動時は文書の根だけを受け取り、規則が両方の登録先を決める（レビュー D1 の推奨案 A を実装側が採用）。出所: agent前提（機構の比較は「直し方の比較」節。A だけが実測で効果を確かめてある）
 - 打ち消すのは NavigationMoveEvent だけ。出所: agent前提（パネルの根宛ての決定・取消はフォーカスが無ければ何も起こさず、故障の場面を作れない）
 - 自動テストは IMGUI の実キー経路（`PanelEventHandler` が Tab から選択移動を作る所）を通さない。Task 2 は `PanelEventHandler` と同じ形のイベントを直接送る。`PanelEventHandler` がパネルの根宛てに送ることは、パッケージのソース（`PanelEventHandler.cs:308, 360-375`）と再現報告の計測が根拠。出所: agent前提（batchmode と CI で IMGUI のキーが届かず、届かないとテストが不具合の状態を作れずに通るため）
 - 反証検査（plan を書いた本人でない検査役がリポジトリを読んで欠陥を探す）: 重大 0 件・注意 4 件・設計判断 0 件。注意は全部この plan に反映した（コマンドを作業場所で流す決まり・死活表の根拠・行番号・PR の残りの書き方）。報告: `../moorestech_logs/harness/ui-clarity-kgfsp/tab-plan-v4-refutation.md`、ひとつ前の版への報告: 同じ場所の `tab-plan-v3-refutation.md`。出所: agent前提

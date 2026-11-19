@@ -1,3 +1,4 @@
+using System;
 using Client.Input;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,8 +10,8 @@ namespace Client.Ui.Foundation.Input
     /// Root-level input rules for GameUi: focus sync, ESC, navigation cancelling and refusing focus outside text fields and marked elements, all via TrickleDown
     /// </summary>
     /// <remarks>
-    /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す（パネルの根宛てに届くものは AttachPanelRootGuard に足す）。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
-    /// Extension: add panel-wide key/focus rules as registrations in Attach (those aimed at the panel root go in AttachPanelRootGuard); screen-specific keys (arrows, Enter, ...) belong to each screen's presenter
+    /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す（パネルの根宛てに届くものは AttachToGameUi に足す）。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
+    /// Extension: add panel-wide key/focus rules as registrations in Attach (those aimed at the panel root go in AttachToGameUi); screen-specific keys (arrows, Enter, ...) belong to each screen's presenter
     /// </remarks>
     public sealed class GameUiInputRules
     {
@@ -33,11 +34,16 @@ namespace Client.Ui.Foundation.Input
             root.RegisterCallback<NavigationCancelEvent>(CancelNavigation, TrickleDown.TrickleDown);
         }
 
-        // フォーカスが無い間、Tab 由来の選択移動は Attach 先の根ではなくパネルの根宛てに届き、上の規則を通らないので、パネルの根で打ち消す
-        // With nothing focused, a Tab-driven navigation move is aimed at the panel root, not the Attach root, and bypasses the rules above, so cancel it on the panel root
-        public static void AttachPanelRootGuard(VisualElement panelRoot)
+        internal static void AttachToGameUi(VisualElement documentRoot)
         {
-            panelRoot.RegisterCallback<NavigationMoveEvent>(CancelNavigationAimedAtPanelRoot, TrickleDown.TrickleDown);
+            // 入力を受け取れない状態でゲームが起動するのを防ぐ
+            // Reject startup when the document cannot receive input.
+            if (documentRoot.panel == null) throw new InvalidOperationException("[GameUiInput] GameUi root is not attached to a panel");
+            Attach(documentRoot);
+
+            // フォーカスが無いときの選択移動は文書の外のパネルの根に届く
+            // Without focus, navigation targets the panel root outside the document.
+            documentRoot.panel.visualTree.RegisterCallback<NavigationMoveEvent>(CancelNavigationAimedAtPanelRoot, TrickleDown.TrickleDown);
 
             #region Internal
 
