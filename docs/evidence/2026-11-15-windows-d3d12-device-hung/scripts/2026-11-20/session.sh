@@ -3,7 +3,7 @@
 # Unity を起動 → 設定を切り替え → ワールド読み込み → 定常待ち → 重い場所へ → 10秒ごとに応答を見る
 MD="$1"; OBS="${2:-120}"; TAG="$3"; EXP="${4:-exp-none.cs}"
 S=/private/tmp/claude-501/-Users-juha-Documents-GitHub-moorestech/67013790-36a7-477d-b048-9c04802732aa/scratchpad
-P='G:\GitHub\moorestech\moorestech_client'; SN='C:\moorestech-perf\snippets'
+P="${PROJ:-G:\GitHub\moorestech\moorestech_client}"; SN='C:\moorestech-perf\snippets'
 remote() { ssh -o ConnectTimeout=10 windows-desktop "$@"; }
 run() { perl -e 'alarm shift; exec @ARGV' ${2:-60} ssh -o ConnectTimeout=10 windows-desktop "uloop execute-dynamic-code --code-file $SN\\$1 --project-path $P" 2>&1 | python3 -c '
 import json,sys
@@ -21,6 +21,7 @@ echo "$(ts) [$TAG] compile ok=$(echo "$r" | grep -c '"Success": true')"
 echo "$(ts) open: $(run open-mainmenu.cs)"
 remote "\$b='C:\\moorestech-perf\\baselines\\2026-10-22-world_1'; \$w='C:\\moorestech-perf\\work\\current'; if (Test-Path \$w) { Remove-Item \$w -Recurse -Force }; New-Item -ItemType Directory -Force -Path \$w | Out-Null; Copy-Item \"\$b\\*\" \$w -Force"
 echo "$(ts) $(run set-mesh-deformation.cs)"
+[ -n "$PRE" ] && echo "$(ts) pre: $(run $PRE)"
 remote "uloop control-play-mode --action Play --project-path $P" >/dev/null
 for _ in $(seq 1 40); do r="$(run enter-world.cs)"; case "$r" in started*) break ;; esac; sleep 3; done
 echo "$(ts) enter: $r"
@@ -35,6 +36,8 @@ done
 echo "$(ts) steady renderers=$cur"
 echo "$(ts) vfx: $(run vfx-stats.cs)"
 echo "$(ts) exp: $(run $EXP)"
+[ -n "$HOOK" ] && echo "$(ts) hook: $(run $HOOK)"
+[ -n "$SMI" ] && { ssh -o ConnectTimeout=10 windows-desktop "nvidia-smi --query-gpu=timestamp,utilization.gpu,clocks.gr,clocks.mem,power.draw,memory.used,temperature.gpu,clocks_throttle_reasons.active --format=csv,noheader -lms 200" > $S/smi-$TAG.csv 2>&1 & SMIPID=$!; }
 echo "$(ts) place: $(run place-player.cs)"
 sleep 5; echo "$(ts) vfx: $(run vfx-stats.cs)"
 t0=$(date +%s); dead=0
@@ -46,4 +49,6 @@ done
 echo "$(ts) gpu-errors: $(remote 'Select-String -Path $env:LOCALAPPDATA\Unity\Editor\Editor.log -Pattern "Device failed|Unrecoverable D3D12" | Measure-Object | Select-Object -ExpandProperty Count')"
 remote "Copy-Item \$env:LOCALAPPDATA\Unity\Editor\Editor.log C:\moorestech-perf\editor-$TAG.log -Force"
 if [ $dead = 0 ]; then remote "uloop control-play-mode --action Stop --project-path $P" >/dev/null 2>&1; fi
+[ -n "$SMIPID" ] && kill $SMIPID 2>/dev/null
+scp -q windows-desktop:C:/moorestech-perf/frames.csv $S/frames-$TAG.csv 2>/dev/null
 echo "$(ts) [$TAG] done dead=$dead"
