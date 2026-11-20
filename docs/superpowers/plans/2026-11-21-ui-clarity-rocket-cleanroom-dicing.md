@@ -99,8 +99,8 @@ Mac mini の Unity Editor は同時に1本まで。**最初に `moores-wt status
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反3件・修正3件 / Core.Master の ItemMaster へのメソッド追加・Validator/Block の11本目・積荷一覧の局所状態を View が持つ形の3件を直し、直した範囲の再検査は違反0件
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱8・第3バケツ3 / ADR との矛盾は0件。強と弱は確認シート05 でユーザーへ確認中（回答は判断記録の末尾へ書く）。第3バケツは PR 本文の「本PR外のリファクタ提案」へ。直した範囲の再検査で新しい発火は無し
 
 ---
 
@@ -329,7 +329,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs` | ctor の引数 |
 | `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs`・`SpaceElevatorServerTestState.cs` | 選んでから接続へ |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`・`tier9-4b-rocket-cargo-shift-reject.cs`・`tier9-6-fusion-elevator.cs`・`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`・`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs` | 録画シナリオの直し |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（新規） | 建造中の選び直しと「次の便から」の録画シナリオ（184 行） |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（新規） | 建造中の選び直しと「次の便から」の録画シナリオ（196 行） |
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/` には今サブディレクトリ `Commands/`・`Source/` があり、`Cargo/` を足す（.cs 今 0 本 → 5 本。B3 の `FakeUnlockedOrbitalCargoSource.cs` を含む）。`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/` に `Cargo/` を足す（.cs 今 0 本 → 2 本）。
 
@@ -4655,7 +4655,7 @@ namespace Game.SpaceElevator
 A が足す `RocketLaunchPadWaitReason.CargoNotSelected`・`SpaceElevatorBaseStatus.CargoNotSelected`・`SpaceElevatorConnectResult.CargoNotSelected`・`RocketLaunchPadCommandFailureReason.CargoNotSelected` は、クライアントの switch に腕が無いと `ArgumentOutOfRangeException` で落ちる。文言の行と一緒に足す。拠点の入口の塞がりの文は、選び直しの残り（ADR 7）にも出るので書き換える。
 
 **Files**
-- Modify: `Localization/localization.csv`（59–62 行の後に 1 行、491 行を書き換え、491 行の後に 7 行）
+- Modify: `Localization/localization.csv`（59–62 行の後に 1 行、491 行を書き換え、491 行の後に 6 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/RocketLaunchPadLogic.cs`（37–45 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/SpaceElevatorLogic.cs`（27–37 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/SpecialBlockResponseCodes.cs`（27–56 行）
@@ -4961,14 +4961,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Cargo
         private static readonly RequiredItemSlot[] Payloads = { new(2, ChipLv1, 20), new(3, ChipLv2, 20), new(4, Cable, 1000) };
 
         [Test]
-        public void 未選択の発射台は Shift で何も受けない()
+        public void 未選択の発射台はShiftで何も受けない()
         {
             CollectionAssert.IsEmpty(OrbitalCargoSlotBinding.PadShiftBindings(Materials, Payloads, null));
             CollectionAssert.IsEmpty(OrbitalCargoSlotBinding.ElevatorShiftBindings(0, null));
         }
 
         [Test]
-        public void 選んだ発射台は資材と選んだ積荷の枠だけを Shift で受ける()
+        public void 選んだ発射台は資材と選んだ積荷の枠だけをShiftで受ける()
         {
             var bindings = OrbitalCargoSlotBinding.PadShiftBindings(Materials, Payloads, ChipLv2);
             CollectionAssert.AreEqual(new[] { 0, 1, 3 }, bindings.Select(b => b.Slot).ToArray());
@@ -7939,7 +7939,7 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 **Files**
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`（2–3 行、66–76 行、78–81 行。191 行 → 197 行）
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 184 行）
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs`（1–2 行、using、48–57 行、85–97 行。157 行 → 169 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-6-fusion-elevator.cs`（63–64 行、84–90 行、139–140 行、183–195 行の `OpenBlock`。200 行 → 200 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`（using、109–112 行、115 行。195 行 → 199 行）
@@ -7994,7 +7994,7 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 - [ ] **Step 1b: 選び直しのシナリオ tier9-4c を足す**
 
-新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 184 行。下のコードの行数そのまま）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
+新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行。下のコードの行数そのまま）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
 
 ```csharp
 using Game.Context;
@@ -8009,6 +8009,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Ui.Foundation.Root;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.PowerGenerator;
@@ -8025,6 +8026,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 var rocketResearch = Guid.Parse("01a167cf-af9d-7f31-817c-3069b4f6e499"); // ロケット技術（P2 の research.json）
 var padPos = new Vector3Int(0, 32, 0);
@@ -8088,7 +8090,9 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
     await p.Screenshot("02-reselect-list");
     await p.ClickUi(CargoRow(lv2));
     await p.Until(() => State().SelectedCargoItemId == lv2 && State().LoadedCargoItemId == lv1, 10f, "選択は Lv2 になり、今の便は Lv1 のまま");
-    await p.UntilUiElement("rocket-launch-pad-cargo-next-flight", 10f);
+    // 「次の便から」は PickingMode.Ignore で中心のヒットを待てないので、見つかって表示中かを読む（前例 uitk-block-special-panels）
+    // The "from the next flight" line ignores picking and cannot wait on a centre hit, so read found-and-shown instead (precedent: uitk-block-special-panels)
+    await p.Until(() => Shown("rocket-launch-pad-cargo-next-flight"), 10f, "見出しの下に「次の便から」が出た");
     await p.Screenshot("03-next-flight");
 
     // 今の便は Lv1 で打ち上がり、Lv1 の成果（計算データ 20 個）を返す
@@ -8131,6 +8135,14 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
     {
         var detail = processor.GetBlockStateDetails().Single(d => d.Key == RocketLaunchPadStateDetail.BlockStateDetailKey);
         return MessagePack.MessagePackSerializer.Deserialize<RocketLaunchPadStateDetail>(detail.Value);
+    }
+
+    bool Shown(string testid)
+    {
+        var element = GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid);
+        if (element == null || element.panel == null) return false;
+        for (var e = element; e != null; e = e.parent) if (e.resolvedStyle.display == DisplayStyle.None) return false;
+        return true;
     }
 
     string CargoRow(ItemId itemId) => $"rocket-launch-pad-cargo-row-{itemId.AsPrimitive()}";
@@ -17154,7 +17166,7 @@ using Mooresmaster.Localization.Generated;
         }
 ```
 
-画面の文の読み方: 見出しは `LocalizedLabel`（`SpecialViewParts.Label`）、モード名も `LocalizedLabel`（`ModeSwitch.cs:61`）で、`text` の頭には行の高さ・字間の印が付きうる（`LocalizedLabel.cs:62-63,103,143`）。文を比べる所は、どれも原文を読む `TextOf`（`SpecialScreenTestHost.cs:103-106` の `Find<Label>(…).PlainText()`）と `ModeLabelOf`（`.PlainText()`）を通す。`PlainText` は `WrapSafeLabel.WordsText`（`LocalizedLabel` では `SourceText`）を読んで印を外す（`Client.Tests/Ui/TestHost/LabelPlainText.cs:19-23`）。1行に収まるかの検査だけは表示の `text` を測る（前例 `BuildMenuLayoutTest.cs:146-148`）。`mode-switch__label` は `text--*` のクラスを持たず（`ModeSwitch.cs:63`、`ModeSwitch.uss:99-104`）`--localized-label-line-box` が当たらないので、行の高さの印は付かず「A」の1行の高さと同じ物差しで比べられる。
+画面の文の読み方: 見出しは `LocalizedLabel`（`SpecialViewParts.Label`）、モード名も `LocalizedLabel`（`ModeSwitch.cs:61`）で、`text` の頭には行の高さ・字間の印が付きうる（`LocalizedLabel.cs:62-63,103,143`）。文を比べる所は、どれも原文を読む `TextOf`（`SpecialScreenTestHost.cs:103-106` の `Find<Label>(…).PlainText()`）と `ModeLabelOf`（`.PlainText()`）を通す。`PlainText` は `WrapSafeLabel.WordsText`（`LocalizedLabel` では `SourceText`）を読んで印を外す（`Client.Tests/Ui/TestHost/LabelPlainText.cs:19-23`）。1行に収まるかの検査だけは表示の `text` を測る（前例 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuLayoutTest.cs:143-151`（`AssertCategoryLabelsStayOneLine`））。`mode-switch__label` は `text--*` のクラスを持たず（`ModeSwitch.cs:63`、`ModeSwitch.uss:99-104`）`--localized-label-line-box` が当たらないので、行の高さの印は付かず「A」の1行の高さと同じ物差しで比べられる。
 
 - [ ] **Step 2: 赤を確かめる**
 
@@ -17935,7 +17947,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | 開いた分岐器のマスタから側を決めて詳細に載せる（`SpecialBlockDetailReader.ReadFilterSplitter`） | 同じファイルの `ReadRocketLaunchPad`（`new RocketLaunchPadSlotLayout(rocketParam)` で枠の並びをマスタから組む）・`ReadSpaceElevator`（`SpaceElevatorBaseInventoryComponent.GetCarriedPayloadItemIds(elevatorParam)`） | クライアントの読み手が `block.BlockMasterElement.BlockParam` を引き、サーバーと共有する関数でマスタから不変の値を組み、届いた状態と合わせる | 同じ。`FilterSplitterBlockParam.InventoryConnectors` を `ResolveAll` に渡し、届いた応答の方向と番号で合わせる | なし |
 | 側→文言キー `OutputSideKey` | `FilterSplitterLogic.ModeKey` | 画面が Logic の静的関数でキーを引き `UiText` にする | 同じ | なし |
 | 見出しを Render で書く | `FilterDirectionView.Render` の `_mode.SetSelected` | 届いた詳細で毎回書き換える | 同じ | 今は見出しを ctor で一度書く。数が同じなら View が使い回される（`FilterSplitterBodyView`）ので、側に依存する文は Render へ移す |
-| 1行に収まるかの L1 テスト | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuLayoutTest.cs:143-153` | テストがラベルの `MeasureTextSize` を1行の高さと比べる | 同じ | なし |
+| 1行に収まるかの L1 テスト | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuLayoutTest.cs:143-151` | テストがラベルの `MeasureTextSize` を1行の高さと比べる | 同じ | なし |
 | 重複解放で通知しない | `moorestech_server/Assets/Scripts/Game.UnlockState/Holders/BlueprintUnlockStateHolder.cs:22-28` | 研究・チャレンジのアクションが holder の `Unlock` を呼ぶ。解放済みなら return | 同じ | ほかの holder（クラフトレシピ・ブロック等）は重複を弾いていない。今回はアイテムだけを直す（重複解放が起きるのがアイテムだけのため） |
 | 出荷マスタの研究が解放することの確認 | `scenarios/tier9/tier9-2-modules.cs` | シナリオが `IResearchDataStore.LoadResearchData` で前提ごと完了扱いにし、`WaitForResearch` を待つ | 同じ。最後にクライアントの `IGameUnlockStateData` を読む（前例 `scenarios/uitk/stage4/ladder/uitk-production-loop.cs:78`） | なし。v8 の値を読む NUnit テストは書かない（裁定 2026-11-20「v8 のダイシング基準値を v8 マスタを読むテストで固定しない」と同じ扱い） |
 
@@ -18114,7 +18126,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
   - `TestRocketLaunchPad` は積荷を個別に持たない（全積荷表を運ぶ）。
   - そのため `OrbitalCargoCatalog.ForCarried` は例外を投げない。
   - ItemId 1〜5 は Test1〜Test5 で、名前を引ける。
-- 録画シナリオの行数（今の worktree の `wc -l` → B8 の「後」を今のファイルの写しに当てた `wc -l`）: tier9-4 191 → 197、tier9-4b 157 → 169、tier9-6 200 → 200、uitk-block-special-panels 195 → 199、uitk-s5-retake-blocks 185 → 187、新規 tier9-4c 184。どれも 200 行以下。
+- 録画シナリオの行数（今の worktree の `wc -l` → B8 の「後」を今のファイルの写しに当てた `wc -l`）: tier9-4 191 → 197、tier9-4b 157 → 169、tier9-6 200 → 200、uitk-block-special-panels 195 → 199、uitk-s5-retake-blocks 185 → 187、新規 tier9-4c 196。どれも 200 行以下。
 
 ### 領域 C: クリーンルームの数字（サーバーと運ぶ経路）
 
@@ -18661,6 +18673,14 @@ var chips = new[]
 - B8 で録画シナリオ 2 本が 200 行を超える → 200 行以下に収まる形へ直した
 - B1 に文言キーを作り直す強制の再コンパイルが無かった → 足した
 - 「合図待ちの台は今の便の積荷を持つ」という Interfaces の説明が実装と違った（積み込みは建造の合図で確定する）→ 説明を直した
+- （再検査）B2 のテスト名 2 つに半角スペースがあり、テストのアセンブリがコンパイルできなかった → 空白を消した
+- （再検査）B8 の新しいシナリオが、押せないラベル（`PickingMode.Ignore`）を `UntilUiElement` で待っていて必ず時間切れになる → 前例（`uitk-block-special-panels.cs:121-123`）どおり「見つかって表示中か」を読む形にした
+- （再検査）前例のテストの出典の行番号のずれ（E3）、文言の追加行数の誤記（B1）→ 直した
+
+**直した範囲の再検査（fresh-context の opus subagent 2 体。報告は `../moorestech_logs/harness/ui-clarity-kgfsp/plan-rereview-B.md`・`plan-rereview-E-and-C2C3.md`）**
+
+- 領域 B の Task B1・B2・B5・B6・B8: 配置・前例の違反 0／Critical 2・Warning 1（上の「再検査」の行で直した）／型の形は強 0・弱 3（どれも最初の検査で挙がったものと同じ箇所か、前例どおりの形）
+- 領域 E の Task E1・E2・E3・E5・E7・E8 と領域 C の Task C2・C3: 配置・前例の違反 0／Critical 0／Warning 1（直した）／型の形は強 1・弱 1（どちらも最初の検査で挙がり、ユーザーへ確認中のもの）
 
 **前例の無い作り（PR 本文に注目点として書く。出所: agent前提。理由は各領域の判断）**
 
