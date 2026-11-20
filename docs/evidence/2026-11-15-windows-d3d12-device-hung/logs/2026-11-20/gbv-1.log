@@ -1,0 +1,30 @@
+23:40:52 [gbv-1] compile ok=1
+23:40:52 open: opened Assets/Scenes/Game/MainMenu.unity
+23:40:54 meshDeformation 2 -> 2 gpuSkinning=True
+23:41:04 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+23:43:52 steady renderers=217499
+23:43:52 vfx: FX_Flame n=178 on=178 alive=-356 visible=0 | FX_Smoke_White n=52 on=52 alive=-37 visible=5 | FX_Smoke_Black n=48 on=48 alive=-131 visible=1
+23:43:54 exp: none
+23:43:55 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+23:44:01 vfx: FAIL {
+  "Success": false,
+  "Error": {
+    "ErrorCode": "UNITY_DISCONNECTED_AFTER_ACCEPT",
+    "Phase": "response_waiting",
+    "Message": "Unity disconnected after accepting the request.",
+    "Retryable": true,
+    "SafeToRetry": false,
+    "ProjectRoot": "G:\\GitHub\\moorestech\\moorestech_client",
+ 
+23:44:48 +11s: FAIL {
+  "Success": false,
+  "Error": {
+    "ErrorCode": "UNITY_NOT_REACHABLE",
+    "Phase": "connection",
+    "Message": "The Unity CLI Loop server is not reachable for this project.",
+    "Retryable": true,
+    "SafeToRetry": true,
+    "ProjectRoot": "G:\\GitHub\\moorestech\\moorestech_client",
+    "Co
+23:44:48 gpu-errors: 4
+23:44:54 [gbv-1] done dead=1
