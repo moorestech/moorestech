@@ -3,11 +3,9 @@
 path .github/scripts/uitk_no_web/* # G4 自身（検出する語を書く）
 path .github/scripts/check-uitk-no-web.py # G4 の入口
 path .github/scripts/tests/test_uitk_no_web.py # G4 のテスト（検出する語を入力に使う）
-path .github/scripts/uitk_web_follow/* # G1（切替 PR まで要る。X-cleanup が消す）
-path .github/scripts/tests/test_uitk_web_follow_* # G1 のテスト
-path tools/uitk/testNameParity/* # テスト名の突き合わせ（X-cleanup まで）
-path docs/uitk/TODO.md # 台帳（X-cleanup が消す）
-path docs/uitk/disposition.md # 写さない Web テストの処遇（X-cleanup が消す）
+path docs/uitk/look-exceptions.md # 見た目の例外の表（差を撤去前の Web 版と比べて書く。台帳から移した）
+path docs/uitk/measurements.md # 移行中の実測の記録（CEF と UITK の前後など撤去前の構成での実測。台帳から移した）
+path docs/uitk/reference-captures.md # 撤去前の Web 版の参照キャプチャの撮影元と置き場（台帳から移した）
 path docs/adr/* # ADR は経緯を残す
 path .decisions/* # 裁定の原文
 path docs/archive/* # 撤去前の文書
@@ -25,12 +23,8 @@ line scripts/playtest/README.md release_require_no_cef_files # 配布物に CEF 
 path moorestech_client/Assets/Scripts/Editor/Build/PreRemovalStreamingAssetsCleaner.cs # 撤去前のビルドが残した StreamingAssets/WebUi をビルド前に消す（X-5a 最終レビュー D2）
 path moorestech_client/Assets/Scripts/Editor/Build/PreRemovalStreamingAssetsCleanupBuildHook.cs # 同じ掃除を BuildPipeline を通らないビルドにも掛ける入口（X-switch-pr R-6 C12）
 path moorestech_client/Assets/Scripts/Client.Tests/LeftoverDirectoryRemovalTest.cs # 同じ掃除（StreamingAssets/WebUi の残骸の削除）のテスト（X-switch-pr R-6 C12）
-line .gitignore ^moorestech_client/Assets/StreamingAssets/WebUi(/|\.meta)$ # 撤去前の作業コピーに残る dist と .meta を無視する行（X-5c が残す。消すと untracked に戻り git add -A で入る。X-cleanup が .gitignore の行と同じ PR で消す）
-line .gitignore ^/moorestech_web/$ # 撤去前の作業コピーに残る node・dist の残骸を無視する行（X-5c が足す。X-cleanup が .gitignore の行と同じ PR で消す）
-line .gitignore 撤去前の作業コピーに残る残骸を無視する # 上の 3 行の見出しの日本語のコメント（X-5c が書く。X-cleanup が .gitignore の行と同じ PR で消す）
 line .agents/skills/ref-uitk-design/SKILL.md git show <sha10>:moorestech_web/webui/ # §5 の 6.: 既存の USS の出所コメント（web@<sha10>）を撤去前の Web 版から git show で読む方法（X-5e-docs の申し送り）
 line .agents/skills/ref-uitk-design/references/component-catalog.md git show <sha10>:moorestech_web/webui/ # 正本の行（:7）: カタログの web@<sha10> の出所を撤去前の Web 版から git show で読む方法（X-5e-docs の申し送り）
-line .agents/skills/ref-uitk-design/references/compare-procedure.md ^cd <master の worktree>/moorestech_web/webui && pnpm install$ # I-follow の参照キャプチャの撮り直し手順（切替 PR のマージまで master に Web 版がある間だけ要る。マージの後に手順ごと消す。X-5e-docs の申し送り）
 line .agents/skills/ref-uitk-design/references/compare-procedure.md git show 6248097123:moorestech_web/webui/public/mock-orange-gradient\.png # 合成撮影の地の画像を撤去前の Web 版（web@6248097123）から取り出す読み方（§5・:7 と同じ git show の読み方）
 line .agents/skills/unity-playmode-recorded-playtest/scenarios/playtest-receiver/developer-report-*.cs webUiHealth # v8 の manifest に webUiHealth（CEF 停止の記録）が無いことを確かめるシナリオの assert とコメント（X-5a Task 8 が書かせた。消すと v7 への逆戻りを捕まえられない）
 line .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage1/uitk-lifeline.cs webUiHealth|CEF 停止の記録|CEF-stall record # v8 の manifest に webUiHealth（CEF 停止の記録）が無いことを確かめるラダー 1 の assert とコメント（X-5a Task 8 が書かせた）

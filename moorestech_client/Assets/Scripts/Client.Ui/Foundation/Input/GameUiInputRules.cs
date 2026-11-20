@@ -1,3 +1,4 @@
+using System;
 using Client.Input;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,8 +10,8 @@ namespace Client.Ui.Foundation.Input
     /// Root-level input rules for GameUi: focus sync, ESC, navigation cancelling and refusing focus outside text fields and marked elements, all via TrickleDown
     /// </summary>
     /// <remarks>
-    /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
-    /// Extension: add panel-wide key/focus rules as registrations in Attach; screen-specific keys (arrows, Enter, ...) belong to each screen's presenter
+    /// 拡張点: 全画面に共通するキー・フォーカスの規則はここの Attach に登録を足す（パネルの根宛てに届くものは AttachToGameUi に足す）。画面固有のキー処理（←→・Enter 等）は各画面の Presenter が持つ
+    /// Extension: add panel-wide key/focus rules as registrations in Attach (those aimed at the panel root go in AttachToGameUi); screen-specific keys (arrows, Enter, ...) belong to each screen's presenter
     /// </remarks>
     public sealed class GameUiInputRules
     {
@@ -31,6 +32,30 @@ namespace Client.Ui.Foundation.Input
             root.RegisterCallback<NavigationMoveEvent>(CancelNavigation, TrickleDown.TrickleDown);
             root.RegisterCallback<NavigationSubmitEvent>(CancelNavigation, TrickleDown.TrickleDown);
             root.RegisterCallback<NavigationCancelEvent>(CancelNavigation, TrickleDown.TrickleDown);
+        }
+
+        internal static void AttachToGameUi(VisualElement documentRoot)
+        {
+            // 入力を受け取れない状態でゲームが起動するのを防ぐ
+            // Reject startup when the document cannot receive input.
+            if (documentRoot.panel == null) throw new InvalidOperationException("[GameUiInput] GameUi root is not attached to a panel");
+            Attach(documentRoot);
+
+            // フォーカスが無いときの選択移動は文書の外のパネルの根に届く
+            // Without focus, navigation targets the panel root outside the document.
+            documentRoot.panel.visualTree.RegisterCallback<NavigationMoveEvent>(CancelNavigationAimedAtPanelRoot, TrickleDown.TrickleDown);
+
+            #region Internal
+
+            static void CancelNavigationAimedAtPanelRoot(NavigationMoveEvent evt)
+            {
+                // silent-ok: 要素宛ての選択移動は Attach 先の根の CancelNavigation が打ち消すので、ここは通す / 規則を越えた件数 0 を実ゲームの GameUiInputTest が確かめる
+                // silent-ok: a move aimed at an element is cancelled by CancelNavigation on the Attach root, so let it pass here / the in-game GameUiInputTest asserts none gets past the rules
+                if (evt.target != evt.currentTarget) return;
+                CancelNavigation(evt);
+            }
+
+            #endregion
         }
 
         private static void OnFocusIn(FocusInEvent evt)

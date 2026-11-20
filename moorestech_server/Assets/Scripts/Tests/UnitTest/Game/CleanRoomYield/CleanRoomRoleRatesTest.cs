@@ -17,23 +17,23 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         private static readonly Guid TestQualityFractionalModuleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000006");
 
         [Test]
-        public void ClassMultiplierBelowOneLowersTheRareSlotTest()
+        public void ClassMultiplierBelowOneSlowsTheApproachTest()
         {
-            // クラスB(倍率0.75)×Tier1モジュール1個: シフト1.0*0.75-1.0=-0.25 でレア枠(0.1)が0になり失敗枠へ戻る
-            // Class B (multiplier 0.75) with one tier-1 module: shift 1.0*0.75-1.0=-0.25 drains the 0.1 rare slot back into the failure slot
+            // クラスB(倍率0.75・損失0)×Tier1モジュール1個: 近づき度 1−exp(−0.75)=0.527633 でモジュール無しの表からTier1の表へ寄る
+            // Class B (multiplier 0.75, no loss) with one tier-1 module: weight 1-exp(-0.75)=0.527633 moves the no-module table toward tier 1
             var rates = DicingRatesOf(new CleanRoomClassYield(0.75f, 0f, 0f), TestQualityModuleItemGuid, 1, out var qualityTier);
             Assert.AreEqual(1, qualityTier);
-            AssertRates(rates, 0.7, 0.0, 0.0, 0.3);
+            AssertRates(rates, 0.463817, 0.052763, 0.0, 0.483420);
         }
 
         [Test]
-        public void ModuleEffectSumRaisesTheRareSlotUpToTheCapTest()
+        public void HighestTierTablePicksLevelsAndEffectSumSetsTheWeightTest()
         {
-            // クラスA×Tier2の小数モジュール2個: 合計0.8-基準0.4=+0.4 は maxRareShift と失敗枠で止まる
-            // Class A with two tier-2 fractional modules: sum 0.8 minus reference 0.4 = +0.4 is stopped by maxRareShift and the failure slot
+            // クラスA×Tier2の小数モジュール2個: 合計0.8で近づき度0.550671、表はTier2
+            // Class A with two tier-2 fractional modules: sum 0.8 gives weight 0.550671 toward the tier-2 table
             var rates = DicingRatesOf(new CleanRoomClassYield(1f, 0f, 0f), TestQualityFractionalModuleItemGuid, 2, out var qualityTier);
             Assert.AreEqual(2, qualityTier);
-            AssertRates(rates, 0.0, 0.7, 0.3, 0.0);
+            AssertRates(rates, 0.144933, 0.385470, 0.055067, 0.414530);
         }
 
         private static double[] DicingRatesOf(CleanRoomClassYield classYield, Guid moduleItemGuid, int moduleCount, out int qualityTier)

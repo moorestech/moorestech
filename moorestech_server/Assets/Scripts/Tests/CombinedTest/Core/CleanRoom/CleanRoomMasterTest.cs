@@ -144,7 +144,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var json = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
-            var key = role == "layerExposures" ? "maxFailReduction" : "maxRareShift";
+            var key = role == "layerExposures" ? "maxFailReduction" : "maxLossReduction";
             // JSONモデル境界で非有限値と正常な両端を検証する
             // Validate non-finite values and both valid endpoints at the JSON model boundary
             json["data"][0][role][0][key] = value;

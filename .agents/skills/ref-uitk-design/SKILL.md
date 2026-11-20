@@ -12,9 +12,8 @@ description: moorestech のゲーム内 UI を UI Toolkit（USS・tss・Client.U
 ## 1. 見た目の正本
 
 - 今の USS・部品・トークンが見た目の正本。見た目を変えるのは不具合の修正か、ユーザーの裁定があるときだけ（並べ比べの基準を黙って動かさないため）
-- 迷ったら ① 部品カタログ（`references/component-catalog.md`）② 見た目のホワイトリスト（`references/visual-vocabulary.md`）③ 最後の参照キャプチャ `moorestech_logs/uitk/reference-captures/web-<sha>/`（撮影元は台帳 `docs/uitk/TODO.md` の「## 参照キャプチャ」）を見る
+- 迷ったら ① 部品カタログ（`references/component-catalog.md`）② 見た目のホワイトリスト（`references/visual-vocabulary.md`）③ 最後の参照キャプチャ `moorestech_logs/uitk/reference-captures/web-<sha>/`（撮影元は `docs/uitk/reference-captures.md`）を見る
 - 新しい面・部品は `references/visual-vocabulary.md` の約束の中で作る。無い表現が要るなら先にそこへ書いて裁定を取る
-- 切替 PR のマージまで（master に Web 版がある間）に、master に入った Web 版の変更を写すときは、その画面の Web の CSS から数値を逐語で写す（rem は ×16 の px、em はその要素の文字サイズ（px）× 値。目で合わせた値を足さない）。参照は master の worktree で撮り直す（`references/compare-procedure.md` §2）。切替 PR のマージの後はこの行を消す
 
 ## 2. 層と依存の向き
 
@@ -148,7 +147,7 @@ public sealed class IconButton : VisualElement
 - 部品は部品ギャラリー（`Client.Ui.Editor`）で全状態を並べて撮り、画面は PlayMode で 720p と 2560×1080 を撮る。変更の前後と、最後の参照キャプチャと並べて PR の成果物の載せ先に載せ、差を作業報告に表で書く。手順・置き場・合否の目安は `references/compare-procedure.md`
 - `uloop screenshot` は `--capture-mode window` で撮る。`rendering` には UITK が写らない
 - 例外にしてよい条件は `references/compare-procedure.md` §6 だけが決める（ここに書き写さない）
-- 例外は台帳 `docs/uitk/TODO.md` の「## 見た目の例外」に `LX-n` で書き、その USS・C# の行に `/* look-exception: LX-n */` を付ける（照合は `LookExceptionLedgerTest`）
+- 例外は `docs/uitk/look-exceptions.md` の表に `LX-n` で書き、その USS・C# の行に `/* look-exception: LX-n */` を付ける（照合は `LookExceptionLedgerTest`）
 
 ## 12. やらないこと
 
@@ -171,4 +170,3 @@ public sealed class IconButton : VisualElement
 | L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/<段>/`（1 ディレクトリ 10 本まで） | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
 
 - 回し方: `uloop compile --project-path ./moorestech_client` → L0〜L2 は `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。L3 は別に `--filter-value "^Client\.Tests\.EditModeInPlayingTest\.Ui\."` で回す（PlayMode 遷移でドメインリロードが入る）
-- `/// <web-test>` の行は消さない・書き換えない（`tools/uitk/test-name-parity.mjs` が突き合わせる）

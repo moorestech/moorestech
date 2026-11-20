@@ -126,12 +126,6 @@ moorestech_client/PlaytestResults/
 .mso/**/recording.mp4
 .worktrees/
 
-# Web UI 撤去前の作業コピーに残る残骸を無視する（X-cleanup が消す）
-# Ignore leftovers from pre-removal working copies (removed by X-cleanup)
-moorestech_client/Assets/StreamingAssets/WebUi/
-moorestech_client/Assets/StreamingAssets/WebUi.meta
-/moorestech_web/
-
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
