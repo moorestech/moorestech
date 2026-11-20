@@ -41,7 +41,7 @@
 ```sh
 docs/performance/benchmark/run-buildmode-entry.sh <label>
 ```
-1回のワールド読み込みで、定常後に Transform 内訳（`../2026-10-22-gameobject-count/go-breakdown.cs`）と `placement-frame-count.cs` を取り、`buildmode-probe-start.cs` で設置モードの出入り（入る→出るを4回、最後にもう1回入る）を PlayerLoop の中から起こして測る。結果は `results/<日時>_<label>_buildmode.txt`。読み込みごとに1回目（変更後はプールの初回生成を含む）が1回しか取れないので、比べるときは読み込みを3回以上（スクリプトを3回）実行する。初出と読み方は [2026-11-12 の前後計測](../2026-11-12-placement-preview-frame/README.md#設置モードに入る瞬間測り直しrun-buildmode-entrysh実測)。
+1回のワールド読み込みで、定常後にプレイヤーを決まった位置（622.21, 82.99, 420.90）へ移し、カメラを三人称・距離 3.5m・下へ 2.52°・方位 321.86° に合わせ（ベースラインワールドで設置モードが重い場所と視点、2026-11-15 から。`place-player.cs`。位置・視点・半径20m 内のブロック数を結果に残す）、Transform 内訳（`../2026-10-22-gameobject-count/go-breakdown.cs`）と `placement-frame-count.cs` を取り、`buildmode-probe-start.cs` で設置モードの出入り（入る→出るを4回、最後にもう1回入る）を PlayerLoop の中から起こして測る。結果は `results/<日時>_<label>_buildmode.txt`。読み込みごとに1回目（変更後はプールの初回生成を含む）が1回しか取れないので、比べるときは読み込みを3回以上（スクリプトを3回）実行する。初出と読み方は [2026-11-12 の前後計測](../2026-11-12-placement-preview-frame/README.md#設置モードに入る瞬間測り直しrun-buildmode-entrysh実測)。
 
 - スニペットを実行している間は Editor が止まり、その間に溜まった受信イベントが直後のフレームで処理される。遷移の前後にスニペットを挟むと、そのフレームが最大フレームになって遷移のコストが見えなくなる（2026-11-12 の最初の計測で起きた）。このため遷移は差し込んだ PlayerLoop の処理が、スニペットの実行から200フレーム後に起こす。計測中（約40秒）は他のスニペットを呼ばない。
 - 「処理時間」は `RequestTransition` と `UIStateControl.Update`（反射で即時に呼ぶ）を囲んだ Stopwatch、「超過時間」は遷移のフレームから6フレームの、直前30フレームの中央値を超えた分の合計。
