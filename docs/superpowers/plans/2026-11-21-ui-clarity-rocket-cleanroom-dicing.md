@@ -115,7 +115,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | 3 | C1〜C6 | クリーンルームの数字（サーバー。運ぶ項目を**足す**だけ） | なし |
 | 4 | D1〜D7 | クリーンルームの機械と清浄機の画面（クライアント） | C1〜C6 |
 | 5 | C7 | クリーンルームの古い項目を**外す** | D1〜D7 |
-| 6 | E1〜E5 | フィルター分岐器の文言 | なし |
+| 6 | E1〜E5 | フィルター分岐器の文言 | E2 は B3 の後（`SpecialBlockDetailReader.Read` の引数は B3 が足した後の形を使う） |
 | 7 | E6 | 解放済みのアイテムの再解放で通知を出さない | なし（E7 より先） |
 | 8 | E7・E8 | 研究マスタの直し（マスタ repo の PR）とピンの更新 | E6 |
 | 9 | Z1 | moores-code-review による全ブランチレビュー | 全部 |
@@ -123,7 +123,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 - **A と B は同じ PR で出す。** A だけが入った状態では、サーバーが足した新しい値（「積荷を選んでいない」など）でクライアントの発射台・拠点の画面が例外を投げる。A1〜A8 の途中と B の途中では、発射台・拠点の画面を開く録画シナリオを回さない（回すのは B7・B8）。
 - **C7 は D の後。** C1〜C6 は古い項目を残したまま新しい項目を足すので、各 Task の終わりでサーバーもクライアントもコンパイルが通る。D が新しい項目へ移り終えてから C7 で古い項目を外す。
-- 領域をまたいで同じファイルを直す所がある（`Localization/localization.csv` は B・D・E、`CONTEXT.md` は E）。順に実施すれば衝突しないが、行番号は前の Task でずれるので、文字列で場所を探す（Global Constraints）。
+- 領域をまたいで同じファイルを直す所がある（`Localization/localization.csv` は B・D・E、`SpecialBlockDetailReader.cs` と `SpecialDetailSamples.cs` は B3・E2、`CONTEXT.md` は E）。後の Task の「直す前」は、前の Task が直した後の形。順に実施すれば衝突しないが、行番号は前の Task でずれるので、文字列で場所を探す（Global Constraints）。
 - 各領域の Task の本文は、その領域の下書きを書いた時点の名前で書いてある。領域 A の名前を B が、領域 C の名前を D が使う。使う名前は「Interfaces 一覧」の節にまとめてある。
 - パスの書き方: Task の本文は repo 相対のフルパスで書いてある。
 - 本文の言い回しの読み替え: 「下書き A〜E」「サーバー側の下書き」「クライアントの下書き」「画面側の下書き」は、この plan の領域 A〜E のこと。「サーバー側の下書きへの注文」は付録の「領域の間の取り決め」にある（どれも領域 A・C の Task に反映済み）。「要裁定」は下の「未決（ユーザーの回答待ち）」のこと。「調整役」「コーディネーター」は、この plan をまとめたセッションのこと。
@@ -247,12 +247,18 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `OrbitalCargoSlotBinding.cs` | 透かしつきの枠の並びと Shift の束縛を選択から組む | 95 |
 | `IUnlockedOrbitalCargoSource.cs` | 解放済みの積荷の集合の口（詳細の Model とテストが使う） | 15 |
 | `UnlockedOrbitalCargoSource.cs` | 解放イベントで解放済みの積荷の集合を作り直す | 60 |
-| `OrbitalCargoSelectionModeState.cs` | 一覧を出すかの局所状態（機械の `MachineSelectionModeState` と同じ形） | 50 |
+| `OrbitalCargoSelectionModeState.cs` | 一覧を出すかの局所状態（機械の `MachineSelectionModeState` と同じ形。持ち主は B6 の `OrbitalCargoBodyPresenter`） | 50 |
 | `OrbitalCargoLargePanelRule.cs` | 発射台と拠点を大型パネルにする | 30 |
 
-計 9 本（10 本以下）。
+計 9 本（今 0 本 → 9 本。10 本以下）。
 
-#### 新規（Screens）— `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/`（新ディレクトリ。`Special/Space/` は今 4 本で、6 本足すと 10 本ちょうどになり余裕が無いため分ける）
+#### 新規（State）— `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Selectors/`（既存ディレクトリ。.cs 今 6 本 → 7 本）
+
+| ファイル | 責務 | 予定行数 |
+|---|---|---|
+| `OrbitalCargoDetailSelector.cs` | 特殊族の詳細から発射台・拠点の積荷の詳細を取り出す（積荷の本文の Presenter が使う） | 28 |
+
+#### 新規（Screens）— `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/`（新ディレクトリ。`Special/Space/` は今 4 本で、8 本足すと 12 本になるため分ける）
 
 | ファイル | 責務 | 予定行数 |
 |---|---|---|
@@ -260,11 +266,19 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `OrbitalCargoSelectionRowView.cs` | 一覧の 1 行（文・RecipeRow・選択中の外周） | 75 |
 | `OrbitalCargoSelectionList.cs` | 一覧（`RecipeListScrollView`。先頭に状態文） | 75 |
 | `OrbitalCargoHeader.cs` | 選んだ積荷の見出し（押すと一覧へ）と「次の便から」の 1 行 | 90 |
-| `OrbitalCargoPane.cs` | 一覧と「選んだ後の中身」の出し分け、行・見出しの押下をコマンドへ | 95 |
+| `OrbitalCargoPane.cs` | View。Presenter が決めたモードで一覧と「選んだ後の中身」を出し分け、行の押下をコマンドへ送り、行・見出しの押下を Subject で出す | 90 |
 | `OrbitalCargoSlotContents.cs` | 透かしつきの枠の中身を格子へ流す | 35 |
+| `IOrbitalCargoBodyView.cs` | 積荷を選ぶ本文（発射台・拠点）の View の口（押下の Subject と `Render(itemSlots, detail, showsSelection)`） | 20 |
+| `OrbitalCargoBodyPresenter.cs` | 発射台・拠点の本文の Presenter。一覧の局所状態を持ち、押下で進めて View に描かせる（前例 `MachineSectionPresenter`・`BeltThroughputSectionPresenter`） | 83 |
 | `OrbitalCargo.uss` | 行・一覧・見出しの見た目（機械の `MachineRecipeSelection.uss` と同じ値） | 60 |
 
-計 .cs 6 本。
+計 .cs 8 本（今 0 本 → 8 本）。
+
+#### 新規（Screens）— `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/`（既存ディレクトリ。.cs 今 6 本 → 7 本）
+
+| ファイル | 責務 | 予定行数 |
+|---|---|---|
+| `SpecialPanelDetailStream.cs` | 同じパネルの枠と特殊族の詳細の流れ（今 `SpecialSectionPresenter` の中にある組み立てを移し、積荷の本文の Presenter と共有する） | 37 |
 
 #### 変更
 
@@ -284,9 +298,11 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs` | 115 | 解放済みの集合を受け、Shift の束縛を選択から組む | 125 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/SpecialBlockDetailModel.cs` | 78 | 解放済みの集合の購読 | 83 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Parts/BlockItemGrid.cs` | 89 | 中身を外から渡す `RenderContents` | 99 |
-| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs` | 64 | 一覧と選んだ後の中身 | 105 |
-| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/SpaceElevatorBodyView.cs` | 69 | 一覧と選んだ後の中身 | 100 |
-| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialBodyFactories.cs` | 65 | 本文に `mount.FillsPanelHeight` を渡す | 65 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs` | 64 | 一覧と選んだ後の中身。`IOrbitalCargoBodyView` を実装 | 83 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/SpaceElevatorBodyView.cs` | 69 | 一覧と選んだ後の中身。`IOrbitalCargoBodyView` を実装 | 90 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialBodyFactories.cs` | 65 | 本文に `mount.FillsPanelHeight` を渡し、積荷の本文の Presenter と組む | 65 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialPresenters.cs` | 40 | `OrbitalCargoBody(view)` | 48 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialSectionPresenter.cs` | 69 | 流れの組み立てを `SpecialPanelDetailStream` へ移す | 45 |
 | `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventorySpecialGameUiRegistration.cs` | 48 | 大型パネルの規則 | 51 |
 | `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs` | （登録 1 行） | `UnlockedOrbitalCargoSource` | +1 |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | — | `OrbitalCargo.uss` の import 1 行 | +1 |
@@ -299,7 +315,8 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSlotBindingTest.cs` | 新規 L0 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSelectionModeStateTest.cs` | 新規 L0 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSamples.cs` | 新規 見本 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoPaneViewTest.cs` | 新規 L1 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoPaneViewTest.cs` | 新規 L1（View 単体。112 行） |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoBodyPresenterTest.cs` | 新規 L1（Presenter＋本文の View。108 行） |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockCommandsTest.cs` | 追加 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockResponseCodesTest.cs` | 追加 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/RecordingSpecialRequestSender.cs` | 口の追加 |
@@ -312,9 +329,9 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs` | ctor の引数 |
 | `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs`・`SpaceElevatorServerTestState.cs` | 選んでから接続へ |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`・`tier9-4b-rocket-cargo-shift-reject.cs`・`tier9-6-fusion-elevator.cs`・`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`・`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs` | 録画シナリオの直し |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（新規） | 建造中の選び直しと「次の便から」の録画シナリオ |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（新規） | 建造中の選び直しと「次の便から」の録画シナリオ（184 行） |
 
-`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/` には今サブディレクトリ `Commands/`・`Source/` があり、`Cargo/` を足す（4 本）。`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/` に `Cargo/` を足す（1 本）。
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/` には今サブディレクトリ `Commands/`・`Source/` があり、`Cargo/` を足す（.cs 今 0 本 → 5 本。B3 の `FakeUnlockedOrbitalCargoSource.cs` を含む）。`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/` に `Cargo/` を足す（.cs 今 0 本 → 2 本）。
 
 ### 領域 C: クリーンルームの数字（サーバーと運ぶ経路）
 
@@ -331,7 +348,6 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 |---|---|---|---|
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/CleanRoomClassYield.cs` | 変える（C1） | 部屋クラスの歩留まり値に閾値行の添字を持たせ、添字からマスタの行を読む口を足す | 20 → 36 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs` | 変える（C1） | 稼働許可と一緒に渡す値を `FromThresholdIndex` で作る | 54 → 54 |
-| `moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs` | 変える（C2） | 指定 tier の品質モジュール定義を引く口 | 177 → 193 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs` | 変える（C2） | そのモジュールをあと1個効く形で入れられるか | 90 → 106 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs` | 変える（C2） | 効いているモジュールの一覧を出す口と、あと1個刺せるかの口 | 56 → 70 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomFinalOdds.cs` | 作る（C3） | 画面に出す最終の内訳（ダイシング: 出力個数・Lv別・失敗／EUV: 失敗） | 新 ~95 |
@@ -501,29 +517,31 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 |---|---|---|---|
 | Create | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs` | 出口の側（左・正面・右）の列挙 | 新 12 / 新ディレクトリ 2 本 |
 | Create | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs` | マスタの入口・出口の向きから側を決める純関数 | 新 約 60 |
-| Create | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitterParamValidator.cs` | 側が決まらない分岐器マスタを読込時に止める | 新 約 45 / `Validator/Block` は 9→10 本 |
-| Modify | `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:27-28` | 上の検証を呼ぶ | 70→71 |
+| Create | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | 側が決まらない分岐器マスタを読込時に止める | 新 約 45 / 新サブディレクトリ 1 本（`Validator/Block` 直下は今 10 本で上限なので足さない。直下は 10 本のまま） |
+| Modify | `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:5,27-28` | 上の検証の using と呼び出し | 70→72 |
 | Create | `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs` | 側の解決と読込時の検証 | 新 約 125 / 新ディレクトリ 1 本 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs:1-19` | 方向の詳細に `Side` | 34→37 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:1-9,33-40` | 応答の方向に、渡された側を並びのまま添える | 77→83 |
-| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs:1-18,36,89` | 開いた分岐器のマスタから側を決めて読み手へ渡す | 115→125 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（B3 の後の using・`Read` の戻り値の組み立て・`ReadRocketLaunchPad` の直前） | 開いた分岐器のマスタから側を決めて読み手へ渡す（B3 も直すファイル。行番号は B3 の後でずれるので文字列で探す） | 今 115 → B3 の後 約122 → 約132 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:1-2,22-46` | 側→文言キー `OutputSideKey` | 47→61 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Text/SpecialDetailTexts.cs:8-10,53-58` | 使われなくなる `OutputNumber` を消す（Task E3） | 75→69 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/FilterSplitter/FilterDirectionView.cs` | 見出しに testid、文を Render で側から決める | 91→93 |
-| Modify | `Localization/localization.csv:72-75` | モード名3行の値を変えて出口3行を足し（Task E2）、`outputNumber` を消す（Task E3） | 行 +2 |
+| Modify | `Localization/localization.csv`（今の 72〜75 行。B1 が 59〜62 行の後に 1 行足すので B1 の後は 73〜76 行。文字列で探す） | モード名3行の値を変えて出口3行を足し（Task E2）、`outputNumber` を消す（Task E3） | 行 +2 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs` | 側のキーの対応 | 44→55 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs:1-10,20-26,67-76` | 側を並びのまま添えること・数が違えば止まること | 79→92 |
 | Create | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs` | 開いた分岐器のマスタの側が詳細に載る | 新 約 70 / ディレクトリは 5→6 本 |
-| Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs:22-27` | 見本に側を足す | 51→51 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs`（`FilterSplitter` の見本。今の 22〜27 行で、B3 が using を 2 行足した後は 24〜29 行） | 見本に側を足す（B3 も Rocket・SpaceElevator の行を直すファイル） | 今 51 → B3 の後 約57 → 約58 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/FilterSplitterBodyViewTest.cs` | 見出し・モード名の実際の文、側に従うこと、1 行に収まること | 93→約 170 |
 | Modify | `CONTEXT.md`（「### 機械UI」節の末尾） | 用語「フィルター分岐器の出口」「フィルター分岐器のモード」 | — |
-| Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/filter-splitter-side-labels.cs` | 出荷マスタで見出しが左・正面・右に並び、向きが合うことを録画で確かめる | 新 約 70 / 新ディレクトリ |
-| Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs` | 出荷マスタで品質モジュール研究が ICチップLv2〜5 を解放することを確かめる | 新 約 70 |
+| Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/filter-splitter-side-labels.cs` | 出荷マスタで見出しが左・正面・右に並び、向きが合うことを録画で確かめる | 新 67 / 新ディレクトリ |
+| Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs` | 出荷マスタで品質モジュール研究が ICチップLv2〜5 を解放し、後から速度モジュールLv1〜4 を済ませても解放の状態が変わらず例外も出ないことを確かめる | 新 88 |
 | Modify | `moorestech_server/Assets/Scripts/Game.UnlockState/Holders/ItemUnlockStateHolder.cs:28-32`（Task E6） | 解放済みのアイテムの再解放で通知しない | 52→55 |
 | Create | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/UnlockState/ItemUnlockDuplicateTest.cs`（Task E6） | 重複解放の通知が1回 | 新 約 35 / 新ディレクトリ 1 本（`CombinedTest/Game/` 直下は既に 43 本） |
 | Modify | `.moorestech-external-revisions.json` | `moorestech_master` のピンをマスタ PR の先頭コミットへ | — |
 
-`.meta` は手で作らない（新しい .cs と新しいディレクトリの .meta は Unity が作る）。シナリオ（`.agents/skills/...`）は Unity の Assets の外なので .meta は無い。
+`.meta` は手で作らない（新しい .cs と新しいディレクトリ〈`Core.Master/FilterSplitter/`・`Core.Master/Validator/Block/FilterSplitter/`・`Tests/UnitTest/Core/Master/FilterSplitter/`・`Tests/CombinedTest/Game/UnlockState/`〉の .meta は Unity が作る）。
+
+**先に入る領域と同じファイルを直す所（実行の順は A・B → C・D → E）:** `SpecialBlockDetailReader.cs`・`SpecialDetailSamples.cs` は B3 も直す（E2 の「直す前」は B3 の後の形）。`Localization/localization.csv` は B1・D1・D3・D4 も直す（E2・E3 が直す行は B1 で 1 行下へずれる。D の行は 453 行より後で、E の行より下なのでずれに関わらない）。ほかの E の対象ファイル（`FilterSplitterDetail.cs`・`SpecialNetworkReader.cs`・`FilterSplitterLogic.cs`・`FilterDirectionView.cs`・`SpecialDetailTexts.cs`・`FilterSplitterLogicTest.cs`・`SpecialNetworkReaderTest.cs`・`FilterSplitterBodyViewTest.cs`・`BlockMasterUtil.cs`・`Validator/Block/`・`ItemUnlockStateHolder.cs`・`CONTEXT.md`・`.moorestech-external-revisions.json`）は、下書き A〜D の Files 節・`git add` に出てこない（Grep で確認）。シナリオ（`.agents/skills/...`）は Unity の Assets の外なので .meta は無い。
 
 #### マスタ repo（moorestech_master。別の PR）
 
@@ -562,9 +580,9 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | 1 | `WaitReason` | 既存。`CargoNotSelected = 5` を追加（積荷を選んでいない） |
 | 2 | `Progress` | 既存 |
 | 3 | `ItemId? SelectedCargoItemId` | 選んだ積荷。未選択なら null |
-| 4 | `ItemId? LoadedCargoItemId` | 今の便（積み終えて建造・発射を待つロケット）の積荷。積んでいなければ null |
+| 4 | `ItemId? LoadedCargoItemId` | 今の便（建造中・発射待ちのロケット）の積荷。積み込みは建造の合図で確定するので、合図を待つ間はまだ null |
 
-段階ごとの組（A2 の実装から）: `Idle` は `Loaded` が常に null で、未選択なら `WaitReason == CargoNotSelected`（ほかの待ち理由より先）。`AwaitingBuildCommand`・`Building`・`AwaitingLaunchCommand`・`ReadyToLaunch` は `Loaded` が常に非 null で、`Selected` は null（項目の無い旧セーブ）・同じ種類・別の種類（選び直した後）のどれもあり得る。`Launching` は `Loaded` が null（`LaunchingStage` は積荷を持たない）。
+段階ごとの組（A2 の実装から）: `Idle` は `Loaded` が常に null で、未選択なら `WaitReason == CargoNotSelected`（ほかの待ち理由より先）。`AwaitingBuildCommand` は `Loaded` が null（`AwaitingBuildCommandStage` は `LoadedRocketStage` ではなく、積荷はまだ枠にある。建造の合図の `StartBuilding` → `CargoLoader.TryLoadNextCargo` で積む）。`Building`・`AwaitingLaunchCommand`・`ReadyToLaunch` は `Loaded` が常に非 null で、`Selected` は null（項目の無い旧セーブ）・同じ種類・別の種類（選び直した後）のどれもあり得る。`Launching` は `Loaded` が null（`LaunchingStage` は積荷を持たない）。
 
 宇宙エレベーター拠点 `SpaceElevatorBaseStateDetail`（キー `"SpaceElevatorBase"`、A3）:
 
@@ -634,8 +652,9 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 | `OrbitalCargoSlotBinding` | `Materials`・`Payloads`・`Inlet` → `IReadOnlyList<BoundItemSlot>`、`PadShiftBindings`・`ElevatorShiftBindings` → `IReadOnlyList<InletSlotBinding>` | 詳細・読み取り |
 | `IUnlockedOrbitalCargoSource` | `IReadOnlyReactiveProperty<IReadOnlyCollection<ItemId>> UnlockedPayloadItemIds` | `SpecialBlockDetailModel` |
 | `UnlockedOrbitalCargoSource` | `IUnlockedOrbitalCargoSource, IInitializable`。ctor `(IGameUnlockStateData, IVanillaApiEvent)` | DI（`MainGameUiRegistration`） |
-| `OrbitalCargoSelectionModeState` | `OpenSelection()`・`RememberRequest(ItemId)`・`bool ResolveShowsSelection(OrbitalCargoDetail)` | `OrbitalCargoPane` |
+| `OrbitalCargoSelectionModeState` | `OpenSelection()`・`RememberRequest(ItemId)`・`bool ResolveShowsSelection(OrbitalCargoDetail)` | `OrbitalCargoBodyPresenter`（持ち主） |
 | `OrbitalCargoLargePanelRule` | `IBlockInventoryLargePanelRule` | DI（`BlockInventorySpecialGameUiRegistration`） |
+| `OrbitalCargoDetailSelector`（`Client.Ui.State.BlockInventory.Special.Selectors`） | `ISpecialDetailSelector<OrbitalCargoDetail>` | `SpecialPresenters.OrbitalCargoBody` が `OrbitalCargoBodyPresenter` へ渡す |
 
 #### State（既存の型の変更）
 
@@ -658,9 +677,13 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 | `BlockItemGrid.RenderContents` | `(IReadOnlyList<int> slotIndices, IReadOnlyList<ItemSlotContent> contents)` |
 | `OrbitalCargoSlotContents.Render` | `(BlockItemGrid grid, string gridTestId, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BoundItemSlot> boundSlots, GameContentPresentation content)` |
 | `OrbitalCargoNames` | `Row(OrbitalCargoChoice, GameContentPresentation)`・`NextFlight(OrbitalCargoChoice, GameContentPresentation)` → `UiText` |
-| `OrbitalCargoPane` | ctor `(string testPrefix, SpecialViewKit kit, VisualElement selectedContent, bool fillsPanelHeight)`・`Render(OrbitalCargoDetail, UiText listStatus)`・`RenderWithoutCargo()` |
+| `OrbitalCargoPane` | ctor `(string testPrefix, SpecialViewKit kit, VisualElement selectedContent, bool fillsPanelHeight)`・`Render(OrbitalCargoDetail, UiText listStatus, bool showsSelection)`・`RenderWithoutCargo()`・`IObservable<ItemId> OnRowPressed`・`IObservable<Unit> OnChangeCargoRequested`。行の押下で `ISpecialBlockCommands.SelectOrbitalCargo` を呼ぶ（局所状態は持たない） |
 | `OrbitalCargoSelectionRowView.SelectedClassName` | `"orbital-cargo-row--selected"` |
-| `RocketLaunchPadBodyView`・`SpaceElevatorBodyView` | ctor `(SpecialViewKit kit, bool fillsPanelHeight)` |
+| `IOrbitalCargoBodyView` | `IObservable<ItemId> OnCargoRowPressed`・`IObservable<Unit> OnChangeCargoRequested`・`void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail, bool showsSelection)` |
+| `OrbitalCargoBodyPresenter` | `BlockInventorySectionBase`。ctor `(VisualElement root, IOrbitalCargoBodyView view, ISpecialDetailSelector<OrbitalCargoDetail> cargoSelector, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)`。`OrbitalCargoSelectionModeState` を持つ |
+| `SpecialPresenters.OrbitalCargoBody` | `OrbitalCargoBodyPresenter OrbitalCargoBody<TView>(TView view) where TView : VisualElement, IOrbitalCargoBodyView` |
+| `SpecialPanelDetailStream.Of` | `IObservable<(IReadOnlyList<SlotItem> slots, SpecialBlockDetailViewModel detail)> Of(IBlockInventoryPanelSource, ISpecialBlockDetailModel, OpenBlockInventoryPanel)` |
+| `RocketLaunchPadBodyView`・`SpaceElevatorBodyView` | ctor `(SpecialViewKit kit, bool fillsPanelHeight)`。`IOrbitalCargoBodyView` を実装（`ISpecialSectionRenderer<SpecialBlockDetailViewModel>` は外す） |
 
 #### testid（録画シナリオ・L1 が使う）
 
@@ -710,7 +733,7 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 #### サーバー内（ほかの Task が使う）
 
 - `CleanRoomClassYield.ThresholdIndex`・`CleanRoomClassYield.FromThresholdIndex(int)`（C1）
-- `MachineModuleEffectComponent.CollectEffectiveModules()`・`CanEquipOneMore(ModuleMasterElement)`、`VanillaMachineModuleInventory.CanAcceptOneMore(ModuleMasterElement)`、`ItemMaster.TryGetQualityModuleOfTier(int, out ModuleMasterElement)`（C2）
+- `MachineModuleEffectComponent.CollectEffectiveModules()`・`CanEquipOneMore(ModuleMasterElement)`、`VanillaMachineModuleInventory.CanAcceptOneMore(ModuleMasterElement)`（C2）
 - `CleanRoomFinalOdds.Of(CleanRoomRecipeRole, CleanRoomYieldPreviewResult)`・`LayerExposureFinalOdds`・`DicingFinalOdds.OutputCount`、`CleanRoomYieldImprovement`・`CleanRoomRoomClassUpImprovement`・`CleanRoomAddQualityModuleImprovement`、`CleanRoomYieldImprovementCalculator.Compute(...)`・`VisibleDeltaThreshold = 0.0005`、`CleanRoomQualityModuleCandidates.Select(...)`、`CleanRoomYieldPreviewReport.TryGetNumbers(...)`（C3）
 - `CleanRoomYieldResponseFactory.Create(CleanRoomYieldPreviewReport)`（C4）
 - `CleanRoomPurityLogic.TryCountUnitsToPromote(...)`・`ICleanRoomAirFilter.RatedRemovalVolumePerSecond`・`CleanRoomDatastore.RequiredAirChangeRates`（C5）
@@ -775,7 +798,8 @@ Expected: 出力なし（今の版で同じ grep を前置きなしで回し、�
 | `enum Core.Master.FilterSplitter.FilterSplitterOutputSide { Left = 0, Front = 1, Right = 2 }` | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs` | クライアントの詳細・画面 |
 | `static bool FilterSplitterOutputSideResolver.TryResolve(IBlockConnector input, IBlockConnector output, out FilterSplitterOutputSide side)` | 同 `FilterSplitterOutputSideResolver.cs` | 読込時の検証 |
 | `static IReadOnlyList<FilterSplitterOutputSide> FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects connectors)` | 同 | `SpecialBlockDetailReader.Read`（クライアント） |
-| `internal static string FilterSplitterParamValidator.Validate(Blocks blocks)` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/` | `BlockMasterUtil.Validate` |
+| `internal static string Core.Master.Validator.Block.FilterSplitter.FilterSplitterParamValidator.Validate(Blocks blocks)` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | `BlockMasterUtil.Validate`（`using Core.Master.Validator.Block.FilterSplitter;`） |
+| `SpecialBlockDetailReader.Read(BlockGameObject, BlockNetworkInfoCache, BeltTransportClientCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)`（Task B3 が作る形。E は引数を変えない） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs` | E2 の `SpecialBlockDetailReaderFilterSplitterTest`（`Array.Empty<ItemId>()` を渡す） |
 | プロトコル `va:filterSplitterState` | 変えない | — |
 | `static FilterSplitterDetail SpecialNetworkReader.FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<FilterSplitterOutputSide> sides)`（旧 1 引数版を置き換え。数が違えば `InvalidOperationException`） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs` | `SpecialBlockDetailReader.Read` |
 | `FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)`・`.Side { get; }` | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs` | 画面・テストの見本 |
@@ -4582,7 +4606,7 @@ namespace Game.SpaceElevator
 
         public bool CanAcceptArrival(ItemId itemId, int count)
         {
-            return !_cableItemIds.Contains(itemId) || (0 <= count && count <= int.MaxValue - Amount);
+            return !SpaceElevatorCableItems.Contains(itemId) || (0 <= count && count <= int.MaxValue - Amount);
         }
 
         public SpaceElevatorCablePoolSaveData GetSaveData()
@@ -4613,7 +4637,7 @@ namespace Game.SpaceElevator
 ```
 
 `git rm moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs.meta`
-`grep -rn "SpaceElevatorBaseMasters" moorestech_server moorestech_client` が 0 件であること。
+`grep -rn "SpaceElevatorBaseMasters" moorestech_server moorestech_client` が 0 件であること。`grep -rn "_cableItemIds" moorestech_server` も 0 件であること（欄を消したので、読み手が残っていればコンパイルが通らない）。
 
 - [ ] **Step 4: コンパイルとテスト**
 
@@ -4635,7 +4659,8 @@ A が足す `RocketLaunchPadWaitReason.CargoNotSelected`・`SpaceElevatorBaseSta
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/RocketLaunchPadLogic.cs`（37–45 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/SpaceElevatorLogic.cs`（27–37 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/SpecialBlockResponseCodes.cs`（27–56 行）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockResponseCodesTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorViewTest.cs`（状態ごとの TestCase に 1 行）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockResponseCodesTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorViewTest.cs`（状態ごとの TestCase に 1 行）
 
 **Interfaces**
 - Consumes: A の enum 値 4 つ（上）。
@@ -4669,7 +4694,7 @@ A が足す `RocketLaunchPadWaitReason.CargoNotSelected`・`SpaceElevatorBaseSta
         [TestCase(SpaceElevatorBaseStatus.CargoNotSelected, false)]
 ```
 
-注: この TestCase は Task B6 で本文が一覧を出すようになった後は `space-elevator-status` が隠れるため、B6 の Step で `Unconnected` の見本ごと書き換える（B6 Step 1 参照）。B1 の時点では本文は今のままなので通る。
+注: B6 の後も、このテストは `SpaceElevatorTestHost.Render` で本文を「一覧を出さないモード」で直に描く（`Unconnected` の見本は B3 から選んだ積荷を持つ）ので、`space-elevator-status` は出たまま通る。未選択で一覧を出す経路は B6 の `SpaceElevatorViewTest`（Presenter を通す `Attach`）が見る。
 
 - [ ] **Step 2: 赤を確かめる**
 
@@ -4764,10 +4789,12 @@ ui.blockInventory.changeOrbitalCargo,Change cargo,Change cargo,積荷を変更,F
 - [ ] **Step 5: コンパイルとテスト**
 
 ```
+uloop compile --project-path ./moorestech_client --force-recompile
 uloop compile --project-path ./moorestech_client
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.State.BlockInventory.Special.SpecialBlockResponseCodesTest"
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Special.Space.SpaceElevatorViewTest"
 ```
+先頭の `--force-recompile` は、`localization.csv` が Assets の外にあり `Client.Localization/csc.rsp` の `/additionalfile` 経由で SourceGenerator に渡るため、AssetDatabase が変更に気づかず CSV を変えただけではキー（`LocalizationKeys.Ui.BlockInventory.RocketWaitCargoNotSelected` 等）が作り直されないから（`docs/development/uloop-troubleshooting.md`「localization.csv だけ変えたのに古いキーのまま」）。force 版はエラー本文を返さず `COMPILE_RESULT_UNKNOWN` になることがあるので、結果は続く通常の `uloop compile` の `ErrorCount 0` で読む。
 期待: 全部緑。CSV の Source/english の対の契約は mooresmaster.Tests（Unity の外の dotnet テスト）が見る。その実行コマンドはこの下書きでは確かめていない（「未確認」2）。CI の同じジョブで通ることを確かめる。
 
 - [ ] **Step 6: コミット**
@@ -4782,8 +4809,19 @@ git commit -m "積荷を選んでいない状態と拒否をクライアント�
 画面に依らない判断を State に集める。一覧に出す種類（運ぶ種類 ∩ 解放済み）、見出しに出す積荷（今の便があればそれ、無ければ選んだ積荷）、「次の便から」を出すか、透かしつきの枠、Shift の束縛、一覧を開いておくか。
 
 **Files**
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoChoice.cs`・`OrbitalCargoCatalog.cs`・`OrbitalCargoDetail.cs`・`RequiredItemSlot.cs`・`OrbitalCargoSlotBinding.cs`・`IUnlockedOrbitalCargoSource.cs`・`UnlockedOrbitalCargoSource.cs`・`OrbitalCargoSelectionModeState.cs`・`OrbitalCargoLargePanelRule.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSamples.cs`・`OrbitalCargoDetailTest.cs`・`OrbitalCargoSlotBindingTest.cs`・`OrbitalCargoSelectionModeStateTest.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoChoice.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoCatalog.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoDetail.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/RequiredItemSlot.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoSlotBinding.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/IUnlockedOrbitalCargoSource.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/UnlockedOrbitalCargoSource.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoSelectionModeState.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoLargePanelRule.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSamples.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoDetailTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSlotBindingTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSelectionModeStateTest.cs`
 
 **Interfaces**
 - Consumes:
@@ -4800,7 +4838,7 @@ git commit -m "積荷を選んでいない状態と拒否をクライアント�
   - `public readonly struct RequiredItemSlot(int slot, ItemId itemId, int count)`
   - `OrbitalCargoSlotBinding.Materials(IReadOnlyList<RequiredItemSlot>)`・`Payloads(IReadOnlyList<RequiredItemSlot>, ItemId?, IReadOnlyList<SlotItem>)`・`Inlet(int, OrbitalCargoDetail)` → `IReadOnlyList<BoundItemSlot>`。`PadShiftBindings(IReadOnlyList<RequiredItemSlot>, IReadOnlyList<RequiredItemSlot>, ItemId?)`・`ElevatorShiftBindings(int, ItemId?)` → `IReadOnlyList<InletSlotBinding>`
   - `public interface IUnlockedOrbitalCargoSource { IReadOnlyReactiveProperty<IReadOnlyCollection<ItemId>> UnlockedPayloadItemIds { get; } }`。実装 `UnlockedOrbitalCargoSource : IUnlockedOrbitalCargoSource, IInitializable`
-  - `OrbitalCargoSelectionModeState.OpenSelection()`・`RememberRequest(ItemId)`・`ResolveShowsSelection(OrbitalCargoDetail) → bool`
+  - `OrbitalCargoSelectionModeState.OpenSelection()`・`RememberRequest(ItemId)`・`ResolveShowsSelection(OrbitalCargoDetail) → bool`（持ち主は B6 の `OrbitalCargoBodyPresenter`。View は持たない。前例 `MachineSectionPresenter` が `MachineSelectionModeState` を持つ形）
   - `OrbitalCargoLargePanelRule : IBlockInventoryLargePanelRule`
 
 - [ ] **Step 1: テストの見本を書く**
@@ -5397,8 +5435,8 @@ using Core.Master;
 namespace Client.Ui.State.BlockInventory.Special.Cargo
 {
     /// <summary>
-    /// 積荷の一覧を出すかの局所状態。画面を作り直すと消える（前例 MachineSelectionModeState）
-    /// Local state deciding whether the cargo list shows; it resets when the screen is rebuilt (precedent MachineSelectionModeState)
+    /// 積荷の一覧を出すかの局所状態。本文の Presenter が持ち、作り直しと Detach で消える（前例 MachineSelectionModeState を MachineSectionPresenter が持つ形）
+    /// Local state deciding whether the cargo list shows; the body presenter owns it and it resets on rebuild and Detach (as MachineSectionPresenter owns MachineSelectionModeState)
     /// </summary>
     public sealed class OrbitalCargoSelectionModeState
     {
@@ -5492,9 +5530,16 @@ git commit -m "積荷の選択肢・詳細・透かしの枠・解放済みの�
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialStateDetailReader.cs`（56–69 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（30–36 行と 90–110 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/SpecialBlockDetailModel.cs`（20–47 行と 69 行）
-- Modify（コンパイルを保つだけ。B6 で全体を書き換える）: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs`（57–58 行）
-- Test（直す）: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialStateDetailReaderTest.cs`（60–82 行）・`SpecialBlockDetailReaderSlotTest.cs`（42–90 行）・`SpecialBlockDetailReaderGearTest.cs`（80・91 行）・`SpecialInletBindingContributorTest.cs`（31・46 行）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs`（51 行）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs`（Rocket・SpaceElevator の 2 行）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/RocketLaunchPadViewTest.cs`（89 行）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorSpecTest.cs`（91 行）
-- Create（テスト）: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/FakeUnlockedOrbitalCargoSource.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs`（57–58 行。コンパイルを保つだけ。B6 で全体を書き換える）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialStateDetailReaderTest.cs`（60–82 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderSlotTest.cs`（42–90 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderGearTest.cs`（80・91 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialInletBindingContributorTest.cs`（31・46 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs`（51 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs`（Rocket・SpaceElevator の 2 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/RocketLaunchPadViewTest.cs`（89 行を直す）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorSpecTest.cs`（91 行を直す）
+- Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/FakeUnlockedOrbitalCargoSource.cs`（テストの偽物）
 
 **Interfaces**
 - Consumes: B2 の全部。A の `RocketLaunchPadStateDetail.SelectedCargoItemId`/`LoadedCargoItemId`、`SpaceElevatorBaseStateDetail.SelectedCargoItemId`/`ClimbingCargoItemId`。`RocketLaunchPadSlotLayout.RequirementAt(int)`。`RocketLaunchPadBlockParam.BuildSeconds`・`SpaceElevatorBaseBlockParam.ClimbSeconds`。
@@ -6045,7 +6090,10 @@ git commit -m "発射台・拠点の詳細に積荷の選択を載せ、Shift �
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/ISpecialBlockRequestSender.cs`（42 行の後に 1 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/VanillaSpecialBlockRequestSender.cs`（63 行の後にメソッド）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/SpecialBlockResponseCodes.cs`（56 行の後にメソッド）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockCommandsTest.cs`（追加 2 本）・`SpecialBlockResponseCodesTest.cs`（追加 1 本）・`RecordingSpecialRequestSender.cs`（1 行）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/RecordingSpecialBlockCommands.cs`（1 行）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockCommandsTest.cs`（追加 2 本）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockResponseCodesTest.cs`（追加 1 本）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/RecordingSpecialRequestSender.cs`（1 行）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/RecordingSpecialBlockCommands.cs`（1 行）
 
 **Interfaces**
 - Consumes: A の `BlockRequestApi.SendOrbitalCargoSelection(Vector3Int position, ItemId payloadItemId, BlockInstanceId expectedInstanceId, CancellationToken ct)` → `UniTask<(OrbitalCargoSelectionProtocol.OrbitalCargoSelectionResponse response, PacketWaitCompletionReason reason)>`、`OrbitalCargoSelectionProtocol.OrbitalCargoSelectionFailureReason { None, InvalidRequest, BlockNotFound, InstanceMismatch, NotCargoSelector, NotCarriedHere, Locked }`。
@@ -6225,19 +6273,27 @@ git commit -m "積荷を選ぶコマンドを足し、選択の拒否を失敗�
 
 発射台と拠点が同じ部品を使う。並びと見た目は機械のレシピ選択（`MachineRecipeSelectionList`・`MachineRecipeSelectionRowView`・`SelectedRecipeHeader`・`MachineSectionView` の出し分け）に合わせる。機械のレシピ専用の型（`MachineRecipeSelectionRow`・`MachineRecipeData`・`IMachineRecipeSelectCommand`）は使わない。使うのは、機械用の名前を持つが中身が「枠と透かし」だけの `BoundItemSlot`・`MachineItemGhost`・`MachineSlotContents.For`（判断 4）。
 
+この Task の部品はどれも View で、一覧の局所状態を持たない。`OrbitalCargoPane` は「一覧を出すか」を `Render(cargo, listStatus, showsSelection)` の引数で受け、行・見出しの押下を UniRx の Subject で出すだけにする（前例 `MachineSectionView.Render(viewModel, showsSelection)`・`OnRecipeRowPressed`・`OnChangeRecipeRequested`）。局所状態を持って押下で進めるのは B6 の `OrbitalCargoBodyPresenter`（前例 `MachineSectionPresenter`）。
+
 **Files**
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Parts/BlockItemGrid.cs`（52–75 行の `Render`。89 行 → 99 行）
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoNames.cs`・`OrbitalCargoSelectionRowView.cs`・`OrbitalCargoSelectionList.cs`・`OrbitalCargoHeader.cs`・`OrbitalCargoPane.cs`・`OrbitalCargoSlotContents.cs`・`OrbitalCargo.uss`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoNames.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoSelectionRowView.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoSelectionList.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoHeader.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoPane.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoSlotContents.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargo.uss`
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（95 行の次に 1 行）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoPaneViewTest.cs`
 
 **Interfaces**
-- Consumes: B2 の `OrbitalCargoDetail`・`OrbitalCargoChoice`・`OrbitalCargoSelectionModeState`、B4 の `ISpecialBlockCommands.SelectOrbitalCargo`、`SpecialViewKit`（`Commands`・`Presentation`・`Grids`・`OsCursor`）、`RecipeListScrollView(string)`・`SetLeadingContent`・`SetEntries`、`RecipeRow(string, string, UiText)`・`SetSlots`・`SetIdle`、`RecipeDurationText.Create(double)`、`MachineSlotContents.For(SlotItem, BoundItemSlot, bool, GameContentPresentation)`、`BlockSlotIndexReader.Read`。
+- Consumes: B2 の `OrbitalCargoDetail`・`OrbitalCargoChoice`、B4 の `ISpecialBlockCommands.SelectOrbitalCargo`、`SpecialViewKit`（`Commands`・`Presentation`・`Grids`・`OsCursor`）、`RecipeListScrollView(string)`・`SetLeadingContent`・`SetEntries`、`RecipeRow(string, string, UiText)`・`SetSlots`・`SetIdle`、`RecipeDurationText.Create(double)`、`MachineSlotContents.For(SlotItem, BoundItemSlot, bool, GameContentPresentation)`、`BlockSlotIndexReader.Read`。
 - Produces:
   - `BlockItemGrid.RenderContents(IReadOnlyList<int> slotIndices, IReadOnlyList<ItemSlotContent> contents)`
   - `OrbitalCargoSlotContents.Render(BlockItemGrid grid, string gridTestId, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BoundItemSlot> boundSlots, GameContentPresentation content)`
   - `OrbitalCargoNames.Row(OrbitalCargoChoice, GameContentPresentation) → UiText`・`NextFlight(OrbitalCargoChoice, GameContentPresentation) → UiText`
-  - `OrbitalCargoPane(string testPrefix, SpecialViewKit kit, VisualElement selectedContent, bool fillsPanelHeight)`・`Render(OrbitalCargoDetail cargo, UiText listStatus)`・`RenderWithoutCargo()`
+  - `OrbitalCargoPane(string testPrefix, SpecialViewKit kit, VisualElement selectedContent, bool fillsPanelHeight)`・`Render(OrbitalCargoDetail cargo, UiText listStatus, bool showsSelection)`・`RenderWithoutCargo()`・`IObservable<ItemId> OnRowPressed`・`IObservable<Unit> OnChangeCargoRequested`
   - testid: `{prefix}-cargo-pane`・`{prefix}-cargo-list`・`{prefix}-cargo-status`・`{prefix}-cargo-row-{id}`（その中の `-name`・`-row`・`-arrow`・`-payload`・`-output-{i}`）・`{prefix}-cargo-header`・`{prefix}-cargo-header-item`・`{prefix}-cargo-header-name`・`{prefix}-cargo-next-flight`・`{prefix}-cargo-scroll`
 
 - [ ] **Step 1: テストを書く**
@@ -6245,21 +6301,24 @@ git commit -m "積荷を選ぶコマンドを足し、選択の拒否を失敗�
 `OrbitalCargoPaneViewTest.cs`:
 
 ```csharp
+using System.Collections.Generic;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.Screens.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.Text;
+using Core.Master;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.State.BlockInventory.Special.Cargo.OrbitalCargoSamples;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
 {
     /// <summary>
-    /// 積荷の一覧と選んだ後の見出しの出し分け（ADR 0106 の 1・3・4）
-    /// Switching between the cargo list and the selected headline (ADR 0106 §1, §3, §4)
+    /// 積荷の一覧と選んだ後の見出しの View（ADR 0106 の 1・3・4）。一覧を出すかは引数で受け、押下はコマンドと Subject へ出す。モードの進み方は OrbitalCargoBodyPresenterTest が見る
+    /// The cargo list and selected-headline view (ADR 0106 §1, §3, §4); the mode comes as an argument and presses go to the command and Subjects; OrbitalCargoBodyPresenterTest covers mode transitions
     /// </summary>
     public class OrbitalCargoPaneViewTest : SpecialScreenTestHost
     {
@@ -6267,9 +6326,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
         private static readonly UiText Status = UiText.FromVerbatim("status");
 
         [Test]
-        public void 未選択は一覧だけを出し解放済みの行を運ぶ順で並べる()
+        public void 一覧を出すときは一覧だけを置き解放済みの行を運ぶ順で並べる()
         {
-            var (pane, content) = Render(Pad(null, null, Cable, ChipLv1));
+            var (pane, content) = Render(Pad(null, null, Cable, ChipLv1), true);
             CollectionAssert.AreEqual(new[] { $"{Prefix}-cargo-row-1", $"{Prefix}-cargo-row-3" }, RowIds(pane));
             Assert.IsNull(pane.Q<VisualElement>($"{Prefix}-cargo-header"), "見出しと選んだ後の中身は木に置かない");
             Assert.IsNull(pane.Q<VisualElement>(content.name));
@@ -6279,7 +6338,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
         [Test]
         public void 行の文は積むものと返るものの対でケーブルは成果の枠を持たずプールの増分を書く()
         {
-            var (pane, _) = Render(Pad(null, null, ChipLv2, Cable));
+            var (pane, _) = Render(Pad(null, null, ChipLv2, Cable), true);
             Assert.AreEqual(Resolved(OrbitalCargoNames.Row(ChipLv2Choice, LoadContent())), TextOf(pane, $"{Prefix}-cargo-row-2-name"));
             Assert.IsNotNull(pane.Q<VisualElement>($"{Prefix}-cargo-row-2-output-0"));
             StringAssert.Contains("+1000", TextOf(pane, $"{Prefix}-cargo-row-3-name"));
@@ -6287,57 +6346,63 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
         }
 
         [Test]
-        public void 行を押すと送り届くまで一覧のまま届けば見出しと中身を出す()
+        public void 行を押すと選ぶコマンドを送り押した種類を出すが自分ではモードを変えない()
         {
-            var (pane, content) = Render(Pad(null, null, ChipLv1, ChipLv2));
+            var (pane, _) = Render(Pad(null, null, ChipLv1, ChipLv2), true);
+            var pressed = new List<ItemId>();
+            pane.OnRowPressed.Subscribe(pressed.Add);
             simulate.Click(Find<VisualElement>(pane, $"{Prefix}-cargo-row-2"));
             CollectionAssert.AreEqual(new[] { "orbital_cargo.select 2" }, Commands.Issued);
-            Assert.IsNotNull(pane.Q<VisualElement>($"{Prefix}-cargo-list"));
+            CollectionAssert.AreEqual(new[] { ChipLv2 }, pressed);
+            Assert.IsNotNull(pane.Q<VisualElement>($"{Prefix}-cargo-list"), "一覧を閉じるのは Presenter の描き直し");
+        }
 
-            pane.Render(Pad(ChipLv2, null, ChipLv1, ChipLv2), Status);
+        [Test]
+        public void 一覧を出さないときは見出しと中身を置き見出しを押すと一覧を求める()
+        {
+            var (pane, content) = Render(Pad(ChipLv2, null, ChipLv1, ChipLv2), false);
             Assert.IsNull(pane.Q<VisualElement>($"{Prefix}-cargo-list"));
             Assert.AreEqual(Resolved(OrbitalCargoNames.Row(ChipLv2Choice, LoadContent())), TextOf(pane, $"{Prefix}-cargo-header-name"));
             Assert.IsNotNull(pane.Q<VisualElement>(content.name));
             Assert.IsFalse(IsShown(Find<VisualElement>(pane, $"{Prefix}-cargo-next-flight")));
+
+            var requested = 0;
+            pane.OnChangeCargoRequested.Subscribe(_ => requested++);
+            simulate.Click(Find<VisualElement>(pane, $"{Prefix}-cargo-header"));
+            Assert.AreEqual(1, requested);
+            CollectionAssert.IsEmpty(Commands.Issued, "見出しの押下はコマンドを送らない");
         }
 
         [Test]
-        public void 見出しを押すと一覧へ戻り今の種類に印が付き同じ行を押せば閉じる()
+        public void 選んだ後に一覧を出すと今の種類の行に印が付く()
         {
-            var (pane, _) = Render(Pad(ChipLv1, null, ChipLv1, ChipLv2));
-            simulate.Click(Find<VisualElement>(pane, $"{Prefix}-cargo-header"));
+            var (pane, _) = Render(Pad(ChipLv1, null, ChipLv1, ChipLv2), true);
             Assert.IsTrue(Find<VisualElement>(pane, $"{Prefix}-cargo-row-1").ClassListContains(OrbitalCargoSelectionRowView.SelectedClassName));
             Assert.IsFalse(Find<VisualElement>(pane, $"{Prefix}-cargo-row-2").ClassListContains(OrbitalCargoSelectionRowView.SelectedClassName));
-
-            // 同じ種類はサーバーの状態が変わらないので、押した時点で閉じる
-            // The same kind leaves the server state unchanged, so pressing closes immediately
-            simulate.Click(Find<VisualElement>(pane, $"{Prefix}-cargo-row-1"));
-            CollectionAssert.AreEqual(new[] { "orbital_cargo.select 1" }, Commands.Issued);
-            Assert.IsNull(pane.Q<VisualElement>($"{Prefix}-cargo-list"));
         }
 
         [Test]
         public void 便の途中で選び直すと見出しは今の便で下に次の便から一行を出す()
         {
-            var (pane, _) = Render(Pad(ChipLv2, ChipLv1, ChipLv1, ChipLv2));
+            var (pane, _) = Render(Pad(ChipLv2, ChipLv1, ChipLv1, ChipLv2), false);
             Assert.AreEqual(Resolved(OrbitalCargoNames.Row(ChipLv1Choice, LoadContent())), TextOf(pane, $"{Prefix}-cargo-header-name"));
             Assert.IsTrue(IsShown(Find<VisualElement>(pane, $"{Prefix}-cargo-next-flight")));
             Assert.AreEqual(Resolved(OrbitalCargoNames.NextFlight(ChipLv2Choice, LoadContent())), TextOf(pane, $"{Prefix}-cargo-next-flight"));
         }
 
         [Test]
-        public void 解放済みが無い未選択でも一覧を出す()
+        public void 解放済みが無くても一覧を出すときは空の一覧を置く()
         {
-            var (pane, _) = Render(Pad(null, null));
+            var (pane, _) = Render(Pad(null, null), true);
             Assert.IsNotNull(pane.Q<VisualElement>($"{Prefix}-cargo-list"));
             CollectionAssert.IsEmpty(RowIds(pane));
         }
 
-        private (OrbitalCargoPane pane, VisualElement content) Render(OrbitalCargoDetail cargo)
+        private (OrbitalCargoPane pane, VisualElement content) Render(OrbitalCargoDetail cargo, bool showsSelection)
         {
             var content = new VisualElement { name = "selected-content" };
             var pane = Mount(new OrbitalCargoPane(Prefix, Kit(LoadContent()), content, false));
-            pane.Render(cargo, Status);
+            pane.Render(cargo, Status, showsSelection);
             simulate.FrameUpdate();
             return (pane, content);
         }
@@ -6349,6 +6414,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
     }
 }
 ```
+
+（「押すと届くまで一覧のまま・届けば閉じる」「見出しから開き直し、今の種類を押せば閉じる」は局所状態の進み方なので、B6 の `OrbitalCargoBodyPresenterTest` で Presenter と本文の View を組んで見る。）
 
 - [ ] **Step 2: 赤を確かめる**
 
@@ -6788,11 +6855,11 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
 `OrbitalCargoPane.cs`:
 
 ```csharp
+using System;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Special.Cargo;
-using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.Text;
 using Core.Master;
 using UniRx;
@@ -6801,21 +6868,20 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Special.Cargo
 {
     /// <summary>
-    /// 未選択と見出しを押した後は積荷の一覧、選んだ後は見出し＋持ち主の中身を出す（前例 MachineSectionView のモード切替）
-    /// Shows the cargo list while unselected or after the headline is pressed, otherwise the headline plus the owner's content (precedent MachineSectionView's mode switch)
+    /// 一覧を出すときは積荷の一覧、出さないときは見出し＋持ち主の中身を置く View（前例 MachineSectionView のモード切替）。一覧を出すかは Presenter が決めて渡す
+    /// View placing the cargo list when told to, otherwise the headline plus the owner's content (precedent MachineSectionView's mode switch); the presenter decides and passes the mode
     /// </summary>
     public sealed class OrbitalCargoPane : VisualElement
     {
-        private readonly OrbitalCargoSelectionModeState _mode = new();
         private readonly OrbitalCargoSelectionList _list;
         private readonly OrbitalCargoHeader _header;
         private readonly UiStack _selected = new(UiGap.Sm);
         private readonly VisualElement _selectedHost;
-        private readonly ISpecialBlockCommands _commands;
-        private OrbitalCargoDetail _lastCargo;
-        private UiText _lastListStatus;
         private bool _hasMode;
         private bool _showsSelection;
+
+        public IObservable<ItemId> OnRowPressed => _list.OnRowPressed;
+        public IObservable<Unit> OnChangeCargoRequested => _header.OnPressed;
 
         public OrbitalCargoPane(string testPrefix, SpecialViewKit kit, VisualElement selectedContent, bool fillsPanelHeight)
         {
@@ -6823,17 +6889,15 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
             AddToClassList("orbital-cargo-pane");
             EnableInClassList("orbital-cargo-pane--fill-panel-height", fillsPanelHeight);
             pickingMode = PickingMode.Ignore;
-            _commands = kit.Commands;
             _list = new OrbitalCargoSelectionList(testPrefix, kit.Presentation, kit.OsCursor);
             _header = new OrbitalCargoHeader(testPrefix, kit.Presentation, kit.OsCursor);
             _selected.AddItem(_header);
             _selected.AddItem(selectedContent);
             _selectedHost = fillsPanelHeight ? WrapInScroll() : _selected;
 
-            // 行と見出しの押下は View が直接コマンドへ渡す（前例 MachineSectionView。Presenter は中継しない）
-            // Row and headline presses go straight from the view to the commands (precedent MachineSectionView; no presenter relay)
-            _list.OnRowPressed.Subscribe(Select);
-            _header.OnPressed.Subscribe(_ => Reopen());
+            // 行の押下は View が直接コマンドへ渡す（前例 MachineSectionView・D-33）。一覧の開閉は Presenter が同じ押下を購読して進める
+            // Row presses go straight from the view to the command (precedent MachineSectionView, D-33); the presenter subscribes to the same press to advance the list state
+            _list.OnRowPressed.Subscribe(kit.Commands.SelectOrbitalCargo);
 
             #region Internal
 
@@ -6850,11 +6914,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
             #endregion
         }
 
-        public void Render(OrbitalCargoDetail cargo, UiText listStatus)
+        public void Render(OrbitalCargoDetail cargo, UiText listStatus, bool showsSelection)
         {
-            _lastCargo = cargo;
-            _lastListStatus = listStatus;
-            var showsSelection = _mode.ResolveShowsSelection(cargo);
             // 木に置くのは今のモードの中身だけ。付け替えはモードが変わったときだけ（D-37）
             // Only the current mode's content is in the tree; re-attach only on a mode change (D-37)
             if (!_hasMode || showsSelection != _showsSelection)
@@ -6881,21 +6942,6 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
             Clear();
             Add(_selectedHost);
             _selected.SetItemShown(_header, false);
-        }
-
-        private void Select(ItemId payloadItemId)
-        {
-            // 要求を覚えて送り、すぐ描き直す（同じ種類はサーバーの状態が変わらないので、ここで閉じる）
-            // Remember and send the request, then redraw at once (the same kind leaves the server state unchanged, so it closes here)
-            _mode.RememberRequest(payloadItemId);
-            _commands.SelectOrbitalCargo(payloadItemId);
-            Render(_lastCargo, _lastListStatus);
-        }
-
-        private void Reopen()
-        {
-            _mode.OpenSelection();
-            Render(_lastCargo, _lastListStatus);
         }
     }
 }
@@ -6991,20 +7037,193 @@ git commit -m "発射台と拠点が共有する積荷の一覧・行・見出�
 
 発射台: 未選択は一覧だけ。選んだ後は「見出し・資材 3 枠（透かし）・選んだ積荷の 1 枠（透かし）＋前の種類の残り・状態・進み・出力」。拠点: 未選択は接続の有無にかかわらず一覧だけ。選んだ後は「見出し・入口（透かし）・出口・状態区画（プールの行は今のまま）・電力網」。一覧の先頭の状態文は、発射台は待ち理由（未選択なら「積荷を選んでいない」）、拠点は状態の文。題の建造・発射ボタン（`RocketLaunchPadTitleActionView`）は変えない。
 
+一覧の局所状態 `OrbitalCargoSelectionModeState` は、発射台・拠点の本文用に新しく作る Presenter `OrbitalCargoBodyPresenter` が持つ。形は機械の前例どおり:
+
+| 役 | 前例（機械） | 今回 |
+|---|---|---|
+| 局所状態の持ち主 | `MachineSectionPresenter`（`private readonly MachineSelectionModeState _mode`。`moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/MachineSectionPresenter.cs:20`） | `OrbitalCargoBodyPresenter`（`_mode`） |
+| 押下を出す | View が Subject を出す（`MachineSectionView.OnChangeRecipeRequested`・`OnRecipeRowPressed`） | 本文の View が `OnChangeCargoRequested`・`OnCargoRowPressed` を出す（中身は `OrbitalCargoPane` の Subject） |
+| 状態を進める | Presenter が押下を購読して `OpenSelection`・`RememberRequest` し、描き直す（同 37–49 行） | 同じ |
+| 選ぶコマンドを呼ぶ | View が行の押下で直接呼ぶ（`MachineSectionView.cs:43–55`「Presenter は中継しない」。D-24・D-33） | 同じ。`OrbitalCargoPane` が `kit.Commands.SelectOrbitalCargo` を呼ぶ（B5） |
+| 描かせる | `MachineSectionView.Render(viewModel, _mode.ShowsSelection(machine))`（同 57 行） | `IOrbitalCargoBodyView.Render(itemSlots, detail, showsSelection)` |
+| 特殊族での組み立て | `SpecialPresenters.Belt(view)` が専用の `BeltThroughputSectionPresenter` を作る（`…/Special/Registration/SpecialPresenters.cs:35`） | `SpecialPresenters.OrbitalCargoBody(view)` が `OrbitalCargoBodyPresenter` を作り、本文の工場が汎用の `Section(...)` の代わりに使う |
+
+Presenter は今の汎用 Presenter `SpecialSectionPresenter<T>` と同じ「同じパネルの枠と詳細の流れ」を購読する。この組み立ては今 `SpecialSectionPresenter.Attach` のローカル関数にあるので、`SpecialPanelDetailStream.Of` へ移して 2 つの Presenter で共有する（同じ式を 2 か所に書かない）。
+
 **Files**
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs`（全体。64 行 → 約 85 行）
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/SpaceElevatorBodyView.cs`（全体。69 行 → 約 90 行）
+- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Selectors/OrbitalCargoDetailSelector.cs`（28 行。ディレクトリの .cs 6 本 → 7 本）
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/IOrbitalCargoBodyView.cs`（20 行）
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoBodyPresenter.cs`（83 行。ディレクトリの .cs B5 の後 6 本 → 8 本）
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialPanelDetailStream.cs`（37 行。ディレクトリの .cs 6 本 → 7 本）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialSectionPresenter.cs`（1–10 行の using と 36–67 行。69 行 → 45 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialPresenters.cs`（1–7 行の using と 38 行の後。40 行 → 48 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs`（全体。64 行 → 83 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/SpaceElevatorBodyView.cs`（全体。69 行 → 90 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialBodyFactories.cs`（45・54 行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventorySpecialGameUiRegistration.cs`（大型パネルの規則 1 行）
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/RocketLaunchPadViewTest.cs`（25–45 行と 83–110 行を書き換え、1 本追加）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpaceElevatorTestHost.cs`（25 行）・`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorViewTest.cs`（77 行と 2 本追加）・`SpaceElevatorSpecTest.cs`（79 行）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoBodyPresenterTest.cs`（新規。ディレクトリの .cs B5 の後 1 本 → 2 本）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/RocketLaunchPadViewTest.cs`（25–45 行と 83–110 行を書き換え、1 本追加）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpaceElevatorTestHost.cs`（23–32 行を書き換え、Presenter を通す補助を足す。58 行 → 72 行）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorViewTest.cs`（77–78 行と 2 本追加）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorSpecTest.cs`（35・79・80・82 行）
 
 **Interfaces**
-- Consumes: B3 の `RocketLaunchPadDetail.Cargo`/`MaterialBoundSlots`/`PayloadBoundSlots`/`StatusKey`、`SpaceElevatorDetail.Cargo`/`InletBoundSlots`/`StatusDisplay`、B5 の `OrbitalCargoPane`・`OrbitalCargoSlotContents`、`BlockInventoryBodyMount.FillsPanelHeight`、B2 の `OrbitalCargoLargePanelRule`。
-- Produces: `RocketLaunchPadBodyView(SpecialViewKit kit, bool fillsPanelHeight)`・`SpaceElevatorBodyView(SpecialViewKit kit, bool fillsPanelHeight)`。testid は既存（`rocket-launch-pad-loading`・`-view`・`-material-slots`・`-payload-slots`・`-output-slots`・`-status`・`-progress`、`space-elevator-view`・`-input-grid`・`-output-grid`・`-section`・`-status`・`-pool`・`-progress`・`-connect`・`-loading`）に B5 の `{prefix}-cargo-*` が加わる。
+- Consumes: B3 の `RocketLaunchPadDetail.Cargo`/`MaterialBoundSlots`/`PayloadBoundSlots`/`StatusKey`、`SpaceElevatorDetail.Cargo`/`InletBoundSlots`/`StatusDisplay`、B2 の `OrbitalCargoSelectionModeState`（`OpenSelection`・`RememberRequest`・`ResolveShowsSelection`）・`OrbitalCargoLargePanelRule`、B5 の `OrbitalCargoPane`（`Render(cargo, listStatus, showsSelection)`・`RenderWithoutCargo`・`OnRowPressed`・`OnChangeCargoRequested`）・`OrbitalCargoSlotContents`、`BlockInventoryBodyMount.FillsPanelHeight`、`BlockInventorySectionBase`（`AddSubscription`・`SetApplicable`・`ResetSectionStateOnDetach`）、`ISpecialDetailSelector<T>`、`ISpecialBlockDetailModel.Current`、`IBlockInventoryPanelSource.Current`、`OpenBlockInventoryPanel.IsSamePanel`・`ItemSlots`。
+- Produces:
+  - `public sealed class OrbitalCargoDetailSelector : ISpecialDetailSelector<OrbitalCargoDetail>`（発射台なら `rocket.Cargo`、拠点なら `elevator.Cargo`）
+  - `public interface IOrbitalCargoBodyView { IObservable<ItemId> OnCargoRowPressed { get; } IObservable<Unit> OnChangeCargoRequested { get; } void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail, bool showsSelection); }`
+  - `public sealed class OrbitalCargoBodyPresenter : BlockInventorySectionBase`。ctor `(VisualElement root, IOrbitalCargoBodyView view, ISpecialDetailSelector<OrbitalCargoDetail> cargoSelector, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)`
+  - `SpecialPresenters.OrbitalCargoBody<TView>(TView view) where TView : VisualElement, IOrbitalCargoBodyView → OrbitalCargoBodyPresenter`
+  - `SpecialPanelDetailStream.Of(IBlockInventoryPanelSource panels, ISpecialBlockDetailModel model, OpenBlockInventoryPanel panel) → IObservable<(IReadOnlyList<SlotItem> slots, SpecialBlockDetailViewModel detail)>`
+  - `RocketLaunchPadBodyView(SpecialViewKit kit, bool fillsPanelHeight)`・`SpaceElevatorBodyView(SpecialViewKit kit, bool fillsPanelHeight)`。どちらも `IOrbitalCargoBodyView` を実装し、`ISpecialSectionRenderer<SpecialBlockDetailViewModel>` は外す（モードの引数が要るため）。
+  - testid は既存（`rocket-launch-pad-loading`・`-view`・`-material-slots`・`-payload-slots`・`-output-slots`・`-status`・`-progress`、`space-elevator-view`・`-input-grid`・`-output-grid`・`-section`・`-status`・`-pool`・`-progress`・`-connect`・`-loading`）に B5 の `{prefix}-cargo-*` が加わる。持ち主の変更で testid は変わらない（B7・B8 はそのまま使える）。
 
 - [ ] **Step 1: テストを書く**
 
-`RocketLaunchPadViewTest.cs`。using に `using Client.Tests.Ui.State.BlockInventory.Special.Cargo;`・`using Client.Ui.State.BlockInventory.Special.Cargo;` を足す。`new RocketLaunchPadBodyView(Kit(…))` の 3 か所を `new RocketLaunchPadBodyView(Kit(…), false)` にする。38 行（`詳細の未着は取得待ちで届いたら本文を描く`）は `Kit(null)` を `Kit(LoadContent())` に替える（届いた後は見出しと透かしの枠が絵と名前を引くため、表示素材なしでは NullReference になる）。`発射台の詳細が無い種別では取得待ちを出し落ちない` の 31 行と `詳細の未着は…` の 44 行の `"rocket-launch-pad-view"` を `"rocket-launch-pad-cargo-pane"` に替える（本文の中身は選んだ後だけ木に入るため、出し入れは一覧と中身を包む枠で見る）。
+`OrbitalCargoBodyPresenterTest.cs`（新規。局所状態の進み方は Presenter と本物の発射台の本文を組んで見る。前例 `BeltThroughputSectionViewTest` の `Presenters.Belt(view)`・`Model.Set`・`presenter.Attach(OpenPanel(...))`）:
+
+```csharp
+using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Ui.Screens.BlockInventory.Special.Cargo;
+using Client.Ui.Screens.BlockInventory.Special.Space;
+using Client.Ui.State.BlockInventory.Special.Cargo;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Items;
+using Core.Master;
+using Game.Block.Interface.State;
+using Mooresmaster.Model.BlocksModule;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+using static Client.Tests.Ui.State.BlockInventory.Special.Cargo.OrbitalCargoSamples;
+
+namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
+{
+    /// <summary>
+    /// 積荷の本文の Presenter が一覧の局所状態を持ち、本文の押下で進めて描かせる（前例 MachineSectionPresenter。ADR 0106 の 1・3・4）。発射台の本文で組む
+    /// The cargo body presenter owns the list's local state, advances it on the body's presses and has it draw (precedent MachineSectionPresenter; ADR 0106 §1, §3, §4), built with the launch pad body
+    /// </summary>
+    public class OrbitalCargoBodyPresenterTest : SpecialScreenTestHost
+    {
+        [Test]
+        public void 未選択の発射台を開くと一覧だけを出し資材と積荷の枠を出さない()
+        {
+            var (view, presenter) = Attach(Pad(null, null, ChipLv1));
+            Assert.IsTrue(presenter.IsApplicable.Value);
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-row-1"));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-material-slots"));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-payload-slots"));
+        }
+
+        [Test]
+        public void 行を押すと送り届くまで一覧のまま届けば見出しと中身を出す()
+        {
+            var (view, _) = Attach(Pad(null, null, ChipLv1, ChipLv2));
+            simulate.Click(Find<VisualElement>(view, "rocket-launch-pad-cargo-row-2"));
+            CollectionAssert.AreEqual(new[] { "orbital_cargo.select 2" }, Commands.Issued);
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"), "届くまでは一覧のまま（拒否されても一覧に残る）");
+
+            Model.Set(Detail(Pad(ChipLv2, null, ChipLv1, ChipLv2)));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"));
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-header"));
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-material-slots"));
+        }
+
+        [Test]
+        public void 見出しを押すと一覧へ戻り今の種類の行を押せばその場で閉じる()
+        {
+            var (view, _) = Attach(Pad(ChipLv1, null, ChipLv1, ChipLv2));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"), "選んだ後は見出しと中身");
+            simulate.Click(Find<VisualElement>(view, "rocket-launch-pad-cargo-header"));
+            simulate.FrameUpdate();
+            Assert.IsTrue(Find<VisualElement>(view, "rocket-launch-pad-cargo-row-1").ClassListContains(OrbitalCargoSelectionRowView.SelectedClassName));
+            CollectionAssert.IsEmpty(Commands.Issued, "見出しの押下はコマンドを送らない");
+
+            // 同じ種類はサーバーの状態が変わらず更新が来ないので、押した時の描き直しで閉じる（判断 15）
+            // The same kind leaves the server state unchanged and no update comes, so the redraw on press closes it (decision 15)
+            simulate.Click(Find<VisualElement>(view, "rocket-launch-pad-cargo-row-1"));
+            CollectionAssert.AreEqual(new[] { "orbital_cargo.select 1" }, Commands.Issued);
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"));
+        }
+
+        [Test]
+        public void Detachで開いた一覧を戻し次のAttachでは選んだ後の画面から始める()
+        {
+            var (view, presenter) = Attach(Pad(ChipLv1, null, ChipLv1, ChipLv2));
+            simulate.Click(Find<VisualElement>(view, "rocket-launch-pad-cargo-header"));
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"));
+            presenter.Detach();
+            Assert.IsFalse(presenter.IsApplicable.Value);
+            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, Slots()));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"), "前のパネルの開いた一覧を持ち越さない");
+        }
+
+        [Test]
+        public void 詳細の未着は本文を出したまま取得待ちを語り一覧を出さない()
+        {
+            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
+            var presenter = Presenters.OrbitalCargoBody(view);
+            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, Slots()));
+            Assert.IsTrue(presenter.IsApplicable.Value, "本文は詳細の未着でも出す（前例 WholeSpecialDetailSelector）");
+            Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"));
+        }
+
+        private (RocketLaunchPadBodyView view, OrbitalCargoBodyPresenter presenter) Attach(OrbitalCargoDetail cargo)
+        {
+            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
+            var presenter = Presenters.OrbitalCargoBody(view);
+            Model.Set(Detail(cargo));
+            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, Slots()));
+            simulate.FrameUpdate();
+            return (view, presenter);
+        }
+
+        private static SpecialBlockDetailViewModel Detail(OrbitalCargoDetail cargo)
+        {
+            return SpecialDetailSamples.Only(SpecialDetailSamples.RocketWith(RocketLaunchPadPhase.Idle, cargo));
+        }
+
+        // 見本の発射台（RocketWith）は資材 0・積荷 1・出力 2 から
+        // The sample pad (RocketWith) has material 0, payload 1 and outputs from 2
+        private static SlotItem[] Slots()
+        {
+            return new[] { new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0) };
+        }
+    }
+}
+```
+
+（`Model`・`Presenters`・`Commands`・`OpenPanel`・`Kit`・`LoadContent` は `SpecialScreenTestHost` のもの。`OpenPanel` は `Panels.State` を開いたパネルにしてから返すので、`Attach` の時点で枠と詳細の両方がそろい、すぐ描かれる。）
+
+`RocketLaunchPadViewTest.cs`。using に `using Client.Tests.Ui.State.BlockInventory.Special.Cargo;`・`using Client.Ui.State.BlockInventory.Special.Cargo;` を足す。本文の View を直に描く行は、見本がどれも選んだ積荷を持つので `showsSelection` に `false` を渡す（一覧を出すかの判断は Presenter の役で、上の `OrbitalCargoBodyPresenterTest` が見る）。
+
+25–45 行。後:
+
+```csharp
+        [Test]
+        public void 発射台の詳細が無い種別では取得待ちを出し落ちない()
+        {
+            var view = Mount(new RocketLaunchPadBodyView(Kit(null), false));
+            view.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork), false);
+            Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
+            Assert.IsFalse(IsShown(Find<VisualElement>(view, "rocket-launch-pad-cargo-pane")));
+        }
+
+        /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">waits for initial detail and renders when the topic arrives</web-test>
+        [Test]
+        public void 詳細の未着は取得待ちで届いたら本文を描く()
+        {
+            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
+            view.Render(NoSlots, SpecialBlockDetailViewModel.Empty, false);
+            Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
+
+            view.Render(ThreeSlots(), SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)), false);
+            Assert.IsFalse(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
+            Assert.IsTrue(IsShown(Find<VisualElement>(view, "rocket-launch-pad-cargo-pane")));
+        }
+```
+
+（24 行の `/// <web-test …>a mismatched registry key…` はそのまま残す。38 行の `Kit(null)` を `Kit(LoadContent())` に替えるのは、届いた後は見出しと透かしの枠が絵と名前を引き、表示素材なしでは NullReference になるため。出し入れは本文の中身ではなく、一覧と中身を包む枠 `rocket-launch-pad-cargo-pane` で見る。中身 `rocket-launch-pad-view` は選んだ後だけ木に入るため。）
 
 `群を描き実際の押下でもサーバーの絶対添字を保つ` の 87–90 行。後:
 
@@ -7014,26 +7233,14 @@ git commit -m "発射台と拠点が共有する積荷の一覧・行・見出�
             var payload = new ItemId(3);
             var cargo = new OrbitalCargoDetail(payload, null, new[] { new OrbitalCargoChoice(payload, 20, new[] { new ItemAmount(new ItemId(1), 20) }, false) }, new[] { payload }, 120);
             var rocket = new RocketLaunchPadDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.OutputFull, 0.375f, new[] { new RequiredItemSlot(2, new ItemId(5), 7) }, new[] { new RequiredItemSlot(0, payload, 20) }, Array.Empty<InletSlotBinding>(), 3, cargo);
-            view.Render(slots, SpecialDetailSamples.Only(rocket));
+            view.Render(slots, SpecialDetailSamples.Only(rocket), false);
 ```
 
 （以降の検査は今のまま。）
 
-同じファイルの `ThreeSlots` の前に 2 本:
+同じファイルの `ThreeSlots` の前に 1 本（未選択で一覧だけを出すことは Presenter の役なので `OrbitalCargoBodyPresenterTest` へ移した）:
 
 ```csharp
-        [Test]
-        public void 未選択の発射台を開くと一覧だけを出し資材と積荷の枠を出さない()
-        {
-            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
-            var unselected = SpecialDetailSamples.RocketWith(RocketLaunchPadPhase.Idle, OrbitalCargoSamples.Pad(null, null, OrbitalCargoSamples.ChipLv1));
-            view.Render(ThreeSlots(), SpecialDetailSamples.Only(unselected));
-            simulate.FrameUpdate();
-            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-row-1"));
-            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-material-slots"));
-            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-payload-slots"));
-        }
-
         [Test]
         public void 選んだ後は選んだ積荷の枠と前の種類の残りだけを積荷の群に出す()
         {
@@ -7044,7 +7251,7 @@ git commit -m "発射台と拠点が共有する積荷の一覧・行・見出�
                 new[] { new RequiredItemSlot(1, OrbitalCargoSamples.ChipLv1, 20), new RequiredItemSlot(2, OrbitalCargoSamples.ChipLv2, 20), new RequiredItemSlot(3, OrbitalCargoSamples.Cable, 1000) },
                 Array.Empty<InletSlotBinding>(), 4, cargo);
             var slots = new[] { new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(OrbitalCargoSamples.Cable, 300), new SlotItem(ItemMaster.EmptyItemId, 0) };
-            view.Render(slots, SpecialDetailSamples.Only(rocket));
+            view.Render(slots, SpecialDetailSamples.Only(rocket), false);
             simulate.FrameUpdate();
             var payloadFrames = Find<VisualElement>(view, "rocket-launch-pad-payload-slots").Query<VisualElement>().Where(e => e.name != null && e.name.StartsWith("rocket-launch-pad-payload-slots-slot-")).ToList().Select(e => e.name).ToArray();
             CollectionAssert.AreEqual(new[] { "rocket-launch-pad-payload-slots-slot-1", "rocket-launch-pad-payload-slots-slot-3" }, payloadFrames, "選んだ枠を先に、ケーブルの残りを後に。空の Lv2 は出さない");
@@ -7053,13 +7260,42 @@ git commit -m "発射台と拠点が共有する積荷の一覧・行・見出�
         }
 ```
 
-`SpaceElevatorTestHost.cs` 25 行。後:
+`SpaceElevatorTestHost.cs` 23–32 行（`Render(SlotItem[], SpecialBlockDetailViewModel)`）。後（using に `using Mooresmaster.Model.BlocksModule;` を足す）:
 
 ```csharp
+        protected SpaceElevatorBodyView Render(SlotItem[] slots, SpecialBlockDetailViewModel detail)
+        {
+            // 見本は選んだ積荷を持つので、一覧を出さないモードで本文を直に描く（一覧を出すかは Presenter の役）
+            // Samples carry a selected cargo, so draw the body directly in the non-list mode (deciding the mode is the presenter's job)
             var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            view.Render(slots, detail, false);
+
+            // 本文は Render で格子の枠を組むので、配置を解いてから押下を送る（Task 7 と同じ）
+            // The body builds grid frames in Render, so resolve layout before sending presses (same as Task 7)
+            simulate.FrameUpdate();
+            return view;
+        }
+
+        // Presenter を通して描く（一覧を出すかを Presenter の局所状態が決める経路）
+        // Draw through the presenter (the path where its local state decides whether the cargo list shows)
+        protected SpaceElevatorBodyView Attach(SlotItem[] slots, SpaceElevatorDetail detail)
+        {
+            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            Model.Set(SpecialDetailSamples.ElevatorWithNetwork(detail));
+            Presenters.OrbitalCargoBody(view).Attach(OpenPanel(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, slots));
+            simulate.FrameUpdate();
+            return view;
+        }
 ```
 
-`SpaceElevatorViewTest.cs` 77 行を `new SpaceElevatorBodyView(Kit(null), false)` に、`SpaceElevatorSpecTest.cs` 79 行を `new SpaceElevatorBodyView(Kit(LoadContent()), false)` にする。`SpaceElevatorViewTest.cs` の末尾に 2 本（using に `using Client.Tests.Ui.State.BlockInventory.Special.Cargo;`・`using Client.Ui.State.BlockInventory.Special.Cargo;` を足す）:
+`SpaceElevatorViewTest.cs` 77–78 行。後:
+
+```csharp
+            var view = Mount(new SpaceElevatorBodyView(Kit(null), false));
+            view.Render(Slots(true), SpecialBlockDetailViewModel.Empty, false);
+```
+
+同じファイルの末尾に 2 本（using に `using Client.Tests.Ui.State.BlockInventory.Special.Cargo;`・`using Client.Ui.State.BlockInventory.Special.Cargo;` を足す）:
 
 ```csharp
         [TestCase(false)]
@@ -7067,7 +7303,7 @@ git commit -m "発射台と拠点が共有する積荷の一覧・行・見出�
         public void 未選択の拠点は接続の有無にかかわらず一覧を出し接続ボタンを出さない(bool connected)
         {
             var unselected = new OrbitalCargoDetail(null, null, new[] { OrbitalCargoSamples.ChipLv1Choice, OrbitalCargoSamples.ChipLv2Choice }, new[] { OrbitalCargoSamples.ChipLv1 }, 240);
-            var view = Render(Slots(true), SpecialDetailSamples.SpaceElevatorWith(SpaceElevatorBaseStatus.CargoNotSelected, connected, 1000, 0f, unselected));
+            var view = Attach(Slots(true), SpecialDetailSamples.SpaceElevatorWith(SpaceElevatorBaseStatus.CargoNotSelected, connected, 1000, 0f, unselected));
             Assert.IsNotNull(view.Q<VisualElement>("space-elevator-cargo-row-1"));
             Assert.IsNull(view.Q<VisualElement>("space-elevator-cargo-row-2"), "未解放の Lv2 は出さない");
             Assert.IsNull(view.Q<VisualElement>("space-elevator-connect"));
@@ -7085,18 +7321,266 @@ git commit -m "発射台と拠点が共有する積荷の一覧・行・見出�
         }
 ```
 
+`SpaceElevatorSpecTest.cs`。35 行・80 行・82 行の `view.Render(…)` の末尾の引数に `, false` を足す（どれも選んだ積荷を持つ見本か、詳細の未着）。79 行は `new SpaceElevatorBodyView(Kit(LoadContent()), false)` にする。後:
+
+```csharp
+            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.Climbing, true, 1000, 0f)), false);
+```
+
+```csharp
+            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            view.Render(Slots(false), SpecialBlockDetailViewModel.Empty, false);
+            Assert.IsTrue(IsShown(Find<Label>(view, "space-elevator-loading")));
+            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(Unconnected(SpaceElevatorBaseStatus.ReadyToConnect)), false);
+```
+
 - [ ] **Step 2: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
 ```
-期待: 本文の ctor の引数が合わずコンパイルエラー。
+期待: `OrbitalCargoBodyPresenter`・`SpecialPresenters.OrbitalCargoBody`・本文の ctor と `Render` の引数が無いのでコンパイルエラー。
 
 - [ ] **Step 3: 実装を書く**
+
+`OrbitalCargoDetailSelector.cs`（新規。`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Selectors/`）:
+
+```csharp
+using Client.Ui.State.BlockInventory.Special.Cargo;
+using Client.Ui.State.BlockInventory.Special.Details;
+
+namespace Client.Ui.State.BlockInventory.Special.Selectors
+{
+    /// <summary>
+    /// 発射台・宇宙エレベーター拠点の積荷の詳細を取り出す（どちらでもなければ取れない）。積荷の本文の Presenter が一覧のモードを決めるのに使う
+    /// Selects the cargo detail of a launch pad or space elevator base (none for other kinds); the cargo body presenter uses it to decide the list mode
+    /// </summary>
+    public sealed class OrbitalCargoDetailSelector : ISpecialDetailSelector<OrbitalCargoDetail>
+    {
+        public bool TryGet(SpecialBlockDetailViewModel detail, out OrbitalCargoDetail value)
+        {
+            if (detail.TryGetRocketLaunchPad(out var rocket))
+            {
+                value = rocket.Cargo;
+                return true;
+            }
+            if (detail.TryGetSpaceElevator(out var elevator))
+            {
+                value = elevator.Cargo;
+                return true;
+            }
+            value = null;
+            return false;
+        }
+    }
+}
+```
+
+`SpecialPanelDetailStream.cs`（新規。`moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/`。今 `SpecialSectionPresenter.cs` 48–66 行にある組み立てをそのまま移す）:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Items;
+using UniRx;
+
+namespace Client.Ui.Screens.BlockInventory.Special.Registration
+{
+    /// <summary>
+    /// 同じパネルの枠と特殊族の詳細の流れ。特殊族の Presenter が Attach で購読する（SpecialSectionPresenter と OrbitalCargoBodyPresenter で共有）
+    /// Stream of the same panel's slots joined with the special detail; special presenters subscribe to it in Attach (shared by SpecialSectionPresenter and OrbitalCargoBodyPresenter)
+    /// </summary>
+    public static class SpecialPanelDetailStream
+    {
+        public static IObservable<(IReadOnlyList<SlotItem> slots, SpecialBlockDetailViewModel detail)> Of(IBlockInventoryPanelSource panels, ISpecialBlockDetailModel model, OpenBlockInventoryPanel panel)
+        {
+            // 同じパネルの枠の変化と、パネルの組み直しの外で届く詳細（網の集約・ベルトの統計）の両方で流す
+            // Emit on both slot changes of the same panel and details arriving outside panel rebuilds (network totals, belt stats)
+            return panels.Current
+                .Where(IsSamePanel)
+                .Select(current => ((OpenBlockInventoryPanel)current).ItemSlots)
+                .CombineLatest(model.Current, (slots, detail) => (slots, detail));
+
+            #region Internal
+
+            bool IsSamePanel(BlockInventoryPanelState current)
+            {
+                // silent-ok: 別のパネルへ替わる途中の値は描かない / alpha の BodyHost が同じフレームで Detach して新しい部分を作る（前例 alpha の SectionStackItemGridSection）
+                return current is OpenBlockInventoryPanel open && open.IsSamePanel(panel);
+            }
+
+            #endregion
+        }
+    }
+}
+```
+
+`SpecialSectionPresenter.cs`。1–10 行の using を次に替える（`System`・`System.Collections.Generic`・`Details`・`Items` は流れと一緒に移るので要らない）:
+
+```csharp
+using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Selectors;
+using UniRx;
+using UnityEngine.UIElements;
+```
+
+36–67 行（`Attach`）。後:
+
+```csharp
+        public override void Attach(OpenBlockInventoryPanel panel)
+        {
+            AddSubscription(SpecialPanelDetailStream.Of(_panels, _model, panel)
+                .Subscribe(pair =>
+                {
+                    // 出すかは描く前に selector で決め、描いてから IsApplicable で親へ知らせる（区画は自分の display を触らない。D-23）
+                    // Decide showing with the selector before drawing, then report it via IsApplicable after drawing (sections never touch their own display. D-23)
+                    var shows = _selector.TryGet(pair.detail, out var detail);
+                    if (shows) _view.Render(pair.slots, detail);
+                    SetApplicable(shows);
+                }));
+        }
+```
+
+（69 行 → 45 行。挙動は変わらない。）
+
+`IOrbitalCargoBodyView.cs`（新規。`moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/`）:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.Items;
+using Core.Master;
+using UniRx;
+
+namespace Client.Ui.Screens.BlockInventory.Special.Cargo
+{
+    /// <summary>
+    /// 積荷を選ぶ本文（発射台・拠点）の View の口。行・見出しの押下を出し、一覧を出すかは Presenter から受けて描く。購読の源は持たない（前例 MachineSectionView）
+    /// Port of a cargo-selecting body view (launch pad, elevator base); emits row and headline presses and draws with the mode the presenter passes; holds no subscription sources (precedent MachineSectionView)
+    /// </summary>
+    public interface IOrbitalCargoBodyView
+    {
+        IObservable<ItemId> OnCargoRowPressed { get; }
+        IObservable<Unit> OnChangeCargoRequested { get; }
+        void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail, bool showsSelection);
+    }
+}
+```
+
+`OrbitalCargoBodyPresenter.cs`（新規。`moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/`）:
+
+```csharp
+using System.Collections.Generic;
+using Client.Ui.Screens.BlockInventory.Parts;
+using Client.Ui.Screens.BlockInventory.Special.Registration;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Cargo;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Client.Ui.State.BlockInventory.Special.Selectors;
+using Client.Ui.State.Items;
+using UniRx;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.BlockInventory.Special.Cargo
+{
+    /// <summary>
+    /// 発射台・拠点の本文の Presenter。一覧の局所状態を持ち、本文の行・見出しの押下で進め、一覧を出すかを決めて本文に描かせる。選ぶコマンドは View が送る（前例 MachineSectionPresenter・BeltThroughputSectionPresenter）
+    /// Presenter of the launch pad and elevator base bodies; owns the cargo list's local state, advances it on the body's row and headline presses and has the body draw with the decided mode; the view sends the select command (precedents MachineSectionPresenter, BeltThroughputSectionPresenter)
+    /// </summary>
+    public sealed class OrbitalCargoBodyPresenter : BlockInventorySectionBase
+    {
+        private readonly IOrbitalCargoBodyView _view;
+        private readonly ISpecialDetailSelector<OrbitalCargoDetail> _cargoSelector;
+        private readonly ISpecialBlockDetailModel _model;
+        private readonly IBlockInventoryPanelSource _panels;
+        private OrbitalCargoSelectionModeState _mode = new();
+        private IReadOnlyList<SlotItem> _slots;
+        private SpecialBlockDetailViewModel _detail;
+
+        public override VisualElement Root { get; }
+
+        public OrbitalCargoBodyPresenter(VisualElement root, IOrbitalCargoBodyView view, ISpecialDetailSelector<OrbitalCargoDetail> cargoSelector, ISpecialBlockDetailModel model, IBlockInventoryPanelSource panels)
+        {
+            Root = root;
+            _view = view;
+            _cargoSelector = cargoSelector;
+            _model = model;
+            _panels = panels;
+        }
+
+        public override void Attach(OpenBlockInventoryPanel panel)
+        {
+            // 同じパネルの枠と詳細が届くたびに、最後の値を覚えて描く
+            // Remember the latest slots and detail of the same panel and draw on every update
+            AddSubscription(SpecialPanelDetailStream.Of(_panels, _model, panel).Subscribe(pair =>
+            {
+                _slots = pair.slots;
+                _detail = pair.detail;
+                Apply();
+            }));
+
+            // 見出しの押下は一覧を開き、行の押下は要求を覚えて描き直す（送信は View。前例 MachineSectionPresenter・D-24・D-33）
+            // A headline press opens the list; a row press remembers the request and redraws (the view sends; precedent MachineSectionPresenter, D-24, D-33)
+            AddSubscription(_view.OnChangeCargoRequested.Subscribe(_ =>
+            {
+                _mode.OpenSelection();
+                Apply();
+            }));
+            AddSubscription(_view.OnCargoRowPressed.Subscribe(payloadItemId =>
+            {
+                _mode.RememberRequest(payloadItemId);
+                Apply();
+            }));
+        }
+
+        protected override void ResetSectionStateOnDetach()
+        {
+            // 外れたら一覧の開閉と最後の値を捨てる（前のパネルの状態を次のパネルへ持ち越さない。前例 BeltThroughputSectionPresenter）
+            // On detach drop the list state and the latest values (never carry the previous panel over; precedent BeltThroughputSectionPresenter)
+            _mode = new OrbitalCargoSelectionModeState();
+            _slots = null;
+            _detail = null;
+        }
+
+        private void Apply()
+        {
+            // 一覧を出すかは積荷の詳細が届いたときだけ局所状態で決める。未着は本文が取得待ちを語るので、本文はいつも出す（前例 WholeSpecialDetailSelector）
+            // Decide the list mode from local state only once the cargo detail arrives; while pending the body shows loading, so the body always shows (precedent WholeSpecialDetailSelector)
+            var showsSelection = _cargoSelector.TryGet(_detail, out var cargo) && _mode.ResolveShowsSelection(cargo);
+            _view.Render(_slots, _detail, showsSelection);
+            SetApplicable(true);
+        }
+    }
+}
+```
+
+（押下は本文の行・見出しからしか来ず、それらは詳細が届いて描かれた後にしか木に無い。Detach で購読も切れるので、`Apply` の時点で `_slots`・`_detail` は必ず入っている。押下の購読は Attach で張るので、View が ctor で張ったコマンドの購読〈B5 の `OrbitalCargoPane`〉の後に呼ばれる。送ってから要求を覚える順は前例の機械と同じ。）
+
+`SpecialPresenters.cs`。using に `using Client.Ui.Screens.BlockInventory.Special.Cargo;` を足し、`Belt` の次（38 行の後）に:
+
+```csharp
+
+        // 積荷を選ぶ本文（発射台・拠点）。一覧の局所状態を持つ専用の Presenter と組む（前例 Belt）
+        // Cargo-selecting bodies (launch pad, elevator base), paired with a dedicated presenter owning the list state (precedent Belt)
+        public OrbitalCargoBodyPresenter OrbitalCargoBody<TView>(TView view) where TView : VisualElement, IOrbitalCargoBodyView
+        {
+            return new OrbitalCargoBodyPresenter(view, view, new OrbitalCargoDetailSelector(), _model, _panels);
+        }
+```
+
+（`Client.Ui.State.BlockInventory.Special.Selectors` は using 済み。40 行 → 48 行。）
 
 `RocketLaunchPadBodyView.cs`（全体）:
 
 ```csharp
+using System;
 using System.Collections.Generic;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Content;
@@ -7108,16 +7592,18 @@ using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Special.Space
 {
     /// <summary>
-    /// 発射台の本文: 未選択は積荷の一覧、選んだ後は見出し・資材・選んだ積荷・状態・進捗・出力（ADR 0106 の 1）。詳細の未着は取得待ち
-    /// Launch pad body: the cargo list while unselected, otherwise headline, materials, selected payload, status, progress and outputs (ADR 0106 §1); pending detail shows loading
+    /// 発射台の本文: 一覧のモードでは積荷の一覧、そうでなければ見出し・資材・選んだ積荷・状態・進捗・出力（ADR 0106 の 1）。モードは Presenter が決める。詳細の未着は取得待ち
+    /// Launch pad body: the cargo list in list mode, otherwise headline, materials, selected payload, status, progress and outputs (ADR 0106 §1); the presenter decides the mode; pending detail shows loading
     /// </summary>
-    public sealed class RocketLaunchPadBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
+    public sealed class RocketLaunchPadBodyView : VisualElement, IOrbitalCargoBodyView
     {
         private const string MaterialGridTestId = "rocket-launch-pad-material-slots";
         private const string PayloadGridTestId = "rocket-launch-pad-payload-slots";
@@ -7131,6 +7617,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         private readonly GaugeBar _progress = new("rocket-launch-pad-progress");
         private readonly OrbitalCargoPane _pane;
         private readonly GameContentPresentation _content;
+
+        public IObservable<ItemId> OnCargoRowPressed => _pane.OnRowPressed;
+        public IObservable<Unit> OnChangeCargoRequested => _pane.OnChangeCargoRequested;
 
         public RocketLaunchPadBodyView(SpecialViewKit kit, bool fillsPanelHeight)
         {
@@ -7154,7 +7643,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             Add(_pane);
         }
 
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail, bool showsSelection)
         {
             var present = detail.TryGetRocketLaunchPad(out var rocket);
             UiDisplay.SetShown(_loading, !present);
@@ -7170,7 +7659,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             var status = new UiText(rocket.StatusKey);
             _status.SetText(status);
             _progress.SetValue(rocket.Progress);
-            _pane.Render(rocket.Cargo, status);
+            _pane.Render(rocket.Cargo, status, showsSelection);
         }
     }
 }
@@ -7179,6 +7668,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 `SpaceElevatorBodyView.cs`（全体）:
 
 ```csharp
+using System;
 using System.Collections.Generic;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Layout;
@@ -7190,16 +7680,18 @@ using Client.Ui.State.BlockInventory.Special.Selectors;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using Client.Ui.State.Text;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BlockInventory.Special.Space
 {
     /// <summary>
-    /// 宇宙エレベーターの本文: 未選択は接続の有無にかかわらず積荷の一覧、選んだ後は見出し・入口・出口・状態区画・電力網（ADR 0106 の 7）
-    /// Space elevator body: the cargo list while unselected regardless of connection, otherwise headline, inlet, outlets, state section and electric network (ADR 0106 §7)
+    /// 宇宙エレベーターの本文: 一覧のモードでは積荷の一覧、そうでなければ見出し・入口・出口・状態区画・電力網（ADR 0106 の 7）。モードは Presenter が決める（未選択は接続の有無にかかわらず一覧）
+    /// Space elevator body: the cargo list in list mode, otherwise headline, inlet, outlets, state section and electric network (ADR 0106 §7); the presenter decides the mode (unselected shows the list regardless of connection)
     /// </summary>
-    public sealed class SpaceElevatorBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
+    public sealed class SpaceElevatorBodyView : VisualElement, IOrbitalCargoBodyView
     {
         private const string InputGridTestId = "space-elevator-input-grid";
 
@@ -7214,6 +7706,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         private readonly UiStack _stack = new(UiGap.Sm);
         private readonly OrbitalCargoPane _pane;
         private readonly GameContentPresentation _content;
+
+        public IObservable<ItemId> OnCargoRowPressed => _pane.OnRowPressed;
+        public IObservable<Unit> OnChangeCargoRequested => _pane.OnChangeCargoRequested;
 
         public SpaceElevatorBodyView(SpecialViewKit kit, bool fillsPanelHeight)
         {
@@ -7236,7 +7731,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             Add(_pane);
         }
 
-        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
+        public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail, bool showsSelection)
         {
             // 群は詳細が届いてから出す。未着の間は中身だけを出し、状態区画が取得待ちを語る
             // Groups appear once the detail arrives; while pending only the content shows and the state section shows loading
@@ -7247,7 +7742,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             {
                 OrbitalCargoSlotContents.Render(_input, InputGridTestId, itemSlots, elevator.InletBoundSlots, _content);
                 _output.Render(itemSlots, elevator.OutputSlots);
-                _pane.Render(elevator.Cargo, new UiText(elevator.StatusDisplay.LabelKey));
+                _pane.Render(elevator.Cargo, new UiText(elevator.StatusDisplay.LabelKey), showsSelection);
             }
             else
             {
@@ -7267,15 +7762,17 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 
 （`Kit(null)` の L1 では `kit.Presentation` が null。未着の経路は `_content` を使わないので落ちない。）
 
-`SpecialBodyFactories.cs` 45 行と 54 行。後:
+`SpecialBodyFactories.cs` 45 行と 54 行。汎用の `Section(...)` を、積荷の局所状態を持つ `OrbitalCargoBody(...)` に替える。後:
 
 ```csharp
-        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.Section(new SpaceElevatorBodyView(_kit, mount.FillsPanelHeight), new WholeSpecialDetailSelector());
+        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.OrbitalCargoBody(new SpaceElevatorBodyView(_kit, mount.FillsPanelHeight));
 ```
 
 ```csharp
-        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.Section(new RocketLaunchPadBodyView(_kit, mount.FillsPanelHeight), new WholeSpecialDetailSelector());
+        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.OrbitalCargoBody(new RocketLaunchPadBodyView(_kit, mount.FillsPanelHeight));
 ```
+
+（`OrbitalCargoBodyPresenter` は `BlockInventorySectionBase` なので `IBlockInventoryPart` として返せる〈`BeltThroughputSectionPresenter` が区画の工場から返るのと同じ〉。11–12 行の 2 行コメントは変えない。）
 
 `BlockInventorySpecialGameUiRegistration.cs`（`using Client.Ui.State.BlockInventory.Panel;`・`using Client.Ui.State.BlockInventory.Special.Cargo;` を足す）の登録の並びに:
 
@@ -7291,17 +7788,18 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 
 ```
 uloop compile --project-path ./moorestech_client
+uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Special.Cargo.OrbitalCargoBodyPresenterTest"
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Special.RocketLaunchPadViewTest"
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Special.Space.SpaceElevatorViewTest"
-uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorSpecTest|SpecialFactoriesTest|OrbitalCargoPaneViewTest|BlockInventoryPanelLayout"
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.Screens\.BlockInventory\.Special\.|BlockInventoryPanelLayout"
 ```
-期待: 全部緑。
+期待: 全部緑。最後の正規表現は特殊族の L1 全部（`SpecialSectionPresenter` の流れを `SpecialPanelDetailStream` へ移したので、汎用の Presenter を使う `BeltThroughputSectionViewTest` 以外の区画・本文の L1〈`NetworkSectionViewTest`・`GearSectionViewTest`・`FilterSplitterBodyViewTest`・`SpecialSectionStack*`・`SpecialFactoriesTest` 等〉も流す）と大型パネルの規則。
 
 - [ ] **Step 5: コミット**
 
 ```
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventorySpecialGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special
-git commit -m "発射台と拠点の本文を、未選択は積荷の一覧・選んだ後は見出しと透かしの枠に変え、大型パネルにする"
+git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Selectors moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventorySpecialGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special
+git commit -m "発射台と拠点の本文を、一覧の局所状態を持つ専用の Presenter と組み、未選択は積荷の一覧・選んだ後は見出しと透かしの枠に変え、大型パネルにする"
 ```
 
 ### Task B7: 実ゲームでの「選んでから接続」（EditModeInPlayingTest）
@@ -7309,7 +7807,8 @@ git commit -m "発射台と拠点の本文を、未選択は積荷の一覧・�
 既存の `SpaceElevatorConnectActionTest` は「開いてすぐ接続 → ケーブル不足」を前提にしているので、「未選択は接続を拒否 → 選ぶ → ケーブル不足 → 補充 → 接続」に直す。本物の送り手・パネル・サーバーを通るので、B4 の選択コマンドの実ゲームでの確認を兼ねる。
 
 **Files**
-- Modify（テスト）: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs`（94–98 行と Internal の補助）・`SpaceElevatorServerTestState.cs`（読み取りの欄と解放の補助）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs`（94–98 行と Internal の補助）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorServerTestState.cs`（読み取りの欄と解放の補助）
 
 **Interfaces**
 - Consumes: B3 で登録した `UnlockedOrbitalCargoSource`、B4 の `SpecialBlockCommands.SelectOrbitalCargo`・`SelectOrbitalCargoCommandName`、A の `IOrbitalCargoSelectorComponent.Selection`（`SelectedOrbitalCargo(ItemId PayloadItemId)`／`UnselectedOrbitalCargo`）・`IGameUnlockStateDataController.UnlockItem(ItemId)`。
@@ -7436,14 +7935,15 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 主題に合わせて直し方を分ける（判断 9）。画面の流れが主題のもの（tier9-4・tier9-6・uitk-block-special-panels）は一覧の行を UI で押して選ぶ。Shift の主題（tier9-4b）と撮影だけのもの（s5-retake）はサーバーで直接選ぶか、開いた直後の一覧を撮る。「建造中に選び直すと見出しは今の便のまま『次の便から』が出て、今の便は元の積荷で打ち上がり、次の便は新しい種類で積む」（ADR 0106 の 4）は、新しいシナリオ tier9-4c で実ゲームで確かめる（tier9-4 に足すと 200 行を超えるため）。
 
+行数は今の worktree の `wc -l` と、各 Step の「後」を今のファイルの写しに当てて数えた値（`wc -l`）。どれも 200 行以下。各シナリオは `unity-playmode-recorded-playtest` スキルの `scripts/run-scenario.sh` で 1 本ずつ流す（Step 6。実行の形は同スキルの SKILL.md が正本。この下書きでは起動しない）。
+
 **Files**
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`（1–2 行、67–77 行、80–82 行）
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（約 165 行）
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs`（1–2 行、48–57 行、86–97 行）
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-6-fusion-elevator.cs`（94–99 行）
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`（using、108–114 行）
-- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs`（95–96 行）
-- 実行: 各シナリオを `unity-playmode-recorded-playtest` スキルの `scripts/run-scenario.sh` で 1 本ずつ流す（実行の形は同スキルの SKILL.md が正本。この下書きでは起動しない）
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`（2–3 行、66–76 行、78–81 行。191 行 → 197 行）
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 184 行）
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs`（1–2 行、using、48–57 行、85–97 行。157 行 → 169 行）
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-6-fusion-elevator.cs`（63–64 行、84–90 行、139–140 行、183–195 行の `OpenBlock`。200 行 → 200 行）
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`（using、109–112 行、115 行。195 行 → 199 行）
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs`（95–96 行。185 行 → 187 行）
 
 **Interfaces**
 - Consumes: B5・B6 の testid（`rocket-launch-pad-cargo-row-{id}`・`-cargo-header`・`-cargo-next-flight`・`space-elevator-cargo-row-{id}`・`space-elevator-cargo-list`・`space-elevator-cargo-status`）、A の `RocketLaunchPadStateDetail.SelectedCargoItemId`/`LoadedCargoItemId`・`SpaceElevatorBaseStateDetail.SelectedCargoItemId`・`IOrbitalCargoSelectorComponent.SelectCargo(ItemId, IOpenableInventory)`・`OrbitalCargoSelectionResult.Success`・`IGameUnlockStateDataController.UnlockItem(ItemId)`。
@@ -7451,16 +7951,16 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 - [ ] **Step 1: tier9-4（発射台の通し）を直す**
 
-選び直しは新しいシナリオ tier9-4c（Step 1b）に分ける。tier9-4 は今 191 行で、選び直しまで入れると 200 行を超えるため。tier9-4 では「開く → 一覧の行を押して ICチップLv1 を選ぶ → 積む → 建造・発射 → 成果 → 2 便目」を通す。開いたパネルは建造ボタンまでそのまま使う。
+選び直しは新しいシナリオ tier9-4c（Step 1b）に分ける。tier9-4 は今 191 行で、選び直しまで入れると 200 行を超えるため。tier9-4 では「開く → 一覧の行を押して ICチップLv1 を選ぶ → 積む → 建造・発射 → 成果 → 2 便目」を通す。開いたパネルは建造ボタンまでそのまま使う。行数: 191 行 → 197 行（66–76 行の 11 行を下の 18 行に替え、81 行の 1 行を消す）。
 
-1–2 行のシナリオ説明。後:
+2–3 行のシナリオ説明（1 行目は `using Game.Context;`）。後:
 
 ```csharp
 // 出荷マスタで発射台を開いて積荷の一覧から ICチップLv1 を選び、1便を積み、UI の建造・発射ボタンから実時間の建造と上昇を経て計算データが届き、2便目は合図なしで建造が始まることを確かめる
 // On the shipped master, open the pad and pick IC chip Lv1 from the cargo list, load one launch, build and launch from the UI in real time, receive compute data, and see the second launch build without commands
 ```
 
-67–77 行。後:
+66–76 行（「1便ぶんの資材と…」の 2 行コメントから `await p.Screenshot("01-awaiting-build");` まで。設置演出を待つ 2 行は開く前へ移す）。後:
 
 ```csharp
     // 1便ぶんの資材と ICチップLv1（積荷表の1便の個数）を積むと、初打ち上げ前の台は建造の合図を待つ
@@ -7483,13 +7983,18 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
     await p.Screenshot("01-awaiting-build");
 ```
 
-82 行の `await OpenPad();`（建造ボタンの前）を消す（パネルは上で開いたまま）。80–81 行の 2 行コメント「発射台を開いて建造ボタンを押し…」の「発射台を開いて」/ "Open the pad and" を消す。
+81 行の `await OpenPad();`（建造ボタンの前）を消す（パネルは上で開いたまま）。78–79 行の 2 行コメントを、行を足さずに書き換える。後:
+
+```csharp
+    // 建造ボタンを押し、建造は実時間で待つ（DSL に時間を進める手段は無い）
+    // Press build; the build is awaited in real time (the DSL cannot advance time)
+```
 
 （191 行 → 197 行。2 便目は `LoadOneLaunch()` のまま Lv1 で積む。選んだ積荷はそのまま残るので通る。）
 
 - [ ] **Step 1b: 選び直しのシナリオ tier9-4c を足す**
 
-新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（約 165 行）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
+新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 184 行。下のコードの行数そのまま）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
 
 ```csharp
 using Game.Context;
@@ -7682,7 +8187,7 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
 
 - [ ] **Step 2: tier9-4b（Shift の拒否）を直す**
 
-主題は Shift と拒否後の表示の一致なので、選択はサーバーで直接行う（グラフェンケーブルはこのシナリオの前提では未解放なので、先に解放する）。
+主題は Shift と拒否後の表示の一致なので、選択はサーバーで直接行う（グラフェンケーブルはこのシナリオの前提では未解放なので、先に解放する）。行数: 157 行 → 169 行（using 1 行・選ぶ段 12 行を足し、`cableId`・`playerId` の 2 行を消し、85–97 行の 13 行を 14 行に替える）。
 
 48–50 行（`var pad = …`〜`var padInventory = …`）の次、51 行（材料を積む）の前に足す（`using Game.UnlockState;` を足す）:
 
@@ -7703,7 +8208,7 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
 
 そして既存の 52 行 `var cableId = …` と 57 行 `var playerId = …` を消す（上で宣言済み）。
 
-86–97 行（受け付けない積荷枠への配置）。前:
+85–97 行（受け付けない積荷枠への配置）。前:
 
 ```csharp
     // 受け付けない積荷枠へ鋼鉄板を通常配置すると拒否され、表示はサーバーの在庫へ戻る
@@ -7744,7 +8249,22 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
 
 - [ ] **Step 3: tier9-6（拠点の通し）を直す**
 
-94–99 行。前:
+今 200 行で上限ちょうどなので、足す行と同じだけ減らす。既存の `#region Internal` のローカル関数 `OpenBlock` に「開いた後に待つ本文の要素」の引数を 1 つ足し、今は呼び手が `OpenBlock` の直後に 1 行で書いている本文の待ち（63–64 行・139–140 行）をその引数へ入れる。待ちは消さない（`block-inventory-close` の待ちを「本文の要素の待ち」に替える。本文の要素はパネルの中にあるので、パネルが開いたことも同時に確かめる）。行数: 200 行 → 200 行（84–90 行の 7 行を 9 行に替えて +2、63–64 行と 139–140 行をそれぞれ 1 行にして −2。`OpenBlock` の行数は変わらない）。
+
+63–64 行。前:
+
+```csharp
+    await OpenBlock(reactorPos, 9.5f);
+    await p.UntilUiElement("generator-section", 15f);
+```
+
+後:
+
+```csharp
+    await OpenBlock(reactorPos, 9.5f, "generator-section");
+```
+
+84–90 行。前:
 
 ```csharp
     // ケーブルが無いと接続できず理由が出る
@@ -7756,29 +8276,84 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
     await p.Screenshot("02-elevator-not-enough-cable");
 ```
 
-後:
+後（2 行コメントは足さずに置き換える。`space-elevator-section` の待ちは、その中の `space-elevator-status` の待ちが兼ねる）:
 
 ```csharp
     // 未選択の拠点を開くと積荷の一覧が出る。ICチップLv1 の行を押して選ぶと、ケーブルが無いので接続できず理由が出る（ADR 0106 の 7「選んでから接続」）
     // Opening the unselected base shows the cargo list; after pressing the IC chip Lv1 row the base cannot connect without cables and shows why (ADR 0106 §7)
-    await OpenBlock(elevatorPos, 4.5f);
     var cargoRow = $"space-elevator-cargo-row-{payloadId.AsPrimitive()}";
-    await p.UntilUiElement(cargoRow, 15f);
-    p.Assert(Detail().Status == SpaceElevatorBaseStatus.CargoNotSelected, $"未選択の状態は「積荷を選んでいない」 status={Detail().Status}");
+    await OpenBlock(elevatorPos, 4.5f, cargoRow);
     await p.Screenshot("02a-elevator-cargo-list");
     await p.ClickUi(cargoRow);
-    await p.Until(() => Detail().SelectedCargoItemId == payloadId, 10f, "サーバーが ICチップLv1 を選んだ状態になった");
-    await p.UntilUiElement("space-elevator-section", 15f);
-    await p.Until(() => Detail().Status == SpaceElevatorBaseStatus.InsufficientCable, 10f, "サーバーがケーブル不足と判定した");
+    await p.Until(() => Detail().SelectedCargoItemId == payloadId && Detail().Status == SpaceElevatorBaseStatus.InsufficientCable, 10f, "ICチップLv1 を選び、サーバーがケーブル不足と判定した");
     await p.UntilUiElement("space-elevator-status", 15f);
     await p.Screenshot("02-elevator-not-enough-cable");
 ```
 
-（109 行の `WaitingSatellite` の期待は、選んだ後なので変わらない。ICチップLv1 は「軌道エレベーターの建設」の前提の閉包にある「半導体製造」で解放される〈ピンのマスタ `aaa89bcf` で閉包を辿って確かめた〉。）
+（`payloadId` は 47 行、`Detail()` は Internal の 163–167 行にある。111 行の `WaitingSatellite` の期待は、選んだ後なので変わらない。ICチップLv1 は「軌道エレベーターの建設」の前提の閉包にある「半導体製造」で解放される〈ピンのマスタ `aaa89bcf` で閉包を辿って確かめた〉。）
+
+139–140 行。前:
+
+```csharp
+    await OpenBlock(elevatorPos, 4.5f);
+    await p.UntilUiElement("space-elevator-output-grid", 10f);
+```
+
+後:
+
+```csharp
+    await OpenBlock(elevatorPos, 4.5f, "space-elevator-output-grid");
+```
+
+183–195 行（`OpenBlock`）。前:
+
+```csharp
+    async UniTask OpenBlock(Vector3Int origin, float faceCenterOffsetX)
+    {
+        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開く（cleanroom-room-usability と同じ手順）
+        // F reaches 2 m, so land 1 m south of the south face and open it by aiming at the face with the Alt cursor (same as cleanroom-room-usability)
+        p.WarpPlayer(new Vector3(origin.x + faceCenterOffsetX, 32.5f, origin.z - 1f));
+        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
+        SemanticInput.KeyDown(Key.LeftAlt);
+        await p.AimAt(new Vector3(origin.x + faceCenterOffsetX, 33f, origin.z));
+        await p.PressInteract();
+        await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+        SemanticInput.KeyUp(Key.LeftAlt);
+        await p.UntilUiElement("block-inventory-close", 10f);
+    }
+```
+
+後:
+
+```csharp
+    async UniTask OpenBlock(Vector3Int origin, float faceCenterOffsetX, string shownTestId)
+    {
+        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開き、本文の要素 shownTestId が出るまで待つ（cleanroom-room-usability と同じ手順）
+        // F reaches 2 m, so land 1 m south of the south face, open it by aiming at the face with the Alt cursor and wait for the body element shownTestId (same as cleanroom-room-usability)
+        p.WarpPlayer(new Vector3(origin.x + faceCenterOffsetX, 32.5f, origin.z - 1f));
+        await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
+        SemanticInput.KeyDown(Key.LeftAlt);
+        await p.AimAt(new Vector3(origin.x + faceCenterOffsetX, 33f, origin.z));
+        await p.PressInteract();
+        await p.WaitUiState(UIStateEnum.SubInventory, 10f);
+        SemanticInput.KeyUp(Key.LeftAlt);
+        await p.UntilUiElement(shownTestId, 15f);
+    }
+```
+
+（待ちの上限は 3 か所とも 15 秒にそろう。今の 139–140 行の出口の格子は 10 秒だったが、延ばすだけなので通る側にしか変わらない。）
 
 - [ ] **Step 4: uitk-block-special-panels（特殊族の画面）を直す**
 
-using に `using Game.UnlockState;` を足す。108–114 行。前:
+今 195 行。行数: 195 行 → 199 行（using 1 行を足し、109–112 行の 4 行を 8 行に替え、115 行の `cableId` の 1 行を上の宣言へまとめて消す）。
+
+`using Game.Orbit;`（22 行）の次に 1 行:
+
+```csharp
+using Game.UnlockState;
+```
+
+109–112 行。前:
 
 ```csharp
     // 宇宙エレベーター拠点: ケーブル不足の状態文 → 1 便の軌道到着 → UI の接続ボタンで接続済みになり進みが出る（接続に電力は要らない）
@@ -7787,25 +8362,30 @@ using に `using Game.UnlockState;` を足す。108–114 行。前:
     await p.Until(() => Shown("space-elevator-status") && Text("space-elevator-status").Trim().Length > 0, 15f, "状態文が出た");
 ```
 
-後:
+後（2 行コメントは置き換える。一覧の行が出るまでの待ちは既存の Internal のローカル関数 `Open` の `bodyTestId` 引数で行う）:
 
 ```csharp
-    // 宇宙エレベーター拠点: 未選択は積荷の一覧 → ICチップLv1 を選ぶ → ケーブル不足の状態文 → 1 便の軌道到着 → UI の接続ボタンで接続済みになり進みが出る
-    // Space elevator base: cargo list while unselected → select IC chip Lv1 → insufficient-cable status → one cable arrival → the UI connect button connects and shows progress
-    var chipId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("f6dd7835-0845-4877-87d0-b719d037ae7d")); // ICチップLv1
+    // 宇宙エレベーター拠点: 未選択は積荷の一覧 → ICチップLv1 の行を押して選ぶ → ケーブル不足の状態文 → 1 便の軌道到着 → UI の接続ボタンで接続済みになり進みが出る（接続に電力は要らない）
+    // Space elevator base: the cargo list while unselected → press the IC chip Lv1 row → insufficient-cable status → one cable arrival → the UI connect button connects and shows progress (connecting needs no power)
+    var (chipId, cableId) = (MasterHolder.ItemMaster.GetItemId(Guid.Parse("f6dd7835-0845-4877-87d0-b719d037ae7d")), MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"))); // ICチップLv1・グラフェンケーブル
     await p.RunOnServer("ICチップLv1 を解放する（このシナリオは研究を済ませない）", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockItem(chipId));
-    await Open("宇宙エレベーター拠点", elevatorPos, 9, 9, 0.4f, "space-elevator-view");
-    var cargoRow = $"space-elevator-cargo-row-{chipId.AsPrimitive()}";
-    await p.UntilUiElement(cargoRow, 15f);
+    await Open("宇宙エレベーター拠点", elevatorPos, 9, 9, 0.4f, $"space-elevator-cargo-row-{chipId.AsPrimitive()}");
     await Capture("space-elevator-cargo-list");
-    await p.ClickUi(cargoRow);
-    await p.Until(() => Detail().SelectedCargoItemId == chipId, 10f, "サーバーが ICチップLv1 を選んだ状態になった");
-    await p.Until(() => Shown("space-elevator-status") && Text("space-elevator-status").Trim().Length > 0, 15f, "状態文が出た");
+    await p.ClickUi($"space-elevator-cargo-row-{chipId.AsPrimitive()}");
+    await p.Until(() => Detail().SelectedCargoItemId == chipId && Shown("space-elevator-status") && Text("space-elevator-status").Trim().Length > 0, 15f, "ICチップLv1 を選び（サーバー）、状態文が出た");
 ```
 
-（以降の 113 行〜はそのまま。接続ボタンは選んだ後の画面に出る。）
+115 行を消す（`cableId` は上の 1 行で宣言した）:
+
+```csharp
+    var cableId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"));
+```
+
+（113–114 行の `p.Note`・`Capture("space-elevator")` と 116 行以降はそのまま。接続ボタンは選んだ後の画面に出る。`Detail()`・`Shown`・`Text`・`Capture`・`Open` は今のファイルの Internal〈141・156・172・186・192 行〉にある。`MasterHolder`・`Guid`・`ServerContext` は using 済み〈`Core.Master`・`System`・`Game.Context`〉。）
 
 - [ ] **Step 5: s5-retake（撮り直し）を直す**
+
+行数: 185 行 → 187 行（95–96 行の 2 行を 4 行に替える）。
 
 95–96 行。前:
 
@@ -8028,7 +8608,6 @@ git commit -m "部屋クラスの歩留まり値に閾値行の添字を持た�
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs`（84 の後に足す）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs`（24-47）
-- Modify: `moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs`（129 の後に足す）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs`（新）
 
 **Interfaces:**
@@ -8037,7 +8616,6 @@ git commit -m "部屋クラスの歩留まり値に閾値行の添字を持た�
   - `public bool VanillaMachineModuleInventory.CanAcceptOneMore(ModuleMasterElement module)`
   - `public List<MachineModuleEffect.EquippedModule> MachineModuleEffectComponent.CollectEffectiveModules()`
   - `public bool MachineModuleEffectComponent.CanEquipOneMore(ModuleMasterElement module)`
-  - `public bool ItemMaster.TryGetQualityModuleOfTier(int tier, out ModuleMasterElement module)`
 
 - [ ] **Step 1: テストを書く** — `Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs`
 
@@ -8106,19 +8684,6 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             Assert.AreEqual(3, modules[0].Count);
         }
 
-        [Test]
-        public void QualityModuleOfTierIsFoundOnlyForDefinedTiersTest()
-        {
-            Setup();
-
-            // テストマスタの品質モジュールは tier1 と tier2 だけ
-            // The test master defines quality modules only for tier 1 and tier 2
-            Assert.IsTrue(MasterHolder.ItemMaster.TryGetQualityModuleOfTier(2, out var tier2));
-            Assert.AreEqual(2, tier2.Tier);
-            Assert.AreEqual(ModuleMasterElement.EffectAxisConst.Quality, tier2.EffectAxis);
-            Assert.IsFalse(MasterHolder.ItemMaster.TryGetQualityModuleOfTier(3, out _));
-        }
-
         private static (VanillaMachineBlockInventoryComponent inventory, MachineModuleEffectComponent effectComponent) Setup()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -8126,16 +8691,25 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             return (block.GetComponent<VanillaMachineBlockInventoryComponent>(), block.GetComponent<MachineModuleEffectComponent>());
         }
 
+        // テストマスタの品質モジュールのアイテム（tier1 は ...1234-000000000005、tier2 は ...1234-000000000006）
+        // Test-master quality module items (tier 1 is ...1234-000000000005, tier 2 is ...1234-000000000006)
+        private static readonly System.Guid[] QualityModuleItemGuids =
+        {
+            System.Guid.Parse("00000000-0000-0000-1234-000000000005"),
+            System.Guid.Parse("00000000-0000-0000-1234-000000000006"),
+        };
+
         private static ModuleMasterElement QualityModuleOfTier(int tier)
         {
-            Assert.IsTrue(MasterHolder.ItemMaster.TryGetQualityModuleOfTier(tier, out var module), $"tier {tier} quality module is missing in the test master");
+            var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(MasterHolder.ItemMaster.GetItemId(QualityModuleItemGuids[tier - 1]));
+            Assert.AreEqual(tier, module.Tier, $"tier {tier} quality module is missing in the test master");
             return module;
         }
     }
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CanEquipOneMore`・`CollectEffectiveModules`・`TryGetQualityModuleOfTier` の未定義で失敗する。
+- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CanEquipOneMore`・`CollectEffectiveModules` の未定義で失敗する。
 
 - [ ] **Step 3: 実装を書く**
 
@@ -8231,27 +8805,6 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 ```
 
-`ItemMaster.cs` の `GetModuleByItemIdOrNull`（124-129）の直後に足す:
-
-```csharp
-        // 指定 tier の品質モジュール定義を返す。同じ tier が複数あればマスタの並びで先のもの。モジュールを定義しないマスタでは false
-        // Return the quality module of the tier; with several of one tier the first in master order; false for a master defining no modules
-        public bool TryGetQualityModuleOfTier(int tier, out ModuleMasterElement module)
-        {
-            module = null;
-            if (Items.Modules == null) return false;
-            foreach (var candidate in Items.Modules)
-            {
-                if (candidate.EffectAxis != ModuleMasterElement.EffectAxisConst.Quality || candidate.Tier != tier) continue;
-                module = candidate;
-                return true;
-            }
-            return false;
-        }
-```
-
-（`Items.Modules` はスキーマ `items.yml` で `optional: true`。既存の `ItemMasterUtil` 33・146 行と同じく null を「定義なし」として扱う。）
-
 - [ ] **Step 4: コンパイルとテスト**
 
 ```
@@ -8264,7 +8817,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 - [ ] **Step 5: コミット**
 
 ```
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs.meta
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs.meta
 git commit -m "品質モジュールをあと1個刺せるかと、上限で切った装着一覧を出す"
 ```
 
@@ -8285,7 +8838,7 @@ ADR 0105 §2（最終の内訳）と §4（改善の差分）の計算。式は�
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs`（新）
 
 **Interfaces:**
-- Consumes: C1 `CleanRoomClassYield.ThresholdIndex`・`FromThresholdIndex`／C2 `CollectEffectiveModules`・`CanEquipOneMore`・`TryGetQualityModuleOfTier`／既存 `CleanRoomYieldPreview.Evaluate(CleanRoomRecipeRole, CleanRoomClassYield, MachineModuleEffect, CleanRoomYieldRollContext?, out List<IItemStack>)`・`MachineModuleEffect.Aggregate`・`DicingRecipeRole.Dicing.DiesPerWafer`
+- Consumes: C1 `CleanRoomClassYield.ThresholdIndex`・`FromThresholdIndex`／C2 `CollectEffectiveModules`・`CanEquipOneMore`／既存 `MachineModuleEffect.HighestQualityModuleTier`／既存 `CleanRoomYieldPreview.Evaluate(CleanRoomRecipeRole, CleanRoomClassYield, MachineModuleEffect, CleanRoomYieldRollContext?, out List<IItemStack>)`・`MachineModuleEffect.Aggregate`・`DicingRecipeRole.Dicing.DiesPerWafer`
 - Produces（すべて namespace `Game.Block.Blocks.CleanRoom.Machine.YieldPreview`）:
   - `public abstract class CleanRoomFinalOdds { IReadOnlyList<double> LevelRates; double FailedRate; static CleanRoomFinalOdds Of(CleanRoomRecipeRole role, CleanRoomYieldPreviewResult rates) }`
   - `public sealed class LayerExposureFinalOdds : CleanRoomFinalOdds`（`LevelRates` は空）
@@ -8481,9 +9034,18 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             Assert.AreEqual(failedRateDelta, improvement.FailedRateDelta, Tolerance);
         }
 
+        // テストマスタの品質モジュールのアイテム（tier1 は ...1234-000000000005、tier2 は ...1234-000000000006）
+        // Test-master quality module items (tier 1 is ...1234-000000000005, tier 2 is ...1234-000000000006)
+        private static readonly System.Guid[] QualityModuleItemGuids =
+        {
+            System.Guid.Parse("00000000-0000-0000-1234-000000000005"),
+            System.Guid.Parse("00000000-0000-0000-1234-000000000006"),
+        };
+
         private static ModuleMasterElement QualityModule(int tier)
         {
-            Assert.IsTrue(MasterHolder.ItemMaster.TryGetQualityModuleOfTier(tier, out var module));
+            var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(MasterHolder.ItemMaster.GetItemId(QualityModuleItemGuids[tier - 1]));
+            Assert.AreEqual(tier, module.Tier, $"tier {tier} quality module is missing in the test master");
             return module;
         }
 
@@ -8567,9 +9129,18 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(FirstModuleSlot + slot, MasterHolder.ItemMaster.GetItemId(module.ItemGuid), count);
         }
 
+        // テストマスタの品質モジュールのアイテム（tier1 は ...1234-000000000005、tier2 は ...1234-000000000006）
+        // Test-master quality module items (tier 1 is ...1234-000000000005, tier 2 is ...1234-000000000006)
+        private static readonly System.Guid[] QualityModuleItemGuids =
+        {
+            System.Guid.Parse("00000000-0000-0000-1234-000000000005"),
+            System.Guid.Parse("00000000-0000-0000-1234-000000000006"),
+        };
+
         private static ModuleMasterElement QualityModule(int tier)
         {
-            Assert.IsTrue(MasterHolder.ItemMaster.TryGetQualityModuleOfTier(tier, out var module));
+            var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(MasterHolder.ItemMaster.GetItemId(QualityModuleItemGuids[tier - 1]));
+            Assert.AreEqual(tier, module.Tier, $"tier {tier} quality module is missing in the test master");
             return module;
         }
     }
@@ -8814,32 +9385,34 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         {
             var candidates = new List<ModuleMasterElement>();
 
+            // 刺さっている最高 tier は、抽選と同じ集計（MachineModuleEffect.Aggregate）が出す値を読む。品質モジュールが無ければ0
+            // The highest equipped tier is read from the draw's own aggregate (MachineModuleEffect.Aggregate); zero without quality modules
+            var highestTier = MachineModuleEffect.Aggregate(equipped).HighestQualityModuleTier;
+
             // 刺さっている最高 tier のものを1個増やす。上限か空きで入らなければ並べない
             // One more of the highest equipped tier, unless the limit or free space keeps it out
-            var highestTier = 0;
-            if (TryFindHighestEquipped(out var highest))
-            {
-                highestTier = highest.Tier;
-                if (effectComponent.CanEquipOneMore(highest)) candidates.Add(highest);
-            }
+            if (0 < highestTier && TryGetQualityModuleOfTier(highestTier, out var highest) && effectComponent.CanEquipOneMore(highest)) candidates.Add(highest);
 
             // その1つ上の tier を1個刺す。品質モジュールが無ければ tier1。マスタに無い tier（最上位の次）は並べない
             // One of the next tier; tier 1 when no quality module is equipped; a tier missing from the master (past the top) is not listed
-            if (MasterHolder.ItemMaster.TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier)) candidates.Add(nextTier);
+            if (TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier)) candidates.Add(nextTier);
             return candidates;
 
             #region Internal
 
-            bool TryFindHighestEquipped(out ModuleMasterElement found)
+            // 指定 tier の品質モジュール定義。同じ tier が複数あればマスタの並びで先のもの。モジュールを定義しないマスタ（items.yml で optional）では false
+            // The quality module of the tier; with several of one tier the first in master order; false for a master defining no modules (optional in items.yml)
+            static bool TryGetQualityModuleOfTier(int tier, out ModuleMasterElement module)
             {
-                found = null;
-                foreach (var equippedModule in equipped)
+                module = null;
+                if (MasterHolder.ItemMaster.Items.Modules == null) return false;
+                foreach (var candidate in MasterHolder.ItemMaster.Items.Modules)
                 {
-                    var module = equippedModule.Module;
-                    if (module.EffectAxis != ModuleMasterElement.EffectAxisConst.Quality || equippedModule.Count <= 0) continue;
-                    if (found == null || found.Tier < module.Tier) found = module;
+                    if (candidate.EffectAxis != ModuleMasterElement.EffectAxisConst.Quality || candidate.Tier != tier) continue;
+                    module = candidate;
+                    return true;
                 }
-                return found != null;
+                return false;
             }
 
             #endregion
@@ -15804,8 +16377,8 @@ git commit -m "確定済み抽選の組・損失率・品質Tier・換気回数�
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs`
-- Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitterParamValidator.cs`
-- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:27-28`
+- Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs`
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:5,27-28`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs`
 
 **Interfaces:**
@@ -15814,7 +16387,7 @@ git commit -m "確定済み抽選の組・損失率・品質Tier・換気回数�
   - `namespace Core.Master.FilterSplitter { public enum FilterSplitterOutputSide { Left = 0, Front = 1, Right = 2 } }`
   - `public static bool FilterSplitterOutputSideResolver.TryResolve(IBlockConnector input, IBlockConnector output, out FilterSplitterOutputSide side)`
   - `public static IReadOnlyList<FilterSplitterOutputSide> FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects connectors)`（並びは `OutputConnects` の並び＝方向の番号。決まらない出口は例外。読込時の検証が先に止めるので通常は来ない）
-  - `internal static string FilterSplitterParamValidator.Validate(Blocks blocks)`
+  - `namespace Core.Master.Validator.Block.FilterSplitter { internal static class FilterSplitterParamValidator { internal static string Validate(Blocks blocks); } }`
 
 - [ ] **Step 1: テストを書く**
 
@@ -16027,14 +16600,16 @@ namespace Core.Master.FilterSplitter
 
 - [ ] **Step 5: 読込時の検証を書く**
 
-`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitterParamValidator.cs`:
+`Validator/Block/` 直下は今 .cs が 10 本（BeltSpeedPerSecond・BlockConnector・BlockConstruction・BlockDestructionCategory・BlockGearConsumption・BlockParam・CleanRoomItemHatchThroughput・ExtractionSettings・RocketLaunchPadParam・SpaceElevatorBaseParam の各 Validator）で、1ディレクトリ10本の上限にある。そこで新しいサブディレクトリ `Validator/Block/FilterSplitter/` を切って置く。名前空間は `Validator/` の下の既存サブディレクトリの多数の付け方（`Item/` → `Core.Master.Validator.Item`、`MachineUpgrade/` → `Core.Master.Validator.MachineUpgrade`、`OrbitalPayload/` → `Core.Master.Validator.OrbitalPayload`、`Block/` → `Core.Master.Validator.Block`。`CleanRoom/` だけは `Core.Master.Validator` のまま）に合わせてフォルダの並びどおり `Core.Master.Validator.Block.FilterSplitter` にし、呼び手（`BlockMasterUtil`）は using を足して呼ぶ（前例: `ItemMasterUtil.cs:5` の `using Core.Master.Validator.OrbitalPayload;` で `OrbitalPayloadMasterValidator.Validate` を呼ぶ）。新しいディレクトリと .cs の `.meta` は手で作らず、Step 6 の compile で Unity が作る。
+
+`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs`:
 
 ```csharp
 using System.Collections.Generic;
 using Core.Master.FilterSplitter;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Core.Master.Validator.Block
+namespace Core.Master.Validator.Block.FilterSplitter
 {
     // 出口を左・正面・右で見せられないフィルター分岐器を読込時に止める（画面の見出しが番号に戻れないため）
     // Stops at load any filter splitter whose exits cannot be shown as left, front and right (the screen has no numbered fallback)
@@ -16080,7 +16655,19 @@ namespace Core.Master.Validator.Block
 }
 ```
 
-`moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs` の 27〜28 行:
+`moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs` の 5 行（using）:
+
+直す前:
+```csharp
+using Core.Master.Validator.Block;
+```
+直した後:
+```csharp
+using Core.Master.Validator.Block;
+using Core.Master.Validator.Block.FilterSplitter;
+```
+
+同じファイルの 27〜28 行（using を足した後は 28〜29 行）:
 
 直す前:
 ```csharp
@@ -16102,25 +16689,27 @@ Expected: ErrorCount 0 / 7 件 PASS。続けて既存の分岐器とマスタ検
 - [ ] **Step 7: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Core.Master/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitterParamValidator.cs moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitterParamValidator.cs.meta moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs moorestech_server/Assets/Scripts/Core.Master/FilterSplitter.meta moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter.meta
+git add moorestech_server/Assets/Scripts/Core.Master/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter.meta moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs moorestech_server/Assets/Scripts/Core.Master/FilterSplitter.meta moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter.meta
 git commit -m "フィルター分岐器の出口を入口から見た左・正面・右で決める関数と、決まらないマスタを読込時に止める検証を足す"
 ```
 
 ### Task E2: クライアントが開いた分岐器のマスタから側を決めて詳細に載せ、文言の表を変える
 
+この Task は Task B3 の後に実施する。`SpecialBlockDetailReader.cs`・`SpecialDetailSamples.cs` は B3 も直すので、『直す前』は B3 の後の形（`localization.csv` も B1 の後の形）。
+
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs:1-19`
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:1-9,33-40`
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs:1-18,36,89`
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（B3 の後の using の並び・`Read` の戻り値の `SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),` の行・`RocketLaunchPadDetail ReadRocketLaunchPad()` の直前。行番号は B3 でずれるので文字列で探す）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:1-2,22-46`
-- Modify: `Localization/localization.csv:72-74`（`outputNumber` の 75 行は Task E3 で消す）
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs:22-27`
+- Modify: `Localization/localization.csv`（`ui.blockInventory.filterDefault`〜`filterBlacklist` の 3 行。今の 72〜74 行、B1 の後は 73〜75 行。`outputNumber` の行は Task E3 で消す）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs`（`FilterSplitter` の見本。今の 22〜27 行、B3 の後は 24〜29 行）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs:1-10,20-26,67-76`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs`（Create）
 
 **Interfaces:**
-- Consumes: Task E1 の `FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects)`・`Core.Master.FilterSplitter.FilterSplitterOutputSide`。プロトコル（`va:filterSplitterState`）は変えない
+- Consumes: Task E1 の `FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects)`・`Core.Master.FilterSplitter.FilterSplitterOutputSide`。Task B3 の後の `public static SpecialBlockDetailViewModel SpecialBlockDetailReader.Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)`（5 引数。E2 のテストはこの形で呼ぶ）。プロトコル（`va:filterSplitterState`）は変えない
 - Produces:
   - `FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)` と `FilterSplitterOutputSide FilterSplitterDirectionDetail.Side { get; }`
   - `public static LocalizationKey FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide side)`
@@ -16196,8 +16785,9 @@ git commit -m "フィルター分岐器の出口を入口から見た左・正�
         }
 ```
 
-`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs` を作る（前例 同じディレクトリの `SpecialBlockDetailReaderSlotTest`）:
+`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs` を作る（前例 同じディレクトリの `SpecialBlockDetailReaderSlotTest`。`Read` は B3 の後の 5 引数で、積荷の解放は分岐器に関わらないので B3 の既存テストの書き換えと同じく `Array.Empty<ItemId>()` を渡す）:
 ```csharp
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BeltTransport;
@@ -16277,7 +16867,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Source
 
         private static SpecialBlockDetailViewModel Read(Client.Game.InGame.Block.BlockGameObject block, BlockNetworkInfoCache cache)
         {
-            return SpecialBlockDetailReader.Read(block, cache, new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), out _);
+            return SpecialBlockDetailReader.Read(block, cache, new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), Array.Empty<ItemId>(), out _);
         }
     }
 }
@@ -16362,7 +16952,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         }
 ```
 
-`SpecialBlockDetailReader.cs`: using に `using Core.Master.FilterSplitter;` を足す（`using Client.Ui.State.Text;` の次）。36 行。直す前:
+`SpecialBlockDetailReader.cs`（B3 の後の形。B3 は using に `Client.Ui.State.BlockInventory.Special.Cargo`・`Core.Master` を足し、`Read` に `unlockedPayloadItemIds` の引数と 2 行のコメントを足し、`ReadRocketLaunchPad`・`ReadSpaceElevator` の中身を書き換える。下の目印の行と `RocketLaunchPadDetail ReadRocketLaunchPad()` の行は B3 の後も残る）: using に `using Core.Master.FilterSplitter;` を足す（B3 の後の並びで `using Core.Master;` の次）。`Read` の戻り値の組み立ての行（今は 36 行、B3 の後は 40 行前後）。直す前:
 ```csharp
                 SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),
 ```
@@ -16370,7 +16960,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 ```csharp
                 SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), ReadFilterSplitter(),
 ```
-`#region Internal` の中、`RocketLaunchPadDetail ReadRocketLaunchPad()`（89 行）の直前に足す:
+`#region Internal` の中、`RocketLaunchPadDetail ReadRocketLaunchPad()`（今は 89 行、B3 の後は 93 行前後）の直前に足す:
 ```csharp
             FilterSplitterDetail ReadFilterSplitter()
             {
@@ -16382,7 +16972,9 @@ namespace Client.Ui.State.BlockInventory.Special.Details
                 return SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter, FilterSplitterOutputSideResolver.ResolveAll(splitterParam.InventoryConnectors));
             }
 
-`SpecialDetailSamples.cs` の 22〜27 行。直す前:
+```
+
+`SpecialDetailSamples.cs` の `FilterSplitter` の見本（今の 22〜27 行。B3 が using を 2 行足した後は 24〜29 行。B3 が直すのは Rocket・SpaceElevator の行だけで、この 6 行は B3 の後も同じ）。直す前:
 ```csharp
         public static FilterSplitterDetail FilterSplitter => new(new[]
         {
@@ -16391,7 +16983,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
             new FilterSplitterDirectionDetail(FilterSplitterMode.Blacklist, new[] { new ItemId(7), new ItemId(8) }),
         });
 ```
-直した後（出荷マスタと同じ 左・正面・右 の並び。using に `using Core.Master.FilterSplitter;` を足す）:
+直した後（出荷マスタと同じ 左・正面・右 の並び。using に `using Core.Master.FilterSplitter;` を足す〈B3 の後の並びで `using Core.Master;` の次〉）:
 ```csharp
         public static FilterSplitterDetail FilterSplitter => new(new[]
         {
@@ -16429,7 +17021,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 
 - [ ] **Step 4: 文言の表を変える**
 
-`Localization/localization.csv` の 72〜75 行。直す前:
+`Localization/localization.csv` の今の 72〜75 行（B1 が 59〜62 行の後に 1 行足すので、B1 の後は 73〜76 行。中身は B1 の後も同じなので文字列で探す）。直す前:
 ```
 ui.blockInventory.filterDefault,Default,Default,デフォルト,Standard,기본
 ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Positivliste,화이트리스트
@@ -16462,10 +17054,12 @@ git commit -m "フィルター分岐器の詳細に、開いたブロックの�
 
 ### Task E3: 画面の見出しを側から出し、実際の文を確かめる
 
+`localization.csv` は B1 も直すので、この Task の『直す前』は B1・E2 の後の形。ほかの Files は領域 A〜D の下書きの Files 節に出てこない。
+
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/FilterSplitter/FilterDirectionView.cs`（全体）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Text/SpecialDetailTexts.cs:8-10,53-58`
-- Modify: `Localization/localization.csv:75`（`outputNumber` の行を消す）
+- Modify: `Localization/localization.csv`（`ui.blockInventory.outputNumber` の行を消す。今の 75 行、B1・E2 の後は 76 行）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/FilterSplitterBodyViewTest.cs`
 
 **Interfaces:**
@@ -16539,11 +17133,13 @@ using Mooresmaster.Localization.Generated;
 
             foreach (var mode in new[] { "Default", "Whitelist", "Blacklist" })
             {
+                // 測るのは表示の文（text）、失敗の文に出すのは印を外した原文（PlainText）
+                // Measure the displayed text; report the tag-free source text on failure
                 var button = Find<Button>(shell.View, $"filter-mode-0-{mode}");
-                var label = button.Q<TextElement>(className: "mode-switch__label");
+                var label = button.Q<Label>(className: "mode-switch__label");
                 var oneLine = label.MeasureTextSize("A", 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined).y;
                 var actual = label.MeasureTextSize(label.text, label.contentRect.width, VisualElement.MeasureMode.Exactly, 0f, VisualElement.MeasureMode.Undefined).y;
-                Assert.AreEqual(oneLine, actual, 0.5f, $"{language} {mode} 「{label.text}」が折り返した");
+                Assert.AreEqual(oneLine, actual, 0.5f, $"{language} {mode} 「{label.PlainText()}」が折り返した");
             }
         }
 
@@ -16557,6 +17153,8 @@ using Mooresmaster.Localization.Generated;
             return new FilterSplitterDetail(sides.Select(side => new FilterSplitterDirectionDetail(side, FilterSplitterMode.Default, new[] { ItemMaster.EmptyItemId })).ToArray());
         }
 ```
+
+画面の文の読み方: 見出しは `LocalizedLabel`（`SpecialViewParts.Label`）、モード名も `LocalizedLabel`（`ModeSwitch.cs:61`）で、`text` の頭には行の高さ・字間の印が付きうる（`LocalizedLabel.cs:62-63,103,143`）。文を比べる所は、どれも原文を読む `TextOf`（`SpecialScreenTestHost.cs:103-106` の `Find<Label>(…).PlainText()`）と `ModeLabelOf`（`.PlainText()`）を通す。`PlainText` は `WrapSafeLabel.WordsText`（`LocalizedLabel` では `SourceText`）を読んで印を外す（`Client.Tests/Ui/TestHost/LabelPlainText.cs:19-23`）。1行に収まるかの検査だけは表示の `text` を測る（前例 `BuildMenuLayoutTest.cs:146-148`）。`mode-switch__label` は `text--*` のクラスを持たず（`ModeSwitch.cs:63`、`ModeSwitch.uss:99-104`）`--localized-label-line-box` が当たらないので、行の高さの印は付かず「A」の1行の高さと同じ物差しで比べられる。
 
 - [ ] **Step 2: 赤を確かめる**
 
@@ -16681,7 +17279,7 @@ View が `OutputNumber` を呼ばなくなるので消す。`SpecialDetailTexts.
     /// </summary>
 ```
 
-`Localization/localization.csv` の `outputNumber` の行（E2 の後も 75 行）を消す:
+`Localization/localization.csv` の `outputNumber` の行（B1・E2 の後は 76 行。文字列で探す）を消す:
 ```
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
 ```
@@ -16749,15 +17347,14 @@ git commit -m "用語集にフィルター分岐器の出口（左・正面・�
 ```csharp
 // 出荷マスタのフィルター分岐器を東向きに置いて開き、出口の見出しが左・正面・右の順に出てモード名が言い換わっていることを確かめる
 // Place the shipped filter splitter facing east, open it, and confirm the exit headings read left, front, right and the mode names are reworded
-using System;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
-using Client.Playtest.Operations.Ui;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Text;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
@@ -16808,12 +17405,33 @@ return PlaytestRunner.Run("filter-splitter-side-labels", new PlaytestRunOptions 
 
     #region Internal
 
-    string Text(string testid) => (GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid) as TextElement)?.text ?? "";
-    string ModeText(string optionTestid) => GameUiRoot.Instance.GetRootElement().Q<VisualElement>(optionTestid)?.Q<TextElement>(className: "mode-switch__label")?.text ?? "";
+    // LocalizedLabel の text は行の高さの印を頭に付けた表示文なので、辞書の文と比べるときは原文（SourceText）を読む（前例 uitk-challenge-gate の PlainText）
+    // LocalizedLabel.text is the display text prefixed with a line-height tag, so compare the source (SourceText) with the dictionary (precedent: PlainText in uitk-challenge-gate)
+    string Text(string testid) => (GameUiRoot.Instance.GetRootElement().Q<VisualElement>(testid) as LocalizedLabel)?.SourceText ?? "";
+    string ModeText(string optionTestid) => GameUiRoot.Instance.GetRootElement().Q<VisualElement>(optionTestid)?.Q<LocalizedLabel>(className: "mode-switch__label")?.SourceText ?? "";
 
     #endregion
 });
 ```
+
+using と使う型・拡張メソッドの突き合わせ（`run-scenario.sh` が足す using は起動用の `using Client.Playtest;` だけ。`scripts/run-scenario.sh:92,95`）:
+
+| using | このシナリオで使うもの（定義の場所） |
+|---|---|
+| `Client.Game.InGame.Map.MapObject` | `MapObjectGameObjectDatastore`（`Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs`） |
+| `Client.Game.InGame.UI.UIState` | `UIStateEnum`（`Client.Game/InGame/UI/UIState/UIStateEnum.cs`） |
+| `Client.Localization` | `Localize.Get(LocalizationKey)`（`Client.Localization/Localize.cs:43`） |
+| `Client.Playtest` | `PlaytestRunner`・`PlaytestRunOptions` と `PlaytestDriver` のメンバー `SetupFlatGround`・`Until`・`CurrentUiState`・`PlaceBlockDirect`・`WaitSeconds`・`WaitBlockGameObject`・`WarpPlayer`・`PlayerPosition`・`AimAt`・`WaitUiState`・`Assert`・`Screenshot`・`ClickUi`（`Client.Playtest/PlaytestDriver.cs`）、`SkipOpeningSkitIfPlaying`（`Client.Playtest/PlaytestSkitDriver.cs`） |
+| `Client.Playtest.Input` | `SemanticInput`（`Client.Playtest/Input/SemanticInput.cs`） |
+| `Client.Playtest.Operations` | 拡張メソッド `PressInteract`（`Client.Playtest/Operations/PlaytestInteractOps.cs:13`） |
+| `Client.Ui.Foundation.Root` | `GameUiRoot.Instance.GetRootElement()`（`Client.Ui/Foundation/Root/GameUiRoot.cs:16,41`） |
+| `Client.Ui.Foundation.Text` | `LocalizedLabel.SourceText`（`Client.Ui/Foundation/Text/LocalizedLabel.cs:64`） |
+| `Cysharp.Threading.Tasks` | 非同期ラムダが返す `UniTask`（前例のシナリオと同じく置く） |
+| `Game.Block.Interface` | `BlockDirection`（`moorestech_server/Assets/Scripts/Game.Block.Interface/Direction/BlockDirection.cs`） |
+| `Mooresmaster.Localization.Generated` | `LocalizationKeys.Ui.BlockInventory.*` |
+| `UnityEngine`・`UnityEngine.InputSystem`・`UnityEngine.UIElements` | `Camera`・`Mathf`・`Vector3`/`Vector3Int`、`InputSystem`・`InputSettings`・`InputDevice`・`Keyboard`・`Mouse`・`Key`、`VisualElement`・`Q` |
+
+前の版の `using System;`（使う型が無い）と `using Client.Playtest.Operations.Ui;`（使う型が無い）は外した。`BlockGameObject.IsPlayingPlaceAnimation` はインスタンスのメンバーなので using は要らない。シナリオは 67 行。
 
 - [ ] **Step 2: 走らせる**
 
@@ -17056,7 +17674,7 @@ gh pr create --repo moorestech/moorestech_master --base master --head feat/quali
 BODY
 )"
 ```
-コミットのハッシュを控える（Task E8 で使う）。マスタ PR は本 repo の PR と同じ時に出す（AGENTS.md「別リポジトリに変更が及ぶ場合も…PRを作る」）。
+コミットのハッシュを控える（Task E8 で使う）。マスタ repo の PR は E7 で作り、本 repo の PR 本文から張る。マスタ repo の PR を先にマージする（本 repo のピンはこの PR の push 済みコミットを指すため。AGENTS.md「別リポジトリに変更が及ぶ場合も…PRを作る」）。
 
 ### Task E8: ピンを進め、出荷マスタで品質モジュール研究が ICチップを解放することを録画で確かめる
 
@@ -17089,14 +17707,15 @@ git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add 
 - [ ] **Step 3: シナリオを書く**
 
 ```csharp
-// 出荷マスタで品質モジュールLv1〜4 の研究を完了扱いにし、速度モジュールの研究をせずに ICチップLv2〜5 がクライアントで解放済みになることを確かめる
-// On the shipped master, complete quality module Lv1-4 research and confirm IC chip Lv2-5 become unlocked on the client without any speed module research
+// 出荷マスタで品質モジュールLv1〜4 の研究を完了扱いにし、速度モジュールの研究をせずに ICチップLv2〜5 がクライアントで解放済みになることと、後から速度モジュールLv1〜4 を済ませても解放の状態が変わらず例外も出ないことを確かめる
+// On the shipped master, complete quality module Lv1-4 research and confirm IC chip Lv2-5 unlock on the client without speed module research, then that completing speed module Lv1-4 afterwards keeps them unlocked without exceptions
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Client.Playtest.Operations;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -17111,11 +17730,15 @@ var qualityResearch = new[]
 }.Select(Guid.Parse).ToArray();
 var speedResearch = new[]
 {
-    "019e3ae2-5005-7439-b242-9b7b3191a2c3",
+    "019e3ae2-5005-7439-b242-9b7b3191a2c3", "01a19cf1-4842-7064-82b6-5a6df2e2d583", "01a19cf1-484d-7116-99a9-6808c43f6199", "01a19cf1-4858-722c-8a40-a2ca854edee9",
 }.Select(Guid.Parse).ToArray();
 var chips = new[]
 {
     "878ea106-3689-4bcd-8d9a-e18b0e03072c", "d403eb63-f913-456f-842d-41980cdfc0bc", "2ef1886a-30b0-4792-8c20-0f39c370443a", "01a17356-2aff-701f-9a1c-17524cddb030",
+}.Select(Guid.Parse).ToArray();
+var speedOnlyDies = new[]
+{
+    "01a17356-2aff-701f-9a1c-174e55eb20f8", "01a17356-2aff-701f-9a1c-174f781ba191", "01a17356-2aff-701f-9a1c-1750b8ac3222", "01a17356-2aff-701f-9a1c-175178dfda4c",
 }.Select(Guid.Parse).ToArray();
 
 return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 120f }, async p =>
@@ -17127,9 +17750,10 @@ return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOpt
     // 前提の閉包に速度モジュールの研究が入らないことを先に確かめる（入ると速度側の解放で通ってしまう）
     // First confirm the prerequisite closure contains no speed module research (otherwise the speed-side unlock would pass the check)
     var done = WithPrerequisites(qualityResearch).ToList();
-    p.Assert(!done.Intersect(speedResearch).Any(), "品質モジュールLv1〜4 の前提に速度モジュールLv1 が入っていない");
+    p.Assert(!done.Intersect(speedResearch).Any(), "品質モジュールLv1〜4 の前提に速度モジュールLv1〜4 が入っていない");
     var clientUnlock = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
     var chipIds = chips.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToArray();
+    var dieIds = speedOnlyDies.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToArray();
     p.Assert(chipIds.All(id => !clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), "研究の前は ICチップLv2〜5 が未解放");
 
     // 品質モジュールの研究を前提ごと完了扱いにする（解放アクションも再実行される。前例 tier9-2-modules）
@@ -17138,6 +17762,23 @@ return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOpt
     await p.WaitForResearch(qualityResearch, Array.Empty<Guid>(), 15f, "品質モジュールLv1〜4 の研究が完了");
     await p.Until(() => chipIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "ICチップLv2〜5 がクライアントで解放済み");
     await p.Screenshot("quality-research-unlocks-ic-chip");
+
+    // 速度モジュールLv1〜4 も前提ごと完了扱いにする。LoadResearchData は完了一覧を置き換えるので、品質側と合わせた閉包を渡す
+    // Also mark speed module Lv1-4 done with prerequisites; LoadResearchData replaces the completed list, so pass the closure including the quality side
+    var exceptions = new List<string>();
+    Application.LogCallback onLog = (condition, _, type) => { if (type == LogType.Exception) exceptions.Add(condition); };
+    Application.logMessageReceived += onLog;
+    var doneWithSpeed = WithPrerequisites(qualityResearch.Concat(speedResearch)).ToList();
+    await p.RunOnServer("速度モジュールLv1〜4 も前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = doneWithSpeed.Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(qualityResearch.Concat(speedResearch).ToArray(), Array.Empty<Guid>(), 15f, "速度モジュールLv1〜4 の研究も完了");
+
+    // 速度側だけが解放するシリコンダイLv2〜5 がクライアントに届くのを待ち、同じ回の ICチップの重複解放を受け終えてから見る（通知の回数は Task E6 の NUnit が見る）
+    // Wait until the speed-only silicon die Lv2-5 unlocks reach the client, so the duplicate IC chip unlocks of the same pass are received too (notification counts are E6's NUnit)
+    await p.Until(() => dieIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "速度側のシリコンダイLv2〜5 がクライアントで解放済み");
+    Application.logMessageReceived -= onLog;
+    p.Assert(chipIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), "速度モジュールLv1〜4 の後も ICチップLv2〜5 は解放済みのまま");
+    p.Assert(exceptions.Count == 0, $"速度モジュールLv1〜4 の重複解放で例外が出ない: {string.Join(" / ", exceptions)}");
+    await p.Screenshot("quality-then-speed-research");
 
     #region Internal
 
@@ -17155,14 +17796,37 @@ return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOpt
     #endregion
 });
 ```
-（`MasterHolder.ItemMaster.GetItemId(Guid)` は `Core.Master/ItemMaster.cs:73`、`ItemUnlockStateInfo.IsUnlocked` は `Game.UnlockState/States/ItemUnlockStateInfo.cs:10`。）
+（`MasterHolder.ItemMaster.GetItemId(Guid)` は `Core.Master/ItemMaster.cs:73`、`ItemUnlockStateInfo.IsUnlocked` は `Game.UnlockState/States/ItemUnlockStateInfo.cs:10`。速度モジュールLv1〜4 の GUID と、それぞれが `unlockItemRecipeView` で解放するシリコンダイLv(n+1)・ICチップLv(n+1)・品質モジュールLvn は、ピン `aaa89bc` の research.json で確かめた。`ResearchDataStore.LoadResearchData` は先頭で `_completedResearchGuids.Clear()` するので（`Game.Research/ResearchDataStore.cs:141`）、2 回目は品質側を含む閉包を渡す。）
+
+「例外も出ない」の見方: `RunOnServer` の中のサーバーの例外は `PlaytestServerThreadAction` がシナリオへ渡して failed になる（`Client.Playtest/Core/PlaytestServerThreadAction.cs:79,144`）。一方 result.json の `Success` は assert だけで決まり（`PlaytestRunner.cs` の `result.Success = result.Asserts.TrueForAll(...)`）、クライアント側で `Debug.LogException` に流れた例外は `ErrorLogs` に載るだけで failed にしない。そこで速度側の段の間だけ `Application.logMessageReceived` で `LogType.Exception` を集め、assert にする。
+
+using と使う型・拡張メソッドの突き合わせ（`run-scenario.sh` が足す using は起動用の `using Client.Playtest;` だけ）:
+
+| using | このシナリオで使うもの（定義の場所） |
+|---|---|
+| `System` | `Guid`・`Array.Empty` |
+| `System.Collections.Generic` | `IEnumerable<T>`・`HashSet<T>`・`Stack<T>`・`List<T>` |
+| `System.Linq` | `Select`・`ToArray`・`ToList`・`Intersect`・`Any`・`All`・`Concat` |
+| `Client.Game.InGame.Context` | `ClientDIContext.DIContainer.DIContainerResolver`（`Client.Game/InGame/Context/ClientDIContext.cs:15`） |
+| `Client.Game.InGame.UI.UIState` | `UIStateEnum` |
+| `Client.Playtest` | `PlaytestRunner`・`PlaytestRunOptions` と `PlaytestDriver` のメンバー `SetupFlatGround`・`Until`・`CurrentUiState`・`Assert`・`RunOnServer`・`Screenshot`（`Client.Playtest/PlaytestDriver.cs`）、`SkipOpeningSkitIfPlaying`（`Client.Playtest/PlaytestSkitDriver.cs`） |
+| `Client.Playtest.Operations` | 拡張メソッド `WaitForResearch(this PlaytestDriver, Guid[], Guid[], float, string)`（`Client.Playtest/Operations/ServerSnapshots/PlaytestResearchSnapshots.cs:10,24`。前の版はこの using が無く CS1061 で落ちた） |
+| `Core.Master` | `MasterHolder.ItemMaster.GetItemId`・`MasterHolder.ResearchMaster.GetResearch(...).PrevResearchNodeGuids` |
+| `Cysharp.Threading.Tasks` | 非同期ラムダが返す `UniTask`（前例 `tier9-2-modules.cs:15` と同じく置く） |
+| `Game.Context` | `ServerContext.GetService<T>()`（`Game.Context/ServerContext.cs:27`） |
+| `Game.Research` | `IResearchDataStore`・`ResearchSaveJsonObject`（`Game.Research/IResearchDataStore.cs`） |
+| `Game.UnlockState` | `IGameUnlockStateData.ItemUnlockStateInfos`（`Game.UnlockState/IGameUnlockStateDatastoreController.cs:19`。値の `ItemUnlockStateInfo` はメンバーを読むだけなので `Game.UnlockState.States` の using は要らない） |
+| `UnityEngine` | `Camera`・`Application.LogCallback`・`Application.logMessageReceived`・`LogType` |
+| `VContainer` | `IObjectResolver.Resolve<T>()` の拡張（前例 `uitk-production-loop.cs:26,78`） |
+
+シナリオは 88 行（200 行以下。コードブロックの行を数えた）。
 
 - [ ] **Step 4: 走らせる**
 
 ```bash
 .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/pin-<先頭8桁>/server_v8
 ```
-Expected: passed（下書き時に確かめたこと: 4つの品質モジュール研究の前提の閉包は 43 研究で、速度モジュール研究も、ICチップLv2〜5 を解放する研究も入っていない。ICチップLv2〜5 は `initialUnlocked: false`。よって「研究の前は未解放」と「品質モジュール研究だけで解放」の assert は今のマスタで正しく分かれる）。同じピンで Task E6 のシナリオと既存の `scenarios/tier9/tier9-2-modules.cs`（速度モジュールLv1 を含む研究と、Lv2 チップが製作上限で拒まれること）も走らせ、passed のままであること（製作上限は `unlockLevelInheritanceCraftLevel` で別なので変わらない想定）。
+Expected: passed（下書き時に確かめたこと: 4つの品質モジュール研究の前提の閉包は 43 研究で、速度モジュール研究も、ICチップLv2〜5 を解放する研究も入っていない。ICチップLv2〜5 は `initialUnlocked: false`。よって「研究の前は未解放」と「品質モジュール研究だけで解放」の assert は今のマスタで正しく分かれる）。終わりの段の assert（速度モジュールLv1〜4 の後も ICチップLv2〜5 が解放済みのまま・例外が出ない）も通り、result.json の `ErrorLogs` に `[Exception]` が無いこと。録画でスクショが 2 枚（`quality-research-unlocks-ic-chip`・`quality-then-speed-research`）あること。同じピンで既存の `scenarios/tier9/tier9-2-modules.cs`（速度モジュールLv1 を含む研究と、Lv2 チップが製作上限で拒まれること）も走らせ、passed のままであること（製作上限は `unlockLevelInheritanceCraftLevel` で別なので変わらない想定）。重複解放で通知が 1 回になることは録画では数えない（Task E6 の NUnit `ItemUnlockDuplicateTest` が見る）。
 
 - [ ] **Step 5: コミットする**
 
@@ -17186,8 +17850,9 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 
 - [ ] **Step 1: マスタ repo の PR（Task E7 で作ったもの）が出ていて、本 repo の `.moorestech-external-revisions.json` のピンがその PR の push 済みコミットを指していることを確かめる**
 - [ ] **Step 2: pr-create スキルで本 repo の PR を作る。** PR 本文の先頭行は報告ページ `https://review.moores.tech/pr/<PR番号>/report/` の URL（h1）。報告ページには B8・D7・E5・E8 の録画と、発射台・拠点・精密切断機・EUV・清浄機・フィルター分岐器の変更前後の画面を載せる（素材と公開の手順は `~/hermes-agent/data/services/pr-review/publish/README.md`）。PR 本文に、マスタ repo の PR の URL と「マスタ repo の PR を先にマージする」ことを書く。
-- [ ] **Step 3: PR 本文の「残り」に次を書く。** 実キーボードでの確認はしていない（入力は注入）／セーブの版は裁定により上げていない／既存のワールドの発射台と拠点は未選択で読み込まれる。
-- [ ] **Step 4: テストで `Saves/` に作ったワールドを `list-work-saves.sh` で探して消し、`moores-wt rm ui-clarity-rocket-cleanroom-dicing` で worktree と Editor を畳む**
+- [ ] **Step 3: PR 本文に「前例の無い作り（レビューで見てほしい所）」と「この PR の外のリファクタ提案」を書く。** 中身は判断記録の「設計検査・反証検査の結果」の該当の箇条をそのまま写す。
+- [ ] **Step 4: PR 本文の「残り」に次を書く。** 実キーボードでの確認はしていない（入力は注入）／セーブの版は裁定により上げていない／既存のワールドの発射台と拠点は未選択で読み込まれる。
+- [ ] **Step 5: テストで `Saves/` に作ったワールドを `list-work-saves.sh` で探して消し、`moores-wt rm ui-clarity-rocket-cleanroom-dicing` で worktree と Editor を畳む**
 
 ## 配置と前例
 
@@ -17210,12 +17875,13 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 |---|---|---|---|---|
 | 解放済みの積荷の源 `UnlockedOrbitalCargoSource` | `moorestech_client/Assets/Scripts/Client.Ui.State/Recipe/Source/UnlockedMachineRecipeSource.cs` | 源が `IGameUnlockStateData` を ctor で受け、`UnlockedEventPacket` を購読して一覧を作り直す。`MachineSectionModel` が受けて購読 | 同じ。`SpecialBlockDetailModel` が受けて購読 | 一覧ではなく「解放済みの集合」を出す。ブロックごとの運ぶ種類との交わりは詳細の読み取りが取る（運ぶ種類がブロックごとに違うため） |
 | 積荷の詳細 `OrbitalCargoDetail` | 機械の `MachineSectionViewModel`（選択・行）／特殊族の `RocketLaunchPadDetail` | 機械: 専用の Model が組む。特殊族: `SpecialBlockDetailReader` がブロック状態とマスタから組み、`SpecialBlockDetailModel` が流す | 特殊族の経路のまま、発射台・拠点の詳細に載せる | 機械の専用 Model を作らない。発射台・拠点はすでに特殊族の詳細で届いており、新しい流れを足すと同じ状態を二重に購読するため |
-| 一覧の局所状態 `OrbitalCargoSelectionModeState` | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Machine/Selection/MachineSelectionModeState.cs` | `MachineSectionPresenter` が持ち、View の押下を受けて呼ぶ | `OrbitalCargoPane`（View）が持ち、自分の行・見出しの押下で呼ぶ | 特殊族の Presenter は汎用（`SpecialSectionPresenter<T>`）で局所状態を持たない。専用の Presenter（前例 `SpecialPresenters.Belt`）を作る案と比べ、出し分けが 1 つの View で閉じる方を選んだ（判断 5）。`ShowsSelection` を、要求が届いたら閉じる `ResolveShowsSelection` にした（閉じた後にほかの人の選び直しで開き直さないため。前例はこの場合に一覧へ戻る） |
+| 一覧の局所状態 `OrbitalCargoSelectionModeState` | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Machine/Selection/MachineSelectionModeState.cs` | `MachineSectionPresenter` が持ち（`MachineSectionPresenter.cs:20`）、View の押下（`OnChangeRecipeRequested`・`OnRecipeRowPressed`）を購読して `OpenSelection`・`RememberRequest` を呼び、`MachineSectionView.Render(viewModel, showsSelection)` で描かせる | 同じ。`OrbitalCargoBodyPresenter` が持ち、本文の View の押下（`OnChangeCargoRequested`・`OnCargoRowPressed`）を購読して呼び、`IOrbitalCargoBodyView.Render(itemSlots, detail, showsSelection)` で描かせる（判断 5） | `ShowsSelection` を、要求が届いたら閉じる `ResolveShowsSelection` にした（閉じた後にほかの人の選び直しで開き直さないため。前例はこの場合に一覧へ戻る）。Detach で局所状態を作り直す（前例 `BeltThroughputSectionPresenter.ResetSectionStateOnDetach`） |
+| 本文の専用の Presenter `OrbitalCargoBodyPresenter` | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Registration/SpecialPresenters.cs:35` の `Belt(...)` → `BeltThroughputSectionPresenter` | `SpecialPresenters` が購読の源（詳細の Model・パネル）を持ち、局所状態を持つ区画には専用の Presenter を作って渡す。Presenter は Attach で購読し、Detach で局所状態を戻す | 同じ。`SpecialPresenters.OrbitalCargoBody(view)` が作り、本文の工場（`SpecialBodyFactories`）が汎用の `Section(...)` の代わりに使う | 詳細と枠の流れは汎用の `SpecialSectionPresenter` と同じものが要るので、その組み立てを `SpecialPanelDetailStream.Of` へ移して共有した（Belt は詳細だけを購読するので使わない）。本文はいつも出す（`WholeSpecialDetailSelector` と同じ。未着は本文が取得待ちを語る） |
 | 選択のコマンド `SelectOrbitalCargo` | `SpecialBlockCommands.ConnectSpaceElevator`・`SendRocketCommand`（同ファイル） | コマンドが開いたパネル（`IBlockInventoryPanelSource`）から座標と実体 ID を取り、送り手を呼び、結果をトーストの係へ | 同じ。種別の確認だけ「拠点なら拠点、ほかは発射台」 | 機械の `MachineRecipeSelectCommand` は使わない（機械レシピの GUID を送る専用の型。ADR 0106 の「型は機械レシピ専用」） |
 | 選択の送り手 | `VanillaSpecialBlockRequestSender.SendRocketCommand` | 送り手が `ClientContext.VanillaApi.Response.Block` の送信口を呼び、待ちの結果と拒否理由を写す | 同じ（A の `SendOrbitalCargoSelection`） | なし |
 | 拒否の写像 `FromCargoSelectionFailure` | `SpecialBlockResponseCodes.FromRocketFailure` | 理由ごとに失敗コード。未知は例外 | 同じ | なし |
-| 一覧・行・見出し | `MachineRecipeSelectionList`・`MachineRecipeSelectionRowView`・`SelectedRecipeHeader`（`moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/`） | View が行の押下・見出しの押下を Subject で出し、`MachineSectionView` がコマンドへ | 同じ形。`OrbitalCargoPane` がコマンドへ | 行の文を「積むもの → 返るもの」にし、成果の品が無いケーブルは文で語る（ADR 0106 の 1）。共有部品 `RecipeRow`・`RecipeListScrollView` はそのまま使う |
-| 一覧と中身の出し分け `OrbitalCargoPane` | `MachineSectionView.Render(viewModel, showsSelection)` | View が「今のモードの中身だけを木に置く」。大型面では中身をスクロール器に入れる | 同じ | 持ち主（発射台・拠点の本文）が「選んだ後の中身」を渡す形にした（2 つの本文で共有するため） |
+| 一覧・行・見出し | `MachineRecipeSelectionList`・`MachineRecipeSelectionRowView`・`SelectedRecipeHeader`（`moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/`） | 部品が行・見出しの押下を Subject で出す。`MachineSectionView` が行の押下を直接コマンドへ送り（`MachineSectionView.cs:43–55`「Presenter は中継しない」）、同じ押下を `OnRecipeRowPressed` として Presenter へも出す | 同じ形。`OrbitalCargoPane` が行の押下を `kit.Commands.SelectOrbitalCargo` へ送り、同じ押下を `OnRowPressed` として出す（本文の View が `OnCargoRowPressed` として Presenter へ渡す） | 行の文を「積むもの → 返るもの」にし、成果の品が無いケーブルは文で語る（ADR 0106 の 1）。共有部品 `RecipeRow`・`RecipeListScrollView` はそのまま使う |
+| 一覧と中身の出し分け `OrbitalCargoPane` | `MachineSectionView.Render(viewModel, showsSelection)` | View がモードを引数で受け、「今のモードの中身だけを木に置く」。大型面では中身をスクロール器に入れる | 同じ。`Render(cargo, listStatus, showsSelection)` | 持ち主（発射台・拠点の本文）が「選んだ後の中身」を渡す形にした（2 つの本文で共有するため） |
 | 透かしの枠 | `MachineSlotGhosts.BuildMachineSlotView`・`MachineSlotContents.For`・`MachineSlotBand` | 機械の束縛から `BoundItemSlot` を組み、帯が `MachineSlotContents.For` で中身を作る | `OrbitalCargoSlotBinding` が `BoundItemSlot` を組み、`OrbitalCargoSlotContents` が `MachineSlotContents.For` で中身を作り、`BlockItemGrid.RenderContents` が描く | 枠の testid は `BlockItemGrid` の `{grid}-slot-{絶対添字}` を保つ（`MachineSlotBand` は位置で名前を付けるので使わない。既存の録画と L1 が添字で押すため） |
 | Shift の束縛 | 今の `SpecialBlockDetailReader` の発射台・拠点の束縛 | 読み取りがマスタの全枠・全種類で束縛を組み、`SpecialInletBindingContributor` が Shift の判定へ | 同じ経路で、選んだ積荷から組む | 未選択は空（拒否が確定）。サーバーの受け入れ（A）と同じにするため |
 | 大型パネルの規則 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Machine/RecipeMachineLargePanelRule.cs` | 規則が Model を購読し、判定の入力が変わったら流す | ブロックの種類だけで決め、流さない | 発射台・拠点は開いている間ずっと一覧へ戻れるので、常に大型（判断 11） |
@@ -17234,7 +17900,8 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | `CleanRoomDatastore.RequiredAirChangeRates` | `CleanRoomDatastore.TryGetCleanRoom`（照会用の読み口） | `CleanRoomInfoQuery` が datastore の持ち物を読む | 同じ。しきい値の列を作り直さず、判定段と同じ列を読む |
 | `ICleanRoomAirFilter.RatedRemovalVolumePerSecond` | 同じ interface の `RemovalVolumePerSecond` | 清浄機の部品の持ち物を collector が読む | 同じ |
 | `MachineModuleEffectComponent.CollectEffectiveModules`・`CanEquipOneMore` | 同じ部品の `AggregateCurrent`、`VanillaMachineModuleInventory.IsModuleEffective`・`CheckPlacement` | モジュール欄の持ち物（スロット・上限）を、効果の部品が読んで集計する | 同じ。「あと1個入るか」の判定はモジュール欄に置き、効果の部品は委ねるだけ |
-| `ItemMaster.TryGetQualityModuleOfTier` | `ItemMaster.GetModuleByItemIdOrNull` | マスタの持ち物を誰でも引く | 同じ |
+| 指定 tier の品質モジュールを引く `TryGetQualityModuleOfTier`（`CleanRoomQualityModuleCandidates.Select` のローカル関数） | `moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade/ModuleSlotStackLimitMasterUtil.cs`（マスタの値にドメインの解釈を足して引く static util。`ItemMaster` には足さない） | 機械のモジュール欄・研究がドメイン層の util を呼び、util が `MasterHolder.ItemMaster.Items` を読む | `CleanRoomQualityModuleCandidates`（Game.Block）だけが呼ぶので、その中のローカル関数に置き、`MasterHolder.ItemMaster.Items.Modules` を読む。呼び手が1つなので util ファイルは作らない（呼び手が増えたら `Game.Block.Interface/MachineUpgrade/` へ出す。今そこは 7 本） |
+| 刺さっている最高 tier | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffect.cs:46,67,89` の `HighestQualityModuleTier` | 抽選（品質の書き換え）が集計結果を読む | 候補選びも同じ `MachineModuleEffect.Aggregate(equipped).HighestQualityModuleTier` を読み、新しい探索関数を作らない |
 | `CleanRoomClassYield.FromThresholdIndex` | `CleanRoom.TryGetClassRow` | 部屋が自分の添字でマスタの行を読む | 値の側が添字からマスタの行を読む。部屋の効果の押し込みと仮のクラスが同じ口を通る |
 | 応答の組み立て `CleanRoomYieldResponseFactory` | `CleanRoomInfoMessagePackFactory`（部屋の取得側） | プロトコルがサーバーの照会結果を渡し、factory が wire へ写す | 同じ。今は `GetCleanRoomYieldInfoProtocol` の中にある写しを、部屋の取得と同じ形に外へ出す（ファイルが200行に近づくため） |
 
@@ -17263,7 +17930,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 
 | 新しく置くもの | 同じ役割の前例（パス） | 前例: 誰の持ち物を誰が取得・呼ぶか | 今回: 誰の持ち物を誰が取得・呼ぶか | 前例と違う所と理由 |
 |---|---|---|---|---|
-| 読込時の分岐器マスタ検証 `FilterSplitterParamValidator` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` | BlockMaster の `Blocks` を `BlockMasterUtil.Validate` が渡し、検証がブロック種別の param を読んで `[BlockMaster]` の文を返す | 同じ。`FilterSplitterBlockParam.InventoryConnectors` を読む | なし |
+| 読込時の分岐器マスタ検証 `FilterSplitterParamValidator` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` | BlockMaster の `Blocks` を `BlockMasterUtil.Validate` が渡し、検証がブロック種別の param を読んで `[BlockMaster]` の文を返す | 同じ。`FilterSplitterBlockParam.InventoryConnectors` を読む | 置き場だけ違う: `Validator/Block/` 直下は 10 本で上限なので、サブディレクトリ `Validator/Block/FilterSplitter/`（名前空間 `Core.Master.Validator.Block.FilterSplitter`）に置き、呼び手が using で呼ぶ（前例 `Validator/OrbitalPayload/` を `ItemMasterUtil.cs:5` の using で呼ぶ形） |
 | 側を決める純関数 `FilterSplitterOutputSideResolver` | `moorestech_server/Assets/Scripts/Core.Master/CleanRoomRoles/`（マスタの値から役割を導く Core.Master 内の専用フォルダ） | Core.Master の静的関数をサーバー・クライアントの各所が呼ぶ | Core.Master の静的関数を読込時の検証（サーバー）とクライアントの読み手が呼ぶ | なし。向きの回転は `BlockDirectionExtension.ConvertLocalCell` が持つが、側は回転前のブロック座標で決まるので回転を持ち込まない |
 | 開いた分岐器のマスタから側を決めて詳細に載せる（`SpecialBlockDetailReader.ReadFilterSplitter`） | 同じファイルの `ReadRocketLaunchPad`（`new RocketLaunchPadSlotLayout(rocketParam)` で枠の並びをマスタから組む）・`ReadSpaceElevator`（`SpaceElevatorBaseInventoryComponent.GetCarriedPayloadItemIds(elevatorParam)`） | クライアントの読み手が `block.BlockMasterElement.BlockParam` を引き、サーバーと共有する関数でマスタから不変の値を組み、届いた状態と合わせる | 同じ。`FilterSplitterBlockParam.InventoryConnectors` を `ResolveAll` に渡し、届いた応答の方向と番号で合わせる | なし |
 | 側→文言キー `OutputSideKey` | `FilterSplitterLogic.ModeKey` | 画面が Logic の静的関数でキーを引き `UiText` にする | 同じ | なし |
@@ -17335,7 +18002,8 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | 録画 `tier9-4`・`tier9-4b`・`tier9-6`・`uitk-block-special-panels` | 未選択は何も受けない・接続ボタンが出ない | B8（選び直しは新しい `tier9-4c` で確かめる） |
 | 録画 `uitk-s5-retake-blocks` | 開いた後に `space-elevator-status` を待つが、未選択は一覧なので出ない | B8 |
 | 録画 `pv-blocks` | 止まらない（撮る絵が一覧に変わるだけ） | 直さない |
-| `SpecialFactoriesTest`・`SpecialBlockDetailsTest`・`SpecialDetailSelectorTest`・`ElectricToGearOutputModeActionTest`・`BlockInventoryPanelLayoutModelTest` | 壊れない（工場の `Create(mount)` の形は同じ・`SpecialBlockCommands` の ctor は同じ・規則は注入した物だけを見る） | なし |
+| `SpecialFactoriesTest`・`SpecialBlockDetailsTest`・`SpecialDetailSelectorTest`・`ElectricToGearOutputModeActionTest`・`BlockInventoryPanelLayoutModelTest` | 壊れない（工場の `Create(mount)` の形は同じ〈発射台・拠点の工場は `OrbitalCargoBodyPresenter` を返すが、`IBlockInventoryPart` として扱う所は変わらない〉・`SpecialBlockCommands` の ctor は同じ・規則は注入した物だけを見る） | なし（B6 Step 4 で流す） |
+| 汎用の `SpecialSectionPresenter` を使う特殊族の L1（`NetworkSectionViewTest`・`GearSectionViewTest`・`GearToElectricSectionViewTest`・`ElectricBodyViewTest`・`FilterSplitterBodyViewTest`・`SpecialSectionStack*`） | 壊れない（枠と詳細の流れを `SpecialPanelDetailStream.Of` へ移すだけで、流れの式は同じ） | なし（B6 Step 4 で流す） |
 | `Client.Playtest` の `PlaytestBlockOps`・`PlaytestOrbitSnapshots` | 壊れない（プールと撤去の可否だけを読む） | なし |
 
 ### 領域 C: クリーンルームの数字（サーバーと運ぶ経路）
@@ -17412,7 +18080,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | Ctrl+クリックでベルトを分岐させる | 生きる | `BeltRouteBranchGeometry` は分岐器の出口の並びを読まない（下書き時に確認） |
 | テスト用 mod・ほかの mod の分岐器を読み込む | 生きる（今ある mod は全部通る）。今後、出口が入口から見て左・正面・右に決まらない分岐器を作った mod は読込時に止まる | 追跡中の blocks.json で `FilterSplitter` を持つのは forUnitTest（入口 (0,0,-1)・出口 +X/-X/+Z）と v8 出荷マスタ（入口 (0,0,-1)・出口 -X/+Z/+X）だけで、どちらも通る。EditModeInPlayingTestMod には分岐器が無い。止める判断は「判断」3 |
 | 研究「品質モジュールLv1〜4」を完了する | 変わる: ICチップLv2〜5 が解放され、レシピ一覧・研究画面の解放一覧（`UnlockEntries.cs:18` の ItemRecipeViewItemIds）・解放の通知・積荷の選択肢（解放済みだけを出す。裁定 2026-11-20）に出る | 裁定 2026-11-21 |
-| 研究「速度モジュールLv1〜4」を完了する | 生きる。ICチップLv(n+1) の解放はそのまま残る。品質モジュール研究を先に済ませていても、同じ ICチップの解放の通知は2回目を出さない（Task E6） | 裁定 2026-11-21（速度側は残す）。通知を1回にするのは「判断」15 |
+| 研究「速度モジュールLv1〜4」を完了する | 生きる。ICチップLv(n+1) の解放はそのまま残る。品質モジュール研究を先に済ませていても、同じ ICチップの解放の通知は2回目を出さない（Task E6） | 裁定 2026-11-21（速度側は残す）。通知を1回にするのは「判断」15。出荷マスタで品質→速度の順に済ませても解放の状態が変わらず例外も出ないことは Task E8 のシナリオの終わりの段、通知の回数は Task E6 の NUnit で見る |
 | ICチップLv2〜5 を作る（品質モジュールを刺した精密切断機・組立機） | 生きる | 製作上限は `unlockLevelInheritanceCraftLevel`（品質モジュール item）で別。裁定 2026-10-23。`tier9-2-modules.cs` で確かめる |
 | 既存の開発用ワールドを読み込む | 変わる: 品質モジュールLv1 以降を研究済みのワールドは、次に読み込んだとき ICチップLv2〜 が解放される | `ResearchDataStore.LoadResearchData` が完了済み研究の解放を再実行する（`WorldSaveDataRestorer.cs:110` で解放状態 → `:137` で研究）。`ResearchUnlockRecordFallbackLoadTest` が固定。ユーザーへの説明と食い違う → 「食い違い」1 |
 | アイテム一覧の並び順 | 変わる: 30 品目の sortPriority が動く（ICチップLv2〜5 が前へ） | master-refine 操作 A（解放順で並べる規約） |
@@ -17446,7 +18114,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
   - `TestRocketLaunchPad` は積荷を個別に持たない（全積荷表を運ぶ）。
   - そのため `OrbitalCargoCatalog.ForCarried` は例外を投げない。
   - ItemId 1〜5 は Test1〜Test5 で、名前を引ける。
-- tier9-4 の行数: 選び直しを tier9-4c に分けたので、197 行に収まる。
+- 録画シナリオの行数（今の worktree の `wc -l` → B8 の「後」を今のファイルの写しに当てた `wc -l`）: tier9-4 191 → 197、tier9-4b 157 → 169、tier9-6 200 → 200、uitk-block-special-panels 195 → 199、uitk-s5-retake-blocks 185 → 187、新規 tier9-4c 184。どれも 200 行以下。
 
 ### 領域 C: クリーンルームの数字（サーバーと運ぶ経路）
 
@@ -17586,12 +18254,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 ```csharp
         // 直す前
         public static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped)
-                if (effectComponent.CanEquipOneMore(highest)) candidates.Add(highest);
-            if (MasterHolder.ItemMaster.TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier)) candidates.Add(nextTier);
+            if (0 < highestTier && TryGetQualityModuleOfTier(highestTier, out var highest) && effectComponent.CanEquipOneMore(highest)) candidates.Add(highest);
+            if (TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier)) candidates.Add(nextTier);
         // 直した後
         public static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped, CleanRoomQualityModuleCraftability craftability)
-                if (effectComponent.CanEquipOneMore(highest) && craftability.CanCraft(highest)) candidates.Add(highest);
-            if (MasterHolder.ItemMaster.TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier) && craftability.CanCraft(nextTier)) candidates.Add(nextTier);
+            if (0 < highestTier && TryGetQualityModuleOfTier(highestTier, out var highest) && effectComponent.CanEquipOneMore(highest) && craftability.CanCraft(highest)) candidates.Add(highest);
+            if (TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier) && craftability.CanCraft(nextTier)) candidates.Add(nextTier);
 ```
 
 3. `CleanRoomYieldPreviewComponent` の ctor に `CleanRoomQualityModuleCraftability craftability` を足してフィールドに持ち、`GetPreview` の `CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, equipped)` を `Select(_moduleEffectComponent, equipped, _craftability)` にする。`VanillaCleanRoomMachineTemplate.cs` の `new CleanRoomYieldPreviewComponent(...)` に `new CleanRoomQualityModuleCraftability(ServerContext.GetService<IGameUnlockStateDataController>(), ServerContext.GetService<ILevelInheritanceCraftCapLookup>())` を足す（前例 `BlockTemplateUtil.cs:56-57`）。
@@ -17682,7 +18350,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 
 **Task E7 Step 5**: コミット文を「品質モジュールLv1〜5の研究でICチップLv2〜5・シリコンダイLv2〜5・品質モジュールLv1〜5のアイテム解放を足し、解放順でsortPriorityを再計算する」、PR の題を「品質モジュール研究でICチップ・シリコンダイ・品質モジュールのアイテムを解放する」、本文の1行目を同じ内容にし、件数を「34 品目」にする。
 
-**Task E8 Step 3**（シナリオ）: 先頭の2つの配列を次に替える（`speedResearch` と本体は同じ。assert の文の「ICチップLv2〜5」は「ICチップ・シリコンダイ・品質モジュール」に読み替える）:
+**Task E8 Step 3**（シナリオ）: using（`Client.Playtest.Operations` を含む本文の並び）・`speedResearch`（速度モジュールLv1〜4）・終わりの速度モジュールの段の流れは本文と同じ。替えるのは次の 3 か所で、assert の文の「ICチップLv2〜5」は「ICチップ・シリコンダイ・品質モジュール」に読み替える。
+
+(1) `qualityResearch` と `chips` の配列を次に替える:
 ```csharp
 var qualityResearch = new[]
 {
@@ -17695,6 +18365,26 @@ var chips = new[]
     "01a167f3-bd96-73a2-a0ce-06ba261e109d", "01a17370-c063-7479-84da-2d07d02e2953", "01a17370-c063-7479-84da-2d0837ecdcb1", "01a17370-c063-7479-84da-2d09a793b11a", "01a17370-c063-7479-84da-2d0a09b79551",
 }.Select(Guid.Parse).ToArray();
 ```
+(2) (b) ではシリコンダイLv2〜5 も品質モジュール研究で解放されるので、`speedOnlyDies` の配列（4 行）と `var dieIds = …;` の行を消す。
+
+(3) 速度側のシリコンダイを待つ段は、(b) では速度モジュールLv1〜4 が新しく解放する物が無く待つ目印にならないので、次の 3 行（コメント 2 行と `Until`）を
+
+```csharp
+    // 速度側だけが解放するシリコンダイLv2〜5 がクライアントに届くのを待ち、同じ回の ICチップの重複解放を受け終えてから見る（通知の回数は Task E6 の NUnit が見る）
+    // Wait until the speed-only silicon die Lv2-5 unlocks reach the client, so the duplicate IC chip unlocks of the same pass are received too (notification counts are E6's NUnit)
+    await p.Until(() => dieIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "速度側のシリコンダイLv2〜5 がクライアントで解放済み");
+```
+
+次に替える:
+
+```csharp
+    // (b) では速度側に新しい解放が無いので、再実行の解放イベントがクライアントへ届く間だけ待ってから見る（通知の回数は Task E6 の NUnit が見る）
+    // In (b) the speed side unlocks nothing new, so wait for the replayed unlock events to reach the client before checking (notification counts are E6's NUnit)
+    await p.WaitSeconds(1f);
+```
+
+シナリオの読み方（using・`LocalizedLabel` を読む所）は E8 には無く、E5 は (b) で変わらない。
+
 下書き時に確かめたこと: 品質モジュールLv1〜5 の前提の閉包は 44 研究で、速度モジュール研究も、上の 13 品目を解放する研究も入っていない。13 品目はどれも `initialUnlocked: false`。
 
 **死活表**の「研究『品質モジュールLv1〜4』を完了する」の行は「Lv1〜5」とし、出るアイテムに シリコンダイLv2〜5・品質モジュールLv1〜5 を足す。「アイテム一覧の並び順」の行は 34 品目にする。
@@ -17730,6 +18420,7 @@ var chips = new[]
 1. **A の Interfaces 7 は「`s5-retake-blocks`・`pv-blocks` 系は止まらない」とするが、B の画面では `uitk-s5-retake-blocks` が止まる。** 開いた後に `space-elevator-status` が出るのを待つ（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs:95` の `Open(…, "space-elevator-status")` と、同ファイル 148 行の `Until(() => Shown(bodyTestId)…)`）。未選択の拠点は一覧だけを出し、状態区画は木に無い。B8 Step 5 で直す。`pv-blocks` は開けたかだけを見る（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/post-visual/pv-blocks.cs:86–99`）ので止まらない。
 2. **A の Interfaces 7 は tier9-4b について「受け付けない枠への通常配置は拒否」の主張は、選んでいない ICチップ枠への配置として成り立つ」とするが、その枠は画面に無い。** シナリオは `rocket-launch-pad-payload-slots-slot-{材料数+1}` を押す（`.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs:93`）。ADR 0106 の 1 は選んだ後の画面を「選んだ積荷の 1 枠」とする。そのため選んでいない種類の空の枠は描かれず、押せない。B8 Step 2 で、筐体素材の入った資材枠への配置に変える。
 3. **A の「クライアントのテストの直し」の一覧に `SpaceElevatorConnectActionTest`（EditModeInPlayingTest）が無い。** このテストは開いてすぐ接続して `insufficient_cable` を期待する（`moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs:95–96`）。A は接続の判定の順を「`AlreadyConnected` → `CargoNotSelected` → ケーブル」にするので、`connect_cargo_not_selected` になって落ちる。B7 で直す。
+4. **直しの依頼は「Presenter が局所状態と『選ぶコマンドを呼ぶ』ことを持つ」とするが、引かれた前例では選ぶコマンドを呼ぶのは View。** `MachineSectionView.cs:43–55` は行の押下を ctor で直接 `_selectCommand.Select(guid)` へ送り（コメント「Presenter は中継しない」。設計書 §4.2 A-8・D-33）、`MachineSectionPresenter.cs:43–49` は同じ押下で `RememberRequest` して描き直すだけ（コメント「送る判断はコマンド、送信とトーストは View。D-24・D-33」）。特殊族でも、コマンドは `SpecialViewKit.Commands` として View に渡り、`SpecialPresenters` は購読の源だけを持つ（`SpecialViewKit.cs:9`・`SpecialPresenters.cs:11`）。依頼の「前例の実物を開いて誰の持ち物を誰が取得・呼び出すかを合わせる」に従い、局所状態は Presenter（`OrbitalCargoBodyPresenter`）が持ち、選ぶコマンドは View（`OrbitalCargoPane`）が呼ぶ形にした（判断 5）。Presenter にコマンドを呼ばせると、前例に無い「Presenter がコマンドへ中継する」形になる。
 
 #### 領域 C
 
@@ -17821,7 +18512,7 @@ var chips = new[]
 12. **前の種類の返却は、発射台は選んだ種類以外の積荷枠すべて、拠点は入口1枠**。資材は種類に依らないので返さない。
 13. **ブループリントの不正 GUID は警告して未選択で置く**（前例は無言）。未解放・運ばない種類は `SelectCargo` の警告で足りる。適用時の返却先は 0 枠のダミー（設置直後で空のため）。
 14. **拠点の入口の処理を在庫部品から `SpaceElevatorBaseInlet` へ分ける**（在庫部品が 194 行で、足すと 200 行を超えるため）。
-15. **旧セーブで「積み終えて建造待ち・未選択」の発射台は段階を残し、建造の合図だけを `CargoNotSelected` で拒否**。今の便は消さない（ADR 0106 の 4・6）。
+15. **旧セーブで「資材と積荷が枠にそろって建造の合図待ち・未選択」の発射台は段階を残し、建造の合図だけを `CargoNotSelected` で拒否**。枠の資材と積荷は消さない（ADR 0106 の 4・6）。
 16. **既存テストは「後で入れる種類を選ぶ」形に機械的に直す**（拠点は衛星、大口のテストは大口、Tier9 は GpuSatellite(1)。テストモッドの積荷はすべて `initialUnlocked: true` を確かめた）。巡回を前提にしたテストは削除か書き直し（A2 の表）。
 17. **「ケーブルプールへ足す積荷か」の口は `Game.Block.Interface.Component.SpaceElevatorCableItems`**（A8 の冒頭に層の決まりと前例 `RocketLaunchPadSlotLayout` を書いた）。静的な集合のキャッシュは持たない（テストが DI ごとにマスタを読み直すため）。
 18. **この領域はクライアントの領域と同じ PR で出す**。新しい enum 値でクライアントの switch が例外を投げるため。switch に既定の腕を足して寛容にする案は、未知の値を黙って表示することになるので取らない。
@@ -17835,7 +18526,7 @@ var chips = new[]
 2. **透かしと「持っている数／必要な数」は ref-uitk-design の既存の語彙で足りる。** `ItemSlotGhost`・`ItemSlotShortage`・`SlotItemContent.From(content, slot, shortage, ghost)` が機械の枠で使われている。語彙の追加は無い。
 3. **一覧の行の左は積荷 1 枠だけ、右は成果の品、秒は 1 便の所要（発射台は建造 `buildSeconds`、拠点は昇降 `climbSeconds`）。** 資材は全行で同じなので行に並べない（ADR 0106 の 1「積むものと返るものの対」）。ケーブルは右を空にし、文が「ケーブルプール +1000」を語る。画面案の行の「120秒」に合わせた。比べた案: 資材 3 枠も左に並べる（全行同じ 3 枠が並び、違いが見えにくい）。
 4. **機械の名前の付いた枠の型（`BoundItemSlot`・`MachineItemGhost`・`MachineSlotContents.For`）をそのまま使う。** 中身は「枠の添字・入るべき品・数」だけで、機械レシピの語彙を持たない。比べた案: 中立の名前の型を作って機械側も移す（触る範囲が機械の画面へ広がる）。帰結: 積荷のコードが `Logic.Machine` と `Machine.Slots` の名前空間を参照する。機械の型の名前を中立にする改名は、この PR では行わない。
-5. **一覧の局所状態は `OrbitalCargoPane`（View）が持つ。** 特殊族の Presenter は汎用で、本文は開くたびに作り直される（局所状態の寿命は前例と同じ）。比べた案: 専用の Presenter を作る（前例 `SpecialPresenters.Belt`）。出し分けは 1 つの View で閉じるので、配線が増えるだけと判断した。
+5. **一覧の局所状態は、発射台・拠点の本文用に新しく作る Presenter `OrbitalCargoBodyPresenter` が持つ。** 前例の機械は `MachineSectionPresenter` が `MachineSelectionModeState` を持ち、View の押下を購読して状態を進め、`MachineSectionView.Render(viewModel, showsSelection)` で描かせる。特殊族で局所状態を持つ区画は、汎用の `SpecialSectionPresenter<T>` ではなく専用の Presenter を `SpecialPresenters` で作る（`Belt(...)` → `BeltThroughputSectionPresenter`）。その 2 つの前例に合わせ、`SpecialPresenters.OrbitalCargoBody(view)` で作り、本文の工場が使う。View（`OrbitalCargoPane` と本文）は押下を Subject で出し、`Render(…, showsSelection)` を受けるだけにする。選ぶコマンドは前例どおり View が送る（`MachineSectionView` は行の押下を直接コマンドへ送り、Presenter は要求を覚えて描き直すだけ。D-24・D-33）。帰結: 本文の View は `ISpecialSectionRenderer<SpecialBlockDetailViewModel>` を外れ、モードの引数つきの `IOrbitalCargoBodyView` を実装する。汎用の Presenter と同じ「枠と詳細の流れ」は `SpecialPanelDetailStream.Of` へ移して 2 つの Presenter で共有する。
 6. **解放済みの種類が 0 の未選択でも一覧を出す。** 機械は「行が 0 件なら選択モードなし」だが、積荷は選ぶまで何も受け取らないので、本文を出しても何もできない（ADR 0106 の 2・7）。出荷マスタでは、発射台（研究「ロケット技術」）も拠点（「軌道エレベーターの建設」）も、前提の閉包に「半導体製造」（ICチップLv1 の解放）を含む。そのため、プレイの順では 0 件にならない（ピンのマスタ `aaa89bcf` の `research.json` で閉包を辿って確かめた）。
 7. **未選択の拠点では電力網の区画も一覧の間は見えない。** ADR 0106 の 7「開くと積荷を選ぶ画面」を、機械の一覧モード（本文を木に置かない）と同じに読んだ。
 8. **一覧の先頭の状態文は、そのブロックの状態文をそのまま出す**（発射台は待ち理由、拠点は状態の文）。未選択なら「積荷を選んでいない」。見出しから開き直したときは今の状態（「ロケットを建造中」など）。新しい案内文は足さない。待ち理由「積荷を選んでいない」（ADR 0106 の 5）の出る場所がこれで決まる。
@@ -17860,7 +18551,7 @@ var chips = new[]
 4. **改善の並びは「部屋クラス → 最高 tier を増やす → 1つ上を刺す」**。ADR の例の順。
 5. **品質モジュールが刺さっていないとき**は「1つ上」＝ tier1 になり、最高 tier の行が無いので「品質モジュールLv1 を追加」の1行になる（ADR §4 のとおり）。同じ式から自然に出るので特別扱いの分岐を作らない。
 6. **「あと1個刺せるか」は「効く形で入る空きスロットがある、または同じアイテムで上限未満のスロットがある」**。プレイヤーがそのモジュールを持っているか・研究で解放したかは見ない（要裁定3。B のときは付録）。モジュールのアイテム自体のスタック上限はスロット上限より大きい前提（未確認に書いた）。
-7. **同じ tier の品質モジュールが複数定義されていたら、マスタの並びで先のもの**を「1つ上」に使う。v8 と テストマスタはどちらも tier ごとに1種類（未確認の欄に根拠）。起動時の検証は足さない（今の形では起きないため、一番軽い形に留める）。
+7. **同じ tier の品質モジュールが複数定義されていたら、マスタの並びで先のもの**を「1つ上」と「最高 tier を増やす」の両方に使う（最高 tier は `MachineModuleEffect.HighestQualityModuleTier` の値で、どのアイテムかは持たないため）。引く関数は Core.Master（`ItemMaster`）に置かず、唯一の呼び手 `CleanRoomQualityModuleCandidates` のローカル関数にした（`moores-writing-plans/references/moorestech-layer-map.md` の「Core.Master にドメイン固有の解釈を置かない」）。v8 と テストマスタはどちらも tier ごとに1種類（未確認の欄に根拠）。起動時の検証は足さない（今の形では起きないため、一番軽い形に留める）。
 8. **改善は「部屋が稼働を許す」間だけ作る**。止まっている間は確率の欄自体を出さない（裁定 2026-11-20）ので、差分も要らない。
 9. **部屋クラスを上げた差分は、仮のクラスの行を `CleanRoomClassYield.FromThresholdIndex` で作る**。値の構造体に添字を持たせた（別案: 品質倍率などの値から行を逆引きする → 同じ値の行が2つあれば壊れるので採らない）。
 10. **次のクラスまでの台数は「照会した清浄機と同じ種類」を1台ずつ足して数える**。除去量は `RatedRemovalVolumePerSecond`（マスタの値。電力・フィルターを掛ける前）、セル数はそのブロックの占めるセル数。1台ごとに部屋の空きセルを減らす（`CleanRoom.Volume` は空きセルの数）。
@@ -17936,7 +18627,6 @@ var chips = new[]
 | `OrbitalCargoSelectionProtocol.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/OrbitalCargo/OrbitalCargoSelectionProtocol.cs` | A5 | 積荷を選ぶ通信 `va:orbitalCargoSelection` | agent前提（根拠は「領域 A の判断」と「配置と前例」の領域 A の表） |
 | `PacketResponseCreator.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs` | A5 | 積荷を選ぶ通信 `va:orbitalCargoSelection` | agent前提（根拠は「領域 A の判断」と「配置と前例」の領域 A の表） |
 | `BlockRequestApi.cs` | `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs` | A5 | 積荷を選ぶ通信 `va:orbitalCargoSelection` | agent前提（根拠は「領域 A の判断」と「配置と前例」の領域 A の表） |
-| `ItemMaster.cs` | `moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs` | C2 | 品質モジュールを「あと1個刺せるか」と、効いているモジュールの一覧を出す | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldOddsMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldOddsMessagePack.cs` | C4 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldImprovementMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldImprovementMessagePack.cs` | C4 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldResponseFactory.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldResponseFactory.cs` | C4・C7 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
@@ -17953,9 +18643,39 @@ var chips = new[]
 | `CleanRoomYieldMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldMessagePack.cs` | C7 | 古い項目を外す（クライアントの画面の Task が新しい項目へ移り終えた後に実施） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `FilterSplitterOutputSide.cs` | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
 | `FilterSplitterOutputSideResolver.cs` | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
-| `FilterSplitterParamValidator.cs` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitterParamValidator.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
-| `BlockMasterUtil.cs` | `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
+| `FilterSplitterParamValidator.cs` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
+| `BlockMasterUtil.cs:5,27-28` | `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:5,27-28` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
 
 ### 設計検査・反証検査の結果
 
-（検査の後に書く）
+検査は plan が 1.2MB あるため領域ごとに分け、fresh-context の opus subagent 7 体で行った（配置検査 1・Phase 2.6 を領域 A+B／C+D／E の 3・反証検査を A+B／C+D／E と領域のまたぎ の 3）。報告は `../moorestech_logs/harness/ui-clarity-kgfsp/plan-review-*.md`（各報告の末尾に、実際に読んだ行範囲がある）。
+
+**直した違反・欠陥（出所: agent前提。根拠は各報告の実物のパスと行）**
+
+- 品質モジュールを tier で引く関数を `ItemMaster`（Core.Master）に足していた → ドメイン層へ移した（層の決まり。Task C2）
+- `Core.Master/Validator/Block/` が 11 本になる → 検証クラスをサブディレクトリへ（Task E1）
+- 積荷の一覧の局所状態を View が持っていた → 前例（`MachineSectionPresenter`）どおり Presenter が持つ（Task B2・B5・B6）
+- A8 の `SpaceElevatorCablePool` が、消した欄 `_cableItemIds` を読んだままだった → `SpaceElevatorCableItems.Contains` に直した
+- E2 のテストが、B3 で引数が増えた後の `SpecialBlockDetailReader.Read` を古い引数で呼んでいた → 直し、Task の順の表に「E2 は B3 の後」と書いた
+- E8 のシナリオの using 抜け、E5 のシナリオが行の高さのタグつきの `text` を辞書の文と比べていた点 → 直した
+- B8 で録画シナリオ 2 本が 200 行を超える → 200 行以下に収まる形へ直した
+- B1 に文言キーを作り直す強制の再コンパイルが無かった → 足した
+- 「合図待ちの台は今の便の積荷を持つ」という Interfaces の説明が実装と違った（積み込みは建造の合図で確定する）→ 説明を直した
+
+**前例の無い作り（PR 本文に注目点として書く。出所: agent前提。理由は各領域の判断）**
+
+- 発射台・拠点の部品が共有する選択の入れ物 `OrbitalCargoSelectionState`（領域 A の判断 1）
+- 積荷のクライアントのコードが機械の枠の型（`BoundItemSlot`・`MachineSlotContents.For`）を使う（領域 B の判断 4）
+- 改善方法のモーダルの「開いている」を橋 `CleanRoomYieldImprovementModalBridge` が持ち、中身の比較で出し直す（D-4）
+- 「数字が変わらない行」のしきい値 0.0005 をサーバーの Game.Block が持つ（領域 C の判断 3）
+- 部屋の照会の結果が、照会したブロックで変わる（`CleanRoomNextClassOutlook.Of`）
+- 状態の積荷の欄を `ItemId?` で送る（領域 A の判断 3）／積荷を選ぶ通信は `ItemId` のまま送り、ブループリントの不正な GUID は警告を出す
+
+**この PR の外のリファクタ提案（plan のタスクにしない。PR 本文に書く）**
+
+- 既存 `moorestech_server/Assets/Scripts/Game.Orbit/OrbitalArrivalService.cs:20-24,31`（積荷表を読み解いて1便の成果を出す）／新設 クライアントの `OrbitalCargoCatalog.Create`・`UnlockedOrbitalCargoSource.Rebuild`／同じ積荷表を別々に読み解いている
+- 既存 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Route/BeltRouteDirection.cs`（`Right`・`Left`）と `.../Session/Branch/BeltRouteBranchGeometry.cs:50-79`／新設 `FilterSplitterOutputSideResolver.TryResolve`／どちらも「水平の流れる向きから見た左・右・正面」を決める
+
+**ユーザーへ確認中（回答が来たらこの節と Task を書き換える）**
+
+確認シート05（`../moorestech_logs/harness/ui-clarity-kgfsp/shiwake-05-items.json`）の 11 問: 未決1・未決2（Task の順と依存の節）／清浄機の画面から換気回数と1台ずつの行を消すか／未選択の発射台・拠点は一覧だけを出すか／分岐器の側の計算の置き場（Core.Master か Game.Block.Interface か）／型の形 5 問（選択の入れ物の読み書きの分離・積荷の行の成果の持ち方・クリーンルームの報告の null と種別・通信の型の形・弱い当たり）／左・正面・右に決まらない分岐器を読込で止めるか。**回答が来るまで、Task の本文は各問いの「今の計画」の形で書いてある。**
