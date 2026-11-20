@@ -25,7 +25,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             (new[] { 0.025f, 0.83125f, 0.11875f, 0f, 0f }, 0.025f),
             (new[] { 0.01f, 0.02f, 0.83125f, 0.11875f, 0f }, 0.02f),
             (new[] { 0.005f, 0.01f, 0.015f, 0.83125f, 0.11875f }, 0.02f),
-            (new[] { 0.005f, 0.0075f, 0.0125f, 0.025f, 0.925f }, 0.025f),
+            (new[] { 0.005f, 0.0075f, 0.0125f, 0.025f, 0.93f }, 0.02f),
         };
 
         // v8の品質効果値（添字=Tier）
@@ -105,11 +105,31 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             }
         }
 
+        [Test]
+        public void AddingOneLv5ToEightLv4NeverLowersGoodDiesTest()
+        {
+            // Lv4×8にLv5を1個足しても良品が下がらない
+            // Adding one Lv5 to eight Lv4 (top tier switches 4 to 5) never lowers the good total, for every class
+            foreach (var classRow in ClassRows)
+            {
+                var eightLv4 = GoodDieSharesForEffectSum(classRow, 4, EffectValueByTier[4] * 8).Sum();
+                var eightLv4PlusLv5 = GoodDieSharesForEffectSum(classRow, 5, EffectValueByTier[4] * 8 + EffectValueByTier[5]).Sum();
+                Assert.Less(eightLv4, eightLv4PlusLv5, $"class {classRow}");
+            }
+        }
+
         // 本番の式でウェハー1枚あたりの良品割合を出す
         // Run the production formulas (approach weight, then loss and table blend) for the good-die share per diced wafer by level
         private static double[] GoodDieShares((double qualityMultiplier, double dieLossRate) classRow, int tier, int moduleCount)
         {
-            var weight = ChipYieldFormula.ApproachWeight(EffectValueByTier[tier] * moduleCount, classRow.qualityMultiplier, QualityApproachScale);
+            return GoodDieSharesForEffectSum(classRow, tier, EffectValueByTier[tier] * moduleCount);
+        }
+
+        // 最高Tierと効果合計を別々に渡して良品割合を出す
+        // Same as above but with the top tier and the summed module effect given separately (mixed-tier slots)
+        private static double[] GoodDieSharesForEffectSum((double qualityMultiplier, double dieLossRate) classRow, int tier, double effectSum)
+        {
+            var weight = ChipYieldFormula.ApproachWeight(effectSum, classRow.qualityMultiplier, QualityApproachScale);
             var rates = ChipYieldFormula.DicingRates(TierTables[0].levels, TierTables[0].failed, TierTables[tier].levels, TierTables[tier].failed, classRow.dieLossRate, MaxLossReduction, weight, out var dieLossRate, out _);
             return rates.Select(rate => rate * (1d - dieLossRate)).ToArray();
         }

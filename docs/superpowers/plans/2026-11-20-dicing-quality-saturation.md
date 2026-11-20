@@ -32,7 +32,7 @@
   - Tier2: [0.025, 0.83125, 0.11875, 0, 0] / 0.025
   - Tier3: [0.01, 0.02, 0.83125, 0.11875, 0] / 0.02
   - Tier4: [0.005, 0.01, 0.015, 0.83125, 0.11875] / 0.02
-  - Tier5: [0.005, 0.0075, 0.0125, 0.025, 0.925] / 0.025
+  - Tier5: [0.005, 0.0075, 0.0125, 0.025, 0.930] / 0.020（良品合計を Tier4 と同じ 0.98 にする）
 - AGENTS.md の規約: 2行コメント（日本語→英語）、`#region Internal` はメソッド内ローカル関数のみ、try-catch 禁止、デフォルト引数禁止、1ファイル200行以下、partial 禁止、`Func<>` 禁止。
 - マスタ JSON は既存の書式（2スペースインデント、ファイル末尾に改行なし）を保つ。
 - 別リポジトリ（moorestech_master）の変更は push して PR を作り、本 repo の `.moorestech-external-revisions.json` のピンをその PR の push 済みコミットへ向ける。マージは通常のマージコミット（squash 禁止）。
@@ -180,7 +180,7 @@
                 (new[] { .025f, .83125f, .11875f, 0f, 0f }, .025f),
                 (new[] { .01f, .02f, .83125f, .11875f, 0f }, .02f),
                 (new[] { .005f, .01f, .015f, .83125f, .11875f }, .02f),
-                (new[] { .005f, .0075f, .0125f, .025f, .925f }, .025f),
+                (new[] { .005f, .0075f, .0125f, .025f, .93f }, .02f),
             };
             Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 5));
         }
@@ -439,7 +439,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             (new[] { 0.025f, 0.83125f, 0.11875f, 0f, 0f }, 0.025f),
             (new[] { 0.01f, 0.02f, 0.83125f, 0.11875f, 0f }, 0.02f),
             (new[] { 0.005f, 0.01f, 0.015f, 0.83125f, 0.11875f }, 0.02f),
-            (new[] { 0.005f, 0.0075f, 0.0125f, 0.025f, 0.925f }, 0.025f),
+            (new[] { 0.005f, 0.0075f, 0.0125f, 0.025f, 0.93f }, 0.02f),
         };
 
         // v8 の品質モジュールLv1〜5の効果値（添字=Tier）
@@ -666,7 +666,7 @@ new['qualityTierDieTables']=[
  {"levelRates":[0.025,0.83125,0.11875,0,0],"failedRate":0.025},
  {"levelRates":[0.01,0.02,0.83125,0.11875,0],"failedRate":0.02},
  {"levelRates":[0.005,0.01,0.015,0.83125,0.11875],"failedRate":0.02},
- {"levelRates":[0.005,0.0075,0.0125,0.025,0.925],"failedRate":0.025},
+ {"levelRates":[0.005,0.0075,0.0125,0.025,0.93],"failedRate":0.02},
 ]
 d['data'][0]['dicings'][0]=new
 open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=2))

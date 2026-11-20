@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
                 (new[] { .025f, .83125f, .11875f, 0f, 0f }, .025f),
                 (new[] { .01f, .02f, .83125f, .11875f, 0f }, .02f),
                 (new[] { .005f, .01f, .015f, .83125f, .11875f }, .02f),
-                (new[] { .005f, .0075f, .0125f, .025f, .925f }, .025f),
+                (new[] { .005f, .0075f, .0125f, .025f, .93f }, .02f),
             };
             Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 5));
         }
