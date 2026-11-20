@@ -1,6 +1,6 @@
 # Windows の Unity Editor で重い場所を描くと GPU が止まって落ちる（DXGI_ERROR_DEVICE_HUNG）
 
-調査: 2026-11-15。報告書: 2026-11-20。**原因は未確定。** スキンメッシュがあると起きやすくなることまでは確かめたが、それだけが原因ではない記録がある（下の「食い違う記録」）。
+調査: 2026-11-15、追加調査 2026-11-20。報告書: 2026-11-20。**グラフィックスジョブ（Split／Native）と GPU スキニングの組み合わせで起きる**ところまで絞れた（下の「追加の切り分け（2026-11-20）」）。グラフィックスジョブを切るか、スキニングを CPU にすると、GPU スキニングがある重い視点でも5〜7分起きなかった。GPU の中でどの処理が止まっているかは未確定（Unity の内部）。
 
 ## 要約
 - ベースラインワールド `2026-10-22-world_1`（15,082ブロック）で、プレイヤーとカメラを決まった位置と向きに移すと、数秒〜数十秒で GPU が応答しなくなる。Windows がドライバーをリセットし（TDR）、Unity Editor が「Unrecoverable D3D12 device error!」で止まるか落ちる。
@@ -92,6 +92,41 @@ Unrecoverable D3D12 device error! Run with -force-d3d12-debug and see logs for m
 したがって、言えるのは次の2つまで。
 - スキンメッシュがあると、移してから数秒〜十数秒で起きる。切ると、少なくとも数十秒は起きない。
 - スキンメッシュを切っても、長く描いていると起きることがある。
+
+## 追加の切り分け（2026-11-20）
+11-15 の「止まらない」は観察 15〜30秒で、今回の再現（移してから 12〜110秒で止まる）より短く、決め手になっていなかった。そこで条件ごとに 300秒以上見た。どれもコミット 784bb70d16、上と同じ読み込み・定常待ち・位置と視点。10秒ごとに uloop で応答と `Application.isFocused` を見た（全回 `focused=True`）。
+
+| 条件 | Editor の描画スレッド（Editor.log） | メッシュ変形 | 結果 | 記録 |
+|---|---|---|---|---|
+| そのまま | `kGfxThreadingModeSplitJobs` | GPU（Batched、既定の `meshDeformation: 2`） | 22〜57秒で止まる | batched-1.log |
+| メッシュ変形を GPU（非バッチ）に | Split | GPU（`meshDeformation: 1`） | 36秒以内に止まる | gpu-1.log |
+| VFX Graph（`VisualEffect` 278個）を全部止める | Split | GPU（Batched） | 12〜56秒で止まる | novfx-1.log |
+| 全スキンメッシュの `skinnedMotionVectors` を切る | Split | GPU（Batched） | 12〜107秒で止まる | nomv-1.log |
+| メッシュ変形を CPU に | Split | CPU（`meshDeformation: 0`） | 305秒止まらない | cpu-1.log |
+| `-force-gfx-mt`（グラフィックスジョブなし） | `kGfxThreadingModeThreaded` | GPU（Batched） | 309秒・426秒、2回とも止まらない | gfxmt-1.log、gfxmt-2.log（末尾のみ） |
+| `-force-gfx-jobs native` | `kGfxThreadingModeClientWorkerNativeJobs` | GPU（Batched） | 46秒以内に止まる | gfxnative-1.log |
+
+- メッシュ変形の切り替えは、起動中の Editor で PlayerSettings の `meshDeformation` を SerializedObject で書き換え、Play の前に行った（ProjectSettings には保存していない。`snippets/2026-11-20/set-mesh-deformation.cs`）。
+- 止まった回はどれも Editor.log に `D3D12Fence::Wait ... Device removal.` と `Device failed error (887a0006)`（`logs/2026-11-20/editor-*-tail.txt`）。
+- `upload buffer was too small（16MB に 64MB を要求）` は、止まらなかった CPU の回にも出ている。今回の停止とは関係ないと見ている。
+- 回数は条件ごとに1〜2回。グラフィックスジョブありで GPU スキニングのときは5回中5回が 110秒以内に止まり、グラフィックスジョブなしは計 735秒で0回なので、差ははっきりしている。ただし fps は 13〜14 から 11〜12 に下がる。
+
+### ここから言えること
+- 停止は、グラフィックスジョブ（Split でも Native でも）で描いているときに起き、グラフィックスジョブなし（描画スレッド1本）では起きない。
+- グラフィックスジョブありでも、スキニングを CPU にすると起きない。GPU スキニングの Batched／非バッチ、スキンのモーションベクター、VFX Graph は関係ない。
+- 11-20 のパイプの計測で、スキンメッシュを切っても長い計測で1回起きた件は、グラフィックスジョブありの状態で、プレイヤーのスキンメッシュ（GPU スキニング）が残っていたか、GPU スキニング以外にも同じ経路に乗る処理があるか、どちらか（未確認）。
+- アプリのコードではなく、Unity 6000.3.8f1 の D3D12 のグラフィックスジョブで GPU スキニングのコンピュートを記録・投入する経路の不具合（同期の抜けなど）か、ドライバー 610.88 との組み合わせの問題と見ている（推測。DRED に止まった位置が出ず、これ以上は Unity の外から追えない）。完全に一致する既知の不具合は Unity の issue tracker では見つからなかった。
+
+### ビルドへの影響
+`ProjectSettings.asset` の `m_BuildTargetGraphicsJobs` で WindowsStandaloneSupport は `1`（グラフィックスジョブあり）、モードの指定は無い（D3D12 の既定）。ビルドした Windows のゲームも、同じ視点で同じことが起きる可能性が高い（未確認）。
+
+### 次に試すこと（候補、未実施）
+1. ビルドした Windows のゲームで、既定と `-force-gfx-mt` を比べる（Editor 以外でも同じか）。
+2. 対策の候補を比べる: Windows のグラフィックスジョブを切る（PlayerSettings。描画のメインスレッドの負担が増えるので fps を測る）／メッシュ変形を CPU にする（CPU の負担を測る）／Unity を 6000.3 の新しいパッチへ上げて既定のまま再試験する。
+3. 別の GPU・ドライバーで試す。
+4. Unity へ不具合として報告する（このワールドと視点で再現する）。
+
+スクリプト: `scripts/2026-11-20/session.sh <meshDeformation> <観察秒数> <tag> [止めるスニペット]`。環境変数 `UTASK` で、Unity を起動するスケジュールタスク（`moorestech-unity`／`-gfxmt`／`-gfxnative`。引数だけが違う）を選ぶ。
 
 ## 以前の D3D12 の調査との関係
 `docs/research/2026-10-01-d3d12-crash/README.md`（プレイテスターの配布版で「機械を動かしてたりしたら」落ちた件。原因未確定で終了）は、エラーが `80004005`（コマンドリストの Close 相当が E_FAIL）で、今回の `887a0006`（DEVICE_HUNG）とは違う。機械の動きはスキンメッシュのアニメーションなので、関係する可能性はあるが、確かめていない。
