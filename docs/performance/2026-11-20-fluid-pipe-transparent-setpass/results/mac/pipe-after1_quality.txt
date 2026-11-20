@@ -1,0 +1,1 @@
+farClip=300 drawDistance=Meters300 shadows=True mapObjects=True cams=MainCamera:True:screen lodBias=1
