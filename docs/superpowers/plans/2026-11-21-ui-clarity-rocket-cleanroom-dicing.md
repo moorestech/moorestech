@@ -126,6 +126,16 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 - 領域をまたいで同じファイルを直す所がある（`Localization/localization.csv` は B・D・E、`CONTEXT.md` は E）。順に実施すれば衝突しないが、行番号は前の Task でずれるので、文字列で場所を探す（Global Constraints）。
 - 各領域の Task の本文は、その領域の下書きを書いた時点の名前で書いてある。領域 A の名前を B が、領域 C の名前を D が使う。使う名前は「Interfaces 一覧」の節にまとめてある。
 - パスの書き方: Task の本文は repo 相対のフルパスで書いてある。
+- 本文の言い回しの読み替え: 「下書き A〜E」「サーバー側の下書き」「クライアントの下書き」「画面側の下書き」は、この plan の領域 A〜E のこと。「サーバー側の下書きへの注文」は付録の「領域の間の取り決め」にある（どれも領域 A・C の Task に反映済み）。「要裁定」は下の「未決（ユーザーの回答待ち）」のこと。「調整役」「コーディネーター」は、この plan をまとめたセッションのこと。
+
+### 未決（ユーザーの回答待ち）
+
+次の2件はユーザーへ確認中。**回答が来るまで、Task の本文は下の「今の本文」の案で書いてある。** 回答で別の案に決まったら、付録の差分で本文を差し替えてから実装を始める（この節と判断記録も書き換える）。
+
+| # | 決めること | 今の本文 | 別の案に決まったとき |
+|---|---|---|---|
+| 未決1 | 研究「品質モジュールLv1〜4」で早く解放する範囲 | (a) ICチップLv2〜5 だけ（裁定 2026-11-21 のとおり。Task E7・E8） | (b) シリコンダイLv(n+1) と品質モジュールLvn のアイテムも足す → 付録「領域 E: 付録: 要裁定 2 で (b) のとき」で E7・E8 の Step を差し替える |
+| 未決2 | 「失敗率の改善方法」に、まだ作れない品質モジュールの行も出すか | A. 解放に関係なく出す（Task C2・C3） | B. 今作れるものだけ出す → 付録「領域 C: 付録: 要裁定3 で B のとき」の差分を C3 に足す（サーバーの部品だけ。プロトコルとクライアントは変わらない） |
 
 ### 要件と Task の対応
 
@@ -215,7 +225,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs` | 送信口 `SendOrbitalCargoSelection` | 130 |
 | `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorCablePool.cs` | ケーブルの判定を `SpaceElevatorCableItems` へ（A8） | 100 |
 | `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs` | 削除（判定の持ち主を `SpaceElevatorCableItems` の1つにする。A8） | 0 |
-| `moorestech_client/Assets/Scripts/Client.Tests/...`（6 ファイル・9 箇所） | 状態詳細の ctor 引数追加に追随（中身は変えない） | ±0 |
+| `moorestech_client/Assets/Scripts/Client.Tests/` の下の 5 ファイル・10 箇所（`Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs`、`Ui/State/BlockInventory/Special/Source/` の `SpecialBlockDetailReaderSlotTest.cs`・`SpecialStateDetailReaderTest.cs`・`SpecialInletBindingContributorTest.cs`、`Block/Tier9ModelStateProcessorTest.cs`） | 状態詳細の ctor 引数追加に追随（中身は変えない） | ±0 |
 
 ### 領域 B: 積荷の選択（クライアントの画面と録画シナリオ）
 
@@ -1289,7 +1299,10 @@ ADR 0106 の 1（巡回の廃止）・2（未選択は何も受け取らず建�
 - Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad/IRocketLaunchPadComponent.cs`（13–21）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Rocket/RocketLaunchPadCommandProtocol.cs`（66–74 の写像、124–136 の enum）
 - Modify: `moorestech_server/Assets/Scripts/Tests/Util/Rocket/RocketLaunchPadTestUtil.cs`（全体）と、下の「既存テストの扱い」の各ファイル
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/...` 4 箇所（下表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderSlotTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialStateDetailReaderTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialInletBindingContributorTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Block/Tier9ModelStateProcessorTest.cs`（ctor の引数追加に追随。場所は下の表）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoPadSelectionTest.cs`
 
 **Interfaces:**
@@ -2444,7 +2457,11 @@ ADR 0106 の 7（未選択は何も受け取らない・昇降中の便はその
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`（全体）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStatus.cs`・`SpaceElevatorBaseStateDetail.cs`（全体）
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorTestUtil.cs`（34–38・60–75）と、下の「既存テストの扱い」の各ファイル
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/...` 5 ファイル 6 箇所（下表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderSlotTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialStateDetailReaderTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialInletBindingContributorTest.cs`（ctor の引数追加に追随。場所は下の表）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Block/Tier9ModelStateProcessorTest.cs`（ctor の引数追加に追随。場所は下の表）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoBaseSelectionTest.cs`
 
 **Interfaces:**
@@ -17681,6 +17698,60 @@ var chips = new[]
 下書き時に確かめたこと: 品質モジュールLv1〜5 の前提の閉包は 44 研究で、速度モジュール研究も、上の 13 品目を解放する研究も入っていない。13 品目はどれも `initialUnlocked: false`。
 
 **死活表**の「研究『品質モジュールLv1〜4』を完了する」の行は「Lv1〜5」とし、出るアイテムに シリコンダイLv2〜5・品質モジュールLv1〜5 を足す。「アイテム一覧の並び順」の行は 34 品目にする。
+
+### 領域の間の取り決め（下書きの間で出した注文。どれも反映済み）
+
+#### 領域 B から: サーバー側の下書きへの注文
+
+1. **「ケーブルプールへ足す積荷か」を、クライアントが参照できる 1 か所の public の口にしてほしい。** 名前の案は `Game.Block.Interface.Component.SpaceElevatorCableItems.Contains(ItemId itemId)`（`static bool`）。中身は今の `SpaceElevatorBaseMasters.CableItemIds()`（`moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs:21`、internal）と同じで、全拠点の `CableItemGuid` の集合。サーバーの `SpaceElevatorCablePool` もこの口を使い、判定の持ち主を 1 つにする。理由: クライアントは行の文「ケーブルプール +1000」を出すのにこの判定が要るが、`Game.SpaceElevator` の internal は参照できない。写しを持つと持ち主が 2 つになる。B2 の `OrbitalCargoCatalog` がこの名前を使う。名前や置き場所を変えるなら、B2 の 1 行を合わせる。
+2. **クライアントのテストの直しの分担。** A が引数だけを直す行（`SpecialBlockDetailReaderSlotTest:49,73`・`SpecialStateDetailReaderTest:63,76`・`SpecialInletBindingContributorTest:31,46`・`SpecialBlockDetailModelTest:47`）は、B3 がその上で書き換える。A を先に入れる。`SpaceElevatorConnectActionTest` と録画 `uitk-s5-retake-blocks` は B が直す（B7・B8）ので、A では触らない。
+3. 上昇中の積荷の欄（A の未確認 4）は要らない（判断 1）。
+
+#### 領域 D から: サーバー側の下書きへの注文
+
+1. **D が持つテストのうち C7 で直すのは `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs` だけにしてほしい。** `moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs:105`（`CreateDicing(new DicingYieldMessagePack(…), null)`）は C が C4〜C6 で書き換えるファイルなので、C7 でも C が直す（D は触らない）。 `ClassifiedRoom`・`OutRoom` は `CreateClassified(className, thresholdIndex, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter)`・`CreateOut(airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter)` へ、`LayerExposure`・`Dicing` はビューの2引数の ctor `(odds, improvements)` へ替える。C4・C6 が `ContextViewConversionTest.cs` に入れる行の編集は、D3（確率のテストを外す）と D4（全面書き換え）で置き換わる。C4〜C6 の時点でそのテストが緑であれば足りる。
+2. **C7 の「クライアントの本番コードに旧項目の読み手が無い」確かめは、「Interfaces 一覧」の末尾の grep で当たりが無いことにしてほしい。** D の終わりで当たりは無い。
+3. **画面の対応についての C の問いへの答え:** 止まった台数が 0 のときは「うち…」を出さない（判断 D-11）。Out のときに台数が返れば「クラス未達（クラスDまであと2台）」で出す（判断 D-9）。`AtBestClass`・`Unreachable`・`NotCounted` は区別せず「クラスC」だけにする（判断 D-10）。
+4. **改善の行の約束:** `LevelRateDeltas` の長さは同じ応答の `Odds.LevelRates` と同じ（露光は空の配列）にしてほしい。違えばクライアントは確率の欄ごと出さず異常として記録する（判断 D-14）。並び順はサーバーの順（部屋クラス → 最高 Lv を増やす → 1つ上を刺す）のまま出す。
+5. **任意:** 漏れの照会（密閉されていない部屋）でも照会した清浄機の状態を運べば、密閉されていない清浄機の画面にも「この清浄機」の行を出せる。今回の D は出さない（判断 D-12）ので、C が足さなくても D は変わらない。
+
+### 下書きを書いたときに見つけた、資料や前の説明とコードの食い違い
+
+実装で同じ資料を読むときの注意として残す。決定はどれも変わらない。
+
+#### 領域 A
+
+1. `creating-server-protocol` スキルはクライアントの送信口を `Client.Network/API/ResponseApi/` に置くと書くが、そのディレクトリは無い。実物は `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs`（`SendRocketLaunchPadCommand` が 75–80 行）。
+2. 裁定 `.decisions/2026-09-17-ブループリントの設定はJSON文字列からオブジェクトへ展開しstateと包み方を揃える.md` と ADR 0062 はブループリントの設定をオブジェクトで持つとするが、今のコードの `IBlockBlueprintSettings`（`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IBlockBlueprintSettings.cs:10–18`）は JSON 文字列のまま（`GetBlueprintSettingsJson` が `string`）。A6 は今のコード（文字列）に合わせた。
+3. ADR 0106 の 7 は「返しきれない分は入口に残り、詰まりの表示が出る」とし、既存の詰まりの表示が使える前提に読めるが、今の `InletBlocked` は「今のマスタで運ばない品」（`SatelliteInletState.NotCarried`）にしか出ない（`moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs` の `TryStartClimb`、`SpaceElevatorSatelliteInletState.cs`）。選び直しの残り（運ぶ品）はそのままだと1便ぶんあれば昇ってしまうので、入口状態 `NotSelectedKind` を足した（判断 5）。
+
+#### 領域 B
+
+1. **A の Interfaces 7 は「`s5-retake-blocks`・`pv-blocks` 系は止まらない」とするが、B の画面では `uitk-s5-retake-blocks` が止まる。** 開いた後に `space-elevator-status` が出るのを待つ（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs:95` の `Open(…, "space-elevator-status")` と、同ファイル 148 行の `Until(() => Shown(bodyTestId)…)`）。未選択の拠点は一覧だけを出し、状態区画は木に無い。B8 Step 5 で直す。`pv-blocks` は開けたかだけを見る（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/post-visual/pv-blocks.cs:86–99`）ので止まらない。
+2. **A の Interfaces 7 は tier9-4b について「受け付けない枠への通常配置は拒否」の主張は、選んでいない ICチップ枠への配置として成り立つ」とするが、その枠は画面に無い。** シナリオは `rocket-launch-pad-payload-slots-slot-{材料数+1}` を押す（`.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs:93`）。ADR 0106 の 1 は選んだ後の画面を「選んだ積荷の 1 枠」とする。そのため選んでいない種類の空の枠は描かれず、押せない。B8 Step 2 で、筐体素材の入った資材枠への配置に変える。
+3. **A の「クライアントのテストの直し」の一覧に `SpaceElevatorConnectActionTest`（EditModeInPlayingTest）が無い。** このテストは開いてすぐ接続して `insufficient_cable` を期待する（`moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs:95–96`）。A は接続の判定の順を「`AlreadyConnected` → `CargoNotSelected` → ケーブル」にするので、`connect_cargo_not_selected` になって落ちる。B7 で直す。
+
+#### 領域 C
+
+1. **ADR 0105「確認した事実」3つ目「切り終えて出力の空きを待つ間だけ、2組が縦に並ぶ」**: 2組が出るのは「切り終えた後」ではなく、**待機中に抽選が確定し、出力の空きが無くて加工を始められない間**（切る前）。確定は待機ステートで行い、出力に空きができてから加工（切る）が始まる。証拠: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomPendingDrawYieldInfoTest.cs:52-59`（失敗ダイの枠を満杯にしてウェハを入れると Idle のまま確定済み抽選ができる）と `:93-97`（出力を空けると Processing へ移る）、`Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:15-17`（「出力先が空くのを待つ間、確定済みの出力と加工時間を保持する」）。また、材料を抜いても確定済み抽選は残る（レシピか継承レベルが変わるまで確定し直さない、同 15-16 行のコメント）。2組の表示自体（`CleanRoomYieldLogic.Lines` の `PendingDrawCleanRoomYield` 分岐）は今も在る（`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldLogic.cs:39`）。決定（いつも1組）には影響しない。
+2. **ADR 0105「確認した事実」5つ目「清浄機1台の除去量は 5×電力比×フィルターの有無（`CleanRoomPurityLogic`）」**: この式があるのは `CleanRoomPurityLogic` ではなく `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs:28-30`（`_removalVolumePerSecond * PowerRatio * (HasFilterItem ? 1 : 0)`）。「5」はマスタの `removalVolumePerSecond`（v8 ピン `aaa89bcf` の清浄機で 5、テストマスタも 5）で、コードの定数ではない。`CleanRoomPurityLogic` が持つのは換気回数（除去量÷体積）としきい値の判定だけ（`Game.CleanRoom/Util/CleanRoomPurityLogic.cs:17-36`）。台数の計算は両方を使うので結果には影響しない。
+
+ほかの事実は今のコードと一致した: EUV の「層の失敗率」はクラスの層失敗率×(1−min(品質合計, 上限))（`CleanRoomRoleRates.cs:18-21`）で、v8 のクラスC 0.35×(1−3×0.04)=0.308 が例の 30.8%（クラスC・品質モジュールLv1 3個）。部屋が成立していない間とレシピ未選択の間は欄が出ない（`ContextViewConversion.Yield` が NoRole・NotOperable を `Absent` にする）。材料切れの間も1組が出る。部屋クラスは除去量の合計÷空きセル数（`CleanRoomAirFilterCollector.AirChangeRate` → `CleanRoom.Volume`）。ADR の数字の例が ADR 0104 より前の式であることは ADR 自身が書いている。
+
+#### 領域 D
+
+なし。
+
+確かめたこと: ADR 0105 の「確認した事実」（部屋欄・確率の欄の行の構成、`PendingDrawCleanRoomYield` の分岐、`ContextViewConversion.Yield` が `Absent` を返す条件、`removalVolumePerSecond` が 5）は、この worktree の `CleanRoomSectionView.cs:20-26,59-81`・`CleanRoomYieldLogic.cs`・`ContextViewConversion.cs:15-39`・ピン aaa89bcf のマスタと合っていた。
+
+#### 領域 E
+
+1. **「開発用ワールドで品質モジュールLv1 を研究済みなら、速度モジュールLv1 まで今と同じ」という説明は違う。** 完了済みの研究は、ワールドを読み込むたびに解放アクションが再実行される（`moorestech_server/Assets/Scripts/Game.Research/ResearchDataStore.cs` の `LoadResearchData` → `ExecuteUnlockActions`。`UnlockReplayGameActionTypes` に `unlockItemRecipeView` が入っている。順序は `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldSaveDataRestorer.cs:110` で解放状態を読み、`:137` で研究を読む）。よって品質モジュールLv1 を研究済みの既存ワールドは、新しいマスタで次に読み込んだときに ICチップLv2 が解放される。この再実行は `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Research/ResearchUnlockRecordFallbackLoadTest.cs`（`解放記録を消したアイテムは完了済み研究の再実行でだけ解放されるTest`）が固定している。出典: 裁定 `.decisions/2026-11-21-*ICチップ*` の帰結の文。
+2. **事実2「ICチップLv2 は品質モジュールLv1 を精密切断機に刺すと出始める」は言い方に注意が要る。** 品質モジュールLv1 の段で出始めるのは**シリコンダイLv2**（ダイシングの表で品質モジュールLv1 の段の levelRates が `[0.83125, 0.11875, …]`）。ICチップLv2 は、そのダイを電気精密組立機のレシピ（`levelInheritance: Inherit`）で組んだときにできる。「品質モジュールLv1 レシピは研究『品質モジュールLv1』」「速度Lv1 はその後で ICチップLv1 3000 個」は正しい（研究「速度モジュールLv1」の前提は品質モジュールLv1、消費は ICチップLv1 ×3000・鋼鉄フレーム ×150・制御モータ ×120）。
+3. **Shipped Master Gate は今は無い。** 依頼は「Shipped Master Gate を探す」だが、G1 読込・G3 研究ウォーク（`.github/workflows/shipped-master-gate.yml`・`Editor/MasterGate/*`）は eba8cd30f6 で消えている（メッセージ「ピン先マスタはテスト CI がすでに読んでいる」）。ピン先は `.github/workflows/run_test.yml` が checkout してテストに使う。マスタ repo の CI は `scripts/check_shipped_data_contracts.py`（challenges・map・blocks だけ）と全角幅ゼロ文字の検査だけ。
+4. **research_sync は無い。** マスタ repo の Python ツール群は 79303ff で消えている。マスタの書き換えは手で行い、並びは本 repo の master-refine のスクリプト（`.claude/skills/master-refine/scripts/recalc_sort_priority.py`）で直す。
+
+事実1（ICチップLv1 は半導体製造、Lv2〜5 は速度モジュールLv1〜4、グラフェンケーブルは軌道エレベーターの建設）と事実3（ICチップのレシピは Lv1 の1本だけ）は、ピン `aaa89bc` の research.json・machineRecipes.json で正しいことを確かめた。
 
 ## 判断記録（ADR）
 
