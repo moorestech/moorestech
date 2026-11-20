@@ -1,0 +1,22 @@
+22:50:20 [novfx-1] compile ok=1
+22:50:20 open: opened Assets/Scenes/Game/MainMenu.unity
+22:50:22 meshDeformation 2 -> 2 gpuSkinning=True
+22:50:32 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+22:51:39 steady renderers=217529
+22:51:39 vfx: FX_Flame n=178 on=178 alive=-356 visible=0 | FX_Smoke_White n=52 on=52 alive=108 visible=5 | FX_Smoke_Black n=48 on=48 alive=-87 visible=2
+22:51:40 exp: vfx off=278 aliveBefore=-335 byAsset: FX_Flame=178, FX_Smoke_White=52, FX_Smoke_Black=48
+22:51:40 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+22:51:46 vfx: FX_Flame n=178 on=0 alive=0 visible=0 | FX_Smoke_White n=52 on=0 alive=0 visible=0 | FX_Smoke_Black n=48 on=0 alive=0 visible=0
+22:51:59 +12s: focused=True skinnedActive=4725 frame=1188 fps~13.2
+22:52:43 +56s: FAIL {
+  "Success": false,
+  "Error": {
+    "ErrorCode": "UNITY_NOT_REACHABLE",
+    "Phase": "connection",
+    "Message": "The Unity CLI Loop server is not reachable for this project.",
+    "Retryable": true,
+    "SafeToRetry": true,
+    "ProjectRoot": "G:\\GitHub\\moorestech\\moorestech_client",
+    "Co
+22:52:43 gpu-errors: 5
+22:52:45 [novfx-1] done dead=1

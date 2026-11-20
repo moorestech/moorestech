@@ -1,0 +1,14 @@
+29698:D3D12Fence::Wait(1995) error: got 18446744073709551615. Device removal.
+29699:D3D12Fence::Wait(1305) error: got 18446744073709551615. Device removal.
+29700-d3d12: Device failed error (887a0006).
+29701-d3d12: Device failed error (887a0006).
+29702-d3d12: GfxDevice was not out of Local memory
+29703-d3d12: Local memory usage:
+29704- Budget: 7608467456
+29705- CurrentUsage: 1771200512
+29706- AvailableForReservation: 67108864
+29707- CurrentReservation: 3938451456
+29708-d3d12: GfxDevice was not out of Non-Local memory
+29709-d3d12: Non-Local memory usage:
+29710- Budget: 67643031552
+29711- CurrentUsage: 523268096

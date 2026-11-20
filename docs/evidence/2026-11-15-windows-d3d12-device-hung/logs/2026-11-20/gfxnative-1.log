@@ -1,0 +1,12 @@
+23:23:06 [gfxnative-1] compile ok=1
+23:23:06 open: opened Assets/Scenes/Game/MainMenu.unity
+23:23:08 meshDeformation 2 -> 2 gpuSkinning=True
+23:23:19 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+23:24:25 steady renderers=217528
+23:24:25 vfx: FX_Flame n=178 on=178 alive=-356 visible=0 | FX_Smoke_White n=52 on=52 alive=111 visible=5 | FX_Smoke_Black n=48 on=48 alive=-91 visible=2
+23:24:26 exp: none
+23:24:27 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+23:24:33 vfx: FX_Flame n=178 on=178 alive=892 visible=40 | FX_Smoke_White n=52 on=52 alive=1481 visible=48 | FX_Smoke_Black n=48 on=48 alive=-26 visible=5
+23:25:19 +46s: FAIL 
+23:25:19 gpu-errors: 5
+23:25:20 [gfxnative-1] done dead=1

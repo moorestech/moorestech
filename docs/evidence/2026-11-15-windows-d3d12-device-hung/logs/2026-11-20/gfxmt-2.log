@@ -1,0 +1,6 @@
+23:21:19 +394s: focused=True skinnedActive=4725 frame=5489 fps~10.6
+23:21:29 +404s: focused=True skinnedActive=4725 frame=5610 fps~12.0
+23:21:40 +415s: focused=True skinnedActive=4725 frame=5732 fps~11.5
+23:21:51 +426s: focused=True skinnedActive=4725 frame=5853 fps~11.4
+23:21:51 gpu-errors: 0
+23:22:00 [gfxmt-2] done dead=0
