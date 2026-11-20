@@ -27,7 +27,7 @@ namespace Core.Master.Validator
                 // Use quality-tier tables without inheriting input levels
                 logs += CleanRoomRoleRecipeChecks.RequireNoInheritance(RoleName, recipe);
                 logs += CleanRoomRoleRecipeChecks.RequireFamilyBase(RoleName, recipe.MachineRecipeGuid, dicing.DieItemGuid, out var dieLevelCount);
-                if (float.IsNaN(dicing.MaxRareShift) || float.IsInfinity(dicing.MaxRareShift) || dicing.MaxRareShift < 0f || 1f < dicing.MaxRareShift) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} MaxRareShift:{dicing.MaxRareShift} must be finite and in [0,1]\n";
+                if (float.IsNaN(dicing.QualityApproachScale) || float.IsInfinity(dicing.QualityApproachScale) || !(0f < dicing.QualityApproachScale)) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} QualityApproachScale:{dicing.QualityApproachScale} must be finite and positive\n";
                 if (dicing.DiesPerWafer < 1) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} DiesPerWafer:{dicing.DiesPerWafer} must be >= 1\n";
                 if (float.IsNaN(dicing.MaxLossReduction) || float.IsInfinity(dicing.MaxLossReduction) || dicing.MaxLossReduction < 0f || 1f < dicing.MaxLossReduction) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} MaxLossReduction:{dicing.MaxLossReduction} must be finite and in [0,1]\n";
 

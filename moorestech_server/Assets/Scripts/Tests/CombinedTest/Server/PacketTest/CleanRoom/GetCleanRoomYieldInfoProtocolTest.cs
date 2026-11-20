@@ -59,15 +59,15 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var (packet, machine) = SetUpOperableMachine(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe);
             var view = ReadView<CleanRoomYieldDicingView>(Invoke(packet, machine.BlockInstanceId));
 
-            // ダイ損失率は 0.15×(1−min(1.0, 0.8))=0.03
-            // The die loss rate is 0.15 x (1 - min(1.0, 0.8)) = 0.03
-            Assert.AreEqual(0.03, view.Dicing.DieLossRate, Tolerance);
+            // 近づき度 1−exp(−1)=0.632121 で、ダイ損失率はモジュール無しの0.15と十分入れた0.03の間を混ぜた値になる
+            // The approach weight 1-exp(-1)=0.632121 mixes the die loss between the no-module 0.15 and the full-module 0.03
+            Assert.AreEqual(0.074146, view.Dicing.DieLossRate, Tolerance);
 
-            // tier1・クラスA・1個はシフト0なので、Tier1の表 [.7,.1,0]・失敗0.2のまま返る
-            // One tier-1 module in class A gives zero shift, so the tier-1 table [.7,.1,0] with 0.2 failed comes back unchanged
+            // tier1・クラスA・1個は、モジュール無しの表 [.2,0,0] からTier1の表 [.7,.1,0] へ近づき度で寄った値を返す
+            // One tier-1 module in class A returns the no-module table [.2,0,0] moved toward the tier-1 table [.7,.1,0] by the approach weight
             Assert.AreEqual(1, view.Dicing.QualityTier);
-            Assert.That(view.Dicing.LevelRates, Is.EqualTo(new[] { 0.7, 0.1, 0d }).Within(Tolerance));
-            Assert.AreEqual(0.2, view.Dicing.FailedRate, Tolerance);
+            Assert.That(view.Dicing.LevelRates, Is.EqualTo(new[] { 0.531130, 0.066226, 0d }).Within(Tolerance));
+            Assert.AreEqual(0.402644, view.Dicing.FailedRate, Tolerance);
             Assert.IsNull(view.PendingDraw);
         }
 

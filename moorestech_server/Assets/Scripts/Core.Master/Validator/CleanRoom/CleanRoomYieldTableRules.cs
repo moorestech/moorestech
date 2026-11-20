@@ -8,15 +8,15 @@ namespace Core.Master.Validator
     /// </summary>
     public static class CleanRoomYieldTableRules
     {
-        // 行は良いクラスから順。倍率は0以上で非増加、失敗率と損失率は[0,1]で非減少
-        // Rows run best class first: multipliers are >= 0 and non-increasing, fail and loss rates are in [0,1] and non-decreasing
+        // 行は良いクラスから順。倍率は正で非増加、失敗率と損失率は[0,1]で非減少
+        // Rows run best class first: multipliers are > 0 and non-increasing, fail and loss rates are in [0,1] and non-decreasing
         public static string ValidateClassRows(IReadOnlyList<(string className, float qualityMultiplier, float layerFailRate, float dieLossRate)> rows)
         {
             var logs = "";
             for (var i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
-                if (float.IsNaN(row.qualityMultiplier) || float.IsInfinity(row.qualityMultiplier) || row.qualityMultiplier < 0f) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} QualityMultiplier:{row.qualityMultiplier} must be finite and >= 0\n";
+                if (float.IsNaN(row.qualityMultiplier) || float.IsInfinity(row.qualityMultiplier) || !(0f < row.qualityMultiplier)) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} QualityMultiplier:{row.qualityMultiplier} must be finite and > 0\n";
                 if (float.IsNaN(row.layerFailRate) || float.IsInfinity(row.layerFailRate) || row.layerFailRate < 0f || 1f < row.layerFailRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} LayerFailRate:{row.layerFailRate} must be finite and in [0,1]\n";
                 if (float.IsNaN(row.dieLossRate) || float.IsInfinity(row.dieLossRate) || row.dieLossRate < 0f || 1f < row.dieLossRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} DieLossRate:{row.dieLossRate} must be finite and in [0,1]\n";
                 if (i == 0) continue;
@@ -39,6 +39,11 @@ namespace Core.Master.Validator
         {
             var logs = "";
             if (tierTables.Count != dieLevelCount + 1) logs += $"[CleanRoomMaster] {roleLabel} requires {dieLevelCount + 1} quality tier tables (found {tierTables.Count})\n";
+
+            // 十分入れた表は良品の割合がモジュール無しの表より大きい（混ぜたとき1個ごとに良品が伸びる前提）
+            // A full-module table must have a larger good share than the no-module table, so blending raises good dies per module
+            // silent-ok: 表が0枚なら上の表の枚数の検査がログ済み / 起動時のマスタ検証で止まる
+            var noModuleGoodShare = 0 < tierTables.Count ? GoodShare(tierTables[0].levelRates) : 0f;
             for (var tier = 0; tier < tierTables.Count; tier++)
             {
                 var (rates, failedRate) = tierTables[tier];
@@ -58,10 +63,19 @@ namespace Core.Master.Validator
                 }
                 if (float.IsNaN(sum) || float.IsInfinity(sum) || RateTolerance < System.Math.Abs(sum - 1f)) logs += $"{prefix} rates sum to {sum}, not 1\n";
                 if (0 < tier && tier <= dieLevelCount && tier <= rates.Count && !(0f < rates[tier - 1])) logs += $"{prefix} default Lv{tier} must be positive\n";
+                var goodShare = GoodShare(rates);
+                if (0 < tier && !(noModuleGoodShare < goodShare)) logs += $"{prefix} good share {goodShare} must exceed the no-module table's {noModuleGoodShare}\n";
             }
             return logs;
 
             #region Internal
+
+            static float GoodShare(IReadOnlyList<float> levelRates)
+            {
+                var sum = 0f;
+                foreach (var rate in levelRates) sum += rate;
+                return sum;
+            }
 
             static string ValidateRate(string prefix, string name, float value)
             {

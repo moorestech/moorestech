@@ -20,14 +20,15 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
             return ChipYieldFormula.ReducedRate(classYield.LayerFailRate, moduleEffect.QualityShift, role.Exposure.MaxFailReduction);
         }
 
-        // ダイシングの率を1回だけ計算する。損失率は品質合計で割り引き、Tierはダイシング装置の品質最高Tier（ダイの最大レベルで頭打ち）
-        // Compute dicing rates once; loss is discounted by the quality sum and the tier is the machine's highest quality tier capped at the die's top level
+        // ダイシングの率を1回で算出
+        // Compute dicing rates once, with the approach weight discounting loss
         public static DicingPreview Dicing(DicingRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
         {
-            var lossRate = ChipYieldFormula.ReducedRate(classYield.DieLossRate, moduleEffect.QualityShift, role.Dicing.MaxLossReduction);
+            var approachWeight = ChipYieldFormula.ApproachWeight(moduleEffect.QualityShift, classYield.QualityMultiplier, role.Dicing.QualityApproachScale);
             var qualityTier = Math.Min(moduleEffect.HighestQualityModuleTier, role.DieLevelCount);
-            var table = role.Dicing.QualityTierDieTables[qualityTier];
-            var levelRates = ChipYieldFormula.ShiftedDieRates(table.LevelRates, table.FailedRate, qualityTier, moduleEffect.QualityShift, classYield.QualityMultiplier, moduleEffect.HighestQualityModuleEffectValue, role.Dicing.MaxRareShift, out var failedRate);
+            var noModuleTable = role.Dicing.QualityTierDieTables[0];
+            var tierTable = role.Dicing.QualityTierDieTables[qualityTier];
+            var levelRates = ChipYieldFormula.DicingRates(noModuleTable.LevelRates, noModuleTable.FailedRate, tierTable.LevelRates, tierTable.FailedRate, classYield.DieLossRate, role.Dicing.MaxLossReduction, approachWeight, out var lossRate, out var failedRate);
             return new DicingPreview(lossRate, qualityTier, levelRates, failedRate);
         }
     }
