@@ -1,0 +1,11 @@
+02:10:35 open: opened Assets/Scenes/Game/MainMenu.unity
+02:10:37 gpuSkinning True -> False
+02:10:47 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+02:11:55 steady renderers=217527
+02:11:55 exp: none (gpu skinning off before play)
+02:11:55 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+02:12:08 +10s: focused=True focusedWindow=GameView
+02:12:20 +20s: focused=True focusedWindow=GameView
+02:12:31 +30s: focused=True focusedWindow=GameView
+02:12:31 gpu-errors: 0
+02:12:45 gpuSkinning -> True
