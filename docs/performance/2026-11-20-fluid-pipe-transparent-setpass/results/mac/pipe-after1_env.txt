@@ -1,0 +1,1 @@
+batch=False opt=Debug gfx=Metal cam=1920x1080 vsync=1 target=60 quality=High
