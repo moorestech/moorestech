@@ -1,0 +1,17 @@
+01:45:50 open: opened Assets/Scenes/Game/MainMenu.unity
+01:46:04 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+01:47:12 steady renderers=217503
+01:47:12 exp: block renderers off=230194
+01:47:13 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+01:47:18 analyzed: cam=(624.4, 84.8, 418.1) euler=(2.5, 321.9, 0.0) types=47
+01:47:19 enabled 8388e6a8 renderers=59904 remaining=46
+01:47:34 enabled 019f0d29 renderers=9414 remaining=45
+01:47:47 enabled 7743a779 renderers=33681 remaining=44
+01:48:01 enabled 019e1225 renderers=10039 remaining=43
+01:48:15 enabled 532b0907 renderers=4680 remaining=42
+01:48:28 enabled 019ee880 renderers=3040 remaining=41
+01:48:42 enabled 7d35321c renderers=5319 remaining=40
+01:48:56 enabled 8e9a603c renderers=58656 remaining=39
+01:49:11 enabled e5a2b42a renderers=2542 remaining=38
+01:49:43 CRASH after: enabled e5a2b42a renderers=2542 remaining=38  (status: FAIL )
+01:49:43 gpu-errors: 2

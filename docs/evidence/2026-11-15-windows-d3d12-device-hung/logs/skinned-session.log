@@ -1,0 +1,9 @@
+01:59:49 open: opened Assets/Scenes/Game/MainMenu.unity
+02:00:00 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+02:01:07 steady renderers=217527
+02:01:07 exp: skinned off=4697 byType: 蒸気機関=2288, 電気汎用工作装置=1710, ガソリンエンジン発電機=374, 油井=287, ふいご付き精錬炉=38
+02:01:08 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+02:01:33 without skinned: focused=True focusedWindow=GameView
+02:01:33 skinned on=4697
+02:01:54 with skinned: FAIL 
+02:02:14 gpu-errors: 2

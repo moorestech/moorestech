@@ -1,0 +1,16 @@
+01:51:00 unity ready
+01:51:02 open: opened Assets/Scenes/Game/MainMenu.unity
+01:51:28 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+01:52:36 steady renderers=217527
+01:52:36 exp: block renderers off=230194
+01:52:37 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+01:52:41 order: order: e5a2b42a then REST(58 types)
+01:52:42 enabled e5a2b42a renderers=2542 remaining=1
+01:52:56 FAIL {
+  "Result": "",
+  "Logs": [
+    "Exception at user snippet line 20: Index and length must refer to a location within the string.\r\nParameter name: length",
+    "Execution exception: Index and length must refer to a location within the string.\r\nParameter name: length",
+    "Stack trace:   at Sys
+enable call failed
+01:52:56 gpu-errors: 0
