@@ -82,7 +82,7 @@ return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
         await p.Until(() => Root().Q<VisualElement>("clean-room-air-filter-count") != null, 10f, "部屋欄に清浄機の台数");
-        await Shoot("cleanroom30", MatchReferenceRoom);
+        await ShootReferenceRoom();
         await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
@@ -129,26 +129,58 @@ return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
                 await UniTask.DelayFrame(10);
                 prepare?.Invoke();
                 await UniTask.DelayFrame(4);
-                p.Note($"{name} {lang} {w}x{h}: {Labels()}");
+                var labels = Labels();
+                if (name == "cleanroom30")
+                {
+                    // 固定値が撮影直前にも実画面に残っていることを確かめる
+                    // Verify the fixed values still appear just before capture
+                    var headline = lang == "japanese" ? "クラスC（クラスBまであと5台）" : "Class C (5 more to class B)";
+                    var count = lang == "japanese" ? "清浄機 30台" : "Purifiers: 30";
+                    p.Assert(labels.Contains($"{headline}@") && labels.Contains($"{count}@") && labels.Contains("100%") && labels.Contains("50%"), $"固定の部屋欄 {lang} {w}x{h}");
+                }
+                p.Note($"{name} {lang} {w}x{h}: {labels}");
                 await p.Screenshot($"{name}-{lang}-{w}x{h}");
             }
         }
     }
 
+    async UniTask ShootReferenceRoom()
+    {
+        // 通信の再描画は生の部屋欄が受け、撮影用の欄だけに固定の値を出す
+        // Keep live refreshes on the original section and render fixed values in a capture-only section
+        var live = Root().Q<CleanRoomSectionView>();
+        var fixture = new CleanRoomSectionView();
+        var position = live.style.position;
+        var visibility = live.style.visibility;
+        live.style.position = Position.Absolute;
+        live.style.visibility = Visibility.Hidden;
+        live.parent.Insert(live.parent.IndexOf(live), fixture);
+        try
+        {
+            await Shoot("cleanroom30", () => MatchReferenceRoom(fixture));
+        }
+        finally
+        {
+            fixture.RemoveFromHierarchy();
+            live.style.position = position;
+            live.style.visibility = visibility;
+        }
+    }
+
     // 部屋欄と題を固定の中身にする（行の UiText は本番の組み立てで作る）
     // Swap the room section and title to fixed contents (production builds the UiText rows)
-    void MatchReferenceRoom()
+    void MatchReferenceRoom(CleanRoomSectionView fixture)
     {
         var status = CleanRoomAirFilterRoomStatus.WithUnitsToNextClass(FilterCount, 0, 1, 0.5, "B", 5);
         var room = CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("C"), status);
-        Root().Q<CleanRoomSectionView>().Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None)));
+        fixture.Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None)));
         var title = Root().Q("block-inventory").Q<LocalizedLabel>(className: "game-panel__title");
         title.SetText(UiText.FromVerbatim(shootingLanguage == "japanese" ? "電気機械" : "Electric Machine"));
     }
 
     string Labels()
     {
-        var labels = Root().Query<LocalizedLabel>().ToList().Where(l => l.resolvedStyle.display == DisplayStyle.Flex && l.worldBound.height > 0 && l.worldBound.yMin < 360f);
+        var labels = Root().Query<LocalizedLabel>().ToList().Where(l => l.resolvedStyle.display == DisplayStyle.Flex && l.resolvedStyle.visibility == Visibility.Visible && l.worldBound.height > 0 && l.worldBound.yMin < 360f);
         return string.Join(" | ", labels.Select(l => $"{l.SourceText}@x={l.worldBound.xMin:F1},y={l.worldBound.yMin:F1},w={l.worldBound.width:F1},h={l.worldBound.height:F1},c={l.resolvedStyle.color}"));
     }
 
