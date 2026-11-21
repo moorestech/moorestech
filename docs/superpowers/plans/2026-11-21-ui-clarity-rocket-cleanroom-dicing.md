@@ -4575,7 +4575,7 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 - Consumes: なし
 - Produces: `public static class Game.Block.Interface.Component.SpaceElevatorCableItems { public static bool Contains(ItemId itemId); }`（全拠点の `CableItemGuid` のどれかなら true。拠点の無いマスタでは常に false）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/SpaceElevator/SpaceElevatorCableItemsTest.cs`:
 
@@ -4603,11 +4603,11 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
 }
 ```
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `SpaceElevatorCableItems` が無くてコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorCableItems.cs`（`Game.Block.Interface.asmdef` は `Core.Master` を既に参照し、`RocketLaunchPadSlotLayout` が `Mooresmaster.Model.BlocksModule` を使っている）:
 
@@ -4743,7 +4743,7 @@ namespace Game.SpaceElevator
 `git rm moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs.meta`
 `grep -rn "SpaceElevatorBaseMasters" moorestech_server moorestech_client` が 0 件であること。`grep -rn "_cableItemIds" moorestech_server` も 0 件であること（欄を消したので、読み手が残っていればコンパイルが通らない）。
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Core.Block.SpaceElevator.SpaceElevatorCableItemsTest"`
@@ -4751,7 +4751,7 @@ namespace Game.SpaceElevator
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 期待: すべて成功（プールの数え方は変わらない）。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 `git commit -m "ケーブルプールへ足す積荷の判定を Game.Block.Interface の公開の口にし、プールもそれを読む"`
 
