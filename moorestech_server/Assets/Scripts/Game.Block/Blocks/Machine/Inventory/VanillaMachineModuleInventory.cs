@@ -87,11 +87,13 @@ namespace Game.Block.Blocks.Machine.Inventory
         public bool CanAcceptOneMore(ModuleMasterElement module)
         {
             if (!IsModuleEffective(module)) return false;
-            var itemId = MasterHolder.ItemMaster.GetItemId(module.ItemGuid);
+            var incoming = ServerContext.ItemStackFactory.Create(module.ItemGuid, 1);
             foreach (var stack in ModuleSlot)
             {
-                if (stack.Id == ItemMaster.EmptyItemId) return true;
-                if (stack.Id == itemId && stack.Count < GetSlotStackLimit()) return true;
+                // 実挿入と同じ加算でアイテム上限・属性も照合し、装着枠には書き戻さない
+                // Preview the insertion addition with its item limit and metadata without writing to the slot
+                if (stack.Count >= GetSlotStackLimit() || MachineSubInventoryReplaceUtil.IsSwap(stack, incoming)) continue;
+                if (stack.AddItem(incoming).RemainderItemStack.Count == 0) return true;
             }
             return false;
         }
