@@ -325,7 +325,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/SpecialBlockDetailModelTest.cs` | ctor の引数 |
 | `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator/SpaceElevatorConnectActionTest.cs`・`SpaceElevatorServerTestState.cs` | 選んでから接続へ |
 | `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`・`tier9-4b-rocket-cargo-shift-reject.cs`・`tier9-6-fusion-elevator.cs`・`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`・`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs` | 録画シナリオの直し |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（新規） | 建造中の選び直しと「次の便から」の録画シナリオ（196 行） |
+| `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/rocket/tier9-4c-rocket-cargo-reselect.cs`（新規） | 建造中の選び直しと「次の便から」の録画シナリオ（196 行） |
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/` には今サブディレクトリ `Commands/`・`Source/` があり、`Cargo/` を足す（.cs 今 0 本 → 5 本。B3 の `FakeUnlockedOrbitalCargoSource.cs` を含む）。`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/` に `Cargo/` を足す（.cs 今 0 本 → 2 本）。
 
@@ -7930,7 +7930,7 @@ git commit -m "発射台と拠点の本文を、一覧の局所状態を持つ�
 - Consumes: B3 で登録した `UnlockedOrbitalCargoSource`、B4 の `SpecialBlockCommands.SelectOrbitalCargo`・`SelectOrbitalCargoCommandName`、A の `IOrbitalCargoSelectorComponent.Selection`（`SelectedOrbitalCargo(ItemId PayloadItemId)`／`UnselectedOrbitalCargo`）・`IGameUnlockStateDataController.UnlockItem(ItemId)`。
 - Produces: `SpaceElevatorServerTestState.TargetSelectedCargo`（`ItemId?`）・`SpaceElevatorServerTestState.UnlockPayloadAsync(ItemId)`（テスト内のみ）。
 
-- [ ] **Step 1: テストを直す**
+- [x] **Step 1: テストを直す**
 
 `SpaceElevatorConnectActionTest.cs` 94–98 行。前:
 
@@ -8023,15 +8023,15 @@ git commit -m "発射台と拠点の本文を、一覧の局所状態を持つ�
 
 （80 行 → 約 105 行。`SelectedOrbitalCargo` の名前空間は A の Interfaces 5 の `Game.Block.Interface.Component`。）
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 テストだけを先に直した状態では、`SpaceElevatorServerTestState` の補助が無いのでコンパイルエラー。Step 3 の補助を書いた後に流す。
 
-- [ ] **Step 3: 補助を書いた後に流す**
+- [x] **Step 3: 補助を書いた後に流す**
 
 （上の `SpaceElevatorServerTestState.cs` の変更が Step 3 の実装にあたる。登録は B3 で済んでいる。）
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -8040,7 +8040,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 ```
 期待: 全部緑。ドメインリロード中のエラーは 45 秒待って再試行（AGENTS.md）。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/SpaceElevator
@@ -8055,11 +8055,13 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 **Files**
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`（2–3 行、66–76 行、78–81 行。191 行 → 197 行）
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行）
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/rocket/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs`（1–2 行、using、48–57 行、85–97 行。157 行 → 169 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-6-fusion-elevator.cs`（63–64 行、84–90 行、139–140 行、183–195 行の `OpenBlock`。200 行 → 200 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`（using、109–112 行、115 行。195 行 → 199 行）
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/s5-retake/uitk-s5-retake-blocks.cs`（95–96 行。185 行 → 187 行）
+
+新規の選び直しシナリオは `tier9/rocket/` に置く（`tier9/` 直下は既に .cs が10本）。既存の200行のシナリオを直す際も、ユーザー指定の200行未満を満たすよう役割に沿って整理する。
 
 **Interfaces**
 - Consumes: B5・B6 の testid（`rocket-launch-pad-cargo-row-{id}`・`-cargo-header`・`-cargo-next-flight`・`space-elevator-cargo-row-{id}`・`space-elevator-cargo-list`・`space-elevator-cargo-status`）、A の `RocketLaunchPadStateDetail.SelectedCargoItemId`/`LoadedCargoItemId`・`SpaceElevatorBaseStateDetail.SelectedCargoItemId`・`IOrbitalCargoSelectorComponent.SelectCargo(ItemId, IOpenableInventory)`・`OrbitalCargoSelectionResult.Success`・`IGameUnlockStateDataController.UnlockItem(ItemId)`。
@@ -8110,7 +8112,7 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 - [ ] **Step 1b: 選び直しのシナリオ tier9-4c を足す**
 
-新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行。下のコードの行数そのまま）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
+新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/rocket/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行。下のコードの行数そのまま）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
 
 ```csharp
 using Game.Context;
@@ -8538,7 +8540,7 @@ using Game.UnlockState;
 `unity-playmode-recorded-playtest` スキルの手順で、次を 1 本ずつ流す（Mac mini では自分の worktree の Editor 1 本、または `winunity play`。どちらを使うかは環境ローカル規約）:
 
 - `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4-rocket-launch.cs`（建造 120 秒を実時間で待つ。目安 6 分）
-- `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4c-rocket-cargo-reselect.cs`（同じく目安 6 分）
+- `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/rocket/tier9-4c-rocket-cargo-reselect.cs`（同じく目安 6 分）
 - `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-4b-rocket-cargo-shift-reject.cs`
 - `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-6-fusion-elevator.cs`（昇降 240 秒。目安 10 分）
 - `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-block-special-panels.cs`
