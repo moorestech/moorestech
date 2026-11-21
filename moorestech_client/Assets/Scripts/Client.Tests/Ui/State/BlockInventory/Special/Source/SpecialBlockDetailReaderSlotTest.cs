@@ -46,7 +46,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Source
             var pending = _harness.CreateBlock(Vector3Int.zero, master);
             Assert.IsFalse(Read(pending).TryGetRocketLaunchPad(out _));
 
-            var block = _harness.CreateBlock(Vector3Int.zero, master, (RocketLaunchPadStateDetail.BlockStateDetailKey, new RocketLaunchPadStateDetail(RocketLaunchPadPhase.Building, RocketLaunchPadWaitReason.NoPower, 0.375f)));
+            var block = _harness.CreateBlock(Vector3Int.zero, master, (RocketLaunchPadStateDetail.BlockStateDetailKey, new RocketLaunchPadStateDetail(RocketLaunchPadPhase.Building, RocketLaunchPadWaitReason.NoPower, 0.375f, null, null)));
             Assert.IsTrue(Read(block).TryGetRocketLaunchPad(out var pad));
 
             Assert.AreEqual(0.375f, pad.Progress);

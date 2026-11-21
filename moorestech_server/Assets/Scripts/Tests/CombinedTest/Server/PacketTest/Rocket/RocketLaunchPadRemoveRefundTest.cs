@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         {
             var (packet, services) = CreateServer();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             Assert.AreEqual(RocketLaunchPadCommandResult.Accepted, pad.GetComponent<IRocketLaunchPadComponent>().RequestBuild());
 
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             var (packet, services) = CreateServer();
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
 
             // 消費済みの資材は返さず、開ける出力口の成果だけ返す

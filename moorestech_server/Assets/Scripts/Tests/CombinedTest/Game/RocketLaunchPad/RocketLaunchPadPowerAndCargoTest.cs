@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             // 実電力網で供給0にし、消費要求を残したまま進行が止まることを確かめる
             // Use a real zero-supply network and verify progress stops while demand remains
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(new Vector3Int(20, 0, 0), 0);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Building, 5));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var before = ((RocketLaunchPadSaveJsonObject)processor.GetSaveState()).RemainingSeconds;
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             int MeasureBuildTicks(Vector3Int position, float power)
             {
                 var pad = RocketLaunchPadTestUtil.PlacePoweredPad(position, power);
-                RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+                RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
                 Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Building, 5));
                 var ticks = 0;
                 while (RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase == RocketLaunchPadPhase.Building && ticks < 100)
@@ -68,34 +68,12 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             #endregion
         }
 
-        [Test]
-        public void 揃った積荷は交互に選ぶ()
-        {
-            ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
-            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 4);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.CablePayloadId, 20);
-            RocketLaunchPadTestUtil.FillMaterials(pad);
-            var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            var arrivals = new List<OrbitalArrival>();
-            using var subscription = ServerContext.GetService<IOrbitalArrivalService>().OnOrbitalArrival.Subscribe(arrivals.Add);
-            // 両候補を残し続け、固定先頭探索への退行を検出する
-            // Keep both candidates available to detect regression to a fixed first choice
-            for (var tick = 0; tick < 200 && arrivals.Count < 3; tick++)
-            {
-                inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0], ServerContext.ItemStackFactory.CreatEmpty());
-                inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], ServerContext.ItemStackFactory.CreatEmpty());
-                GameUpdater.RunFrames(1);
-            }
-            CollectionAssert.AreEqual(new[] { ForUnitTestItemId.SatellitePayloadId, ForUnitTestItemId.CablePayloadId, ForUnitTestItemId.SatellitePayloadId }, arrivals.Select(arrival => arrival.PayloadItemId));
-            Assert.AreEqual(5, arrivals[1].PayloadCount);
-        }
 
         [Test]
         public void 撤去で積んだ資材を返し発射後は返さない()
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             processor.RequestBuild();

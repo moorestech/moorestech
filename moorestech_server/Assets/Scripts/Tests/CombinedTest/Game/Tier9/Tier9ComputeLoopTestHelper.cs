@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Game.Tier9
         public static void LaunchNext(IBlock pad, ItemId payloadItemId, int payloadCount)
         {
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Idle, PhaseTimeoutTicks));
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, payloadItemId, payloadCount);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, payloadItemId, payloadCount);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, PhaseTimeoutTicks));
         }
 

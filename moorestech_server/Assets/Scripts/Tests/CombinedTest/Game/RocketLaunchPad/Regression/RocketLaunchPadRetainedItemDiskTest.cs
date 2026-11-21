@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             // 通常の建造と在庫操作から保存
             // Save real loaded cargo and inventory through normal construction and inventory operations
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             pad.GetComponent<RocketLaunchPadProcessorComponent>().RequestBuild();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingLaunchCommand, 40));

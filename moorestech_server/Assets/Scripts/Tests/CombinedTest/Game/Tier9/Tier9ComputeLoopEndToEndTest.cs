@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game.Tier9
             Assert.IsTrue(research.CompleteResearch(Ids.RocketTechnologyResearchGuid, playerId));
             Assert.IsTrue(unlocks.BlockUnlockStateInfos[Ids.RocketLaunchPadBlockGuid].IsUnlocked);
             Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, research.GetResearchNodeStates(playerId)[Ids.GpuUpgradeLv2ResearchGuid]);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, TakeOutput(sat1Inventory, Ids.GpuSatellite(1), 1).Id, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, TakeOutput(sat1Inventory, Ids.GpuSatellite(1), 1).Id, 1);
             LaunchFirst(pad);
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             Assert.AreEqual(10, MovePadOutputsToPlayer(pad, playerId));

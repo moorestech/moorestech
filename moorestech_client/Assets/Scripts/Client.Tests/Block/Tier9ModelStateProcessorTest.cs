@@ -132,7 +132,7 @@ namespace Client.Tests.Block
             void Apply(RocketLaunchPadPhase phase, float progress)
             {
                 processor.OnChangeState(State(RocketLaunchPadStateDetail.BlockStateDetailKey,
-                    new RocketLaunchPadStateDetail(phase, RocketLaunchPadWaitReason.None, progress)));
+                    new RocketLaunchPadStateDetail(phase, RocketLaunchPadWaitReason.None, progress, null, null)));
             }
             #endregion
         }

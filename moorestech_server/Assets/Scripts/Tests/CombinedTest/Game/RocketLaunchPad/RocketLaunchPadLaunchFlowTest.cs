@@ -1,3 +1,4 @@
+using Tests.Util.OrbitalCargo;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -32,7 +33,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 初打ち上げ前は建造と発射の合図を待つ()
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
@@ -64,7 +65,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(RocketLaunchPadCommandResult.NotAwaitingBuildCommand, processor.RequestBuild());
             ExpectRejection();
             Assert.AreEqual(RocketLaunchPadCommandResult.NotAwaitingLaunchCommand, processor.RequestLaunch());
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
 
             // 合図待ちに入った後の搬出や出力満杯も再検査する
@@ -93,7 +94,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         {
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var phases = new List<RocketLaunchPadPhase>();
             for (var i = 0; i < 40 && RocketLaunchPadTestUtil.ReadState(processor).Phase != RocketLaunchPadPhase.Launching; i++)
@@ -143,7 +144,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             IBlock CreateWaitingPad(Vector3Int position)
             {
                 var pad = RocketLaunchPadTestUtil.PlacePoweredPad(position, 100);
-                RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+                RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
                 Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
                 return pad;
             }
@@ -158,6 +159,11 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
+            // 未選択の台は資材より先に積荷の選択を待つ（ADR 0106 2）
+            // An unselected pad waits for a cargo selection before materials (ADR 0106 2)
+            Assert.AreEqual(RocketLaunchPadWaitReason.CargoNotSelected, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
+            OrbitalCargoTestUtil.SelectCargo(pad, ForUnitTestItemId.SatellitePayloadId);
+            GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadWaitReason.MissingMaterials, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             RocketLaunchPadTestUtil.FillMaterials(pad);
             GameUpdater.RunFrames(1);

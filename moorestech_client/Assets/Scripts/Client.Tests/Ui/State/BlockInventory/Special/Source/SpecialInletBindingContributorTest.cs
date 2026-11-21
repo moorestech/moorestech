@@ -43,7 +43,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 発射台は詳細の束縛の枠だけへ要求の品を向ける()
         {
             var bindings = new[] { new InletSlotBinding(1, new[] { Fuel }) };
-            var rocket = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0f), new[] { 1 }, Array.Empty<int>(), bindings, 2);
+            var rocket = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0f, null, null), new[] { 1 }, Array.Empty<int>(), bindings, 2);
             var open = Contribute(BlockMasterElement.BlockTypeConst.RocketLaunchPad, SpecialDetailSamples.Only(rocket));
 
             var fuel = BlockSlotRestrictionResolver.Resolve(open, Fuel) as BoundBlockSlots;

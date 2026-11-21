@@ -12,7 +12,6 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
         [JsonProperty("remainingSeconds")] public double? RemainingSeconds;
         [JsonProperty("cargoPayload")] public ItemStackSaveJsonObject CargoPayload;
         [JsonProperty("cargoMaterials")] public List<ItemStackSaveJsonObject> CargoMaterials;
-        [JsonProperty("nextPayloadIndex")] public int? NextPayloadIndex;
         [JsonProperty("inputItems")] public List<ItemStackSaveJsonObject> InputItems;
         [JsonProperty("outputItems")] public List<ItemStackSaveJsonObject> OutputItems;
     }

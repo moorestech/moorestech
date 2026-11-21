@@ -70,6 +70,7 @@ namespace Server.Protocol.PacketResponse
                     RocketLaunchPadCommandResult.MissingMaterials => RocketLaunchPadCommandFailureReason.MissingMaterials,
                     RocketLaunchPadCommandResult.MissingPayload => RocketLaunchPadCommandFailureReason.MissingPayload,
                     RocketLaunchPadCommandResult.OutputFull => RocketLaunchPadCommandFailureReason.OutputFull,
+                    RocketLaunchPadCommandResult.CargoNotSelected => RocketLaunchPadCommandFailureReason.CargoNotSelected,
                     _ => throw new ArgumentOutOfRangeException(nameof(result), result, "通信の失敗理由へ写していない発射台の結果です"),
                 };
             }
@@ -134,6 +135,7 @@ namespace Server.Protocol.PacketResponse
             MissingPayload = 9,
             InstanceMismatch = 10,
             OutputFull = 8,
+            CargoNotSelected = 11,
         }
 
         #endregion

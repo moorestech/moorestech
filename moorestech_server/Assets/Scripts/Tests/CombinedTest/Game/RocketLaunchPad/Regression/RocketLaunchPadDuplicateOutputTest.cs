@@ -143,7 +143,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             _variantRoot = RocketLaunchPadVariantTestMod.CreateServer(configs[0].JsonContents[itemsName], configs[0].JsonContents[blocksName]);
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.AreEqual(RocketLaunchPadTestUtil.GetLayout(pad).TotalSlotCount, inventory.GetSlotSize());
@@ -170,7 +170,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], ForUnitTestItemId.ComputeDataId, 50);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
             Assert.AreEqual(ForUnitTestItemId.RocketFuelId, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Id);
             Assert.AreEqual(50, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count);

@@ -50,6 +50,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
                 FailureReason.MissingMaterials => SpecialBlockRequestOutcome.Failed("rocket_command_missing_materials"),
                 FailureReason.MissingPayload => SpecialBlockRequestOutcome.Failed("rocket_command_missing_payload"),
                 FailureReason.OutputFull => SpecialBlockRequestOutcome.Failed("rocket_command_output_full"),
+                FailureReason.CargoNotSelected => SpecialBlockRequestOutcome.Failed("rocket_command_cargo_not_selected"),
                 FailureReason.InstanceMismatch => SpecialBlockRequestOutcome.Failed("rocket_command_instance_mismatch"),
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の合図の拒否理由"),
             };

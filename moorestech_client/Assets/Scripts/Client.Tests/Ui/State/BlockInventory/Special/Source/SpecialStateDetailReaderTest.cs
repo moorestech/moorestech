@@ -60,7 +60,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 発射台は資材と積荷の絶対添字と入れ口の束縛と出力の先頭を持ち在庫の数まで出力を並べる()
         {
             var bindings = new[] { new InletSlotBinding(0, new[] { new ItemId(3) }) };
-            var detail = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0.375f), new[] { 0, 1 }, new[] { 2 }, bindings, 3);
+            var detail = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0.375f, null, null), new[] { 0, 1 }, new[] { 2 }, bindings, 3);
             Assert.AreSame(bindings, detail.InletBindings);
             CollectionAssert.AreEqual(new[] { 0, 1 }, detail.MaterialSlots);
             CollectionAssert.AreEqual(new[] { 2 }, detail.PayloadSlots);

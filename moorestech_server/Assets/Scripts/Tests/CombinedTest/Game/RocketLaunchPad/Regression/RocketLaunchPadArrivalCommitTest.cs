@@ -186,7 +186,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
         private static IBlock Prepare()
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             Assert.AreEqual(RocketLaunchPadCommandResult.Accepted, processor.RequestBuild());
