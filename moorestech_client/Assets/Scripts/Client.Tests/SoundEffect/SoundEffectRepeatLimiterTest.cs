@@ -10,29 +10,26 @@ namespace Client.Tests.SoundEffect
         [Test]
         public void 同じ音は間隔が空くまで通さない()
         {
-            var limiter = new SoundEffectRepeatLimiter();
-            var interval = SoundEffectRepeatLimiter.MinimumIntervalSeconds;
+            var limiter = new SoundEffectRepeatLimiter(1f);
 
             // 同じ時刻に500回要求されても通るのは最初の1回だけ
             // Five hundred requests at one instant let only the first through
             var accepted = 0;
             for (var i = 0; i < 500; i++)
             {
-                if (limiter.TryAccept(SoundEffectType.DestroyBlock, 10f)) accepted++;
+                if (limiter.TryAccept(10f)) accepted++;
             }
             Assert.AreEqual(1, accepted);
 
-            Assert.IsFalse(limiter.TryAccept(SoundEffectType.DestroyBlock, 10f + interval * 0.5f));
-            Assert.IsTrue(limiter.TryAccept(SoundEffectType.DestroyBlock, 10f + interval * 1.5f));
+            Assert.IsFalse(limiter.TryAccept(10.5f));
+            Assert.IsTrue(limiter.TryAccept(11.5f));
         }
 
         [Test]
-        public void 別の種類の音は互いに妨げない()
+        public void 起動直後の最初の1回は通す()
         {
-            var limiter = new SoundEffectRepeatLimiter();
-            Assert.IsTrue(limiter.TryAccept(SoundEffectType.DestroyBlock, 10f));
-            Assert.IsTrue(limiter.TryAccept(SoundEffectType.PlaceBlock, 10f));
-            Assert.IsFalse(limiter.TryAccept(SoundEffectType.PlaceBlock, 10f));
+            var limiter = new SoundEffectRepeatLimiter(1f);
+            Assert.IsTrue(limiter.TryAccept(0f));
         }
     }
 }

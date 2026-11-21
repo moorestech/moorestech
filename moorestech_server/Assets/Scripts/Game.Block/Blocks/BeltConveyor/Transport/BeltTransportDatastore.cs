@@ -25,6 +25,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     public class BeltTransportDatastore : IBeltTransportLookup, IBeltTransportMutation
     {
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly BeltRemovalWorldLayoutCache _removalWorldLayoutCache;
         // ロードで預かり、次の再構築で載せるまで保持する保存内容
         // Save content handed over at load and kept until the next rebuild places it
         private readonly Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> _loadedStates = new();
@@ -49,6 +50,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public BeltTransportDatastore(IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
             _worldBlockDatastore = worldBlockDatastore;
+            _removalWorldLayoutCache = new BeltRemovalWorldLayoutCache(worldBlockDatastore);
             Assembly = BeltTransportAssembler.Assemble(Array.Empty<BeltSegmentLayout>(), new Dictionary<BlockInstanceId, int>(), _diffRecorder);
 
             // 流体・歯車は全ブロックの設置・撤去で作り直すが、ベルトは作り直すと合流・分岐の優先順が初期化されるので構成に関わるブロックだけを契機にする
@@ -154,14 +156,14 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // Lists, without changing the assembly, the contents of internal segments that removing a source would make vanish
         public IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(IBlock block)
         {
-            return BeltConnectionRemovalRefund.GetItems(BeltConnectionRemovalRefund.GetRemovedInputs(block, _worldBlockDatastore), Assembly);
+            return BeltConnectionRemovalRefund.GetItems(_removalWorldLayoutCache.GetRemovedInputs(block), Assembly);
         }
 
         // 返却を確定した撤去の直前に呼び、消える内部segmentを空にする。形は再構築まで変えないので、同tickの後続の撤去・再設置・再構築の復元にこの中身が二度出てこない
         // Called right before a refunded removal; empties the vanishing internal segments while keeping the shape until the rebuild, so later removals, re-placements and the rebuild's restore in the same tick never see these items again
         public void DiscardConnectionRemovalItems(IBlock block)
         {
-            foreach (var (mergeBlockInstanceId, inputDirection) in BeltConnectionRemovalRefund.GetRemovedInputs(block, _worldBlockDatastore))
+            foreach (var (mergeBlockInstanceId, inputDirection) in _removalWorldLayoutCache.GetRemovedInputs(block))
             {
                 if (!Assembly.Locator.TryFindInternal(mergeBlockInstanceId, inputDirection, out var segmentIndex)) continue;
                 Assembly.Segments[segmentIndex].DiscardAllItems();
@@ -173,7 +175,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         {
             // ベルト自身か、ベルトと搬入出で繋がりうるブロック(インベントリ接続を持つ)だけが構成を変える
             // Only a belt itself or a block that can exchange items with one (has an inventory connector) changes the layout
-            if (block.BlockMasterElement.BlockParam is IBeltSpeedParam || block.ComponentManager.ExistsComponent<IBlockConnectorComponent<IBlockInventory>>()) _isTopologyDirty = true;
+            if (!(block.BlockMasterElement.BlockParam is IBeltSpeedParam) && !block.ComponentManager.ExistsComponent<IBlockConnectorComponent<IBlockInventory>>()) return;
+            _isTopologyDirty = true;
+            _removalWorldLayoutCache.Invalidate();
         }
     }
 }

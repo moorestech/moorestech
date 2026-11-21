@@ -17,7 +17,6 @@ namespace Client.Game.InGame.SoundEffect
         [SerializeField] private AudioSource audioSource;
         
         private readonly Dictionary<SoundEffectType, AudioClip> _soundEffectTypeToAudioClip = new();
-        private readonly SoundEffectRepeatLimiter _repeatLimiter = new();
         
         /// <summary>
         ///     サウンド関係はstaticの方がべんりかな、、って思うけど、改善したほうがいいような気もする
@@ -37,9 +36,6 @@ namespace Client.Game.InGame.SoundEffect
         
         public void PlaySoundEffect(SoundEffectType soundEffectType)
         {
-            // 同じ音が重なって割れないよう、短い間隔の連打は間引く
-            // Thin out rapid repeats so the same sound does not stack and clip
-            if (!_repeatLimiter.TryAccept(soundEffectType, Time.unscaledTime)) return;
             audioSource.PlayOneShot(_soundEffectTypeToAudioClip[soundEffectType]);
         }
     }
