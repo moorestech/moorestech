@@ -2,10 +2,10 @@
 # masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。master更新時はclient、日次前は全系統を更新する。
 # Warm the Library caches on master. Actions cache scope is "own ref plus base branch", so PRs stay
 # cold forever unless master has them (ADR 0028). Refresh client test caches on master updates and all caches before the daily build.
-# 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
-# The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix, unityVersion, and the cache path/key/restore-keys in both
-# キャッシュキーにはUnity版を含める。版上げ時に旧版のLibraryを新版へ復元させず、unityVersionと同時に書き換える
-# Cache keys carry the Unity version so an upgrade never restores an old-version Library; rewrite it together with unityVersion
+# 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
+# The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix and the cache path/key/restore-keys in both
+# Unity版はProjectVersion.txtだけが正。Editorイメージはgame-ciのauto、キャッシュキーは各ジョブのRead Unity versionステップが読む
+# ProjectVersion.txt is the only source of the Unity version: game-ci's auto picks the editor image and each job's Read Unity version step feeds the cache keys
 name: Cache Warm
 
 on:
@@ -52,6 +52,16 @@ jobs:
           submodules: recursive
           path: moorestech
 
+      # Unity の版は ProjectVersion.txt だけを正にし、Library キャッシュのキーはここから取る（版上げで旧版の Library を復元させないため）
+      # ProjectVersion.txt is the only source of the Unity version; Library cache keys read it here so an upgrade never restores an old-version Library
+      - name: Read Unity version.
+        id: unity_version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^m_EditorVersion: //p' moorestech/moorestech_client/ProjectSettings/ProjectVersion.txt | tr -d '\r')
+          if [ -z "$version" ]; then echo "::error::m_EditorVersion not found in moorestech/moorestech_client/ProjectSettings/ProjectVersion.txt"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Read pinned master repository revision.
         id: master_revision
         shell: bash
@@ -80,9 +90,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-6000.6.10f1-${{ github.sha }}
+          key: Library_Test_client-${{ steps.unity_version.outputs.version }}-${{ github.sha }}
           restore-keys: |
-            Library_Test_client-6000.6.10f1-
+            Library_Test_client-${{ steps.unity_version.outputs.version }}-
 
       # テストを1本も実行せずインポートだけ済ませる（Libraryを作るのが目的）
       # Import only, without running any test, since the goal is to produce the Library
@@ -98,7 +108,6 @@ jobs:
         with:
           projectPath: moorestech/moorestech_client/
           githubToken: ${{ steps.generate_token.outputs.token }}
-          unityVersion: 6000.6.10f1
           # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
           # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
           containerRegistryImageVersion: 4
@@ -130,7 +139,7 @@ jobs:
         if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-6000.6.10f1-${{ github.sha }}
+          key: Library_Test_client-${{ steps.unity_version.outputs.version }}-${{ github.sha }}
 
       # 最新cacheの保存成功後だけmaster上の旧client cacheを消し、10GB枠内に保つ。
       # Delete old master client caches only after a successful warm and save to stay within the 10GB budget.
@@ -140,7 +149,7 @@ jobs:
         working-directory: moorestech
         env:
           GH_TOKEN: ${{ github.token }}
-          CURRENT_CACHE_KEY: Library_Test_client-6000.6.10f1-${{ github.sha }}
+          CURRENT_CACHE_KEY: Library_Test_client-${{ steps.unity_version.outputs.version }}-${{ github.sha }}
           CACHE_DELETE_BATCH_SIZE: 100
         run: |
           # save actionが警告終了しても旧cacheを消さないよう、現commitのcache実在を先に確認する。
@@ -181,12 +190,22 @@ jobs:
         with:
           submodules: recursive
 
+      # Unity の版は ProjectVersion.txt だけを正にし、Library キャッシュのキーはここから取る（版上げで旧版の Library を復元させないため）
+      # ProjectVersion.txt is the only source of the Unity version; Library cache keys read it here so an upgrade never restores an old-version Library
+      - name: Read Unity version.
+        id: unity_version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^m_EditorVersion: //p' moorestech_server/ProjectSettings/ProjectVersion.txt | tr -d '\r')
+          if [ -z "$version" ]; then echo "::error::m_EditorVersion not found in moorestech_server/ProjectSettings/ProjectVersion.txt"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache/restore@v4
         with:
           path: moorestech_server/Library
-          key: Library_compile_server_6000.6.10f1_${{ matrix.target }}-${{ github.sha }}
+          key: Library_compile_server_${{ steps.unity_version.outputs.version }}_${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
-            Library_compile_server_6000.6.10f1_${{ matrix.target }}-
+            Library_compile_server_${{ steps.unity_version.outputs.version }}_${{ matrix.target }}-
 
       - name: Warm Library - ${{ matrix.target }}
         id: warm
@@ -198,7 +217,6 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.6.10f1
           # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
           # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
           containerRegistryImageVersion: 4
@@ -233,4 +251,4 @@ jobs:
         if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech_server/Library
-          key: Library_compile_server_6000.6.10f1_${{ matrix.target }}-${{ github.sha }}
+          key: Library_compile_server_${{ steps.unity_version.outputs.version }}_${{ matrix.target }}-${{ github.sha }}

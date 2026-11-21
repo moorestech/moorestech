@@ -78,7 +78,16 @@ namespace Client.Ui.Foundation.Composite
                 // 画面のカメラの描画解像度と、パイプライン asset の拡大フィルタの選択から URP と同じフィルタを選ぶ
                 // Pick the same filter as URP from the camera's render scale and the pipeline asset's upscaling filter selection
                 var camera = cameraData.camera;
-                return UiSrgbWorldUpscaleFilter.UsesPointSampling(cameraData.postProcessEnabled, cameraData.renderScale, camera.pixelWidth, camera.pixelHeight, UniversalRenderPipeline.asset.upscalingFilter);
+                return UiSrgbWorldUpscaleFilter.UsesPointSampling(cameraData.postProcessEnabled, FinalPostPassRuns(), cameraData.renderScale, camera.pixelWidth, camera.pixelHeight, UniversalRenderPipeline.asset.upscalingFilter);
+            }
+
+            bool FinalPostPassRuns()
+            {
+                // URP が最終ポスト処理パスを足す条件（FXAA か、TAA の CAS）を公開の値で写す。FSR は拡大フィルタ側で扱う
+                // Copy URP's condition for the final post-processing pass (FXAA, or TAA with CAS) from public values; FSR is handled by the filter selection
+                if (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing) return true;
+                if (cameraData.antialiasing != AntialiasingMode.TemporalAntiAliasing) return false;
+                return 0f < cameraData.camera.GetUniversalAdditionalCameraData().taaSettings.contrastAdaptiveSharpening;
             }
 
             #endregion

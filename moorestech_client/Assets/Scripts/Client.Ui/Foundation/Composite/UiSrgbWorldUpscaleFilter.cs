@@ -9,30 +9,27 @@ namespace Client.Ui.Foundation.Composite
     /// Matches the world colour upscale to URP's final blit
     /// </summary>
     /// <remarks>
-    /// URP は描画解像度を下げたとき、選んだ拡大フィルタ（Auto は「1/renderScale と画面の寸法が整数で割り切れれば Point、それ以外 Linear」）で final blit を読む。合成も同じ点か双線形で読まないと、UI の下の世界の色が細部（地平線など）で URP とずれる
-    /// 解決後のフィルタ（cameraData.upscalingFilter）は internal なので、URP の ResolveUpscalingFilterSelection と同じ式を公開の値（renderScale・カメラの画素数・asset の upscalingFilter）で写す
-    /// ポスト処理が無効なカメラは final blit が常に双線形、STP は互換モードで、FSR は非対応環境で Auto へ戻る
-    /// 対応環境の FSR は合成の 1 枚のシェーダでは写せないので双線形で読み、ずれることを 1 回だけエラーで知らせる（品質の段の asset はどれも Auto）
-    /// When the render scale is reduced URP reads the final blit with the selected filter (Auto: Point when 1/renderScale and the screen size divide evenly, Linear otherwise); the composite must read with the same point or bilinear filter, or the world under the UI drifts from URP at fine detail such as the horizon
-    /// The resolved filter (cameraData.upscalingFilter) is internal, so this copies URP's ResolveUpscalingFilterSelection using public values (renderScale, camera pixel size, the asset's upscalingFilter)
-    /// A camera without post-processing always reads bilinearly in the final blit, STP falls back to Auto in compatibility mode, and FSR does so on unsupported hardware
-    /// FSR on supported hardware cannot be reproduced by the single composite shader, so they read bilinearly and report the mismatch once as an error (every quality tier asset uses Auto)
+    /// URP 17.6（Render Graph）では、合成パスがあるとポスト処理の結果は双線形の中間テクスチャに入り、final blit はそれを双線形で拡大する。点で読むのは最終ポスト処理パス（FXAA・TAA の CAS・FSR）が拡大を受け持つときだけで、そこでは選んだ拡大フィルタ（Auto は「1/renderScale と画面の寸法が整数で割り切れれば Point、それ以外 Linear」）を使う
+    /// 解決後のフィルタ（cameraData.upscalingFilter）は internal なので、URP の ResolveUpscalingFilterSelection と同じ式を公開の値で写す。STP はポスト処理の中で画面の解像度まで拡大し終えるので拡大は残らない。対応環境の FSR は合成の 1 枚のシェーダでは写せないので双線形で読み、ずれることを 1 回だけエラーで知らせる（品質の段の asset はどれも Auto）
+    /// In URP 17.6 (Render Graph) the composite pass makes the post-processed result land in a bilinear intermediate, which the final blit upscales bilinearly; point reads happen only when the final post-processing pass (FXAA, TAA's CAS, FSR) does the upscale with the selected filter (Auto: Point when 1/renderScale and the screen size divide evenly, Linear otherwise)
+    /// The resolved filter (cameraData.upscalingFilter) is internal, so this copies URP's ResolveUpscalingFilterSelection with public values; STP finishes upscaling to screen resolution inside post-processing, and FSR on supported hardware cannot be reproduced by the single composite shader, so it reads bilinearly and reports the mismatch once as an error (every quality tier asset uses Auto)
     /// </remarks>
     internal static class UiSrgbWorldUpscaleFilter
     {
         private static bool _reportedUnsupportedFilter;
 
-        public static bool UsesPointSampling(bool postProcessEnabled, float renderScale, int pixelWidth, int pixelHeight, UpscalingFilterSelection selection)
+        public static bool UsesPointSampling(bool postProcessEnabled, bool finalPostPassRuns, float renderScale, int pixelWidth, int pixelHeight, UpscalingFilterSelection selection)
         {
-            // ポスト処理が無効なカメラは URP の最終ポスト処理を通らず、final blit が常に双線形で読む
-            // A camera without post-processing skips URP's final post-processing, so its final blit always reads bilinearly
-            if (!postProcessEnabled) return false;
+            // 最終ポスト処理パスが無いと、URP は双線形の中間テクスチャを final blit で双線形に拡大する
+            // Without the final post-processing pass URP upscales the bilinear intermediate bilinearly in the final blit
+            if (!postProcessEnabled || !finalPostPassRuns) return false;
             // 拡大しないときは中間色と画面が同じ大きさで、どちらで読んでも同じ
             // Without upscaling the intermediate matches the screen, so either filter reads the same
             if (1f <= renderScale) return false;
-            // 本 repo は互換モード（Render Graph 無効）なので URP は STP を Auto へ戻す。FSR も非対応環境では Auto へ戻る
-            // This repo runs in compatibility mode (Render Graph off), so URP falls STP back to Auto, and FSR too when unsupported
-            if (selection == UpscalingFilterSelection.STP || (selection == UpscalingFilterSelection.FSR && !FSRUtils.IsSupported())) selection = UpscalingFilterSelection.Auto;
+            // STP はポスト処理の中で画面の解像度まで拡大し終える。非対応環境の FSR は Auto へ戻る
+            // STP has already upscaled to screen resolution inside post-processing; FSR falls back to Auto when unsupported
+            if (selection == UpscalingFilterSelection.STP) return false;
+            if (selection == UpscalingFilterSelection.FSR && !FSRUtils.IsSupported()) selection = UpscalingFilterSelection.Auto;
             switch (selection)
             {
                 case UpscalingFilterSelection.Point:

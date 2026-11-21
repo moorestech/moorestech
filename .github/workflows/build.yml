@@ -129,7 +129,6 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.6.10f1
           # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
           # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
           containerRegistryImageVersion: 4
@@ -270,7 +269,6 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.6.10f1
           # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
           # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
           containerRegistryImageVersion: 4

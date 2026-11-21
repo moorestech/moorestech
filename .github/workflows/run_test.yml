@@ -75,6 +75,16 @@ jobs:
           fetch-depth: 1
           path: moorestech
 
+      # Unity の版は ProjectVersion.txt だけを正にし、Library キャッシュのキーはここから取る（版上げで旧版の Library を復元させないため）
+      # ProjectVersion.txt is the only source of the Unity version; Library cache keys read it here so an upgrade never restores an old-version Library
+      - name: Read Unity version.
+        id: unity_version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^m_EditorVersion: //p' moorestech/moorestech_client/ProjectSettings/ProjectVersion.txt | tr -d '\r')
+          if [ -z "$version" ]; then echo "::error::m_EditorVersion not found in moorestech/moorestech_client/ProjectSettings/ProjectVersion.txt"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       # 実測で決めたfilterを一箇所から解決し、matrixと除外集合の乖離を防ぐ。
       # Resolve measured filters from one source so the matrix and exclusion sets cannot drift apart.
       - name: Resolve Unity test shard.
@@ -121,9 +131,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-6000.6.10f1-${{ github.sha }}
+          key: Library_Test_client-${{ steps.unity_version.outputs.version }}-${{ github.sha }}
           restore-keys: |
-            Library_Test_client-6000.6.10f1-
+            Library_Test_client-${{ steps.unity_version.outputs.version }}-
 
       # 打ち切りに達したかを後続stepが根拠付きで判定できるよう、テスト開始時刻をepoch秒で残す。
       # Record the test start time in epoch seconds so a later step can decide on evidence whether the cutoff was reached.
@@ -158,7 +168,6 @@ jobs:
           projectPath: moorestech/moorestech_client/
           githubToken: ${{ github.token }}
           checkName: Test Results - ${{ matrix.shard }}
-          unityVersion: 6000.6.10f1
           # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
           # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
           containerRegistryImageVersion: 4
