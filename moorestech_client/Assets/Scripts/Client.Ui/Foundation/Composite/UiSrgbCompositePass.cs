@@ -78,14 +78,22 @@ namespace Client.Ui.Foundation.Composite
                 // 画面のカメラの描画解像度と、パイプライン asset の拡大フィルタの選択から URP と同じフィルタを選ぶ
                 // Pick the same filter as URP from the camera's render scale and the pipeline asset's upscaling filter selection
                 var camera = cameraData.camera;
-                return UiSrgbWorldUpscaleFilter.UsesPointSampling(cameraData.postProcessEnabled, UsesFinalPointUpscale(), cameraData.renderScale, camera.pixelWidth, camera.pixelHeight, UniversalRenderPipeline.asset.upscalingFilter);
+                return UiSrgbWorldUpscaleFilter.UsesPointSampling(cameraData.postProcessEnabled, UsesFinalPointUpscale(), FinalPassSharpens(), cameraData.renderScale, camera.pixelWidth, camera.pixelHeight, UniversalRenderPipeline.asset.upscalingFilter);
             }
 
             bool UsesFinalPointUpscale()
             {
-                // URP の最終ポスト処理パスで点の拡大が選ばれうるのは FXAA のときだけ。TAA の CAS は RCAS で鋭くするので点にならず、FSR は拡大フィルタ側で扱う
-                // Only FXAA lets URP's final post-processing pass pick a point upscale; TAA's CAS sharpens with RCAS instead, and FSR is handled by the filter selection
+                // URP の最終ポスト処理パスで点の拡大が選ばれうるのは FXAA のとき。FSR は拡大フィルタ側で扱う
+                // URP's final post-processing pass may pick a point upscale with FXAA; FSR is handled by the filter selection
                 return cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+            }
+
+            bool FinalPassSharpens()
+            {
+                // TAA の CAS があると URP は最終ポスト処理パスで描画解像度の画素を読んで鋭くする
+                // With TAA's CAS, URP's final post-processing pass reads render-resolution pixels and sharpens them
+                if (cameraData.antialiasing != AntialiasingMode.TemporalAntiAliasing) return false;
+                return 0f < cameraData.camera.GetUniversalAdditionalCameraData().taaSettings.contrastAdaptiveSharpening;
             }
 
             #endregion
