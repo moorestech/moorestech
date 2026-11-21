@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.BlocksModule;
 using Core.Master.Validator.Block;
+using Core.Master.Validator.Block.FilterSplitter;
 
 namespace Core.Master.Validator
 {
@@ -26,6 +27,7 @@ namespace Core.Master.Validator
             errorLogs += CleanRoomItemHatchThroughputValidator.Validate(blocks);
             errorLogs += RocketLaunchPadParamValidator.Validate(blocks);
             errorLogs += SpaceElevatorBaseParamValidator.Validate(blocks);
+            errorLogs += FilterSplitterParamValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
