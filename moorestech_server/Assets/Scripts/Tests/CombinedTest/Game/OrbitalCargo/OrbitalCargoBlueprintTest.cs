@@ -68,6 +68,17 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
             Assert.IsInstanceOf<UnselectedOrbitalCargo>(unknown.GetComponent<IOrbitalCargoSelectorComponent>().Selection);
         }
 
+        [TestCase("{")]
+        [TestCase("[]")]
+        [TestCase("null")]
+        [TestCase("{}")]
+        public void 読めない積荷設定は警告して未選択で設置する(string settings)
+        {
+            LogAssert.Expect(LogType.Warning, new Regex("ブループリントの積荷設定が不正なため"));
+            var block = Place(ForUnitTestModBlockId.RocketLaunchPadId, Vector3Int.zero, Params(settings));
+            Assert.IsInstanceOf<UnselectedOrbitalCargo>(block.GetComponent<IOrbitalCargoSelectorComponent>().Selection);
+        }
+
         private static BlockCreateParam[] Params(string json)
         {
             return new[] { new BlockCreateParam(OrbitalCargoBlueprintSettingsComponent.SettingsKey, Encoding.UTF8.GetBytes(json)) };

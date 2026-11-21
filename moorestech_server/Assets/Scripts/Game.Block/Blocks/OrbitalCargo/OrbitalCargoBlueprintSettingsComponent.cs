@@ -32,9 +32,28 @@ namespace Game.Block.Blocks.OrbitalCargo
 
         public void ApplyBlueprintSettingsJson(string json)
         {
-            var settings = JsonConvert.DeserializeObject<SettingsJsonObject>(json);
+            // 外部から受け取った設定が読めなくても台は未選択で設置する
+            // Keep the new site unselected when its external blueprint settings cannot be read
+            const string warning = "ブループリントの積荷設定が不正なため、未選択のまま設置します";
+            SettingsJsonObject settings;
+            try
+            {
+                settings = JsonConvert.DeserializeObject<SettingsJsonObject>(json);
+            }
+            catch (JsonException exception)
+            {
+                Debug.LogWarning($"{warning} ({exception.Message})");
+                return;
+            }
+
+            if (settings == null)
+            {
+                Debug.LogWarning($"{warning} (設定オブジェクトがありません)");
+                return;
+            }
+
             // silent-ok: 未選択でコピーした台は未選択のまま置く / プレイヤーは台の「積荷を選んでいない」表示で気づく
-            if (settings?.SelectedCargoItemGuid == null) return;
+            if (settings.SelectedCargoItemGuid == null) return;
             if (!OrbitalCargoItemGuid.TryParseExistingItemGuid(settings.SelectedCargoItemGuid, out var payloadItemId))
             {
                 Debug.LogWarning($"ブループリントの積荷 {settings.SelectedCargoItemGuid} が今のマスタに無いため、未選択のまま設置します");
@@ -58,7 +77,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 
         private class SettingsJsonObject
         {
-            [JsonProperty("selectedCargoItemGuid")] public string SelectedCargoItemGuid;
+            [JsonProperty("selectedCargoItemGuid", Required = Required.AllowNull)] public string SelectedCargoItemGuid;
         }
     }
 }
