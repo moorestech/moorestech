@@ -49,6 +49,38 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 
         [Test]
+        public void CanEquipMatchesInsertionWhenItemStackFillsBeforeSlotLimitTest()
+        {
+            var (inventory, effects, limit) = Setup();
+            var module = QualityModuleOfTier(1);
+            var item = MasterHolder.ItemMaster.GetItemMaster(module.ItemGuid);
+            var counts = MasterHolder.ItemMaster.GetStackLevelTable(item.StackLevelTableGuid).StackCounts;
+
+            // このテストのロード済みマスタにだけ、機械上限より小さいアイテム上限を設定する
+            // Use an item limit below the machine limit in this test's loaded master only
+            var originalCount = counts[0];
+            try
+            {
+                counts[0] = limit - 1;
+                FillModuleSlots(inventory, module, counts[0]);
+                var slots = Enumerable.Range(ModuleRangeStart, ModuleSlotCount).ToArray();
+                var before = slots.Select(inventory.GetItem).ToArray();
+                var canEquip = effects.CanEquipOneMore(module);
+                foreach (var slot in slots) Assert.AreSame(before[slot - ModuleRangeStart], inventory.GetItem(slot));
+
+                // 全枠で実挿入も試し、1個すべてが戻ることと照会結果を突き合わせる
+                // Compare the prediction against every real insertion returning the entire item
+                var incoming = ServerContext.ItemStackFactory.Create(module.ItemGuid, 1);
+                foreach (var slot in slots) Assert.AreEqual(1, inventory.ReplaceItem(slot, incoming).Count);
+                Assert.IsFalse(canEquip, "All insertions returned the item, yet the query reported space.");
+            }
+            finally
+            {
+                counts[0] = originalCount;
+            }
+        }
+
+        [Test]
         public void CollectEffectiveModulesClipsEachStackToLimitTest()
         {
             var (inventory, effectComponent, limit) = Setup();
