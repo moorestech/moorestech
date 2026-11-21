@@ -17249,7 +17249,7 @@ git commit -m "フィルター分岐器の出口を入口から見た左・正�
   - `internal static FilterSplitterOutputSide SpecialNetworkReader.ToClientSide(ServerFilterSplitterOutputSide side)`
   - 文言キー `ui.blockInventory.filterOutputLeft`・`filterOutputFront`・`filterOutputRight`（生成名 `LocalizationKeys.Ui.BlockInventory.FilterOutputLeft` ほか）。`ui.blockInventory.outputNumber` と `SpecialDetailTexts.OutputNumber` は Task E3 で消す（E2 の時点では View がまだ呼ぶ）
 
-- [ ] **Step 1: テストを書き直す**
+- [x] **Step 1: テストを書き直す**
 
 `FilterSplitterLogicTest.cs` は既に `using Client.Ui.State.BlockInventory.Logic.Special;` を持つので using は足さず、`三つのモードを文言キーへ対応づける` の後に次を足す（列挙はクライアントのもの）:
 ```csharp
@@ -17405,7 +17405,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Source
 }
 ```
 
-- [ ] **Step 2: 詳細の型に側を足す**
+- [x] **Step 2: 詳細の型に側を足す**
 
 `FilterSplitterDetail.cs` の 1〜19 行。直す前:
 ```csharp
@@ -17542,7 +17542,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         });
 ```
 
-- [ ] **Step 3: 側→文言キーを書く**
+- [x] **Step 3: 側→文言キーを書く**
 
 `FilterSplitterLogic.cs`: using は足さない。20 行（`FilterSplitterMode` の閉じ `}`）の後にクライアントの列挙を足す:
 ```csharp
@@ -17580,7 +17580,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         }
 ```
 
-- [ ] **Step 4: 文言の表を変える**
+- [x] **Step 4: 文言の表を変える**
 
 `Localization/localization.csv` を 1 行ずつキーで探して直す（行番号は B1 などの追加でずれるので使わない。参考: 今は 72〜75 行で、この 4 行は並んでいる）。列は key,Source,english,japanese,german,korean。
 
@@ -17619,13 +17619,13 @@ ui.blockInventory.filterOutputRight,Right,Right,右,Rechts,오른쪽
 ```
 足した後に `grep -c "^ui.blockInventory.filterOutput" Localization/localization.csv` が 3、`grep -c "^ui.blockInventory.filter\(Default\|Whitelist\|Blacklist\)," Localization/localization.csv` が 3 であること（キーの重複が無い）。
 
-- [ ] **Step 5: 生成し直してコンパイルしテストを通す**
+- [x] **Step 5: 生成し直してコンパイルしテストを通す**
 
 CSV は Assets の外で監視されないので、先に1回強制で再コンパイルする（`docs/development/uloop-troubleshooting.md`「localization.csv だけ変えたのに古いキーのまま」）。
 Run: `uloop compile --project-path ./moorestech_client --force-recompile` → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "(FilterSplitterLogicTest|SpecialNetworkReaderTest|SpecialBlockDetailReader(FilterSplitter|Slot|Gear)Test)"`
 Expected: 2 回目の compile が ErrorCount 0（View はまだ `SpecialDetailTexts.OutputNumber` を呼ぶが、この Task では消さないので通る）/ 全 PASS（新 3 件、既存の読み手の検査）。続けて `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Special.FilterSplitterBodyViewTest"` が既存の全件 PASS のまま（見本に側を足しただけで、画面はまだ番号の見出し）。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs.meta moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs
