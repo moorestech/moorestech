@@ -8771,7 +8771,7 @@ git commit -m "部屋クラスの歩留まり値に閾値行の添字を持た�
   - `public List<MachineModuleEffect.EquippedModule> MachineModuleEffectComponent.CollectEffectiveModules()`
   - `public bool MachineModuleEffectComponent.CanEquipOneMore(ModuleMasterElement module)`
 
-- [ ] **Step 1: テストを書く** — `Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs`
+- [x] **Step 1: テストを書く** — `Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs`
 
 ```csharp
 using System;
@@ -8863,9 +8863,9 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CanEquipOneMore`・`CollectEffectiveModules` の未定義で失敗する。
+- [x] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CanEquipOneMore`・`CollectEffectiveModules` の未定義で失敗する。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `VanillaMachineModuleInventory.cs` の `IsModuleEffective`（80-83）の直後に足す（既存メソッドは変えない）:
 
@@ -8959,7 +8959,7 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -8968,7 +8968,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Server.PacketTest.MachineModuleEquipMoveProtocolTest"
 ```
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs.meta
