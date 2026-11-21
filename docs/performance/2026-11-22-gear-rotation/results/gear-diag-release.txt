@@ -1,0 +1,3 @@
+opt=Release fps=16.05 | GearDiag.AdvanceAll=2.895ms/1回(299f) GearDiag.MovingProcessor=1.845ms/964回(299f) GearDiag.TransformRotate=1.235ms/2495回(299f) VContainerUpdate=8.642ms/1回(299f) PlayerLoop=56.307ms/3回(299f) Main Thread=62.264ms/1回(299f)
+opt=Release fps=15.86 | GearDiag.AdvanceAll=3.072ms/1回(299f) GearDiag.MovingProcessor=2.026ms/964回(299f) GearDiag.TransformRotate=1.415ms/2495回(299f) VContainerUpdate=8.642ms/1回(299f) PlayerLoop=56.366ms/3回(299f) Main Thread=63.011ms/1回(299f)
+opt=Release fps=16.10 | GearDiag.AdvanceAll=2.900ms/1回(299f) GearDiag.MovingProcessor=1.843ms/964回(299f) GearDiag.TransformRotate=1.232ms/2495回(299f) VContainerUpdate=8.458ms/1回(299f) PlayerLoop=56.233ms/3回(299f) Main Thread=62.025ms/1回(299f)

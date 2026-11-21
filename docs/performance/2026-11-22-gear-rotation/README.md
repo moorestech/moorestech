@@ -11,6 +11,22 @@
   - 変更後：`VContainerUpdate` が 7.4 → 10.4ms（+2.9ms、歯車の Tick が入った分）、`BehaviourUpdate` が 6.2 → 0.7ms
 - 変更後の Tick を Stopwatch で分けると 1.35ms（範囲内の 1,893個を回るだけ 0.56ms、動いている 964個・部品 2,495個を回す 0.88ms、うち `Transform.Rotate` 0.55ms）。Profiler の 2.9ms より小さいのは、同じ処理を50回続けて測っていてキャッシュに乗るためと見ている（推測）。
 
+## 変更後の内訳と、コード最適化 Release での値（計測用の印を入れて測った）
+変更後のコードに、計測用の ProfilerMarker（`GearDiag.*`、`diag-patch/` の写し。コミットしていない）を一時的に入れ、`snippets/gear-diag.cs` で300フレームずつ3回取った。差し引きで分けた。
+
+| 処理（1フレーム） | Debug | Release |
+|---|---:|---:|
+| Tick 全体（`GearDiag.AdvanceAll`） | 3.42ms | 2.96ms |
+| └ 止まっている歯車を見て回る分と一覧のループ（全体 − 動いている歯車） | 1.22ms | 1.05ms |
+| └ 動いている 964個の計算（動いている歯車 − `Transform.Rotate`） | 0.77ms | 0.61ms |
+| └ `Transform.Rotate` 2,495回 | 1.43ms | 1.29ms |
+| fps | 13.88 | 16.00 |
+| メインスレッド | 72.0ms | 62.4ms |
+
+- 印そのものが1フレーム約3,460回呼ばれるので、上の値には印の上乗せが入っている。印の無い変更後の Debug では `VContainerUpdate` が 10.4ms、印を入れると 10.9ms で、上乗せは約0.5ms と見ている（推測）。
+- Release にしても歯車は約0.5ms しか減らない。時間の大半が `Transform.Rotate` と、止まっている歯車でも部品ごとに呼ぶ `rotationTransform == null`（Unity のオブジェクトの比較でネイティブを呼ぶ）など、C# の最適化が効かない部分のため（推測）。
+- Release は Editor のコード最適化を切り替えて測った値で、ビルドしたプレイヤーではない。
+
 ## 条件
 | 項目 | 値 |
 |---|---|
@@ -48,3 +64,5 @@
 | `snippets/gear-probe2.cs` | 変更後の Tick を部分ごとに Stopwatch で測る |
 | `snippets/gear-profile.cs` / `gear-profile-collect.cs` | Profiler の記録を始める／歯車・Tick・Update に関係するマーカーを回収する |
 | `snippets/gear-live.cs` | ゲームの中で歯車が実際に回っているかを見る |
+| `snippets/gear-diag.cs` | 計測用の印（`GearDiag.*`）と主要マーカーを ProfilerRecorder で300フレーム取る |
+| `diag-patch/` | 計測用の印を入れた3ファイルの写し（Windows の作業ツリーにだけ当てて測った。コミットしていない） |
