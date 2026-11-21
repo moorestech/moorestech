@@ -1,0 +1,22 @@
+# Windows の Docker は C ドライブへイメージを展開し、Unity 6.6 のイメージではランナーによって空きが足りず失敗する。
+# ビルドに使わない Android SDK を消して空きを作り、前後の空き容量をログへ出す。
+# Windows Docker unpacks images onto C:, and the Unity 6.6 image runs out of space on some runners.
+# Remove the Android SDK the build does not use, and log free space before and after.
+name: Free Windows disk for Unity image
+description: Removes unused SDKs from C so the Unity editor image can be unpacked
+
+runs:
+  using: composite
+  steps:
+    - name: Free disk space
+      shell: pwsh
+      run: |
+        $beforeGb = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+        $androidPath = 'C:\Android'
+        if (Test-Path $androidPath) {
+          cmd /c rmdir /s /q $androidPath
+        } else {
+          Write-Host "::warning::$androidPath was not found; no disk space was freed"
+        }
+        $afterGb = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+        Write-Host "C: free space ${beforeGb}GB -> ${afterGb}GB"

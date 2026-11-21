@@ -104,6 +104,15 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
+      # Hub 4 は headless install が無く、Windows は Unity 6.6 のイメージで C ドライブが足りなくなるので、ビルド前に環境を整える
+      # Hub 4 has no headless install and the Unity 6.6 image can fill C: on Windows, so prepare the runner before building
+      - name: Install Unity Hub (macOS)
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/install-unity-hub-mac
+      - name: Free disk for Unity image (Windows)
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/free-windows-disk-for-unity-image
+
       # アーティファクト名を設定（GUI版とDedicated Serverで区別）
       - name: Set artifact name
         id: artifact
@@ -230,6 +239,15 @@ jobs:
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive
+
+      # Hub 4 は headless install が無く、Windows は Unity 6.6 のイメージで C ドライブが足りなくなるので、ビルド前に環境を整える
+      # Hub 4 has no headless install and the Unity 6.6 image can fill C: on Windows, so prepare the runner before building
+      - name: Install Unity Hub (macOS)
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/install-unity-hub-mac
+      - name: Free disk for Unity image (Windows)
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/free-windows-disk-for-unity-image
 
       # uLoopMCP v3はWindowsで名前付きパイプのIPCサーバをEditor起動時に必ず立て、バッチモードでも止まらない。
       # CIコンテナではその非同期読み取りが未処理のObjectDisposedExceptionを投げ、Unityがビルド開始前に落ちる。
