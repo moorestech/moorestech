@@ -13199,7 +13199,7 @@ git commit -m "確率の欄を最終の内訳の1組と改善の行に替え、�
   - 行の testid: `clean-room-headline`（既存）・`clean-room-air-filter-count`・`clean-room-queried-air-filter`・`clean-room-halt-reason`（既存）。消える: `clean-room-air`・`clean-room-air-filter-{i}`・`clean-room-no-filter`
   - テスト用: `CleanRoomLayoutTestHost.MachineRoom()`・`AirFilterRoom()`・`OpenAirFilterPanel()`・`OpenCleanRoomMachine(bool inRoom)`・`OpenCleanRoomMachine(bool inRoom, MachineSlotLayout layout, bool withRecipes)`
 
-- [ ] **Step 1: 失敗するテストを書く（部屋欄の文）**
+- [x] **Step 1: 失敗するテストを書く（部屋欄の文）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomLogicTest.cs` を次の全文に替える。
 
@@ -13310,7 +13310,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
 }
 ```
 
-- [ ] **Step 2: 失敗するテストを書く（照会の写し）**
+- [x] **Step 2: 失敗するテストを書く（照会の写し）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs` を次の全文に替える（D3 で確率のテストを外した後の形から、部屋のテストを新しい項目で書き直す。詰まり・区画の2本は中身を変えない）。
 
@@ -13469,7 +13469,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 3: 失敗するテストを書く（部屋欄の View）**
+- [x] **Step 3: 失敗するテストを書く（部屋欄の View）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomSectionTest.cs` を次の全文に替える。
 
@@ -13564,7 +13564,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 4: 失敗するテストを書く（配置）**
+- [x] **Step 4: 失敗するテストを書く（配置）**
 
 部屋欄は清浄機の台数に関係なく最大3行になるので、台数で長くなる前提の検査（`clean-room-air-filter-{n-1}` へ届く・台数の境目）は意味を失う。台数の TestCase を外し、「部屋欄の最後の行へ届く」「本文とフッタが使える」を 600・720 の高さで見る形に書き直す（判断 D-18）。
 
@@ -13798,12 +13798,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 - `ContextSectionOrderTest.cs:34` 直す前 `private static readonly CleanRoomSummary Room = new(CleanRoomHeadline.Class("ISO 5"), 1, new[] { new CleanRoomAirFilter(1, 1, 1) });` → 直した後（清浄機の面で組むので清浄機から見た部屋）`private static readonly CleanRoomSummary Room = CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("ISO 5"), CleanRoomAirFilterRoomStatus.WithoutUnitsToNextClass(1, 0, 1, 1));`
 - `ContextSectionOrderTest.cs:105` 直す前 `Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-air-filter-0"));` → 直した後 `Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-air-filter-count"));`
 
-- [ ] **Step 5: 赤を確かめる**
+- [x] **Step 5: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`CleanRoomAirFilterRoomStatus`・`CleanRoomSummary.ForMachine`・`AirFilterCleanRoomDisplay` が無い CS0246 / CS0117）
 
-- [ ] **Step 6: 清浄機から見た部屋の型を作り、部屋の要約を分ける**
+- [x] **Step 6: 清浄機から見た部屋の型を作り、部屋の要約を分ける**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomAirFilterRoomStatus.cs` を作る。
 
@@ -13971,7 +13971,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     }
 ```
 
-- [ ] **Step 7: 部屋欄の行を作り直す**
+- [x] **Step 7: 部屋欄の行を作り直す**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomDisplay.cs` を次の全文に替える（`TryGetHaltReason` は今のまま。`EnclosedCleanRoomDisplay` を `AirFilterCleanRoomDisplay` に替える）。
 
@@ -14167,7 +14167,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 }
 ```
 
-- [ ] **Step 8: 照会の写しを照会元ごとにする**
+- [x] **Step 8: 照会の写しを照会元ごとにする**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/CleanRoomViewConversion.cs` を次の全文に替える（`Build` の分岐の順・`Leak`・`TryGetHaltReason` は今のまま。`Convert` に照会元を渡し、直す前の83-89行目 `static CleanRoomSummary Room(...)`〈`room.AirFilters`・`room.AirChangeRate` を読む〉を `EnclosedRoom` に替える）。
 
@@ -14303,7 +14303,7 @@ namespace Client.Ui.State.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 9: 部屋欄の View を替える**
+- [x] **Step 9: 部屋欄の View を替える**
 
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomSectionView.cs` を次の全文に替える（換気・清浄機ごと・清浄機なしの行を外し、台数とこの清浄機の行を足す。行は作り置きして使い回す今の形のまま）。
 
@@ -14395,7 +14395,7 @@ namespace Client.Ui.Screens.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 10: 文言を替え、使わなくなった行を消す**
+- [x] **Step 10: 文言を替え、使わなくなった行を消す**
 
 `Localization/localization.csv`。453行目。直す前:
 
@@ -14416,7 +14416,7 @@ ui.blockInventory.cleanRoomClass,Room class {className},Room class {className},�
 Run: `grep -rn "CleanRoomAirFilter(\|EnclosedCleanRoomDisplay\|new CleanRoomSummary(\|new(CleanRoomHeadline\|\.AirChangeRate\|\.AirFilters\b\|CleanRoomNoFilter\|LocalizationKeys.Ui.BlockInventory.CleanRoomAir\b\|LocalizationKeys.Ui.BlockInventory.CleanRoomFilter\b\|clean-room-air\"\|clean-room-air-filter-{\|clean-room-no-filter\|LayoutTestHost.Room(" --include='*.cs' moorestech_client/Assets/Scripts`
 Expected: 出力なし（`CleanRoomAirFilterRoomStatus(`・`CleanRoomAirFilterCount`・新しい `CleanRoomDetail.cs` の `private protected CleanRoomSummary(CleanRoomHeadline headline)`・`MachineCleanRoomSummary(CleanRoomHeadline`・`AirFilterCleanRoomSummary(CleanRoomHeadline` は当たらない形にしてある。`CleanRoomSummary` は抽象なので `new CleanRoomSummary(` は新しいコードに無い）
 
-- [ ] **Step 11: キーを作り直してコンパイルとテスト**
+- [x] **Step 11: キーを作り直してコンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Run: `uloop compile --project-path ./moorestech_client`
@@ -14433,7 +14433,7 @@ Expected: 全件 PASS
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "CleanRoomWideProcessRowTest|MachineSectionTest|ContextSectionOrderTest|BlockContextModelTest|SectionStackViewTest|FamilyScreen|LocalizationDictionaryCoverageTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 12: コミット**
+- [x] **Step 12: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomSectionView.cs moorestech_client/Assets/Scripts/Client.Tests/Ui Localization/localization.csv moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
