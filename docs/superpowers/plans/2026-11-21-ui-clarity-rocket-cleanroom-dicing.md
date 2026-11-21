@@ -10614,7 +10614,7 @@ ADR 0105 §5: 台数はクラス判定と同じ式（`CleanRoomPurityLogic`）�
   - `double ICleanRoomAirFilter.RatedRemovalVolumePerSecond { get; }`
   - `public IReadOnlyList<double> CleanRoomDatastore.RequiredAirChangeRates`
 
-- [ ] **Step 1: テストを書く** — `CleanRoomPurityLogicTest.cs` の最後のテスト（`ZeroVolumeAirChangeRateIsZeroTest`）の後に足す（ファイルの `RequiredAirChangeRates` は `{ 0.0167, 0.0083, 0.0042, 0.0014 }`）:
+- [x] **Step 1: テストを書く** — `CleanRoomPurityLogicTest.cs` の最後のテスト（`ZeroVolumeAirChangeRateIsZeroTest`）の後に足す（ファイルの `RequiredAirChangeRates` は `{ 0.0167, 0.0083, 0.0042, 0.0014 }`）:
 
 ```csharp
         [Test]
@@ -10653,9 +10653,9 @@ ADR 0105 §5: 台数はクラス判定と同じ式（`CleanRoomPurityLogic`）�
         }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `TryCountUnitsToPromote` の未定義で失敗する。
+- [x] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `TryCountUnitsToPromote` の未定義で失敗する。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `CleanRoomPurityLogic.cs` の `DecideThresholdIndex`（22-36）の後に足す（ファイル先頭に `using System;` と `using Game.Block.Interface.Component;` を足す。`Game.CleanRoom.asmdef` は `Game.Block.Interface` を参照済み。38 → 63 行）:
 
@@ -10710,7 +10710,7 @@ ADR 0105 §5: 台数はクラス判定と同じ式（`CleanRoomPurityLogic`）�
 
 （`ICleanRoomAirFilter` を実装する型は `CleanRoomAirFilterComponent` だけ。grep 済み。）
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -10718,7 +10718,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Core\.CleanRoom\.AirFilter\."
 ```
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomPurityLogic.cs moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/ICleanRoomAirFilter.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs
