@@ -14462,7 +14462,7 @@ git commit -m "部屋欄を照会元ごとに分け、室内機械は部屋ク�
   - ログの文面: `[CleanRoomYieldImprovementModalBridge] open ignored: the tracked machine has no improvement rows now`・`[CleanRoomYieldImprovementModalBridge] modal request {id} was replaced by another modal; the improvement modal stays closed`
   - テスト用: `RecordingCleanRoomYieldImprovementCommands { int OpenCount }`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/RecordingCleanRoomYieldImprovementCommands.cs` を作る。
 
@@ -14638,12 +14638,12 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`ICleanRoomYieldImprovementCommands`・`CleanRoomYieldImprovementModalBridge` が無い CS0246）
 
-- [ ] **Step 3: モーダルへ渡す中身を作る**
+- [x] **Step 3: モーダルへ渡す中身を作る**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldImprovementModalContent.cs` を作る。
 
@@ -14702,7 +14702,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 }
 ```
 
-- [ ] **Step 4: 開く口と橋を作る**
+- [x] **Step 4: 開く口と橋を作る**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/ICleanRoomYieldImprovementCommands.cs` を作る。
 
@@ -14836,7 +14836,7 @@ namespace Client.Ui.State.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 5: 入口として登録する**
+- [x] **Step 5: 入口として登録する**
 
 `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventoryMachineGameUiRegistration.cs` の28行目。直す前:
 
@@ -14856,7 +14856,7 @@ namespace Client.Ui.State.BlockInventory.Context
 
 （`ModalRequestService` は `MainGameUiStateRegistration.cs:32` で同じ builder に登録済み。）
 
-- [ ] **Step 6: コンパイルとテスト**
+- [x] **Step 6: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount 0`
@@ -14869,7 +14869,7 @@ DI の組み立てが通ることを見る（入口の登録漏れ・型の解�
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameUiRegistration|DiContainer|Registration.*Test"`
 Expected: 全件 PASS（当たるテストが無ければ D7 の録画で起動を確かめる。「未確認」4）
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventoryMachineGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context
