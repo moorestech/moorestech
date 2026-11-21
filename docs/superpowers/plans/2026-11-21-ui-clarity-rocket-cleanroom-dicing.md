@@ -17646,7 +17646,7 @@ git commit -m "フィルター分岐器の詳細に、開いたブロックの�
 - Consumes: Task E2 の `FilterSplitterDirectionDetail.Side`・`FilterSplitterLogic.OutputSideKey`
 - Produces: `SpecialDetailTexts.OutputNumber` と文言キー `ui.blockInventory.outputNumber` を消す。見出しのラベルの testid `filter-direction-label-{方向の番号}`（Task E5 のシナリオが読む）。既存の testid `filter-direction-{d}`・`filter-mode-{d}`・`filter-mode-{d}-{Default|Whitelist|Blacklist}`・`filter-slot-{d}-{s}` は変えない
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `FilterSplitterBodyViewTest.cs` の using に次を足す:
 ```csharp
@@ -17735,12 +17735,12 @@ using Mooresmaster.Localization.Generated;
 
 画面の文の読み方: 見出しは `LocalizedLabel`（`SpecialViewParts.Label`）、モード名も `LocalizedLabel`（`ModeSwitch.cs:61`）で、`text` の頭には行の高さ・字間の印が付きうる（`LocalizedLabel.cs:62-63,103,143`）。文を比べる所は、どれも原文を読む `TextOf`（`SpecialScreenTestHost.cs:103-106` の `Find<Label>(…).PlainText()`）と `ModeLabelOf`（`.PlainText()`）を通す。`PlainText` は `WrapSafeLabel.WordsText`（`LocalizedLabel` では `SourceText`）を読んで印を外す（`Client.Tests/Ui/TestHost/LabelPlainText.cs:19-23`）。1行に収まるかの検査だけは表示の `text` を測る（前例 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BuildMenu/Views/BuildMenuLayoutTest.cs:143-151`（`AssertCategoryLabelsStayOneLine`））。`mode-switch__label` は `text--*` のクラスを持たず（`ModeSwitch.cs:63`、`ModeSwitch.uss:99-104`）`--localized-label-line-box` が当たらないので、行の高さの印は付かず「A」の1行の高さと同じ物差しで比べられる。
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.Screens.BlockInventory.Special.FilterSplitterBodyViewTest"`
 Expected: compile は ErrorCount 0。新しい2件（`日本語の実際の文で…`・`見出しは番号でなく…`）が `filter-direction-label-0` が見つからずに FAIL（見出しにまだ testid が無い）。`日本語の…` はモード名の3つの assert まで届かないが、モード名の文は E2 の CSV で既に変わっている。
 
-- [ ] **Step 3: View を直す**
+- [x] **Step 3: View を直す**
 
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/FilterSplitter/FilterDirectionView.cs` を次の全文にする（変わるのは using・summary・見出しのフィールドと testid・Render の先頭の1行）:
 ```csharp
@@ -17863,12 +17863,12 @@ View が `OutputNumber` を呼ばなくなるので消す。`SpecialDetailTexts.
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
 ```
 
-- [ ] **Step 4: コンパイルしテストを通す**
+- [x] **Step 4: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile` → `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.(Screens\.BlockInventory\.Special\.(FilterSplitterBodyViewTest|SpecialDesignTest|SectionStack\.SpecialBlockDetailsTest)|State\.BlockInventory\.Special\.(FilterSplitterLogicTest|SpecialNetworkReaderTest|SpecialDetailSelectorTest))"`
 Expected: ErrorCount 0 / 全 PASS（新 3 件＋言語 4 ケース、既存の分岐器の L1・意匠・区画の並びの検査）。`モード名はどの言語でも…` が落ちたときは、落ちた言語の訳を「判断」節の短い別案へ替えて再実行し、替えたことを報告に書く。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Text/SpecialDetailTexts.cs moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/FilterSplitter/FilterDirectionView.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/FilterSplitterBodyViewTest.cs
