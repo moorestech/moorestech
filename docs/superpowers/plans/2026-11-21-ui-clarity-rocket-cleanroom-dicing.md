@@ -6394,7 +6394,7 @@ git commit -m "積荷を選ぶコマンドを足し、選択の拒否を失敗�
   - `OrbitalCargoPane(string testPrefix, SpecialViewKit kit, VisualElement selectedContent, bool fillsPanelHeight)`・`Render(OrbitalCargoDetail cargo, UiText listStatus, bool showsSelection)`・`RenderWithoutCargo()`・`IObservable<ItemId> OnRowPressed`・`IObservable<Unit> OnChangeCargoRequested`
   - testid: `{prefix}-cargo-pane`・`{prefix}-cargo-list`・`{prefix}-cargo-status`・`{prefix}-cargo-row-{id}`（その中の `-name`・`-row`・`-arrow`・`-payload`・`-output-{i}`）・`{prefix}-cargo-header`・`{prefix}-cargo-header-item`・`{prefix}-cargo-header-name`・`{prefix}-cargo-next-flight`・`{prefix}-cargo-scroll`
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `OrbitalCargoPaneViewTest.cs`:
 
@@ -6530,14 +6530,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
 
 （「押すと届くまで一覧のまま・届けば閉じる」「見出しから開き直し、今の種類を押せば閉じる」は局所状態の進み方なので、B6 の `OrbitalCargoBodyPresenterTest` で Presenter と本文の View を組んで見る。）
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
 ```
 期待: `Client.Ui.Screens.BlockInventory.Special.Cargo` が無いのでコンパイルエラー。
 
-- [ ] **Step 3: 格子に中身を外から渡す口を足す**
+- [x] **Step 3: 格子に中身を外から渡す口を足す**
 
 `BlockItemGrid.cs` 52–75 行。前:
 
@@ -6610,7 +6610,7 @@ uloop compile --project-path ./moorestech_client
 
 （`using Client.Ui.Components.Slots;` は既にある。`ItemSlotContent` はその名前空間。）
 
-- [ ] **Step 4: 部品を書く**
+- [x] **Step 4: 部品を書く**
 
 `OrbitalCargoSlotContents.cs`:
 
@@ -7130,7 +7130,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargo.uss");
 ```
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -7139,7 +7139,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 ```
 期待: 全部緑。`.meta` は Unity が作る（手で作らない）。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
