@@ -9920,7 +9920,7 @@ git commit -m "最終の内訳と失敗率の改善方法の差分をサーバ�
   - `static CleanRoomYieldResponseFactory.Create(CleanRoomYieldPreviewReport report)`
   - 読めない応答の警告文（新）: `[GetCleanRoomYieldInfo] {kind} response has broken improvements; treating it as unreadable`
 
-- [ ] **Step 1: テストを書く** — `Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomYieldOddsProtocolTest.cs`
+- [x] **Step 1: テストを書く** — `Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomYieldOddsProtocolTest.cs`
 
 ```csharp
 using System;
@@ -10080,9 +10080,9 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `DicingOddsMessagePack`・`CleanRoomYieldImprovementMessagePack`・ビューの `Odds` の未定義で失敗する。
+- [x] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `DicingOddsMessagePack`・`CleanRoomYieldImprovementMessagePack`・ビューの `Odds` の未定義で失敗する。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `CleanRoom/Yield/CleanRoomYieldOddsMessagePack.cs`（新）:
 
@@ -10579,7 +10579,7 @@ namespace Server.Protocol.PacketResponse
             var pendingDicing = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldDicingView(dicing, new DicingYieldMessagePack(0.4, 1, new[] { 0.9 }, 0.0), odds, new List<CleanRoomYieldImprovementMessagePack>()));
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -10589,7 +10589,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Ui.State.BlockInventory.Context.ContextViewConversionTest"
 ```
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/ moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs
