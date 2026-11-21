@@ -4295,7 +4295,7 @@ ADR 0106 の 6（項目を足す・`nextPayloadIndex` は書かず読まない�
 - Consumes: A1 `OrbitalCargoSelectorComponent.SaveKeyName`、A2 `RocketLaunchPadCommandResult.CargoNotSelected`・`RocketLaunchPadStateDetail` の5引数 ctor・`RocketLaunchPadSaveTestUtil.CreateSavedWorld`（A2 の改名で、建造中以降の世界は「衛星の便を積んだまま電線ケーブルへ選び直した」状態で保存される）、A3 `SpaceElevatorBaseStateDetail` の6引数 ctor・`PlaceBase(pos, 積荷)`
 - Produces: なし（検証のみ）
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoSaveTest.cs`:
 
@@ -4533,7 +4533,7 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 }
 ```
 
-- [ ] **Step 2: コンパイルとテスト**
+- [x] **Step 2: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.OrbitalCargo.OrbitalCargoSaveTest"`
@@ -4542,14 +4542,14 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 期待: すべて成功（A1〜A6 が入っていれば実装の追加は要らない）。
 `OrbitalCargoStateWireTest` が `FormatterNotRegisteredException` で落ちたら、formatter を足すのではなく判断 3 の別案（前例の採掘機と同じ `int` の生 ID）へ切り替え、クライアントの下書きへ知らせる。
 
-- [ ] **Step 3: 領域全体の回帰**
+- [x] **Step 3: 領域全体の回帰**
 
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(CombinedTest\.(Game\.(OrbitalCargo|RocketLaunchPad|SpaceElevator|Tier9|Blueprint)|Server\.PacketTest\.(Rocket|SpaceElevator|OrbitalCargo))|UnitTest\.Game\.OrbitalCargo)"`
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\..*(Special|Tier9ModelStateProcessor|RocketLaunchPad)"`
 期待: すべて成功。
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 `git commit -m "積荷の選択の無い旧セーブ・未解放の積荷の復元・状態の積荷欄の通信往復をテストで確かめる"`
 
