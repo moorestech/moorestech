@@ -53,7 +53,7 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
 
             // 供給の受け取り(electric)を昇降機(climber)より前に並べる（前例 VanillaElectricPumpTemplate）
             // Order the supply receiver before the climber (precedent: VanillaElectricPumpTemplate)
-            var components = new List<IBlockComponent> { connector, inventory, selector, electric, wireConnector, climber };
+            var components = new List<IBlockComponent> { connector, inventory, selector, new OrbitalCargoBlueprintSettingsComponent(selector), electric, wireConnector, climber };
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }

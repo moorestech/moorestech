@@ -81,6 +81,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
                 connector,
                 inventory,
                 selector,
+                new OrbitalCargoBlueprintSettingsComponent(selector),
                 electric,
                 wireConnector,
                 processor,
