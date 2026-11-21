@@ -26,6 +26,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Special
         {
             return status switch
             {
+                SpaceElevatorBaseStatus.CargoNotSelected => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusCargoNotSelected, false),
                 SpaceElevatorBaseStatus.ReadyToConnect => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusReadyToConnect, false),
                 SpaceElevatorBaseStatus.InsufficientCable => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusInsufficientCable, true),
                 SpaceElevatorBaseStatus.WaitingSatellite => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusWaitingSatellite, false),

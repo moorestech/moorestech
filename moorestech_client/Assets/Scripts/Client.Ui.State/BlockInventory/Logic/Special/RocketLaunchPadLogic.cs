@@ -41,6 +41,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Special
                 RocketLaunchPadWaitReason.MissingPayload => LocalizationKeys.Ui.BlockInventory.RocketWaitMissingPayload,
                 RocketLaunchPadWaitReason.OutputFull => LocalizationKeys.Ui.BlockInventory.RocketWaitOutputFull,
                 RocketLaunchPadWaitReason.NoPower => LocalizationKeys.Ui.BlockInventory.RocketWaitNoPower,
+                RocketLaunchPadWaitReason.CargoNotSelected => LocalizationKeys.Ui.BlockInventory.RocketWaitCargoNotSelected,
                 _ => throw new ArgumentOutOfRangeException(nameof(waitReason), waitReason, null),
             };
 

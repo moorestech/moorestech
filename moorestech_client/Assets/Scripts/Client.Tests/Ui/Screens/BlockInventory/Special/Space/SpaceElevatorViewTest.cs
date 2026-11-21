@@ -56,6 +56,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
 
         /// <web-test file="src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx">%s の文言と不足色を表示する</web-test>
         [TestCase(SpaceElevatorBaseStatus.ReadyToConnect, false)]
+        [TestCase(SpaceElevatorBaseStatus.CargoNotSelected, false)]
         [TestCase(SpaceElevatorBaseStatus.InsufficientCable, true)]
         [TestCase(SpaceElevatorBaseStatus.WaitingSatellite, false)]
         [TestCase(SpaceElevatorBaseStatus.Climbing, false)]

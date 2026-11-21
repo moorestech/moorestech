@@ -29,6 +29,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
                 SpaceElevatorConnectResult.Connected => SpecialBlockRequestOutcome.Accepted,
                 SpaceElevatorConnectResult.AlreadyConnected => SpecialBlockRequestOutcome.Stale("already_connected"),
                 SpaceElevatorConnectResult.InsufficientCable => SpecialBlockRequestOutcome.Failed("insufficient_cable"),
+                SpaceElevatorConnectResult.CargoNotSelected => SpecialBlockRequestOutcome.Failed("connect_cargo_not_selected"),
                 SpaceElevatorConnectResult.NotSpaceElevatorBase => SpecialBlockRequestOutcome.Failed("not_space_elevator_base"),
                 SpaceElevatorConnectResult.InvalidRequest => SpecialBlockRequestOutcome.Failed("connect_invalid_request"),
                 SpaceElevatorConnectResult.BlockNotFound => SpecialBlockRequestOutcome.Failed("connect_block_not_found"),
