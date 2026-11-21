@@ -4,8 +4,8 @@
 
 ## 結論
 - **GRD を有効にすると、fps 13.6→21.1（+55%）、カメラ描画 38.1→15.9ms、ドローコール 6.03万→9,940。** 三角形の数（約1,878万）は変わらないので、描くものは同じまま、描画を組み立てる回数だけが減った。画面も変わらない（下の「見た目」）。
-- 変更前のドローコール 6.03万のうち、影が約1.93万（32%）。影を全部切るとカメラ描画は約8.5ms減る。SSAO・アウトライン・カメラの深度／不透明テクスチャは、ドローコールにも時間にもほぼ効いていない（差は窓ごとのばらつきの範囲）。
-- GRD の後も、影を切るとドローコールは約2,150・URP の描画時間は約3.3ms減る。影は GRD の後に残る負担の中では大きい方だが、前よりずっと小さい。
+- 変更前のドローコール 6.03万のうち、影が約1.93万（32%）。影を全部切るとカメラ描画は約8.5ms減る。
+- GRD の後、**GPU は1フレーム約5.5ms しか使っておらず、律速はメインスレッド（約40ms）**。カメラ描画の残り約15.7ms（メインスレッド）は、カリングと描画リストの組み立て（約5.5ms）、提出（約7.4ms）が大半。SSAO・アウトライン・ポストプロセス・カメラテクスチャは、切っても URP の描画時間が 0.3ms も変わらない。影は切ると約3.6ms・ドローコール約2,150減る（下の「カメラ描画の中身」）。
 
 ## 条件
 | 項目 | 値 |
@@ -47,14 +47,51 @@
 |---|---:|---:|---:|---:|
 | なし | 35.3 | 60,293 | 19,128 | 1,878 |
 | 影（全ライトの `shadows=None`） | 26.5 | 41,031 | 0 | 1,392 |
-| SSAO | 35.0 | 60,065 | 19,057 | 1,867 |
-| アウトライン（`ScreenSpaceOutlines`・`OutlinePass`） | 35.4 | 60,060 | 19,055 | 1,867 |
 | カメラの深度・不透明テクスチャの要求 | 35.3 | 59,824 | 18,983 | 1,860 |
 
-変更後は、影を切ると URP 14.5→11.2ms・ドローコール 9,941→7,794。ほかの3つは差なし（`results/` の JSON）。
+この2回の計測（`before-grd`・`after-grd`）の SSAO とアウトラインの窓は、実際には何も切れていなかった。実行時の Renderer Feature は複製で名前に `(Clone)` が付くのに、`pass-toggle.cs` が名前の完全一致で探していたため。直した後の値は GRD の後のものだけ（下の「カメラ描画の中身」）。変更前の SSAO・アウトラインの寄与は測っていない。
 
 ### GRD の対象外
 `snippets/grd-check.cs`（変更後の視点で）：Renderer のうち MeshRenderer 以外（スキンメッシュ・パーティクルなど）3,725、`MaterialPropertyBlock` 付き 0、DOTS インスタンシング非対応のシェーダーは `Unlit/Outline` の12個だけ。ほぼ全部が GRD に乗っている。GRD の後は `Renderer.isVisible` がカメラのカリング結果を表さなくなる（変更前 43,572、変更後 210,811）ので、この値で映る数を数えるスニペット（`placement-frame-count.cs` などの「描画中」）は GRD の後では読み方が変わる。
+
+## カメラ描画の中身（GRD の後、2周の平均）
+`run.sh` に、FrameTimingManager の CPU・GPU のフレーム時間（`render-start.cs`／`render-collect.cs`、Play 前に `frame-timing-on.cs`）と、Profiler の階層（`camtree-collect.cs`）を足して測った（`results/*_grd-camtree_*.json`、コミット `e00af69f66`。fps 21.06／20.97）。
+
+### スレッドごとの時間（FrameTimingManager、何も切らない窓）
+| 項目 | ms/フレーム |
+|---|---:|
+| CPU のフレーム | 48.1 |
+| メインスレッド | 40.0 |
+| 描画スレッド | 12.0 |
+| **GPU** | **5.5** |
+
+GPU はほぼ空いている。描画を速くするには、GPU の処理（SSAO・影の解像度・ポストプロセスなど）を軽くしても効かず、メインスレッドの処理を減らす必要がある。
+
+### パスを1つずつ切った窓（GRD の後、修正後の `pass-toggle.cs`）
+| 切ったもの | URP ms | メインスレッド ms | GPU ms | ドローコール | SetPass |
+|---|---:|---:|---:|---:|---:|
+| なし | 14.6 | 40.0 | 5.6 | 9,942 | 500 |
+| 影 | 11.0 | 35.0 | 5.1 | 7,795 | 427 |
+| SSAO | 14.3 | 38.9 | 6.0 | 9,934 | 495 |
+| アウトライン（`OutlinePass`） | 14.6 | 39.9 | 6.5 | 9,902 | 463 |
+| カメラの深度・不透明テクスチャの要求 | 14.8 | 40.6 | 5.6 | 9,947 | 501 |
+| ポストプロセス | 14.7 | 40.4 | 5.6 | 9,945 | 499 |
+
+実行時の Renderer Feature は `ScreenSpaceAmbientOcclusion`・`OutlinePass`・`UiSrgbComposite` の3つで、`ScreenSpaceOutlines` は無かった。
+
+### メインスレッドのカメラ描画（Profiler、`RenderPlayModeViewCameras` 15.7ms の内訳）
+| 処理 | ms | 中身 |
+|---|---:|---|
+| カリング（`CullScriptable`） | 5.5 | 描画対象の取り出し 3.1（うち `QueuePrepareIntegrateMainThreadObjects` 2.2）、`SceneCulling` 1.7（うち GRD のカリング 0.9）、地形 0.3 |
+| 提出（`ScriptableRenderContext.Submit`） | 7.4 | 半透明の描画の組み立て 2.2、不透明 1.7、影の準備 1.8（うち `QueuePrepareIntegrateMainThreadObjects` 1.3）、影の描画 0.8 |
+| URP のパスの組み立て（`ScriptableRenderer.Execute`） | 1.3 | |
+| 影を落とす物のカリング | 0.3 | |
+
+- `QueuePrepareIntegrateMainThreadObjects` が、カリングと影の準備の中で合わせて約3.5ms。描画対象を取り出すときに、ジョブで処理できない Renderer をメインスレッドで取り込む処理と見ている（推測。どの Renderer かは未確認）。
+- 半透明（2.2ms）が不透明（1.7ms）より重い。半透明は GRD でまとめて描かれず、1つずつ組み立てていると見ている（推測）。
+- 描画スレッド（Profiler、1フレームの壁時計）では、`DrawBuffersBatchMode` 9.1・`RenderLoop` 7.1・GPU スキニング 4.6・`ResourceBarriers` 3.8・GPU 待ち 9.8。
+- ジョブのワーカーはほとんど空いている（各ワーカーの大半が `Idle`）。
+- カメラ描画の外の約24ms（スクリプト・受信処理・Editor など）が、メインスレッド 40ms の残り。
 
 ## 見た目
 `SHOT=1` で同じ視点のゲーム画面を撮った（`results/*_before-grd.png`・`*_after-grd.png`）。違うのは高架のベルト上を流れるアイテムの位置（撮った時刻の違い）だけで、地形・ブロック・影・アウトライン・UI は同じに見える（目視）。
@@ -64,7 +101,7 @@
 - ビルドしたプレイヤー（Release）・Mac（Metal）での効果と見た目。`m_BrgStripping` を変えたことによるビルド時間・バリアント数の増え方。
 - ワールド読み込み時間への影響（Renderer 約21.6万を GRD に登録する分）。定常になるまでの時間は前後で大きく変わらなかったが、測っていない。
 - 設置プレビュー・削除モードなどで材質を差し替える表示が、GRD の後も正しく出るか。
-- `Render Thread` のカウンタは、この Editor では値が出なかった（全窓 0）。
+- `Render Thread` の ProfilerRecorder は、この Editor では値が出なかった（全窓 0）。描画スレッドの時間は FrameTimingManager の値を使う。
 
 ## 再計測の手順
 1. windows-desktop で計測したいコミットを checkout し、グラフィックスジョブなしの Editor（スケジュールタスク `moorestech-unity-gfxmt`）を起動してコンパイルする。Profiler の記録は `snippets/profiler-off.cs` で止めておく。
@@ -76,8 +113,10 @@
 |---|---|
 | `run.sh` | ワールドを1回読み込み、決まった視点で、fps 窓・Profiler 窓・パスを1つずつ切った描画カウンタの窓を REPEAT 周取る |
 | `summarize.py` | 結果 JSON を条件ごとの平均にまとめる |
-| `snippets/pass-toggle.cs` | 影・SSAO・アウトライン・カメラテクスチャを1つずつ切る（`run.sh` が COND を書き換えた写しを送る） |
-| `snippets/render-start.cs` / `render-collect.cs` | 描画カウンタのフレーム平均（2026-11-20 のものに影を落とす数・三角形・スレッドの時間を足した） |
+| `snippets/pass-toggle.cs` | 影・SSAO・アウトライン・カメラテクスチャ・ポストプロセスを1つずつ切る（`run.sh` が COND を書き換えた写しを送る） |
+| `snippets/render-start.cs` / `render-collect.cs` | 描画カウンタと FrameTimingManager の CPU・GPU 時間のフレーム平均（2026-11-20 のものに、影を落とす数・三角形・スレッドの時間を足した） |
+| `snippets/camtree-collect.cs` | Profiler の記録から、メインスレッドのカメラ描画の階層と、ほかのスレッドのマーカーを出す |
+| `snippets/frame-timing-on.cs` / `frame-timing-off.cs` | Play 前に FrameTimingManager を有効にする／ProjectSettings の値（オフ）へ戻す |
 | `snippets/grd-check.cs` | GRD が動いているかと、対象外の Renderer の数 |
 | `snippets/enable-grd.cs` | GRD を有効にする設定を書いて保存する |
 | `snippets/capture.cs` | ゲーム画面を PNG に保存する |

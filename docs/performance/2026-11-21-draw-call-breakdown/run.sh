@@ -12,7 +12,7 @@ REPO='G:\GitHub\moorestech'
 SN='C:\moorestech-perf\snippets'
 REPEAT="${REPEAT:-2}"
 WINDOW_SECONDS="${WINDOW_SECONDS:-6}"
-CONDS="${CONDS:-base shadows ssao outlines camtex}"
+CONDS="${CONDS:-base shadows ssao outlines camtex post}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 BENCH="$DIR/../benchmark/snippets"
 WORK="$(mktemp -d)"
@@ -30,18 +30,21 @@ print(d.get("Result",""))' "$1"
 teardown() {
   run cleanup.cs >/dev/null 2>&1 || true
   remote "uloop control-play-mode --action Stop --project-path $PROJECT" >/dev/null 2>&1 || true
+  run frame-timing-off.cs >/dev/null 2>&1 || true
 }
 trap 'echo "ERROR: 途中で失敗しました" >&2; teardown' ERR
 
 # 条件ごとに COND 行を書き換えた pass-toggle の写しを作って送る
 for c in $CONDS; do sed "s/^var COND = \"base\";/var COND = \"$c\";/" "$DIR/snippets/pass-toggle.cs" > "$WORK/pass-$c.cs"; done
 remote "New-Item -ItemType Directory -Force -Path $SN | Out-Null"
-scp -q "${SSH_OPTS[@]}" "$BENCH"/*.cs "$DIR"/snippets/render-*.cs "$DIR"/snippets/grd-check.cs "$DIR"/snippets/capture.cs "$WORK"/pass-*.cs "$HOST:C:/moorestech-perf/snippets/"
+scp -q "${SSH_OPTS[@]}" "$BENCH"/*.cs "$DIR"/snippets/render-*.cs "$DIR"/snippets/grd-check.cs "$DIR"/snippets/capture.cs "$DIR"/snippets/camtree-collect.cs "$DIR"/snippets/frame-timing-*.cs "$WORK"/pass-*.cs "$HOST:C:/moorestech-perf/snippets/"
 
 COMMIT="$(remote "git -C $REPO rev-parse HEAD" | tr -d '\r')"
 DIRTY="$(remote "git -C $REPO status --porcelain --untracked-files=no" | tr -d '\r' | sed '/^$/d' | wc -l | tr -d ' ')"
 remote "uloop control-play-mode --action Stop --project-path $PROJECT" >/dev/null 2>&1 || true
 remote "\$b='C:\\moorestech-perf\\baselines\\$BASELINE'; \$w='C:\\moorestech-perf\\work\\current'; if (Test-Path \$w) { Remove-Item \$w -Recurse -Force }; New-Item -ItemType Directory -Force -Path \$w | Out-Null; Copy-Item \"\$b\\*\" \$w -Force"
+# GPU のフレーム時間を取るため、Play 前に FrameTimingManager を有効にする（後片付けで戻す）
+run frame-timing-on.cs
 remote "uloop control-play-mode --action Play --project-path $PROJECT" >/dev/null
 for _ in $(seq 1 40); do r="$(run enter-world.cs || true)"; case "$r" in started*) break ;; esac; sleep 3; done
 case "$r" in started*) echo "$r" ;; *) echo "ERROR: ローカル開始できませんでした: $r" >&2; teardown; exit 3 ;; esac
@@ -71,6 +74,8 @@ for i in $(seq 1 "$REPEAT"); do
   run pass-base.cs >/dev/null; sleep 4
   run fps-start.cs >/dev/null; sleep 10; run fps-collect.cs > "$WORK/fps_$i.json"
   run profiler-start.cs >/dev/null; sleep "$WINDOW_SECONDS"; run profiler-collect.cs > "$WORK/profiler_$i.json"
+  # カメラ描画の中身（メインスレッドの階層と、ほかのスレッドのマーカー）。Profiler は短く保つ
+  run profiler-start.cs >/dev/null; sleep 4; run camtree-collect.cs > "$WORK/camtree_$i.json"
   for c in $CONDS base; do
     state="$(run "pass-$c.cs")"; sleep 4
     run render-start.cs >/dev/null; sleep "$WINDOW_SECONDS"
@@ -100,6 +105,7 @@ json.dump({
     "grdCheck": open(os.path.join(work, "grd.txt")).read().strip(),
     "fps": [load("fps_%d" % i) for i in range(1, rep + 1)],
     "profiler": [load("profiler_%d" % i) for i in range(1, rep + 1)],
+    "camtree": [load("camtree_%d" % i) for i in range(1, rep + 1)],
     "windows": load("windows"),
 }, open(out, "w"), ensure_ascii=False, indent=2)
 print("[drawcall] 保存: " + out)

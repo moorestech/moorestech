@@ -18,4 +18,17 @@ for (var i = 0; i < names.Length; i++)
     r.Dispose();
 }
 d.SetData("bench.render.recs", null);
+// FrameTimingManager の値（GPU 時間が 0 のフレームは、まだ GPU の計測が返っていないので捨てる）
+var hook = (System.Action<UnityEngine.Rendering.ScriptableRenderContext, List<Camera>>)d.GetData("bench.render.hook");
+if (hook != null) UnityEngine.Rendering.RenderPipelineManager.endContextRendering -= hook;
+var timings = (List<FrameTiming>)d.GetData("bench.render.timings") ?? new List<FrameTiming>();
+var gpu = timings.Where(t => t.gpuFrameTime > 0).ToList();
+void Add(string name, IEnumerable<double> xs) { var l = xs.ToList(); parts.Add("\"" + name + "\":{\"avg\":" + (l.Count == 0 ? 0 : l.Average()).ToString("F3", ci) + ",\"frames\":" + l.Count + ",\"unit\":\"ms\"}"); }
+Add("ft.cpuFrame", timings.Select(t => t.cpuFrameTime));
+Add("ft.cpuMainThread", timings.Select(t => t.cpuMainThreadFrameTime));
+Add("ft.cpuRenderThread", timings.Select(t => t.cpuRenderThreadFrameTime));
+Add("ft.cpuMainThreadPresentWait", timings.Select(t => t.cpuMainThreadPresentWaitTime));
+Add("ft.gpuFrame", gpu.Select(t => t.gpuFrameTime));
+d.SetData("bench.render.hook", null);
+d.SetData("bench.render.timings", null);
 return "{" + string.Join(",", parts) + "}";
