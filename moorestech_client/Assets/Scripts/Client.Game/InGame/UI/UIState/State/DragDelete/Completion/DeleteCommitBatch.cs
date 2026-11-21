@@ -61,7 +61,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
         {
             if (result.Kind == DeleteCompletionKind.Pending || result.Kind == DeleteCompletionKind.Unconfirmed)
             {
-                if (result.Kind == DeleteCompletionKind.Unconfirmed) Debug.LogWarning($"[DeleteBatch] final response still pending: {result.TargetKey} reason={result.DenyReason}");
+                if (result.Kind == DeleteCompletionKind.Unconfirmed) Debug.LogWarning($"[DeleteBatch] final response still pending: {result.TargetKey} reason={result.DenyReason?.Key}");
                 _completed.OnNext(result);
                 return;
             }
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
                     else _history.Cancel(_reservation);
                 }
             }
-            if (result.Kind != DeleteCompletionKind.Succeeded) Debug.LogWarning($"[DeleteBatch] target={result.TargetKey} result={result.Kind} reason={result.DenyReason}");
+            if (result.Kind != DeleteCompletionKind.Succeeded) Debug.LogWarning($"[DeleteBatch] target={result.TargetKey} result={result.Kind} reason={result.DenyReason?.Key}");
             _completed.OnNext(result);
             entry.Subscription.Dispose();
         }
