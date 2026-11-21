@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
@@ -54,8 +55,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             // silent-ok: 詳細の未着は「状態の取得を待っています」を出したまま / 録画（R-12）の発射台の段で気づく
             if (!present) return;
 
-            _material.Render(itemSlots, rocket.MaterialSlots);
-            _payload.Render(itemSlots, rocket.PayloadSlots);
+            _material.Render(itemSlots, rocket.MaterialSlots.Select(slot => slot.Slot).ToList());
+            _payload.Render(itemSlots, rocket.PayloadSlots.Select(slot => slot.Slot).ToList());
             _output.Render(itemSlots, rocket.OutputSlots(itemSlots.Count));
             _status.SetText(new UiText(rocket.StatusKey));
             _progress.SetValue(rocket.Progress);

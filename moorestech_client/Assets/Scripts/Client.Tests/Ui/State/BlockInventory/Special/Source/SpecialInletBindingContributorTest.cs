@@ -1,8 +1,10 @@
 using System;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Source;
 using Client.Ui.State.ItemMove;
@@ -28,7 +30,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void 受け付けないアイテムのShiftは候補が無く入れ口の物だけが入口へ向かう()
         {
-            var elevator = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 0, 0f, SpaceElevatorBaseStatus.ReadyToConnect, null, null), 0, new[] { GpuSatellite }, 1, 2, 1000);
+            var selected = new OrbitalCargoDetail(GpuSatellite, null, new[] { new OrbitalCargoChoice(GpuSatellite, 20, Array.Empty<ItemAmount>(), false) }, new[] { GpuSatellite }, 240);
+            var elevator = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 0, 0f, SpaceElevatorBaseStatus.ReadyToConnect, GpuSatellite, null), 0, 1, 2, 1000, selected);
             var open = Contribute(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, SpecialDetailSamples.ElevatorWithNetwork(elevator));
 
             var wood = BlockSlotRestrictionResolver.Resolve(open, Wood) as BoundBlockSlots;
@@ -43,7 +46,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 発射台は詳細の束縛の枠だけへ要求の品を向ける()
         {
             var bindings = new[] { new InletSlotBinding(1, new[] { Fuel }) };
-            var rocket = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0f, null, null), new[] { 1 }, Array.Empty<int>(), bindings, 2);
+            var rocket = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0f, OrbitalCargoSamples.ChipLv1, null), new[] { new RequiredItemSlot(1, Fuel, 20) }, Array.Empty<RequiredItemSlot>(), bindings, 2, OrbitalCargoSamples.Pad(OrbitalCargoSamples.ChipLv1, null, OrbitalCargoSamples.ChipLv1));
             var open = Contribute(BlockMasterElement.BlockTypeConst.RocketLaunchPad, SpecialDetailSamples.Only(rocket));
 
             var fuel = BlockSlotRestrictionResolver.Resolve(open, Fuel) as BoundBlockSlots;
