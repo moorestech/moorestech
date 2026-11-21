@@ -26,7 +26,7 @@ using UnityEngine.UIElements;
 
 const int FilterCount = 30;
 var shootingLanguage = "japanese";
-var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 600f };
+var options = new PlaytestRunOptions { Record = true, RecordResolutionChanges = true, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
 {
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;

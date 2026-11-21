@@ -69,7 +69,7 @@ namespace Client.Playtest
                     // Initialize the overlay baked into the recording and post the opening narration
                     PlaytestOverlay.EnsureCreatedAndReset();
                     PlaytestOverlay.PushNote($"シナリオ開始: {runName}");
-                    if (options.Record) recorder = PlaytestRecorder.StartRecording(runDirectory);
+                    if (options.Record) recorder = PlaytestRecorder.StartRecording(runDirectory, options.RecordResolutionChanges);
                     await scenario(driver).Timeout(TimeSpan.FromSeconds(options.ScenarioTimeoutSeconds));
                     result.Success = result.Asserts.TrueForAll(assert => assert.Passed);
                 }

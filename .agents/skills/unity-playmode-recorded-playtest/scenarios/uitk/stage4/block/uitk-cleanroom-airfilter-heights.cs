@@ -18,7 +18,7 @@ using UnityEngine.UIElements;
 
 const int FilterCount = 8;
 const float MenuLowerSafeArea = 70f; // Tokens.uss --menu-lower-safe-area
-return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f }, async p =>
+return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOptions { Record = true, RecordResolutionChanges = true, ScenarioTimeoutSeconds = 300f }, async p =>
 {
     // 実行中の Error ログを数えて最後に 0 件を主張する
     // Count error logs during the run and assert zero at the end
