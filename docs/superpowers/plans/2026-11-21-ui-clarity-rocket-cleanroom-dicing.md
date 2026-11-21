@@ -1433,7 +1433,7 @@ ADR 0106 の 1（巡回の廃止）・2（未選択は何も受け取らず建�
   - `RocketLaunchPadSaveConverter.Capture(stage, layout, slots)`（巡回位置の引数を削除）
   - テスト補助: `RocketLaunchPadTestUtil.FillOneLaunch` を `SelectCargoAndFillOneLaunch` に改名（選んでから入れる）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/Util/Rocket/RocketLaunchPadTestUtil.cs` を次の全文にする（`FillOneLaunch` → `SelectCargoAndFillOneLaunch`、`FillMaterials` は選ばない）:
 
@@ -1690,11 +1690,11 @@ perl -pi -e 's/\bRocketLaunchPadTestUtil\.FillOneLaunch\(/RocketLaunchPadTestUti
 grep -rn "FillOneLaunch(" . | grep -v SelectCargoAndFillOneLaunch   # 0 件であること
 ```
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `RocketLaunchPadStateDetail.SelectedCargoItemId` 等が無くてコンパイルエラー。
 
-- [ ] **Step 3: 共有の型を足す**
+- [x] **Step 3: 共有の型を足す**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadWaitReason.cs` 全文:
 
@@ -1778,7 +1778,7 @@ namespace Game.Block.Interface.State
 }
 ```
 
-- [ ] **Step 4: 発射台の実装を書く**
+- [x] **Step 4: 発射台の実装を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadCargoInletSlots.cs`（新規）:
 
@@ -2440,7 +2440,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
 }
 ```
 
-- [ ] **Step 5: 既存テストを直す**
+- [x] **Step 5: 既存テストを直す**
 
 | ファイル | 行 | 扱い | 理由 |
 |---|---|---|---|
@@ -2547,7 +2547,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
 ```
 （`using Tests.Util.OrbitalCargo;` を足す。触る各テストファイルも同じ）
 
-- [ ] **Step 6: コンパイルとテスト**
+- [x] **Step 6: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.OrbitalCargo.OrbitalCargoPadSelectionTest"`
@@ -2556,7 +2556,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\..*(Special|Tier9ModelStateProcessor)"`
 期待: すべて成功（拠点はこの Task ではまだ選ぶ方式にしていないので、Tier9 の拠点側は従来どおり動く）。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 `git commit -m "発射台の積荷をプレイヤーが選ぶ方式にし、巡回と巡回位置のセーブを外す"`
 
