@@ -16880,7 +16880,7 @@ git commit -m "確定済み抽選の組・損失率・品質Tier・換気回数�
 
 検証は Core.Master に残す。Core.Master は `Game.Block.Interface` を参照できない（参照の向きが逆）ので、計算を呼ばずに止める条件を自分で書く（前例: 発射台の枠の配置は `Game.Block.Interface` の `RocketLaunchPadSlotLayout`、読込時の検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` で条件を別に書いている）。2 つが食い違わないことは、Step 1 のテストで同じ入力の表を両方に当てて押さえる。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs`（サーバーのテストのアセンブリ `Server.Tests.asmdef` は `Core.Master` と `Game.Block.Interface` の両方を参照している。`FilterSplitterParamValidator` は internal なので、公開の `BlockMasterUtil.Validate` を通して当てる）:
 
@@ -17013,12 +17013,12 @@ namespace Tests.UnitTest.Core.Master.FilterSplitter
 
 表の行と裁定の止める 3 条件（`.decisions/2026-11-21-見出しを左正面右に決められない分岐器のマスタは読込時に止める.md`）の対応: 「入口が 1 つでない」＝`入口コネクタが2つあれば止める`・`入口コネクタが無ければ止める`（入口の向きが水平の 1 方向でない `入口の向きが2つあれば止める`・`入口が上向きなら止める` もここに当てる。この読み方は agent前提で「判断」3）／「出口が左・正面・右のどれにも当たらない（入口と同じ面・斜め・上下）」＝`入口と同じ面の出口を止める`・`斜めの出口を止める`・`上向きの出口を止める`・`下向きの出口を止める`（向きが水平の 1 方向でない `向きが2つの出口を止める`・`向きの無い出口を止める` もここに当てる。計算と検証が `Directions.Length` を別々に見ているので、片方だけ変えると落ちる）／「同じ側に出口が 2 つ」＝`同じ側の出口が2つあれば止める`。「出口が 2 つだけは止めない」＝`出口が左と右の2つだけなら止めない`。`出口が無ければ止める` は裁定の 3 条件の外で、agent前提（「判断」3）。
 
-- [ ] **Step 2: コンパイルして赤を確かめる**
+- [x] **Step 2: コンパイルして赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `FilterSplitterOutputSide`・`FilterSplitterOutputSideResolver` が無いので CS0246 / CS0103 で失敗する（テストが新しい型を使っていることの確認）。
 
-- [ ] **Step 3: 列挙を書く**
+- [x] **Step 3: 列挙を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSide.cs`:
 
@@ -17036,7 +17036,7 @@ namespace Game.Block.Interface.Component
 }
 ```
 
-- [ ] **Step 4: 側を決める関数を書く**
+- [x] **Step 4: 側を決める関数を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSideResolver.cs`:
 
@@ -17106,7 +17106,7 @@ namespace Game.Block.Interface.Component
 ```
 （null を調べているのは、マスタの配列が mod の JSON から来る外部データで、生成型が null を許すため。62 行。）
 
-- [ ] **Step 5: 読込時の検証を書く**
+- [x] **Step 5: 読込時の検証を書く**
 
 `Validator/Block/` 直下は今 .cs が 10 本（BeltSpeedPerSecond・BlockConnector・BlockConstruction・BlockDestructionCategory・BlockGearConsumption・BlockParam・CleanRoomItemHatchThroughput・ExtractionSettings・RocketLaunchPadParam・SpaceElevatorBaseParam の各 Validator）で、1ディレクトリ10本の上限にある。そこで新しいサブディレクトリ `Validator/Block/FilterSplitter/` を切って置く。名前空間は `Validator/` の下の既存サブディレクトリの多数の付け方（`Item/` → `Core.Master.Validator.Item`、`MachineUpgrade/` → `Core.Master.Validator.MachineUpgrade`、`OrbitalPayload/` → `Core.Master.Validator.OrbitalPayload`、`Block/` → `Core.Master.Validator.Block`。`CleanRoom/` だけは `Core.Master.Validator` のまま）に合わせてフォルダの並びどおり `Core.Master.Validator.Block.FilterSplitter` にし、呼び手（`BlockMasterUtil`）は using を足して呼ぶ（前例: `ItemMasterUtil.cs:5` の `using Core.Master.Validator.OrbitalPayload;` で `OrbitalPayloadMasterValidator.Validate` を呼ぶ）。新しいディレクトリと .cs の `.meta` は手で作らず、Step 6 の compile で Unity が作る。
 
@@ -17210,12 +17210,12 @@ using Core.Master.Validator.Block.FilterSplitter;
             errorLogs += FilterSplitterParamValidator.Validate(blocks);
 ```
 
-- [ ] **Step 6: コンパイルしテストを通す**
+- [x] **Step 6: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Core.Master.FilterSplitter.FilterSplitterOutputSideTest"`
 Expected: ErrorCount 0 / 17 件 PASS（`テストマスタの出口は右左正面の並び` 1 件と表の 16 行）。表の `入口コネクタが無ければ止める`・`出口が無ければ止める`・`向きの無い出口を止める` の 3 行だけが、空の配列を入れた blocks.json を `new BlockMaster(blocks)` とほかの検証が例外なく読む前提に立つ（「未確認」6）。この 3 行が検証の文でなく読込の例外で落ちたら、その行を表から外し、外した理由と例外の文を報告に書く（ほかの行は外さない）。続けて既存の分岐器とマスタ検証のテストが通り続けること: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "FilterSplitterTest|BlueprintFilterSplitterSettingsTest|RocketLaunchPadParamValidatorTest"` → 全 PASS（テストマスタの分岐器が新しい検証を通ることの確認）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter.meta moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter.meta moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter.meta
