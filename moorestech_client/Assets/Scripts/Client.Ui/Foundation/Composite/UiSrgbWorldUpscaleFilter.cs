@@ -20,16 +20,26 @@ namespace Client.Ui.Foundation.Composite
 
         public static bool UsesPointSampling(bool postProcessEnabled, bool finalPostPassRuns, float renderScale, int pixelWidth, int pixelHeight, UpscalingFilterSelection selection)
         {
-            // 最終ポスト処理パスが無いと、URP は双線形の中間テクスチャを final blit で双線形に拡大する
-            // Without the final post-processing pass URP upscales the bilinear intermediate bilinearly in the final blit
-            if (!postProcessEnabled || !finalPostPassRuns) return false;
+            // ポスト処理が無効なカメラは最終ポスト処理を通らず、final blit が双線形で読む
+            // A camera without post-processing skips the final post-processing, so its final blit reads bilinearly
+            if (!postProcessEnabled) return false;
             // 拡大しないときは中間色と画面が同じ大きさで、どちらで読んでも同じ
             // Without upscaling the intermediate matches the screen, so either filter reads the same
             if (1f <= renderScale) return false;
-            // STP はポスト処理の中で画面の解像度まで拡大し終える。非対応環境の FSR は Auto へ戻る
-            // STP has already upscaled to screen resolution inside post-processing; FSR falls back to Auto when unsupported
-            if (selection == UpscalingFilterSelection.STP) return false;
-            if (selection == UpscalingFilterSelection.FSR && !FSRUtils.IsSupported()) selection = UpscalingFilterSelection.Auto;
+            // 非対応環境の STP・FSR は URP と同じく Auto へ戻す。対応環境の STP はポスト処理の中で画面の解像度まで拡大し終える
+            // Unsupported STP and FSR fall back to Auto as in URP; supported STP has already upscaled to screen resolution inside post-processing
+            if (selection == UpscalingFilterSelection.STP && STP.IsSupported()) return false;
+            if (selection == UpscalingFilterSelection.STP || (selection == UpscalingFilterSelection.FSR && !FSRUtils.IsSupported())) selection = UpscalingFilterSelection.Auto;
+            // 対応環境の FSR は最終ポスト処理パスで拡大するが、合成では写せない
+            // Supported FSR upscales in the final post-processing pass, which the composite cannot reproduce
+            if (selection == UpscalingFilterSelection.FSR)
+            {
+                ReportUnsupported();
+                return false;
+            }
+            // FXAA・TAA の CAS が無ければ最終ポスト処理パスは無く、URP は双線形の中間テクスチャを final blit で双線形に拡大する
+            // Without FXAA or TAA's CAS there is no final post-processing pass, and URP upscales the bilinear intermediate bilinearly in the final blit
+            if (!finalPostPassRuns) return false;
             switch (selection)
             {
                 case UpscalingFilterSelection.Point:

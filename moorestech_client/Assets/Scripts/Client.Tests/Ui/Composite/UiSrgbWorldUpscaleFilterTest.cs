@@ -1,5 +1,6 @@
 using Client.Ui.Foundation.Composite;
 using NUnit.Framework;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace Client.Tests.Ui.Composite
@@ -41,9 +42,13 @@ namespace Client.Tests.Ui.Composite
         }
 
         [Test]
-        public void STPはポスト処理の中で拡大し終えるので双線形で読む()
+        public void STPは対応環境ならポスト処理の中で拡大し終え非対応ならAutoとして読む()
         {
-            Assert.IsFalse(UiSrgbWorldUpscaleFilter.UsesPointSampling(true, true, 0.5f, 1280, 720, UpscalingFilterSelection.STP));
+            // 対応環境では拡大が残らないので双線形、非対応では Auto と同じ判定になる
+            // Supported STP leaves no upscale (bilinear); unsupported STP follows the Auto rule
+            var expected = !STP.IsSupported();
+            Assert.AreEqual(expected, UiSrgbWorldUpscaleFilter.UsesPointSampling(true, true, 0.5f, 1280, 720, UpscalingFilterSelection.STP));
+            Assert.IsFalse(UiSrgbWorldUpscaleFilter.UsesPointSampling(true, true, 0.5f, 1281, 720, UpscalingFilterSelection.STP));
         }
     }
 }
