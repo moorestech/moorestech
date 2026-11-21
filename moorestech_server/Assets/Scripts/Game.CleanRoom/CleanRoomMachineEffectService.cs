@@ -39,15 +39,15 @@ namespace Game.CleanRoom
 
                 // 部屋はあるがOut行なら、クラス不足として止める
                 // A room on the Out row halts the machine for an insufficient class
-                if (!room.TryGetClassRow(out var row))
+                if (!room.TryGetClassRow(out _))
                 {
                     entry.Machine.SetCleanRoomEffect(CleanRoomEffect.ClassOut());
                     continue;
                 }
 
-                // 非Out行のクラス別の歩留まり値だけを稼働許可と一緒に機械へ渡す
-                // Only a non-Out row's per-class yield values are handed to the machine along with the permission to operate
-                entry.Machine.SetCleanRoomEffect(CleanRoomEffect.Operable(new CleanRoomClassYield(row.QualityMultiplier, row.LayerFailRate, row.DieLossRate)));
+                // 非Out行の歩留まり値を閾値行の添字つきで機械へ渡す
+                // Pass non-Out yield values to the machine with their threshold row index
+                entry.Machine.SetCleanRoomEffect(CleanRoomEffect.Operable(CleanRoomClassYield.FromThresholdIndex(room.ThresholdIndex)));
             }
         }
     }
