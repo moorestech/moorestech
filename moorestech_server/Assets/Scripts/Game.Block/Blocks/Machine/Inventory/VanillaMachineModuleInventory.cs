@@ -82,6 +82,20 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _allowQualityModule || module.EffectAxis != ModuleMasterElement.EffectAxisConst.Quality;
         }
 
+        // そのモジュールをあと1個、効く形で入れられるか
+        // Whether one more of the module fits effectively
+        public bool CanAcceptOneMore(ModuleMasterElement module)
+        {
+            if (!IsModuleEffective(module)) return false;
+            var itemId = MasterHolder.ItemMaster.GetItemId(module.ItemGuid);
+            foreach (var stack in ModuleSlot)
+            {
+                if (stack.Id == ItemMaster.EmptyItemId) return true;
+                if (stack.Id == itemId && stack.Count < GetSlotStackLimit()) return true;
+            }
+            return false;
+        }
+
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
