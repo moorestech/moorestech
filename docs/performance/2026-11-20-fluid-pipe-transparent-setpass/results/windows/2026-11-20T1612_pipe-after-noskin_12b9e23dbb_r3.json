@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "label": "pipe-after-noskin",
+  "measuredAt": "2026-11-20T1612",
+  "repeat": {
+    "index": 3,
+    "of": 3,
+    "sameWorldLoad": true
+  },
+  "host": "windows-desktop",
+  "commit": "12b9e23dbb941385a7446d87fcde7859f3028c26",
+  "branch": "HEAD",
+  "trackedChangesOnHost": 2,
+  "baselineWorld": {
+    "name": "2026-10-22-world_1",
+    "saveJsonSha256": "6BF6222FFCDA5CD068F10E48EB73BC68F2D1128DB10E084360FE7738184A5445"
+  },
+  "windows": {
+    "fpsSeconds": 10,
+    "profilerSeconds": 6,
+    "eventSeconds": 6
+  },
+  "environment": {
+    "unityVersion": "6000.3.8f1",
+    "codeOptimization": "Debug",
+    "quality": "High",
+    "vSyncCount": 1,
+    "targetFrameRate": 60,
+    "cameraPixels": "1920x1080",
+    "gpu": "NVIDIA GeForce RTX 3060 Ti",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "editorWindowMinimized": false,
+    "editorWindowForeground": true,
+    "userIdleSeconds": 175
+  },
+  "scene": {
+    "renderers": 216043,
+    "gameObjects": 314577,
+    "frameCount": 2759
+  },
+  "fps": {
+    "frames": 208,
+    "seconds": 10.603,
+    "fps": 19.617,
+    "frameMsAvg": 50.977
+  },
+  "profiler": {
+    "frames": 102,
+    "frameMs": {
+      "avg": 56.222,
+      "p50": 52.497,
+      "p95": 73.018,
+      "max": 135.128
+    },
+    "markers": {
+      "PlayerLoop": {
+        "totalMs": 44.346,
+        "selfMs": 0.001,
+        "calls": 3.0
+      },
+      "RenderPlayModeViewCameras": {
+        "totalMs": 22.347,
+        "selfMs": 0.213,
+        "calls": 1.0
+      },
+      "WaitForJobGroupID": {
+        "totalMs": 16.687,
+        "selfMs": 0.811,
+        "calls": 23.6
+      },
+      "EditorLoop": {
+        "totalMs": 10.952,
+        "selfMs": 10.952,
+        "calls": 4.0
+      },
+      "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": {
+        "totalMs": 9.825,
+        "selfMs": 5.634,
+        "calls": 64.6
+      },
+      "Idle": {
+        "totalMs": 7.279,
+        "selfMs": 7.279,
+        "calls": 13.4
+      },
+      "Update.ScriptRunBehaviourUpdate": {
+        "totalMs": 6.321,
+        "selfMs": 0.001,
+        "calls": 1.0
+      },
+      "BehaviourUpdate": {
+        "totalMs": 6.32,
+        "selfMs": 1.308,
+        "calls": 1.0
+      },
+      "Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]": {
+        "totalMs": 4.434,
+        "selfMs": 4.434,
+        "calls": 1893.0
+      },
+      "UniTaskLoopRunnerYieldUpdate": {
+        "totalMs": 4.086,
+        "selfMs": 0.0,
+        "calls": 1.0
+      },
+      "PacketExchange.DispatchReceivedPackets": {
+        "totalMs": 4.078,
+        "selfMs": 0.004,
+        "calls": 1.0
+      },
+      "PacketExchange.RouteEvent": {
+        "totalMs": 3.988,
+        "selfMs": 0.465,
+        "calls": 2.3
+      },
+      "ExecuteRenderQueueJob": {
+        "totalMs": 3.491,
+        "selfMs": 3.439,
+        "calls": 1.5
+      },
+      "RenderLoop.ScheduleDraw": {
+        "totalMs": 2.413,
+        "selfMs": 0.377,
+        "calls": 8.4
+      },
+      "RenderLoop.DrawSRPBatcher": {
+        "totalMs": 2.316,
+        "selfMs": 0.571,
+        "calls": 2.3
+      },
+      "SRPBatcher.Flush": {
+        "totalMs": 1.955,
+        "selfMs": 1.955,
+        "calls": 10.7
+      },
+      "FixedUpdate.PhysicsFixedUpdate": {
+        "totalMs": 1.612,
+        "selfMs": 0.003,
+        "calls": 2.8
+      },
+      "BlockState.Deserialize": {
+        "totalMs": 1.539,
+        "selfMs": 1.452,
+        "calls": 0.6
+      },
+      "QueuePrepareIntegrateMainThreadObjects": {
+        "totalMs": 1.199,
+        "selfMs": 1.199,
+        "calls": 2.0
+      },
+      "TransformChangeSystem": {
+        "totalMs": 1.071,
+        "selfMs": 0.523,
+        "calls": 47.7
+      },
+      "BlockState.Processor.ElectricWireStateChangeProcessor": {
+        "totalMs": 0.91,
+        "selfMs": 0.852,
+        "calls": 105.4
+      },
+      "Profiler.FlushMemoryCounters": {
+        "totalMs": 0.836,
+        "selfMs": 0.836,
+        "calls": 1.0
+      },
+      "PostLateUpdate.UpdateAllRenderers": {
+        "totalMs": 0.78,
+        "selfMs": 0.005,
+        "calls": 1.0
+      },
+      "RenderLoop.CleanupNodeQueue": {
+        "totalMs": 0.522,
+        "selfMs": 0.522,
+        "calls": 47.3
+      },
+      "PhysX.FinalizeUpdateTask": {
+        "totalMs": 0.522,
+        "selfMs": 0.522,
+        "calls": 2.8
+      },
+      "BlockState.Processor.CommonMachineBlockStateChangeProcessor": {
+        "totalMs": 0.46,
+        "selfMs": 0.445,
+        "calls": 115.0
+      },
+      "BlockState.Processor.GearStateChangeProcessor": {
+        "totalMs": 0.387,
+        "selfMs": 0.378,
+        "calls": 179.5
+      },
+      "GC.Alloc": {
+        "totalMs": 0.237,
+        "selfMs": 0.237,
+        "calls": 5190.3
+      },
+      "BlockState.Processor.GearBeltConveyorStateChangeProcessor": {
+        "totalMs": 0.167,
+        "selfMs": 0.163,
+        "calls": 85.3
+      },
+      "PostLateUpdate.UpdateAllSkinnedMeshes": {
+        "totalMs": 0.117,
+        "selfMs": 0.007,
+        "calls": 1.0
+      },
+      "PacketExchange.Deserialize.EventStream": {
+        "totalMs": 0.069,
+        "selfMs": 0.068,
+        "calls": 2.3
+      },
+      "BlockState.Processor.SteamEngineEffectStateChangeProcessor": {
+        "totalMs": 0.057,
+        "selfMs": 0.056,
+        "calls": 29.2
+      },
+      "PacketExchange.ReadPacketHeader": {
+        "totalMs": 0.017,
+        "selfMs": 0.017,
+        "calls": 2.3
+      }
+    }
+  },
+  "events": {
+    "seconds": 6.58,
+    "eventsPerSecond": 46.2,
+    "payloadBytesPerSecond": 627848,
+    "blockStatesPerSecond": 3291.8,
+    "blockStateSenders": 266,
+    "byKind": {
+      "blockState|CommonMachine+ElectricWire+MachineBlock": {
+        "perSecond": 1163.9,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|FuelGearGenerator+GearStateData+PowerGenerator": {
+        "perSecond": 549.1,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+GearStateData+MachineBlock": {
+        "perSecond": 486.6,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+ElectricWire+FluidMachineInventory+MachineBlock": {
+        "perSecond": 264.4,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|ElectricWire+GearStateData+GearToElectricGenerator": {
+        "perSecond": 249.1,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|未分類": {
+        "perSecond": 191.9,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+ElectricWire+FluidMachineInventory+Pump": {
+        "perSecond": 92.4,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|ElectricWire+FluidMachineInventory+PowerGenerator": {
+        "perSecond": 75.8,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+CommonMiner+GearStateData": {
+        "perSecond": 66.1,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|CommonMachine+CommonMiner+ElectricWire": {
+        "perSecond": 57.7,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|FluidMachineInventory+GearStateData+Pump": {
+        "perSecond": 38.4,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|FluidMachineInventory+TrainPlatformTransfer": {
+        "perSecond": 33.1,
+        "payloadBytesPerSecond": 0
+      },
+      "blockState|ElectricToGearGenerator+ElectricWire+GearStateData": {
+        "perSecond": 23.1,
+        "payloadBytesPerSecond": 0
+      },
+      "va:event:trainUnitTickDiffBundle": {
+        "perSecond": 11.5,
+        "payloadBytesPerSecond": 1396
+      },
+      "va:event:beltTransportTickDiff": {
+        "perSecond": 11.5,
+        "payloadBytesPerSecond": 1395
+      },
+      "va:event:fluidNetworkTickDiff": {
+        "perSecond": 11.5,
+        "payloadBytesPerSecond": 2170
+      },
+      "va:event:blockStatesTickBundle": {
+        "perSecond": 11.5,
+        "payloadBytesPerSecond": 622887
+      }
+    }
+  },
+  "render": {
+    "Inl_UniversalRenderTotal": {
+      "avg": 14.186,
+      "frames": 133,
+      "unit": "ms"
+    },
+    "RenderPlayModeViewCameras": {
+      "avg": 21.648,
+      "frames": 133,
+      "unit": "ms"
+    },
+    "SetPass Calls Count": {
+      "avg": 489.233,
+      "frames": 133,
+      "unit": "count"
+    },
+    "Draw Calls Count": {
+      "avg": 51968.466,
+      "frames": 133,
+      "unit": "count"
+    },
+    "Batches Count": {
+      "avg": 40846.316,
+      "frames": 133,
+      "unit": "count"
+    }
+  },
+  "skinnedMeshRenderersDisabled": "skinned total=4725 targets=4701 disabledNow=0 stillEnabled=0 top=[蒸気機関=2288, 電気汎用工作装置=1710, ガソリンエンジン発電機=374, 油井=287, ふいご付き精錬炉=38]",
+  "playerSpot": "player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409"
+}

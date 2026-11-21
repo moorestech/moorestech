@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# windows-desktop でベースラインワールドを1回読み込み、定常後に Transform 内訳と、設置モードに入る瞬間（出入り4回＋最後にもう1回入る）を測る
+# windows-desktop でベースラインワールドを1回読み込み、定常後にプレイヤーを決まった位置（622.21, 82.99, 420.90）と視点（三人称 3.5m・下へ 2.52°・方位 321.86°）へ合わせて、Transform 内訳と、設置モードに入る瞬間（出入り4回＋最後にもう1回入る）を測る
 # 遷移は buildmode-probe-start.cs が PlayerLoop の中で起こす（スニペット実行の停止で溜まった受信イベントが落ち着いてから）。詳細は README
 # usage: run-buildmode-entry.sh <label>  結果は results/<日時>_<label>_buildmode.txt
 # Load the baseline world once on windows-desktop; after the steady state, take the Transform breakdown and the build-mode entry probe (4 enter/exit cycles plus a final enter)
@@ -51,6 +51,10 @@ except Exception: print(-1)')"
 done
 [ "$stable" = 1 ] || fail "定常状態になりませんでした"
 sleep 20
+# 設置モードが重い決まった位置へプレイヤーを移し、位置と半径内のブロック数を結果に残してから、周囲の読み込みが落ち着くまで待つ（2026-11-15 から）
+# Move the player to the fixed heavy spot, record it and the within-radius block count, then wait for the surroundings to settle (since 2026-11-15)
+echo "== place-player" >> "$OUT"; run place-player.cs >> "$OUT"
+sleep 15
 echo "== go-breakdown" >> "$OUT"; run go-breakdown.cs >> "$OUT"
 # Get-Content は SSH 越しに日本語のブロック名が化けるので、UTF-8 のファイルのまま取り込む。取れなければ結果ファイルにも残す
 # Get-Content mangles Japanese block names over SSH, so copy the UTF-8 file as is; record a failure in the result file too
