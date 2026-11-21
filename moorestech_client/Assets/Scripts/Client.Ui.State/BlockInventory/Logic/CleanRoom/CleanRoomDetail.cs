@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 {
     // 見出し。Out の判定はサーバーが行い、Out はクラス名を持たない（判断記録 D-5）
@@ -42,33 +40,46 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
         ClassOut,
     }
 
-    public readonly struct CleanRoomAirFilter
+    // 密閉された部屋の要約。照会元（室内機械／清浄機）ごとの型で、清浄機から見た部屋は清浄機の型だけが必ず持つ（ADR 0105 §1・§5）
+    // Summary of an enclosed room typed per query source; only the purifier type carries the purifier's view, always (ADR 0105 §1, §5)
+    public abstract class CleanRoomSummary
     {
-        public double PowerRatio { get; }
-        public int FilterItemCount { get; }
-        public double FilterRemainingRatio { get; }
+        public CleanRoomHeadline Headline { get; }
 
-        public CleanRoomAirFilter(double powerRatio, int filterItemCount, double filterRemainingRatio)
+        private protected CleanRoomSummary(CleanRoomHeadline headline)
         {
-            PowerRatio = powerRatio;
-            FilterItemCount = filterItemCount;
-            FilterRemainingRatio = filterRemainingRatio;
+            Headline = headline;
+        }
+
+        // 室内機械から見た部屋（部屋クラスだけ）
+        // The room as an interior machine sees it (class only)
+        public static CleanRoomSummary ForMachine(CleanRoomHeadline headline)
+        {
+            return new MachineCleanRoomSummary(headline);
+        }
+
+        public static CleanRoomSummary ForAirFilter(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter)
+        {
+            return new AirFilterCleanRoomSummary(headline, airFilter);
         }
     }
 
-    // 密閉された部屋の要約
-    // Summary of an enclosed room
-    public sealed class CleanRoomSummary
+    public sealed class MachineCleanRoomSummary : CleanRoomSummary
     {
-        public CleanRoomHeadline Headline { get; }
-        public double AirChangeRate { get; }
-        public IReadOnlyList<CleanRoomAirFilter> AirFilters { get; }
-
-        public CleanRoomSummary(CleanRoomHeadline headline, double airChangeRate, IReadOnlyList<CleanRoomAirFilter> airFilters)
+        internal MachineCleanRoomSummary(CleanRoomHeadline headline) : base(headline)
         {
-            Headline = headline;
-            AirChangeRate = airChangeRate;
-            AirFilters = airFilters;
+        }
+    }
+
+    // 台数・止まっている台数・あと何台・この清浄機の状態
+    // Counts, stopped count, units to the next class and this purifier's status
+    public sealed class AirFilterCleanRoomSummary : CleanRoomSummary
+    {
+        public CleanRoomAirFilterRoomStatus AirFilter { get; }
+
+        internal AirFilterCleanRoomSummary(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter) : base(headline)
+        {
+            AirFilter = airFilter;
         }
     }
 

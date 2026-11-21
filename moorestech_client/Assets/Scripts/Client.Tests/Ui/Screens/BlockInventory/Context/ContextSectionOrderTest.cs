@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         private FakeBlockContextModel _context;
         private FakeMachineSectionModel _machine;
 
-        private static readonly CleanRoomSummary Room = new(CleanRoomHeadline.Class("ISO 5"), 1, new[] { new CleanRoomAirFilter(1, 1, 1) });
+        private static readonly CleanRoomSummary Room = CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("ISO 5"), CleanRoomAirFilterRoomStatus.WithoutUnitsToNextClass(1, 0, 1, 1));
 
         [SetUp]
         public void SetUpModels()
@@ -103,7 +103,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var body = MountBody();
             _context.Set(RoomAndYield());
             simulate.FrameUpdate();
-            Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-air-filter-0"));
+            Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-air-filter-count"));
 
             _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.Vanished), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent));
             simulate.FrameUpdate();
