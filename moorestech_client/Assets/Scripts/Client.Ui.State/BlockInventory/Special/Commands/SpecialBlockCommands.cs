@@ -20,6 +20,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         public const string SetElectricToGearModeCommandName = "electric_to_gear.set_output_mode";
         public const string ConnectSpaceElevatorCommandName = "space_elevator.connect";
         public const string RocketCommandName = "rocket_launch_pad.command";
+        public const string SelectOrbitalCargoCommandName = "orbital_cargo.select";
 
         private readonly IBlockInventoryPanelSource _panels;
         private readonly ISpecialBlockRequestSender _sender;
@@ -113,6 +114,26 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             {
                 if (!TryOpen(BlockMasterElement.BlockTypeConst.RocketLaunchPad, out var block, out var rejected)) return rejected;
                 return ToResult(await _sender.SendRocketCommand(block.Position, command, block.BlockInstanceId));
+            }
+
+            #endregion
+        }
+
+        public void SelectOrbitalCargo(ItemId payloadItemId)
+        {
+            ReportWhenDone(SelectOrbitalCargoCommandName, Send()).Forget();
+
+            #region Internal
+
+            async UniTask<UiCommandResult> Send()
+            {
+                // 積荷を選べるのは発射台と拠点だけ。拠点を開いている場合は拠点、それ以外は発射台として種別を確かめる
+                // Only launch pads and elevator bases select cargo; check the base when open, otherwise check the launch pad
+                var expected = _panels.Current.Value is OpenBlockInventoryPanel { BlockType: BlockMasterElement.BlockTypeConst.SpaceElevatorBase }
+                    ? BlockMasterElement.BlockTypeConst.SpaceElevatorBase
+                    : BlockMasterElement.BlockTypeConst.RocketLaunchPad;
+                if (!TryOpen(expected, out var block, out var rejected)) return rejected;
+                return ToResult(await _sender.SelectOrbitalCargo(block.Position, block.BlockInstanceId, payloadItemId));
             }
 
             #endregion
