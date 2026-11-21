@@ -12133,6 +12133,8 @@ git commit -m "モーダルの要求に項目名と値の行を載せられる�
 
 確率の欄は C4 の `Odds`・`Improvements` だけを読み、出力・0.0% でない Lv・失敗の短い行を1組だけ出す（ADR 0105 §2・§3）。出力待ちの2組目と見出し（`PendingDrawCleanRoomYield` の分岐）、品質 Tier・損失率の行を消す。モーダル用の「今」の値と差分の文もここで作る（使うのは D5）。
 
+実装時の補正（agent判断）: 元のサンプルの個別丸めでは表示合計99.9%と100.1%を実画面で観測したため、R-C2「足して100%」を優先する。ダイシングの現在の内訳は表示時だけ0.1ポイント単位の最大剰余法で配分し、同じ端数はLv順・最後に失敗とする。欄と改善モーダルの「今」は同じ配分を使う。抽選式・サーバーの生の割合・改善差分は変えず、0.0%の表示判定は共通の関数へ渡す。
+
 **Files:**
 - Delete: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldRates.cs`（`.meta` も消す）
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldOdds.cs`
@@ -12167,7 +12169,7 @@ git commit -m "モーダルの要求に項目名と値の行を載せられる�
   - 行の testid: `clean-room-yield-output-count`・`clean-room-yield-level-rate-{n}`・`clean-room-yield-failed-rate`（EUV も失敗の行はこの id）。消える: `clean-room-yield-layer-fail-rate`・`-quality-tier`・`-die-loss-rate`・`-pending-*`・`-pending-label`・`-next-label`
   - テスト用: `CleanRoomWireSamples`・`SectionContentAssert`（Interfaces 一覧）
 
-- [ ] **Step 1: 旧項目に触れるテストの組み立てを1か所に寄せる**
+- [x] **Step 1: 旧項目に触れるテストの組み立てを1か所に寄せる**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs` を作る（C7 で旧項目が外れたとき、テストで直すのはこのファイルだけになる。「サーバー側の下書きへの注文」1）。
 
@@ -12240,7 +12242,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 2: 失敗するテストを書く（照会の写し）**
+- [x] **Step 2: 失敗するテストを書く（照会の写し）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextYieldConversionTest.cs` を作る。
 
@@ -12338,7 +12340,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 
 改善の行の差分の長さ・未定義の種別・クラス名が壊れた応答のテストは D に置かない（`写せない種別の…` は写しの直し忘れの検査で、wire の検査ではない）。検査は C の `CleanRoomYieldImprovementMessagePack.AreReadable` の1か所にあり、読み口が警告つきで読めない応答にすることは C4 の `CleanRoomYieldOddsProtocolTest.BrokenImprovementsAreUnreadableWithWarningTest` が見る。読めない応答の間の欄は `CleanRoomYieldSectionTest.読めない応答の間は取得状態の1行だけを描き率を出さない` が見る（判断 D-14）。
 
-- [ ] **Step 3: 失敗するテストを書く（欄の行とモーダルの文）**
+- [x] **Step 3: 失敗するテストを書く（欄の行とモーダルの文）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomYieldLogicTest.cs` を次の全文に替える（Web の写しのテストは振る舞いが変わるので `<web-test>` の印は付けない。判断 D-19）。
 
@@ -12491,7 +12493,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
 }
 ```
 
-- [ ] **Step 4: 失敗するテストを書く（欄の View）**
+- [x] **Step 4: 失敗するテストを書く（欄の View）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionTest.cs` を次の全文に替える。
 
@@ -12557,12 +12559,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 5: 赤を確かめる**
+- [x] **Step 5: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`CleanRoomYieldOdds`・`CleanRoomOddsImprovement`・`CleanRoomYieldImprovementLogic` が無い CS0246）
 
-- [ ] **Step 6: 確率の値の型を作る**
+- [x] **Step 6: 確率の値の型を作る**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldRates.cs` と `CleanRoomYieldRates.cs.meta` を消す（`git rm`）。
 
@@ -12692,7 +12694,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 }
 ```
 
-- [ ] **Step 7: 欄の行とモーダルの文を作る**
+- [x] **Step 7: 欄の行とモーダルの文を作る**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldLogic.cs` を次の全文に替える（今の9-12行目の重複したコメントもここで消える）。
 
@@ -12912,7 +12914,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 }
 ```
 
-- [ ] **Step 8: 照会の写しを替える**
+- [x] **Step 8: 照会の写しを替える**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/ContextViewConversion.cs` を次の全文に替える（`Stall` は今のまま。直す前は `Yield` の22-28行目が `layer.LayerExposure.LayerFailRate`・`layer.PendingDraw`・`dicing.Dicing`・`dicing.PendingDraw` を読み、45行目の `Dicing(DicingYieldMessagePack)` が `DieLossRate`・`QualityTier` を読む）。
 
@@ -13074,7 +13076,7 @@ namespace Client.Ui.State.BlockInventory.Context
         public void Render(SectionContent<CleanRoomYieldOdds> entry)
 ```
 
-- [ ] **Step 9: 文言を替え、使わなくなった行を消す**
+- [x] **Step 9: 文言を替え、使わなくなった行を消す**
 
 `Localization/localization.csv`。直す前（466-470行目）:
 
@@ -13102,7 +13104,7 @@ ui.blockInventory.cleanRoomYieldNextDrawLabel,Next new draw (current conditions)
 
 直した後: 2行とも消す（ADR 0105 §3）。
 
-- [ ] **Step 10: 旧い型に触れていたテストを直す**
+- [x] **Step 10: 旧い型に触れていたテストを直す**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs`:
 - メソッド `抽選は室内機械の層とダイシング_出力待ちの有無を分ける`（C4 が書き換えた後の形。`[Test]` から閉じ括弧まで）を丸ごと消す。中身は `ContextYieldConversionTest` が持つ。
@@ -13143,7 +13145,7 @@ ui.blockInventory.cleanRoomYieldNextDrawLabel,Next new draw (current conditions)
 Run: `grep -rn "CleanRoomYieldFetched\|CleanRoomYieldRates\|PendingDrawCleanRoomYield\|SettledCleanRoomYield\|LayerExposureYieldRates\|DicingYieldRates\|CleanRoomYieldPendingDrawLabel\|CleanRoomYieldNextDrawLabel\|CleanRoomYieldQualityTier\|CleanRoomYieldDieLossRate\|CleanRoomYieldLayerFailRate" --include='*.cs' moorestech_client/Assets/Scripts .agents/skills`
 Expected: 出力なし
 
-- [ ] **Step 11: キーを作り直してコンパイルとテスト**
+- [x] **Step 11: キーを作り直してコンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Run: `uloop compile --project-path ./moorestech_client`
@@ -13160,7 +13162,7 @@ Expected: 全件 PASS
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ContextViewConversionTest|ContextSectionOrderTest|SectionDetachTest|CleanRoomLayoutTest|CleanRoomWideProcessRowTest|BlockContextModelTest|LocalizationDictionaryCoverageTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 12: コミット**
+- [x] **Step 12: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionView.cs moorestech_client/Assets/Scripts/Client.Tests/Ui Localization/localization.csv moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
