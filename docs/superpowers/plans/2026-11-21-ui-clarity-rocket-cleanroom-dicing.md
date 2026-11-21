@@ -10763,7 +10763,7 @@ ADR 0105 §5。経路は今の部屋の取得（`GetCleanRoomInfoProtocol` → `
 
 画面の文言との対応（クライアントの下書き向け）: `TryGetUnitsToNextClass` が true →「クラスC（クラスBまであと5台）」、false（AtBestClass・Unreachable・NotCounted）→「クラスC」だけ。`AirFilterCount`・`StoppedAirFilterCount` →「清浄機 6台（うち1台が止まっています）」（0台なら「うち」の部分を出さないかは画面側の判断）。`QueriedAirFilter.TryGetStatus` →「この清浄機: 電力 100% / 残量 50%」（`powerRatio`・`filterRemainingRatio` は 0〜1）。
 
-- [ ] **Step 1: テストを書く** — `Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomNextClassQueryTest.cs`
+- [x] **Step 1: テストを書く** — `Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomNextClassQueryTest.cs`
 
 ```csharp
 using Core.Update;
@@ -10948,9 +10948,9 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
         }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `AirFilterCount`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`CleanRoomQueriedFromAirFilter`・`QueriedFrom` の未定義で失敗する。
+- [x] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `AirFilterCount`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`CleanRoomQueriedFromAirFilter`・`QueriedFrom` の未定義で失敗する。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `Game.CleanRoom/Info/CleanRoomNextClassOutlook.cs`（新。清浄機から引いた照会のときだけ作る。清浄機かどうかは `CleanRoomQueriedFrom.Of` が1か所で調べ、ここでは調べない）:
 
@@ -11479,7 +11479,7 @@ namespace Server.Protocol.PacketResponse
             return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 2.5, 10, filters, 1, 0, nextClass, queriedAirFilter) : CleanRoomSummaryMessagePack.CreateOut(2.5, 10, filters, 1, 0, nextClass, queriedAirFilter);
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -11490,7 +11490,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.BlockInfoPolling.BlockInfoPollerTest"
 ```
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_server/Assets/Scripts/Game.CleanRoom/ moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomNextClassQueryTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomNextClassQueryTest.cs.meta moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs
