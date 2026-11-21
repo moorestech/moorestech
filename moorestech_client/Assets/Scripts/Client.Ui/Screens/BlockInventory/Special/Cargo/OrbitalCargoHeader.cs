@@ -22,8 +22,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
     {
         private readonly UiGroup _group = new(UiGap.Xs);
         private readonly ItemSlot _slot;
-        private readonly LocalizedLabel _name;
-        private readonly LocalizedLabel _nextFlight;
+        private readonly OrbitalCargoLabel _name;
+        private readonly OrbitalCargoLabel _nextFlight;
         private readonly Subject<Unit> _pressed = new();
         private readonly GameContentPresentation _content;
         private bool _hasShown;
@@ -39,8 +39,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
             AddToClassList("orbital-cargo-header");
             _content = content;
             _slot = new ItemSlot($"{testPrefix}-cargo-header-item");
-            _name = new LocalizedLabel(UiText.Empty) { name = $"{testPrefix}-cargo-header-name", pickingMode = PickingMode.Ignore };
-            _nextFlight = new LocalizedLabel(UiText.Empty) { name = $"{testPrefix}-cargo-next-flight", pickingMode = PickingMode.Ignore };
+            _name = new OrbitalCargoLabel(content, false) { name = $"{testPrefix}-cargo-header-name", pickingMode = PickingMode.Ignore };
+            _nextFlight = new OrbitalCargoLabel(content, true) { name = $"{testPrefix}-cargo-next-flight", pickingMode = PickingMode.Ignore };
             _nextFlight.AddToClassList(UiTypographyClass.TextSm);
             _nextFlight.AddToClassList(UiTypographyClass.TextDimmed);
             _group.pickingMode = PickingMode.Ignore;
@@ -74,10 +74,10 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
             if (hasHeadline)
             {
                 _slot.SetContent(SlotItemContent.ForItem(_content, headline.PayloadItemId, headline.CountPerLaunch));
-                _name.SetText(OrbitalCargoNames.Row(headline, _content));
+                _name.SetChoice(headline);
             }
             UiDisplay.SetShown(_nextFlight, hasNextFlight);
-            if (hasNextFlight) _nextFlight.SetText(OrbitalCargoNames.NextFlight(nextFlight, _content));
+            if (hasNextFlight) _nextFlight.SetChoice(nextFlight);
         }
     }
 }

@@ -36,11 +36,21 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             var header = Find<LocalizedLabel>(detail, "detail-cargo-header-name");
             var next = Find<LocalizedLabel>(detail, "detail-cargo-next-flight");
 
-            CollectionAssert.AreEqual(new[] { "チップ ×20 → 成果 ×40", "ケーブル ×1000 → ケーブルプール +1000",
-                "チップ ×20 → 成果 ×40", "次の便から ケーブル ×1000 → ケーブルプール +1000" }, Displayed());
+            var japanese = new[] { "チップ ×20 → 成果 ×40", "ケーブル ×1000 → ケーブルプール +1000",
+                "チップ ×20 → 成果 ×40", "次の便から ケーブル ×1000 → ケーブルプール +1000" };
+            CollectionAssert.AreEqual(japanese, Displayed());
             Assert.IsTrue(Localize.TrySetChosenLanguage("english"));
             CollectionAssert.AreEqual(new[] { "Chip ×20 → Output ×40", "Cable ×1000 → Cable pool +1000",
                 "Chip ×20 → Output ×40", "From the next launch: Cable ×1000 → Cable pool +1000" }, Displayed());
+
+            // 外れている間に言語を戻し、同じ行と見出しを再び載せる
+            // Switch back while detached, then remount the same rows and headline
+            list.RemoveFromHierarchy();
+            detail.RemoveFromHierarchy();
+            Assert.IsTrue(Localize.TrySetChosenLanguage("japanese"));
+            Mount(list);
+            Mount(detail);
+            CollectionAssert.AreEqual(japanese, Displayed());
 
             #region Internal
 

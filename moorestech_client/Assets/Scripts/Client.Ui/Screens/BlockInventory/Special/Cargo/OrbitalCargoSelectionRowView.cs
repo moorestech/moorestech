@@ -4,7 +4,6 @@ using Client.Ui.Components.Recipe;
 using Client.Ui.Components.Slots;
 using Client.Ui.Content;
 using Client.Ui.Foundation.Input.OsCursor;
-using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.Recipe.Logic;
 using Core.Master;
@@ -33,9 +32,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
 
             // 文 → 静止矢印の行（枠の押下は購読せず、行が押す対象）
             // Text → idle-arrow row; slot presses are not subscribed, the row is the press target
-            var title = new LocalizedLabel { name = $"{rowId}-name", pickingMode = PickingMode.Ignore };
+            var title = new OrbitalCargoLabel(content, false) { name = $"{rowId}-name", pickingMode = PickingMode.Ignore };
             title.AddToClassList("orbital-cargo-row__name");
-            title.SetText(OrbitalCargoNames.Row(choice, content));
+            title.SetChoice(choice);
             Add(title);
             var recipeRow = new RecipeRow($"{rowId}-row", $"{rowId}-arrow", RecipeDurationText.Create(flightSeconds));
             recipeRow.SetSlots(new[] { Slot($"{rowId}-payload", choice.PayloadItemId, choice.CountPerLaunch) }, Outputs());
