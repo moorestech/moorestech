@@ -11510,7 +11510,7 @@ ADR 0105 §4「UI 規約のホワイトリストに無い表現が要る場合�
 - Consumes: なし
 - Produces（生成される `LocalizationKeys.Ui.BlockInventory.*`）: `CleanRoomPurifierClass`（`className`）・`CleanRoomPurifierClassUnitsToNext`（`className`・`nextClassName`・`units`）・`CleanRoomPurifierClassOutUnitsToNext`（`nextClassName`・`units`）・`CleanRoomAirFilterCount`（`count`）・`CleanRoomAirFilterCountStopped`（`count`・`stopped`）・`CleanRoomQueriedAirFilter`（`power`・`remaining`）・`CleanRoomYieldOutputCount`（`count`）・`CleanRoomYieldLevelValue`（`level`・`percent`）・`CleanRoomYieldFailedValue`（`percent`）・`CleanRoomYieldImprovementOpen`・`CleanRoomYieldImprovementNow`・`CleanRoomYieldImproveRoomClass`（`className`）・`CleanRoomYieldImproveAddModule`（`tier`）
 
-- [ ] **Step 1: 見た目の語彙に足す**
+- [x] **Step 1: 見た目の語彙に足す**
 
 `visual-vocabulary.md` の33行目（`- モーダルは中央に置き、幕は宿主 \`UiModalHost\`…`）の直後に次の1行を足す。
 
@@ -11518,7 +11518,7 @@ ADR 0105 §4「UI 規約のホワイトリストに無い表現が要る場合�
 - モーダルの本文の下に項目ごとの値を並べるときは、要求の `ModalRequest.Rows`（`ModalTableRow` の項目名と値）で載せ、`ModalView` が「項目名の行と、その下に字下げした値の行」の2行1組で描く。罫線・列そろえの表・セルの枠は作らない。使い手は「失敗率の改善方法」のモーダル（ADR 0105 §4。ユーザー裁定 2026-11-19「上げるとどうなるかは別UIでボタンで見せるようにして…差分を見せて」・2026-11-20「B. 小窓が重なる」「モーダルのほうがわかりやすい」）
 ```
 
-- [ ] **Step 2: 文言のキーを足す**
+- [x] **Step 2: 文言のキーを足す**
 
 `Localization/localization.csv` の463行目（`ui.blockInventory.cleanRoomHaltClassOut,Halted: room below class,…`）の直後に次の13行を足す（列は `key,Source,english,japanese,german,korean`。Source は english と同じ文。日本語の「：」は全角。語は CONTEXT.md の「部屋クラス」「品質モジュール」に合わせる）。
 
@@ -11538,7 +11538,7 @@ ui.blockInventory.cleanRoomYieldImproveRoomClass,Raise room class to {className}
 ui.blockInventory.cleanRoomYieldImproveAddModule,Add quality module Lv{tier},Add quality module Lv{tier},品質モジュールLv{tier} を追加,Qualitätsmodul Lv{tier} hinzufügen,품질 모듈 Lv{tier} 추가
 ```
 
-- [ ] **Step 3: キーを作り直してコンパイル**
+- [x] **Step 3: キーを作り直してコンパイル**
 
 `localization.csv` は Assets の外にあり `Client.Localization/csc.rsp` の `/additionalfile` で SourceGenerator に渡るので、CSV だけの変更では再生成されない（`docs/development/uloop-troubleshooting.md`「localization.csv だけ変えたのに古いキーのまま」）。1回だけ強制し、続けて通常のコンパイルで結果を読む。
 
@@ -11546,12 +11546,12 @@ Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount 0`
 
-- [ ] **Step 4: 言語の網羅のテスト**
+- [x] **Step 4: 言語の網羅のテスト**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.Localization.Resolution.LocalizationDictionaryCoverageTest"`
 Expected: 全件 PASS（足した13キーが4言語とも埋まっている）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add .agents/skills/ref-uitk-design/references/visual-vocabulary.md Localization/localization.csv moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs
