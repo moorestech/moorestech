@@ -18350,7 +18350,7 @@ BODY
 
 ピン先のマスタが読めることは、テストの CI（`.github/workflows/run_test.yml` がピン先を checkout）とこのシナリオの起動の両方で見る。以前の Shipped Master Gate（G1 読込・G3 研究ウォーク）は eba8cd30f6 で消えているので、それを回す Step は書かない。
 
-- [ ] **Step 1: ピンを進めてそれだけをコミットする**
+- [x] **Step 1: ピンを進めてそれだけをコミットする**
 
 `.moorestech-external-revisions.json` の `"commitHash": "aaa89bcf971289dc252dad4161ffec7ee54875e2"` を Task E7 Step 5 のコミットハッシュ（40桁）に替える。ほかの行は変えない。
 ```bash
@@ -18360,13 +18360,13 @@ git show HEAD:.moorestech-external-revisions.json | python3 -c "import json,sys;
 ```
 Expected: 出力の 1 行が E7 のハッシュ（40桁）。直す前の今のピンで同じコマンドを走らせると `aaa89bcf971289dc252dad4161ffec7ee54875e2` が出ることを下書き時に確かめた（`grep -A1 '"moorestech_master"'` では key と relativePath の 2 行しか出ず、commitHash は 3 行目なので使わない）（`docs/development/worktree-and-review-pitfalls.md`「master ピンが戻る」）。
 
-- [ ] **Step 2: ピンの master worktree を用意する**
+- [x] **Step 2: ピンの master worktree を用意する**
 
 ```bash
 git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/pin-<E7 のハッシュ先頭8桁> <E7 のハッシュ>
 ```
 
-- [ ] **Step 3: シナリオを書く**
+- [x] **Step 3: シナリオを書く**
 
 ```csharp
 // 出荷マスタで品質モジュールLv1〜5 の研究を完了扱いにし、速度モジュールの研究をせずに ICチップLv2〜5・シリコンダイLv2〜5・品質モジュールLv1〜5 がクライアントで解放済みになることと、後から速度モジュールLv1〜5 を済ませても解放の状態が変わらず例外も出ないことを確かめる
@@ -18486,14 +18486,14 @@ using と使う型・拡張メソッドの突き合わせ（`run-scenario.sh` �
 
 シナリオは 91 行（200 行以下。コードブロックの行を数えた）。
 
-- [ ] **Step 4: 走らせる**
+- [x] **Step 4: 走らせる**
 
 ```bash
 .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-items.cs /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/pin-<先頭8桁>/server_v8
 ```
 Expected: passed（下書き時に確かめたこと: 5 つの品質モジュール研究の前提の閉包は 44 研究で、速度モジュール研究も、13 品目を解放するほかの研究も入っていない。13 品目はどれも `initialUnlocked: false`。よって「研究の前は未解放」と「品質モジュール研究だけで解放」の assert は今のマスタで正しく分かれる）。終わりの段の assert（速度モジュールLv1〜5 の後も 13 品目が解放済みのまま・例外が出ない）も通り、result.json の `ErrorLogs` に `[Exception]` が無いこと。録画でスクショが 2 枚（`quality-research-unlocks-items`・`quality-then-speed-research`）あること。同じピンで既存の `scenarios/tier9/tier9-2-modules.cs`（速度モジュールLv1 を含む研究と、Lv2 チップが製作上限で拒まれること）も走らせ、passed のままであること（製作上限は `unlockLevelInheritanceCraftLevel` で別なので変わらない想定）。重複解放で通知が 1 回になることは録画では数えない（Task E6 の NUnit `ItemUnlockDuplicateTest` が見る）。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-items.cs
