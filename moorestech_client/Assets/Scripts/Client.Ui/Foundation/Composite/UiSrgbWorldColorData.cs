@@ -4,7 +4,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 namespace Client.Ui.Foundation.Composite
 {
     /// <summary>
-    /// ポスト処理直後の世界色を同じカメラの合成パスへ渡すフレームデータ
+    /// ポスト処理後の世界色を合成パスへ渡す
     /// Frame data handing the post-processed world colour to the composite pass of the same camera
     /// </summary>
     internal sealed class UiSrgbWorldColorData : ContextItem

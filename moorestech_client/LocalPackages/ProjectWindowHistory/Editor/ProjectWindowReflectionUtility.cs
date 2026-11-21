@@ -46,10 +46,10 @@ namespace ProjectWindowHistory
             ??= ProjectBrowserType.GetMethod("GetFolderInstanceIDs", BindingFlags.NonPublic | BindingFlags.Static);
 
         private static MethodInfo _setFolderSelectionMethod;
-        // オーバーロードがあるので引数2つのメソッドの方を探して呼ぶ
+        // オーバーロードがあるので、6000.6でnotifyFolderTreeListenersが足された引数3つの版を探して呼ぶ
         private static MethodInfo SetFolderSelectionMethod => _setFolderSelectionMethod
             ??= ProjectBrowserType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                .FirstOrDefault(method => method.Name == "SetFolderSelection" && method.GetParameters().Length == 2);
+                .FirstOrDefault(method => method.Name == "SetFolderSelection" && method.GetParameters().Length == 3);
 
         private static MethodInfo _setSearchMethod;
         // オーバーロードがあるのでSearchFilter型引数のメソッドの方を探して呼ぶ
@@ -149,9 +149,14 @@ namespace ProjectWindowHistory
         /// <param name="selectedFolderInstanceIds"></param>
         public static void SetFolderSelection(EditorWindow targetProjectWindow, EntityId[] selectedFolderInstanceIds)
         {
-            // Unity 6.3でint[]からEntityId[]に変更された
-            // Unity 6.3 changed parameter type from int[] to EntityId[]
-            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { selectedFolderInstanceIds, false });
+            // 内部APIの形が変わって見つからないときは、履歴を動かさずに理由を出す
+            // When the internal API changed shape and is missing, leave the history as is and log why
+            if (SetFolderSelectionMethod == null)
+            {
+                Debug.LogError("ProjectBrowser.SetFolderSelection(引数3つ)が見つからないため、フォルダ選択の履歴移動ができません");
+                return;
+            }
+            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { selectedFolderInstanceIds, false, false });
         }
 
         /// <summary>

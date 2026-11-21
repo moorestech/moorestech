@@ -29,15 +29,15 @@ namespace ProjectWindowHistory
     [Serializable]
     public class ProjectWindowHistorySaveData
     {
-        [SerializeField] private EntityId _windowInstanceId;
+        [SerializeField] private EntityId windowInstanceId;
         [SerializeField] private ProjectWindowHistory _history;
 
-        public EntityId WindowInstanceId => _windowInstanceId;
+        public EntityId WindowInstanceId => windowInstanceId;
         public ProjectWindowHistory History => _history;
 
         public ProjectWindowHistorySaveData(EditorWindow window, ProjectWindowHistory history)
         {
-            _windowInstanceId = window.GetEntityId();
+            windowInstanceId = window.GetEntityId();
             _history = history;
         }
     }

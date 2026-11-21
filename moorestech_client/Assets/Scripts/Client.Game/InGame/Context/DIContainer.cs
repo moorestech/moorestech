@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Context
             return DIContainerResolver.Instantiate(prefab);
         }
         
-        public T Instantiate<T>(T prefab, Transform parent, bool worldPositionStays = false) where T : Component
+        public T Instantiate<T>(T prefab, Transform parent, bool worldPositionStays) where T : Component
         {
             return DIContainerResolver.Instantiate(prefab, parent, worldPositionStays);
         }
