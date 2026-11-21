@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Core.Item.Interface;
-using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;

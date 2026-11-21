@@ -9,8 +9,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
 {
     // カーソルが離れても要求対象と結果を保持する
     // Retain request targets and results independently of the cursor
-    // 一括撤去は対象が数百件になるので、行は対象ごとでなく「結果の種類＋理由」ごとの件数にまとめる（対象ごとの内訳は DeleteCommitBatch のログに残る）
-    // A bulk removal has hundreds of targets, so lines are counts per result kind and reason rather than per target (per-target detail stays in the DeleteCommitBatch log)
+    // 一括撤去は対象が数百件になるので、行は対象ごとでなく「結果の種類＋理由」ごとの件数にまとめる（対象ごとの座標と理由はサーバーの撤去拒否ログに残る）
+    // A bulk removal has hundreds of targets, so lines are counts per result kind and reason rather than per target (per-target position and reason stay in the server removal-denied log)
     internal sealed class DeleteResultFeedback
     {
         private readonly Dictionary<object, DeleteCompletion> _results = new();
