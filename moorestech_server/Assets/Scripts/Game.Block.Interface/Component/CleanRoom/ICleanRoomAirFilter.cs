@@ -10,6 +10,10 @@ namespace Game.Block.Interface.Component
         // Effective removal volume q per second reflecting power ratio and filter presence
         double RemovalVolumePerSecond { get; }
 
+        // 電力100%・フィルターありのときの除去体積q（毎秒）
+        // Removal volume q per second at full power with a filter
+        double RatedRemovalVolumePerSecond { get; }
+
         // UI表示用に電力割合・フィルター数・残り寿命を読む
         // Read the power ratio, filter count and remaining life for UI display
         CleanRoomAirFilterStatus GetStatus();
