@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Localization;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -54,13 +55,14 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                 {
                     new("clean-room-yield-output-count", new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldOutputCount, new[] { new LocalizationTextParam("count", UiNumberFormat.Integer(dicing.OutputCount)) })),
                 };
-                foreach (var level in ShownLevels(dicing.LevelRates))
+                var rounded = RoundedDicingShares(dicing);
+                foreach (var level in ShownLevels(rounded.Levels))
                 {
                     var levelText = UiNumberFormat.Integer(level);
-                    var percent = Percent(dicing.LevelRates[level - 1]);
+                    var percent = Percent(rounded.Levels[level - 1]);
                     lines.Add(new CleanRoomYieldLine($"clean-room-yield-level-rate-{levelText}", new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { new LocalizationTextParam("level", levelText), new LocalizationTextParam("percent", percent) })));
                 }
-                lines.Add(FailedLine(dicing.FailedRate));
+                lines.Add(FailedLine(rounded.Failed));
                 return lines;
             }
 
@@ -70,6 +72,23 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
             }
 
             #endregion
+        }
+
+        // 0.1ポイント単位を最大剰余法で配り、表示の合計を100%に保つ
+        // Allocate tenths of a percentage point by largest remainder to preserve a displayed total of 100%
+        internal static (double[] Levels, double Failed) RoundedDicingShares(DicingYieldOdds odds)
+        {
+            const int totalUnits = 1000;
+            var shares = odds.LevelRates.Append(odds.FailedRate).Select(rate => rate * totalUnits).ToArray();
+            var units = shares.Select(share => (int)Math.Floor(share)).ToArray();
+
+            // 同じ端数ならLv順、最後に失敗を優先する
+            // Equal remainders keep the input order, from the first level through failure
+            var indices = Enumerable.Range(0, shares.Length).OrderByDescending(index => shares[index] - units[index]);
+            foreach (var index in indices.Take(totalUnits - units.Sum())) units[index]++;
+
+            var levels = units.Take(odds.LevelRates.Count).Select(count => (double)count / totalUnits).ToArray();
+            return (levels, (double)units[odds.LevelRates.Count] / totalUnits);
         }
 
         // 0..1 の割合を小数1桁の百分率の文にする（モーダルの文も同じ書式）

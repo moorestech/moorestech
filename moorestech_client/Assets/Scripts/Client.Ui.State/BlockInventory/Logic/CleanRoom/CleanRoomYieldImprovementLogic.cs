@@ -41,8 +41,9 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                     values.Add(FailedValue(CleanRoomYieldLogic.Percent(layer.FailedRate)));
                     return values;
                 case DicingYieldOdds dicing:
-                    foreach (var level in CleanRoomYieldLogic.ShownLevels(dicing.LevelRates)) values.Add(LevelValue(level, CleanRoomYieldLogic.Percent(dicing.LevelRates[level - 1])));
-                    values.Add(FailedValue(CleanRoomYieldLogic.Percent(dicing.FailedRate)));
+                    var rounded = CleanRoomYieldLogic.RoundedDicingShares(dicing);
+                    foreach (var level in CleanRoomYieldLogic.ShownLevels(rounded.Levels)) values.Add(LevelValue(level, CleanRoomYieldLogic.Percent(rounded.Levels[level - 1])));
+                    values.Add(FailedValue(CleanRoomYieldLogic.Percent(rounded.Failed)));
                     return values;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(odds), odds.GetType().Name, null);
