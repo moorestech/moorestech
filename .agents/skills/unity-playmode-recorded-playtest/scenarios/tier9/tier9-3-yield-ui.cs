@@ -140,8 +140,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         // 確率の欄と行を待ち、行の表示文字列を記録して撮り、求めれば改善方法のモーダルを開いて閉じ、Tab で閉じる
         // Wait for the section and rows, log each row's text, shoot, open and close the improvement modal when asked, close with Tab
         await OpenMachineUi(machine);
-        await p.UntilUiElement("clean-room-yield-section", 10f);
-        foreach (var rowTestId in rowTestIds) { await p.UntilUiElement(rowTestId, 10f); p.Note($"{rowTestId}: {(await PlaytestUiElementOps.FindUi(rowTestId)).Text}"); }
+        foreach (var rowTestId in rowTestIds) { await PlaytestUiElementOps.WaitUiTextContains(rowTestId, "", 10f); p.Note($"{rowTestId}: {(await PlaytestUiElementOps.FindUi(rowTestId)).Text}"); }
         await p.Screenshot(screenshotName);
         if (checksImprovementModal) await p.CheckCleanRoomYieldImprovementModal($"{screenshotName}-improvement-modal");
         await p.PressKey(Key.Tab);

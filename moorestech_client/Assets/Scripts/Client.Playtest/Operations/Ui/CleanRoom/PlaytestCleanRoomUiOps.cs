@@ -17,7 +17,7 @@ namespace Client.Playtest.Operations.Ui
             // Press the button and wait for the first table row
             await p.UntilUiElement("clean-room-yield-improvement-open", WaitSeconds);
             await p.ClickUi("clean-room-yield-improvement-open");
-            await p.UntilUiElement("modal-table-row-0", WaitSeconds);
+            await PlaytestUiElementOps.WaitUiTextContains("modal-table-row-0", "%", WaitSeconds);
 
             // 本文（今の値）と表を記録し、割合が出ていることを見る
             // Record the message (current values) and the table, and check shares are shown
@@ -38,7 +38,7 @@ namespace Client.Playtest.Operations.Ui
                     p.Assert(false, "改善方法のモーダルが閉じるボタンで閉じる");
                     return;
                 }
-                await UniTask.DelayFrame(2);
+                await UniTask.DelayFrame(2, cancellationToken: p.CancellationToken);
             }
             p.Assert(true, "改善方法のモーダルが閉じるボタンで閉じる");
         }

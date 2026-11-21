@@ -41,6 +41,7 @@ return PlaytestRunner.Run("cleanroom-purifier-units-to-next-class", new Playtest
 {
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 15f, "GameScreenに到達");
+    p.Assert(Keyboard.current.enabled && Mouse.current.enabled && InputSystem.settings.backgroundBehavior == InputSettings.BackgroundBehavior.IgnoreFocus, $"入力環境: キーボードとマウスが有効 (focus={Application.isFocused})");
     await p.SetupFlatGround();
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     p.WarpPlayer(outsidePosition);
@@ -63,8 +64,8 @@ return PlaytestRunner.Run("cleanroom-purifier-units-to-next-class", new Playtest
     #endregion
     #region (1) 清浄機の画面が次のクラスとあと何台かを出す / The purifier screen names the next class and how many more
     await OpenPurifierUi();
-    await p.UntilUiElement("clean-room-air-filter-count", 10f);
-    await p.UntilUiElement("clean-room-queried-air-filter", 10f);
+    await PlaytestUiElementOps.WaitUiTextContains("clean-room-air-filter-count", "", 10f);
+    await PlaytestUiElementOps.WaitUiTextContains("clean-room-queried-air-filter", "%", 10f);
     var headline = (await PlaytestUiElementOps.FindUi("clean-room-headline")).Text;
     var section = (await PlaytestUiElementOps.FindUi("clean-room-section")).Text;
     p.Note($"部屋欄(清浄機1台): {section.Replace("\n", " | ")}");
@@ -91,7 +92,7 @@ return PlaytestRunner.Run("cleanroom-purifier-units-to-next-class", new Playtest
     for (var i = 0; i < unitCount; i++) await PlacePurifier(extraPositions[i]);
     await p.WaitForCleanRoomClass(firstPurifier, startThreshold - 1, 30f, $"清浄機を{unitCount}台足して閾値行{startThreshold - 1}(クラス{nextClassName})になった");
     await OpenPurifierUi();
-    await p.UntilUiElement("clean-room-air-filter-count", 10f);
+    await PlaytestUiElementOps.WaitUiTextContains("clean-room-air-filter-count", "", 10f);
     var raised = (await PlaytestUiElementOps.FindUi("clean-room-headline")).Text;
     var raisedCount = (await PlaytestUiElementOps.FindUi("clean-room-air-filter-count")).Text;
     p.Note($"清浄機{1 + unitCount}台: 見出し={raised} 台数={raisedCount}");
@@ -144,7 +145,7 @@ return PlaytestRunner.Run("cleanroom-purifier-units-to-next-class", new Playtest
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilUiElement("clean-room-section", 10f);
+        await PlaytestUiElementOps.WaitUiTextContains("clean-room-section", "", 10f);
     }
 
     async UniTask CloseUi() { await p.PressKey(Key.Tab); await p.WaitUiState(UIStateEnum.GameScreen, 10f); }
