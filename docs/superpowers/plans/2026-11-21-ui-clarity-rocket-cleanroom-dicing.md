@@ -1391,7 +1391,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Game.OrbitalCargo.OrbitalCargoSelectorComponentTest"`
-期待: 7 件すべて成功（`[Test]` 4 本＋`[TestCase]` 3 本）。
+期待: 7 件すべて成功（`[Test]` 5 本＋`[TestCase]` 2 本）。
 
 - [x] **Step 5: コミット**
 
