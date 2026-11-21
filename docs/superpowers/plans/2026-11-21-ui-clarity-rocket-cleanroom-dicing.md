@@ -9029,7 +9029,7 @@ ADR 0105 §2（最終の内訳）と §4（改善の差分）の計算。式は�
 | EUV クラスC・無し（今 0.2）→ クラスB | — | — | — | −0.05 |
 | EUV クラスC・無し → tier1 を1個足す | — | — | — | −0.16 |
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `Tests/UnitTest/Game/CleanRoomYield/CleanRoomFinalOddsTest.cs`:
 
@@ -9314,9 +9314,9 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CleanRoomFinalOdds`・`CleanRoomYieldImprovementCalculator`・`CleanRoomQualityModuleCandidates` の未定義で失敗する。
+- [x] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CleanRoomFinalOdds`・`CleanRoomYieldImprovementCalculator`・`CleanRoomQualityModuleCandidates` の未定義で失敗する。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `YieldPreview/CleanRoomFinalOdds.cs`（新）:
 
@@ -9867,7 +9867,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 }
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -9880,7 +9880,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 
 最後の行は既存の確率の取得のテストが今のまま通る（応答の形はまだ変えていない）ことの確認。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/ moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs.meta moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/Save/CleanRoomJobSaveRoundTripTest.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs
