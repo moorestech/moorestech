@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Localization;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;
 using Client.Ui.State.BlockInventory.Common;
@@ -94,9 +95,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             ExpectSharedBodyViewport(shell, MachineRecipeSelectionList.ListTestid);
         }
 
-        [Test]
-        public void 部屋の中の室内機械で改善のボタンへ届き押すと改善方法を開く()
+        [TestCase("english")]
+        [TestCase("japanese")]
+        [TestCase("german")]
+        [TestCase("korean")]
+        public void 改善ボタンの全文が面に収まり押して開ける(string language)
         {
+            Assert.IsTrue(Localize.TrySetChosenLanguage(language));
             var shell = OpenCleanRoomMachine(true);
             var improvements = new List<CleanRoomOddsImprovement> { CleanRoomOddsImprovement.AddQualityModule(1, new[] { 0.1 }, -0.1) };
             var yield = SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.Dicing(300, new[] { 0.4 }, 0.6, improvements));
@@ -107,7 +112,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // 部屋欄・確率の欄と同じ視口の中でボタンへ届き、押下は開く口へ届く
             // The button is reachable in the viewport shared with the room and odds sections, and its press reaches the open entry
             ExpectReachable(shell, "clean-room-yield-improvement-open");
-            simulate.Click(shell.View.Q("clean-room-yield-improvement-open").worldBound.center);
+            var button = shell.View.Q("clean-room-yield-improvement-open");
+            var label = button.Q<Label>();
+            var naturalWidth = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
+            var visible = Intersect(Intersect(button.worldBound, label.worldBound), button.GetFirstAncestorOfType<GameScrollView>().contentViewport.worldBound);
+            TestContext.Out.WriteLine($"{language} {label.text}: {naturalWidth} / {visible.width}");
+            Assert.LessOrEqual(naturalWidth, visible.width + 0.5f, label.text);
+            simulate.Click(button.worldBound.center);
             Assert.AreEqual(1, ImprovementCommands.OpenCount);
             ExpectFooterReadable(shell);
         }
