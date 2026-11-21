@@ -17921,7 +17921,7 @@ git commit -m "用語集にフィルター分岐器の出口（左・正面・�
 
 既存のシナリオで今回の変更で壊れるもの: `grep -rn "filter-mode\|filter-slot\|filter-direction\|OutputNumber\|ホワイトリスト\|ブラックリスト" .agents/skills/unity-playmode-recorded-playtest/scenarios` は `uitk/stage4/block/uitk-block-special-panels.cs`（testid だけを使う）にしか当たらず、壊れない。この既存シナリオは 195 行で上限に近いので足さず、新しいシナリオを1本置く。
 
-- [ ] **Step 1: シナリオを書く**
+- [x] **Step 1: シナリオを書く**
 
 ```csharp
 // 出荷マスタのフィルター分岐器を東向きに置いて開き、出口の見出しが左・正面・右の順に出てモード名が言い換わっていることを確かめる
@@ -18012,7 +18012,7 @@ using と使う型・拡張メソッドの突き合わせ（`run-scenario.sh` �
 
 前の版の `using System;`（使う型が無い）と `using Client.Playtest.Operations.Ui;`（使う型が無い）は外した。`BlockGameObject.IsPlayingPlaceAnimation` はインスタンスのメンバーなので using は要らない。シナリオは 67 行。
 
-- [ ] **Step 2: 走らせる**
+- [x] **Step 2: 走らせる**
 
 Run（worktree のルートで。master はピンの worktree を渡す）:
 ```bash
@@ -18020,7 +18020,7 @@ Run（worktree のルートで。master はピンの worktree を渡す）:
 ```
 Expected: result.json が passed。スクショで見出しが「Left / Front / Right」（既定の言語）の順に並び、モードの択一が「Others / Only Listed / Not Listed」。録画で、置いた分岐器の入口（東向きなので西面）から見て左の出口が北側にあることを目で確かめ、見出しと合っているかを報告に書く。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/filter-splitter-side-labels.cs
