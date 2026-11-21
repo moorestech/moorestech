@@ -4098,7 +4098,7 @@ ADR 0106 の 3（未解放の種類を持つブループリントは未選択で
 - Consumes: A1 `IOrbitalCargoSelectorComponent`・`SelectedOrbitalCargo`・`OrbitalCargoSelection.ToItemGuidTextOrNull`・`OrbitalCargoItemGuid.TryParseExistingItemGuid`・`OrbitalCargoTestUtil.LockItem`
 - Produces: ブループリント設定キー `"OrbitalCargoSelection"`、JSON `{"selectedCargoItemGuid": "<GUID>" | null}`（セーブの項目と同じ形）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoBlueprintTest.cs`:
 
@@ -4187,11 +4187,11 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 }
 ```
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `OrbitalCargoBlueprintSettingsComponent` が無くてコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoBlueprintSettingsComponent.cs`（60 行）:
 
@@ -4269,14 +4269,14 @@ namespace Game.Block.Blocks.OrbitalCargo
             var components = new List<IBlockComponent> { connector, inventory, selector, new OrbitalCargoBlueprintSettingsComponent(selector), electric, wireConnector, climber };
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.OrbitalCargo.OrbitalCargoBlueprintTest"`
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Game\.Blueprint"`
 期待: すべて成功。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 `git commit -m "積荷の選択をブループリントでコピーし、未解放の積荷は未選択で置く"`
 
