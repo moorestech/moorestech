@@ -1,0 +1,3816 @@
+{
+  "label": "grd-camtree",
+  "commit": "e00af69f66d07ab40288bf18fc405689aeaa58b3",
+  "trackedChangesOnHost": 0,
+  "baselineWorld": "2026-10-22-world_1",
+  "environment": {
+    "unityVersion": "6000.3.8f1",
+    "codeOptimization": "Debug",
+    "quality": "High",
+    "vSyncCount": 1,
+    "targetFrameRate": 60,
+    "cameraPixels": "1920x1080",
+    "gpu": "NVIDIA GeForce RTX 3060 Ti",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "editorWindowMinimized": false,
+    "editorWindowForeground": true,
+    "userIdleSeconds": 92
+  },
+  "scene": {
+    "renderers": 216048,
+    "gameObjects": 314587,
+    "frameCount": 1294
+  },
+  "playerSpot": "player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409",
+  "grdCheck": "grdInstance=True visible=210812 supportedMeshRenderers=207079 notMeshRenderer=3725 propertyBlock=0 unsupportedShaders=Unlit/Outline:12",
+  "fps": [
+    {
+      "frames": 223,
+      "seconds": 10.59,
+      "fps": 21.057,
+      "frameMsAvg": 47.49
+    },
+    {
+      "frames": 217,
+      "seconds": 10.348,
+      "fps": 20.971,
+      "frameMsAvg": 47.685
+    }
+  ],
+  "profiler": [
+    {
+      "frames": 107,
+      "frameMs": {
+        "avg": 52.791,
+        "p50": 50.625,
+        "p95": 67.212,
+        "max": 120.841
+      },
+      "markers": {
+        "PlayerLoop": {
+          "totalMs": 43.137,
+          "selfMs": 0.001,
+          "calls": 3.0
+        },
+        "RenderPlayModeViewCameras": {
+          "totalMs": 16.163,
+          "selfMs": 0.077,
+          "calls": 1.0
+        },
+        "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": {
+          "totalMs": 11.83,
+          "selfMs": 6.082,
+          "calls": 64.4
+        },
+        "EditorLoop": {
+          "totalMs": 8.527,
+          "selfMs": 8.527,
+          "calls": 4.0
+        },
+        "WaitForJobGroupID": {
+          "totalMs": 6.498,
+          "selfMs": 1.233,
+          "calls": 44.3
+        },
+        "Update.ScriptRunBehaviourUpdate": {
+          "totalMs": 6.29,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        "BehaviourUpdate": {
+          "totalMs": 6.289,
+          "selfMs": 1.264,
+          "calls": 1.0
+        },
+        "Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]": {
+          "totalMs": 4.43,
+          "selfMs": 4.43,
+          "calls": 1893.0
+        },
+        "UniTaskLoopRunnerYieldUpdate": {
+          "totalMs": 3.847,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        "PacketExchange.DispatchReceivedPackets": {
+          "totalMs": 3.839,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        "PacketExchange.RouteEvent": {
+          "totalMs": 3.763,
+          "selfMs": 0.468,
+          "calls": 2.5
+        },
+        "QueuePrepareIntegrateMainThreadObjects": {
+          "totalMs": 3.513,
+          "selfMs": 3.513,
+          "calls": 2.0
+        },
+        "RenderLoop.DrawSRPBatcher": {
+          "totalMs": 2.909,
+          "selfMs": 0.582,
+          "calls": 80.0
+        },
+        "PostLateUpdate.UpdateAllSkinnedMeshes": {
+          "totalMs": 2.617,
+          "selfMs": 0.053,
+          "calls": 1.0
+        },
+        "MeshSkinning.Update": {
+          "totalMs": 2.564,
+          "selfMs": 1.075,
+          "calls": 1.0
+        },
+        "FixedUpdate.PhysicsFixedUpdate": {
+          "totalMs": 1.564,
+          "selfMs": 0.003,
+          "calls": 2.6
+        },
+        "TransformChangeSystem": {
+          "totalMs": 1.455,
+          "selfMs": 0.662,
+          "calls": 53.3
+        },
+        "SRPBatcher.Flush": {
+          "totalMs": 1.412,
+          "selfMs": 1.412,
+          "calls": 235.0
+        },
+        "BlockState.Deserialize": {
+          "totalMs": 1.407,
+          "selfMs": 1.322,
+          "calls": 0.6
+        },
+        "MeshSkinning.SkinOnGPU": {
+          "totalMs": 1.336,
+          "selfMs": 0.867,
+          "calls": 1.0
+        },
+        "Idle": {
+          "totalMs": 1.307,
+          "selfMs": 1.307,
+          "calls": 13.5
+        },
+        "UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]": {
+          "totalMs": 1.288,
+          "selfMs": 0.717,
+          "calls": 3.0
+        },
+        "PostLateUpdate.UpdateAllRenderers": {
+          "totalMs": 1.283,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        "SRPBRender.ApplyShader": {
+          "totalMs": 1.226,
+          "selfMs": 1.196,
+          "calls": 172.0
+        },
+        "Profiler.FlushMemoryCounters": {
+          "totalMs": 1.04,
+          "selfMs": 1.04,
+          "calls": 1.0
+        },
+        "BlockState.Processor.ElectricWireStateChangeProcessor": {
+          "totalMs": 0.833,
+          "selfMs": 0.773,
+          "calls": 110.6
+        },
+        "ExecuteRenderQueueJob": {
+          "totalMs": 0.726,
+          "selfMs": 0.566,
+          "calls": 7.7
+        },
+        "UpdateRendererBoundingVolumes": {
+          "totalMs": 0.631,
+          "selfMs": 0.631,
+          "calls": 2.6
+        },
+        "BuildDrawListsJob (Burst)": {
+          "totalMs": 0.487,
+          "selfMs": 0.487,
+          "calls": 0.3
+        },
+        "BlockState.Processor.CommonMachineBlockStateChangeProcessor": {
+          "totalMs": 0.444,
+          "selfMs": 0.427,
+          "calls": 118.8
+        },
+        "BlockState.Processor.GearStateChangeProcessor": {
+          "totalMs": 0.38,
+          "selfMs": 0.371,
+          "calls": 191.3
+        },
+        "GC.Alloc": {
+          "totalMs": 0.243,
+          "selfMs": 0.243,
+          "calls": 5525.5
+        },
+        "BlockState.Processor.GearBeltConveyorStateChangeProcessor": {
+          "totalMs": 0.171,
+          "selfMs": 0.166,
+          "calls": 93.9
+        },
+        "BlockState.Processor.SteamEngineEffectStateChangeProcessor": {
+          "totalMs": 0.058,
+          "selfMs": 0.057,
+          "calls": 31.4
+        },
+        "PacketExchange.Deserialize.EventStream": {
+          "totalMs": 0.056,
+          "selfMs": 0.055,
+          "calls": 2.5
+        },
+        "PacketExchange.ReadPacketHeader": {
+          "totalMs": 0.016,
+          "selfMs": 0.016,
+          "calls": 2.5
+        }
+      }
+    },
+    {
+      "frames": 99,
+      "frameMs": {
+        "avg": 54.88,
+        "p50": 52.813,
+        "p95": 70.159,
+        "max": 126.443
+      },
+      "markers": {
+        "PlayerLoop": {
+          "totalMs": 44.623,
+          "selfMs": 0.001,
+          "calls": 3.0
+        },
+        "RenderPlayModeViewCameras": {
+          "totalMs": 16.643,
+          "selfMs": 0.081,
+          "calls": 1.0
+        },
+        "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": {
+          "totalMs": 12.277,
+          "selfMs": 6.192,
+          "calls": 65.2
+        },
+        "EditorLoop": {
+          "totalMs": 9.11,
+          "selfMs": 9.11,
+          "calls": 4.0
+        },
+        "WaitForJobGroupID": {
+          "totalMs": 6.503,
+          "selfMs": 1.239,
+          "calls": 43.4
+        },
+        "Update.ScriptRunBehaviourUpdate": {
+          "totalMs": 6.431,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        "BehaviourUpdate": {
+          "totalMs": 6.429,
+          "selfMs": 1.29,
+          "calls": 1.0
+        },
+        "Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]": {
+          "totalMs": 4.537,
+          "selfMs": 4.537,
+          "calls": 1893.0
+        },
+        "UniTaskLoopRunnerYieldUpdate": {
+          "totalMs": 4.128,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        "PacketExchange.DispatchReceivedPackets": {
+          "totalMs": 4.119,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        "PacketExchange.RouteEvent": {
+          "totalMs": 4.046,
+          "selfMs": 0.503,
+          "calls": 2.5
+        },
+        "QueuePrepareIntegrateMainThreadObjects": {
+          "totalMs": 3.811,
+          "selfMs": 3.811,
+          "calls": 2.0
+        },
+        "RenderLoop.DrawSRPBatcher": {
+          "totalMs": 3.005,
+          "selfMs": 0.614,
+          "calls": 80.0
+        },
+        "PostLateUpdate.UpdateAllSkinnedMeshes": {
+          "totalMs": 2.838,
+          "selfMs": 0.057,
+          "calls": 1.0
+        },
+        "MeshSkinning.Update": {
+          "totalMs": 2.78,
+          "selfMs": 1.14,
+          "calls": 1.0
+        },
+        "FixedUpdate.PhysicsFixedUpdate": {
+          "totalMs": 1.654,
+          "selfMs": 0.004,
+          "calls": 2.7
+        },
+        "TransformChangeSystem": {
+          "totalMs": 1.568,
+          "selfMs": 0.716,
+          "calls": 54.0
+        },
+        "BlockState.Deserialize": {
+          "totalMs": 1.552,
+          "selfMs": 1.459,
+          "calls": 0.6
+        },
+        "MeshSkinning.SkinOnGPU": {
+          "totalMs": 1.474,
+          "selfMs": 0.974,
+          "calls": 1.0
+        },
+        "SRPBatcher.Flush": {
+          "totalMs": 1.46,
+          "selfMs": 1.46,
+          "calls": 235.0
+        },
+        "Idle": {
+          "totalMs": 1.422,
+          "selfMs": 1.422,
+          "calls": 14.7
+        },
+        "PostLateUpdate.UpdateAllRenderers": {
+          "totalMs": 1.309,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        "SRPBRender.ApplyShader": {
+          "totalMs": 1.248,
+          "selfMs": 1.217,
+          "calls": 172.0
+        },
+        "Profiler.FlushMemoryCounters": {
+          "totalMs": 1.054,
+          "selfMs": 1.054,
+          "calls": 1.0
+        },
+        "UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]": {
+          "totalMs": 1.043,
+          "selfMs": 0.673,
+          "calls": 3.0
+        },
+        "BlockState.Processor.ElectricWireStateChangeProcessor": {
+          "totalMs": 0.872,
+          "selfMs": 0.811,
+          "calls": 116.1
+        },
+        "ExecuteRenderQueueJob": {
+          "totalMs": 0.765,
+          "selfMs": 0.591,
+          "calls": 7.3
+        },
+        "UpdateRendererBoundingVolumes": {
+          "totalMs": 0.588,
+          "selfMs": 0.588,
+          "calls": 2.4
+        },
+        "PhysX.FinalizeUpdateTask": {
+          "totalMs": 0.52,
+          "selfMs": 0.52,
+          "calls": 2.7
+        },
+        "BlockState.Processor.CommonMachineBlockStateChangeProcessor": {
+          "totalMs": 0.482,
+          "selfMs": 0.465,
+          "calls": 129.1
+        },
+        "BlockState.Processor.GearStateChangeProcessor": {
+          "totalMs": 0.398,
+          "selfMs": 0.388,
+          "calls": 199.0
+        },
+        "GC.Alloc": {
+          "totalMs": 0.248,
+          "selfMs": 0.248,
+          "calls": 5680.4
+        },
+        "BlockState.Processor.GearBeltConveyorStateChangeProcessor": {
+          "totalMs": 0.176,
+          "selfMs": 0.171,
+          "calls": 95.5
+        },
+        "BlockState.Processor.SteamEngineEffectStateChangeProcessor": {
+          "totalMs": 0.061,
+          "selfMs": 0.06,
+          "calls": 32.4
+        },
+        "PacketExchange.Deserialize.EventStream": {
+          "totalMs": 0.053,
+          "selfMs": 0.052,
+          "calls": 2.5
+        },
+        "PacketExchange.ReadPacketHeader": {
+          "totalMs": 0.016,
+          "selfMs": 0.016,
+          "calls": 2.5
+        }
+      }
+    }
+  ],
+  "camtree": [
+    {
+      "frames": 66,
+      "main": [
+        {
+          "path": "RenderPlayModeViewCameras",
+          "totalMs": 15.535,
+          "selfMs": 0.074,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > DestroyCullResults",
+          "totalMs": 0.167,
+          "selfMs": 0.013,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > DestroyCullResults > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.155,
+          "selfMs": 0.155,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]",
+          "totalMs": 15.253,
+          "selfMs": 0.043,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal",
+          "totalMs": 15.21,
+          "selfMs": 0.028,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack",
+          "totalMs": 15.062,
+          "selfMs": 0.06,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit",
+          "totalMs": 7.488,
+          "selfMs": 0.084,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.114,
+          "selfMs": 0.114,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows",
+          "totalMs": 1.887,
+          "selfMs": 0.012,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction",
+          "totalMs": 1.648,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 1.308,
+          "selfMs": 1.308,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 0.334,
+          "selfMs": 0.035,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.174,
+          "selfMs": 0.002,
+          "calls": 4.4
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID > Idle",
+          "totalMs": 0.121,
+          "selfMs": 0.121,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > Shadows.CullingCallbacks",
+          "totalMs": 0.073,
+          "selfMs": 0.054,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > afterCullingOutputReady.Invoke",
+          "totalMs": 0.136,
+          "selfMs": 0.134,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 5.366,
+          "selfMs": 0.019,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone)",
+          "totalMs": 5.346,
+          "selfMs": 0.169,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawOpaqueObjects",
+          "totalMs": 1.74,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawOpaqueObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 1.738,
+          "selfMs": 0.004,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawScreenSpaceUI",
+          "totalMs": 0.186,
+          "selfMs": 0.016,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawScreenSpaceUI > GUI.Repaint",
+          "totalMs": 0.104,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawScreenSpaceUI > UI.RenderOverlays",
+          "totalMs": 0.066,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawTransparentObjects",
+          "totalMs": 2.189,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawTransparentObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 2.187,
+          "selfMs": 0.003,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > MainLightShadow",
+          "totalMs": 0.808,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > MainLightShadow > Shadows.ExecuteDrawShadows",
+          "totalMs": 0.802,
+          "selfMs": 0.015,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > OutlinePass",
+          "totalMs": 0.104,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > OutlinePass > RenderLoop.ScheduleDraw",
+          "totalMs": 0.103,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > VFX.ProcessCamera",
+          "totalMs": 0.055,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 7.403,
+          "selfMs": 0.063,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable",
+          "totalMs": 5.341,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene",
+          "totalMs": 3.008,
+          "selfMs": 0.013,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction",
+          "totalMs": 2.974,
+          "selfMs": 0.012,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 2.135,
+          "selfMs": 2.135,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 0.828,
+          "selfMs": 0.056,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters",
+          "totalMs": 0.303,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > LOD.ComputeLOD",
+          "totalMs": 0.065,
+          "selfMs": 0.002,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > LOD.ComputeLOD > LOD.ComputeLOD",
+          "totalMs": 0.063,
+          "selfMs": 0.003,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID",
+          "totalMs": 0.196,
+          "selfMs": 0.065,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.108,
+          "selfMs": 0.002,
+          "calls": 1.3
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling",
+          "totalMs": 1.681,
+          "selfMs": 0.083,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullAllVisibleLights",
+          "totalMs": 0.083,
+          "selfMs": 0.029,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents",
+          "totalMs": 0.187,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents > afterCullingOutputReady.Invoke",
+          "totalMs": 0.181,
+          "selfMs": 0.179,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 0.897,
+          "selfMs": 0.372,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > JobHandle.Complete",
+          "totalMs": 0.525,
+          "selfMs": 0.001,
+          "calls": 0.3
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID",
+          "totalMs": 0.404,
+          "selfMs": 0.023,
+          "calls": 0.9
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.219,
+          "selfMs": 0.0,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > Idle",
+          "totalMs": 0.161,
+          "selfMs": 0.161,
+          "calls": 0.8
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains",
+          "totalMs": 0.31,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains > Terrain.Heightmap.RenderStep3",
+          "totalMs": 0.141,
+          "selfMs": 0.141,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable",
+          "totalMs": 0.315,
+          "selfMs": 0.011,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 0.299,
+          "selfMs": 0.299,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.AddRenderPasses",
+          "totalMs": 0.078,
+          "selfMs": 0.078,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone)",
+          "totalMs": 1.211,
+          "selfMs": 0.044,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.AfterRendering",
+          "totalMs": 0.091,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.BeforeRendering",
+          "totalMs": 0.128,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.BeforeRendering > Inl_Draw Main Light Shadowmap",
+          "totalMs": 0.094,
+          "selfMs": 0.033,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque",
+          "totalMs": 0.133,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque > Inl_Blit Color LUT",
+          "totalMs": 0.075,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque > Inl_Blit Color LUT > Inl_ColorGradingLUT",
+          "totalMs": 0.059,
+          "selfMs": 0.059,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque > Inl_DrawOpaqueObjects",
+          "totalMs": 0.055,
+          "selfMs": 0.042,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingTransparent",
+          "totalMs": 0.31,
+          "selfMs": 0.008,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingTransparent > Inl_PostProcessPass",
+          "totalMs": 0.113,
+          "selfMs": 0.013,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingTransparent > Inl_PostProcessPass > Inl_Blit PostProcessing Effects",
+          "totalMs": 0.095,
+          "selfMs": 0.022,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.InternalStartRendering",
+          "totalMs": 0.067,
+          "selfMs": 0.067,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.SetupLights",
+          "totalMs": 0.175,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.SetupLights > Inl_Setup Light Constants",
+          "totalMs": 0.172,
+          "selfMs": 0.063,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.SetupLights > Inl_Setup Light Constants > Inl_Forward+ Complete",
+          "totalMs": 0.066,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_Setup Camera Properties",
+          "totalMs": 0.216,
+          "selfMs": 0.016,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_Setup Camera Properties > VFX.CollectShadowCullResults",
+          "totalMs": 0.097,
+          "selfMs": 0.093,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_Setup Camera Properties > VFX.ProcessCamera",
+          "totalMs": 0.071,
+          "selfMs": 0.024,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Setup",
+          "totalMs": 0.29,
+          "selfMs": 0.142,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Setup > Inl_Forward+ Setup",
+          "totalMs": 0.092,
+          "selfMs": 0.092,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_UniversalRenderPipeline.CreateRenderingData",
+          "totalMs": 0.05,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering",
+          "totalMs": 0.109,
+          "selfMs": 0.02,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete",
+          "totalMs": 0.089,
+          "selfMs": 0.007,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.082,
+          "selfMs": 0.03,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete > WaitForJobGroupID > InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)",
+          "totalMs": 0.051,
+          "selfMs": 0.051,
+          "calls": 1.0
+        }
+      ],
+      "threads": {
+        "EnlightenWorker": {
+          "selfSumMs": 269.17,
+          "top": {
+            "Semaphore.WaitForSignal": 269.17
+          }
+        },
+        "Worker 0": {
+          "selfSumMs": 132.482,
+          "top": {
+            "Idle": 129.772,
+            "CullingJob (Burst)": 0.946,
+            "TransformChangeSystem": 0.251,
+            "BuildDrawListsJob (Burst)": 0.202,
+            "UpdateRendererBoundingVolumes": 0.136,
+            "AllocateBinsPerBatch (Burst)": 0.135,
+            "DrawCommandOutputPerBatch (Burst)": 0.126,
+            "CullSceneDynamicObjects": 0.105,
+            "RenderLoop.Sort": 0.104,
+            "RenderLoop.Prepare": 0.075,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.075,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.071,
+            "ExecuteRenderQueueJob": 0.065,
+            "CompactVisibilityMasksJob (Burst)": 0.043,
+            "Profiler.ParseThreadData": 0.041,
+            "MeshSkinning.CalcMatrices": 0.033,
+            "EngineJob": 0.028,
+            "SRPBatcher.DrawCommandsInjection": 0.024,
+            "FindDrawInstancesJob (Burst)": 0.023,
+            "CullObjectsWithoutUmbra": 0.023,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.02,
+            "VFXRenderer.PrepareRenderNode": 0.016,
+            "CalculateLODJob": 0.014,
+            "PrepareSceneNodesJob": 0.013,
+            "ComputeShadowSplitMasks": 0.013
+          }
+        },
+        "Worker 9": {
+          "selfSumMs": 107.43,
+          "top": {
+            "Idle": 100.915,
+            "CullingJob (Burst)": 2.231,
+            "TransformChangeSystem": 0.757,
+            "UpdateRendererBoundingVolumes": 0.638,
+            "BuildDrawListsJob (Burst)": 0.4,
+            "AllocateBinsPerBatch (Burst)": 0.293,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.212,
+            "CullSceneDynamicObjects": 0.195,
+            "Profiler.ParseThreadData": 0.183,
+            "DrawCommandOutputPerBatch (Burst)": 0.171,
+            "FindDrawInstancesJob (Burst)": 0.141,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.139,
+            "RenderLoop.Sort": 0.114,
+            "MeshSkinning.CalcMatrices": 0.111,
+            "CompactVisibilityMasksJob (Burst)": 0.105,
+            "ExecuteRenderQueueJob": 0.085,
+            "EngineJob": 0.084,
+            "RenderLoop.Prepare": 0.078,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.072,
+            "CullObjectsWithoutUmbra": 0.054,
+            "VisualEffect.Update": 0.047,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.043,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.041,
+            "CalculateLODJob": 0.029,
+            "SRPBatcher.DrawCommandsInjection": 0.026
+          }
+        },
+        "Worker 10": {
+          "selfSumMs": 104.939,
+          "top": {
+            "Idle": 98.968,
+            "CullingJob (Burst)": 2.026,
+            "TransformChangeSystem": 0.653,
+            "UpdateRendererBoundingVolumes": 0.558,
+            "BuildDrawListsJob (Burst)": 0.381,
+            "AllocateBinsPerBatch (Burst)": 0.251,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.203,
+            "CullSceneDynamicObjects": 0.189,
+            "DrawCommandOutputPerBatch (Burst)": 0.161,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.151,
+            "Profiler.ParseThreadData": 0.149,
+            "FindDrawInstancesJob (Burst)": 0.127,
+            "RenderLoop.Sort": 0.115,
+            "ExecuteRenderQueueJob": 0.11,
+            "MeshSkinning.CalcMatrices": 0.107,
+            "CompactVisibilityMasksJob (Burst)": 0.091,
+            "EngineJob": 0.08,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.066,
+            "RenderLoop.Prepare": 0.062,
+            "CullObjectsWithoutUmbra": 0.05,
+            "VisualEffect.Update": 0.041,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.039,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.034,
+            "CalculateLODJob": 0.028,
+            "ComputeShadowSplitMasks": 0.028
+          }
+        },
+        "Worker 8": {
+          "selfSumMs": 92.456,
+          "top": {
+            "Idle": 85.183,
+            "CullingJob (Burst)": 2.473,
+            "TransformChangeSystem": 0.826,
+            "UpdateRendererBoundingVolumes": 0.724,
+            "BuildDrawListsJob (Burst)": 0.467,
+            "AllocateBinsPerBatch (Burst)": 0.3,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.245,
+            "Profiler.ParseThreadData": 0.237,
+            "CullSceneDynamicObjects": 0.195,
+            "DrawCommandOutputPerBatch (Burst)": 0.178,
+            "FindDrawInstancesJob (Burst)": 0.162,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.157,
+            "RenderLoop.Sort": 0.129,
+            "MeshSkinning.CalcMatrices": 0.127,
+            "ExecuteRenderQueueJob": 0.105,
+            "CompactVisibilityMasksJob (Burst)": 0.101,
+            "EngineJob": 0.1,
+            "RenderLoop.Prepare": 0.098,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.082,
+            "CullObjectsWithoutUmbra": 0.054,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.05,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.046,
+            "VisualEffect.Update": 0.043,
+            "SRPBatcher.DrawCommandsInjection": 0.039,
+            "AnimatorControllerPlayable.PrepareFrame": 0.035
+          }
+        },
+        "Worker 11": {
+          "selfSumMs": 92.223,
+          "top": {
+            "Idle": 85.915,
+            "CullingJob (Burst)": 2.201,
+            "TransformChangeSystem": 0.696,
+            "UpdateRendererBoundingVolumes": 0.675,
+            "BuildDrawListsJob (Burst)": 0.341,
+            "AllocateBinsPerBatch (Burst)": 0.258,
+            "CullSceneDynamicObjects": 0.194,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.193,
+            "DrawCommandOutputPerBatch (Burst)": 0.153,
+            "Profiler.ParseThreadData": 0.129,
+            "FindDrawInstancesJob (Burst)": 0.128,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.126,
+            "MeshSkinning.CalcMatrices": 0.122,
+            "ExecuteRenderQueueJob": 0.116,
+            "RenderLoop.Sort": 0.114,
+            "RenderLoop.Prepare": 0.111,
+            "EngineJob": 0.088,
+            "CompactVisibilityMasksJob (Burst)": 0.071,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.065,
+            "CullObjectsWithoutUmbra": 0.049,
+            "VisualEffect.Update": 0.044,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.041,
+            "SRPBatcher.DrawCommandsInjection": 0.038,
+            "ComputeShadowSplitMasks": 0.035,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.032
+          }
+        },
+        "Worker 1": {
+          "selfSumMs": 91.73,
+          "top": {
+            "Idle": 83.408,
+            "CullingJob (Burst)": 2.677,
+            "TransformChangeSystem": 0.954,
+            "UpdateRendererBoundingVolumes": 0.818,
+            "BuildDrawListsJob (Burst)": 0.503,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.314,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.271,
+            "AllocateBinsPerBatch (Burst)": 0.233,
+            "Shadows.ExtractCasters": 0.192,
+            "FindDrawInstancesJob (Burst)": 0.18,
+            "RenderLoop.Prepare": 0.166,
+            "DrawCommandOutputPerBatch (Burst)": 0.155,
+            "EngineJob": 0.15,
+            "MeshSkinning.CalcMatrices": 0.147,
+            "ExecuteRenderQueueJob": 0.136,
+            "Profiler.ParseThreadData": 0.115,
+            "RenderLoop.Sort": 0.112,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.093,
+            "CullSceneDynamicObjects": 0.086,
+            "VisualEffect.Update": 0.066,
+            "SRPBatcher.DrawCommandsInjection": 0.062,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.056,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.055,
+            "CompactVisibilityMasksJob (Burst)": 0.055,
+            "Shadows.SplitAndSortCasters": 0.052
+          }
+        },
+        "Worker 7": {
+          "selfSumMs": 78.55,
+          "top": {
+            "Idle": 71.546,
+            "CullingJob (Burst)": 2.439,
+            "TransformChangeSystem": 0.792,
+            "UpdateRendererBoundingVolumes": 0.697,
+            "BuildDrawListsJob (Burst)": 0.465,
+            "AllocateBinsPerBatch (Burst)": 0.289,
+            "Profiler.ParseThreadData": 0.256,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.221,
+            "DrawCommandOutputPerBatch (Burst)": 0.181,
+            "CullSceneDynamicObjects": 0.175,
+            "FindDrawInstancesJob (Burst)": 0.132,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.124,
+            "MeshSkinning.CalcMatrices": 0.123,
+            "ExecuteRenderQueueJob": 0.112,
+            "RenderLoop.Sort": 0.11,
+            "EngineJob": 0.094,
+            "CompactVisibilityMasksJob (Burst)": 0.083,
+            "RenderLoop.Prepare": 0.082,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.078,
+            "VisualEffect.Update": 0.052,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.046,
+            "CullObjectsWithoutUmbra": 0.045,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.039,
+            "SRPBatcher.DrawCommandsInjection": 0.038,
+            "AnimatorControllerPlayable.PrepareFrame": 0.029
+          }
+        },
+        "[moorestech]ゲームアップデートスレッド": {
+          "selfSumMs": 53.83,
+          "top": {
+            "GameUpdate": 33.436,
+            "木のコンベアチェスト_VanillaChestComponent": 2.519,
+            "電気汎用工作装置_VanillaMachineProcessorComponent": 1.907,
+            "GC.Alloc": 1.316,
+            "石窯_VanillaMachineProcessorComponent": 1.092,
+            "鉄の歯車ベルトコンベア": 0.976,
+            "BlockUpdate": 0.923,
+            "原始的な加工機_VanillaGearMachineComponent": 0.903,
+            "原始的な採掘機_VanillaMinerProcessorComponent": 0.645,
+            "原始的な粉砕機_VanillaMachineProcessorComponent": 0.627,
+            "化学プラント_VanillaMachineProcessorComponent": 0.579,
+            "直線歯車ベルトコンベア": 0.563,
+            "原始的な加工機_VanillaMachineProcessorComponent": 0.502,
+            "電気炉_VanillaMachineProcessorComponent": 0.479,
+            "鉄のコンベアチェスト_VanillaChestComponent": 0.456,
+            "原始的な粉砕機_VanillaGearMachineComponent": 0.394,
+            "基本土台": 0.374,
+            "鉄の採掘機_VanillaMinerProcessorComponent": 0.355,
+            "ふいご付き精錬炉_VanillaMachineProcessorComponent": 0.305,
+            "電気採掘機_VanillaMinerProcessorComponent": 0.282,
+            "原始的な組立機_VanillaGearMachineComponent": 0.266,
+            "木のシャフト": 0.258,
+            "鋼鉄のパイプ": 0.216,
+            "ふいご付き精錬炉_VanillaGearMachineComponent": 0.196,
+            "石油蒸留機_VanillaMachineProcessorComponent": 0.17
+          }
+        },
+        "Dispatcher": {
+          "selfSumMs": 53.739,
+          "top": {
+            "Semaphore.WaitForSignal": 52.144,
+            "Profiler.WriteBuffer": 1.593,
+            "LargeAllocation.Alloc": 0.003
+          }
+        },
+        "Worker 18": {
+          "selfSumMs": 53.669,
+          "top": {
+            "Idle": 50.945,
+            "CullingJob (Burst)": 0.948,
+            "TransformChangeSystem": 0.246,
+            "UpdateRendererBoundingVolumes": 0.237,
+            "AllocateBinsPerBatch (Burst)": 0.18,
+            "DrawCommandOutputPerBatch (Burst)": 0.142,
+            "BuildDrawListsJob (Burst)": 0.112,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.101,
+            "ExecuteRenderQueueJob": 0.092,
+            "CullSceneDynamicObjects": 0.088,
+            "RenderLoop.Sort": 0.08,
+            "RenderLoop.Prepare": 0.073,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.042,
+            "CompactVisibilityMasksJob (Burst)": 0.039,
+            "SRPBatcher.DrawCommandsInjection": 0.03,
+            "MeshSkinning.CalcMatrices": 0.03,
+            "FindDrawInstancesJob (Burst)": 0.024,
+            "EngineJob": 0.024,
+            "Profiler.ParseThreadData": 0.021,
+            "CullObjectsWithoutUmbra": 0.02,
+            "VisualEffect.Update": 0.02,
+            "VFXRenderer.PrepareRenderNode": 0.02,
+            "ComputeShadowSplitMasks": 0.016,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.014,
+            "InstanceDataSystem:ProbesUpdateJob (Burst)": 0.013
+          }
+        },
+        "Worker 17": {
+          "selfSumMs": 53.655,
+          "top": {
+            "Idle": 50.176,
+            "CullingJob (Burst)": 1.303,
+            "TransformChangeSystem": 0.341,
+            "UpdateRendererBoundingVolumes": 0.296,
+            "AllocateBinsPerBatch (Burst)": 0.193,
+            "DrawCommandOutputPerBatch (Burst)": 0.154,
+            "BuildDrawListsJob (Burst)": 0.133,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.112,
+            "CullSceneDynamicObjects": 0.101,
+            "RenderLoop.Sort": 0.096,
+            "RenderLoop.Prepare": 0.078,
+            "ExecuteRenderQueueJob": 0.075,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.067,
+            "MeshSkinning.CalcMatrices": 0.052,
+            "FindDrawInstancesJob (Burst)": 0.049,
+            "CompactVisibilityMasksJob (Burst)": 0.049,
+            "EngineJob": 0.043,
+            "ComputeShadowSplitMasks": 0.031,
+            "Profiler.ParseThreadData": 0.03,
+            "SRPBatcher.DrawCommandsInjection": 0.029,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.026,
+            "CullObjectsWithoutUmbra": 0.022,
+            "VisualEffect.Update": 0.02,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.018,
+            "VFXRenderer.PrepareRenderNode": 0.016
+          }
+        },
+        "Worker 14": {
+          "selfSumMs": 53.642,
+          "top": {
+            "Idle": 49.133,
+            "CullingJob (Burst)": 1.684,
+            "TransformChangeSystem": 0.467,
+            "UpdateRendererBoundingVolumes": 0.375,
+            "BuildDrawListsJob (Burst)": 0.256,
+            "AllocateBinsPerBatch (Burst)": 0.202,
+            "CullSceneDynamicObjects": 0.143,
+            "DrawCommandOutputPerBatch (Burst)": 0.141,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.127,
+            "ExecuteRenderQueueJob": 0.104,
+            "RenderLoop.Sort": 0.1,
+            "RenderLoop.Prepare": 0.099,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.096,
+            "MeshSkinning.CalcMatrices": 0.065,
+            "FindDrawInstancesJob (Burst)": 0.056,
+            "EngineJob": 0.053,
+            "Profiler.ParseThreadData": 0.052,
+            "CompactVisibilityMasksJob (Burst)": 0.05,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.038,
+            "CullObjectsWithoutUmbra": 0.037,
+            "SRPBatcher.DrawCommandsInjection": 0.034,
+            "VisualEffect.Update": 0.033,
+            "ComputeShadowSplitMasks": 0.032,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.024,
+            "VFXRenderer.PrepareRenderNode": 0.023
+          }
+        },
+        "Worker 16": {
+          "selfSumMs": 53.64,
+          "top": {
+            "Idle": 49.33,
+            "CullingJob (Burst)": 1.597,
+            "TransformChangeSystem": 0.411,
+            "UpdateRendererBoundingVolumes": 0.39,
+            "BuildDrawListsJob (Burst)": 0.275,
+            "AllocateBinsPerBatch (Burst)": 0.205,
+            "DrawCommandOutputPerBatch (Burst)": 0.152,
+            "CullSceneDynamicObjects": 0.129,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.122,
+            "RenderLoop.Prepare": 0.096,
+            "RenderLoop.Sort": 0.094,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.093,
+            "ExecuteRenderQueueJob": 0.086,
+            "MeshSkinning.CalcMatrices": 0.07,
+            "CompactVisibilityMasksJob (Burst)": 0.066,
+            "EngineJob": 0.057,
+            "FindDrawInstancesJob (Burst)": 0.053,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.037,
+            "VisualEffect.Update": 0.033,
+            "SRPBatcher.DrawCommandsInjection": 0.033,
+            "Profiler.ParseThreadData": 0.032,
+            "CullObjectsWithoutUmbra": 0.031,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.024,
+            "ComputeShadowSplitMasks": 0.023,
+            "VFXRenderer.PrepareRenderNode": 0.019
+          }
+        },
+        "Worker 13": {
+          "selfSumMs": 53.635,
+          "top": {
+            "Idle": 48.51,
+            "CullingJob (Burst)": 1.836,
+            "TransformChangeSystem": 0.54,
+            "UpdateRendererBoundingVolumes": 0.483,
+            "BuildDrawListsJob (Burst)": 0.275,
+            "AllocateBinsPerBatch (Burst)": 0.226,
+            "CullSceneDynamicObjects": 0.167,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.148,
+            "DrawCommandOutputPerBatch (Burst)": 0.141,
+            "RenderLoop.Prepare": 0.129,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.118,
+            "RenderLoop.Sort": 0.105,
+            "ExecuteRenderQueueJob": 0.092,
+            "MeshSkinning.CalcMatrices": 0.081,
+            "CompactVisibilityMasksJob (Burst)": 0.073,
+            "Profiler.ParseThreadData": 0.071,
+            "FindDrawInstancesJob (Burst)": 0.069,
+            "EngineJob": 0.065,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.058,
+            "SRPBatcher.DrawCommandsInjection": 0.046,
+            "CullObjectsWithoutUmbra": 0.042,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.032,
+            "VisualEffect.Update": 0.032,
+            "ComputeShadowSplitMasks": 0.029,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.026
+          }
+        },
+        "Worker 15": {
+          "selfSumMs": 53.627,
+          "top": {
+            "Idle": 48.727,
+            "CullingJob (Burst)": 1.773,
+            "TransformChangeSystem": 0.478,
+            "UpdateRendererBoundingVolumes": 0.413,
+            "BuildDrawListsJob (Burst)": 0.336,
+            "AllocateBinsPerBatch (Burst)": 0.253,
+            "DrawCommandOutputPerBatch (Burst)": 0.179,
+            "CullSceneDynamicObjects": 0.162,
+            "ExecuteRenderQueueJob": 0.131,
+            "RenderLoop.Sort": 0.104,
+            "RenderLoop.Prepare": 0.103,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.103,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.095,
+            "CompactVisibilityMasksJob (Burst)": 0.079,
+            "MeshSkinning.CalcMatrices": 0.077,
+            "EngineJob": 0.063,
+            "Profiler.ParseThreadData": 0.052,
+            "FindDrawInstancesJob (Burst)": 0.051,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.039,
+            "CullObjectsWithoutUmbra": 0.037,
+            "SRPBatcher.DrawCommandsInjection": 0.035,
+            "VisualEffect.Update": 0.032,
+            "VFXRenderer.PrepareRenderNode": 0.032,
+            "ComputeShadowSplitMasks": 0.03,
+            "CalculateLODJob": 0.027
+          }
+        },
+        "Worker 12": {
+          "selfSumMs": 53.621,
+          "top": {
+            "Idle": 47.153,
+            "CullingJob (Burst)": 2.349,
+            "TransformChangeSystem": 0.681,
+            "UpdateRendererBoundingVolumes": 0.59,
+            "BuildDrawListsJob (Burst)": 0.433,
+            "AllocateBinsPerBatch (Burst)": 0.217,
+            "RenderLoop.Prepare": 0.193,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.184,
+            "CullSceneDynamicObjects": 0.177,
+            "DrawCommandOutputPerBatch (Burst)": 0.155,
+            "ExecuteRenderQueueJob": 0.139,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.124,
+            "RenderLoop.Sort": 0.121,
+            "FindDrawInstancesJob (Burst)": 0.117,
+            "MeshSkinning.CalcMatrices": 0.102,
+            "EngineJob": 0.09,
+            "Profiler.ParseThreadData": 0.084,
+            "SRPBatcher.DrawCommandsInjection": 0.066,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.065,
+            "CompactVisibilityMasksJob (Burst)": 0.06,
+            "VisualEffect.Update": 0.047,
+            "CullObjectsWithoutUmbra": 0.044,
+            "ComputeShadowSplitMasks": 0.039,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.038,
+            "AnimatorControllerPlayable.PrepareFrame": 0.037
+          }
+        },
+        "Worker 6": {
+          "selfSumMs": 53.53,
+          "top": {
+            "Idle": 46.248,
+            "CullingJob (Burst)": 2.515,
+            "TransformChangeSystem": 0.824,
+            "UpdateRendererBoundingVolumes": 0.701,
+            "BuildDrawListsJob (Burst)": 0.474,
+            "Profiler.ParseThreadData": 0.283,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.273,
+            "AllocateBinsPerBatch (Burst)": 0.245,
+            "CullSceneDynamicObjects": 0.203,
+            "FindDrawInstancesJob (Burst)": 0.155,
+            "ExecuteRenderQueueJob": 0.143,
+            "DrawCommandOutputPerBatch (Burst)": 0.139,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.137,
+            "MeshSkinning.CalcMatrices": 0.121,
+            "RenderLoop.Sort": 0.105,
+            "EngineJob": 0.098,
+            "RenderLoop.Prepare": 0.097,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.087,
+            "CompactVisibilityMasksJob (Burst)": 0.059,
+            "VisualEffect.Update": 0.056,
+            "CullObjectsWithoutUmbra": 0.051,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.049,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.042,
+            "VFXRenderer.PrepareRenderNode": 0.037,
+            "AnimatorControllerPlayable.PrepareFrame": 0.037
+          }
+        },
+        "Worker 5": {
+          "selfSumMs": 53.489,
+          "top": {
+            "Idle": 45.805,
+            "CullingJob (Burst)": 2.55,
+            "TransformChangeSystem": 0.867,
+            "UpdateRendererBoundingVolumes": 0.764,
+            "BuildDrawListsJob (Burst)": 0.503,
+            "Profiler.ParseThreadData": 0.346,
+            "AllocateBinsPerBatch (Burst)": 0.261,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.249,
+            "CullSceneDynamicObjects": 0.21,
+            "ExecuteRenderQueueJob": 0.16,
+            "RenderLoop.Prepare": 0.154,
+            "FindDrawInstancesJob (Burst)": 0.149,
+            "DrawCommandOutputPerBatch (Burst)": 0.144,
+            "MeshSkinning.CalcMatrices": 0.133,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.131,
+            "EngineJob": 0.108,
+            "RenderLoop.Sort": 0.103,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.088,
+            "CompactVisibilityMasksJob (Burst)": 0.081,
+            "VisualEffect.Update": 0.058,
+            "SRPBatcher.DrawCommandsInjection": 0.056,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.051,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.051,
+            "CullObjectsWithoutUmbra": 0.049,
+            "AnimatorControllerPlayable.PrepareFrame": 0.038
+          }
+        },
+        "Worker 4": {
+          "selfSumMs": 53.452,
+          "top": {
+            "Idle": 45.263,
+            "CullingJob (Burst)": 2.653,
+            "TransformChangeSystem": 0.907,
+            "UpdateRendererBoundingVolumes": 0.776,
+            "Profiler.ParseThreadData": 0.584,
+            "BuildDrawListsJob (Burst)": 0.478,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.292,
+            "AllocateBinsPerBatch (Burst)": 0.251,
+            "CullSceneDynamicObjects": 0.218,
+            "RenderLoop.Prepare": 0.182,
+            "FindDrawInstancesJob (Burst)": 0.164,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.154,
+            "MeshSkinning.CalcMatrices": 0.146,
+            "DrawCommandOutputPerBatch (Burst)": 0.137,
+            "ExecuteRenderQueueJob": 0.131,
+            "RenderLoop.Sort": 0.125,
+            "EngineJob": 0.116,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.092,
+            "CompactVisibilityMasksJob (Burst)": 0.064,
+            "SRPBatcher.DrawCommandsInjection": 0.064,
+            "VisualEffect.Update": 0.059,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.054,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.052,
+            "CullObjectsWithoutUmbra": 0.049,
+            "AnimatorControllerPlayable.PrepareFrame": 0.041
+          }
+        },
+        "Worker 3": {
+          "selfSumMs": 53.366,
+          "top": {
+            "Idle": 44.839,
+            "CullingJob (Burst)": 2.601,
+            "TransformChangeSystem": 0.917,
+            "Profiler.ParseThreadData": 0.908,
+            "UpdateRendererBoundingVolumes": 0.8,
+            "BuildDrawListsJob (Burst)": 0.504,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.252,
+            "AllocateBinsPerBatch (Burst)": 0.226,
+            "CullSceneDynamicObjects": 0.219,
+            "FindDrawInstancesJob (Burst)": 0.179,
+            "RenderLoop.Prepare": 0.163,
+            "DrawCommandOutputPerBatch (Burst)": 0.146,
+            "MeshSkinning.CalcMatrices": 0.146,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.138,
+            "ExecuteRenderQueueJob": 0.13,
+            "EngineJob": 0.128,
+            "RenderLoop.Sort": 0.118,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.093,
+            "Animator.WriteTransforms": 0.066,
+            "VisualEffect.Update": 0.061,
+            "CompactVisibilityMasksJob (Burst)": 0.058,
+            "SRPBatcher.DrawCommandsInjection": 0.058,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.055,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.053,
+            "AnimatorControllerPlayable.PrepareFrame": 0.043
+          }
+        },
+        "Worker 2": {
+          "selfSumMs": 53.131,
+          "top": {
+            "Idle": 43.891,
+            "Profiler.ParseThreadData": 3.87,
+            "CullingJob (Burst)": 1.13,
+            "UpdateRendererBoundingVolumes": 0.809,
+            "TransformChangeSystem": 0.691,
+            "BuildDrawListsJob (Burst)": 0.503,
+            "Profiler.SortThreadMetadata": 0.281,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.255,
+            "FindDrawInstancesJob (Burst)": 0.168,
+            "AllocateBinsPerBatch (Burst)": 0.161,
+            "DrawCommandOutputPerBatch (Burst)": 0.113,
+            "RenderLoop.Sort": 0.102,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.094,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.09,
+            "RenderLoop.Prepare": 0.088,
+            "ExecuteRenderQueueJob": 0.08,
+            "CullSceneDynamicObjects": 0.076,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.055,
+            "Animator.WriteTransforms": 0.053,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.053,
+            "EngineJob": 0.049,
+            "AnimatorControllerPlayable.PrepareFrame": 0.041,
+            "CalculateLODJob": 0.041,
+            "CompactVisibilityMasksJob (Burst)": 0.04,
+            "Animator.ProcessAnimations": 0.036
+          }
+        },
+        "BatchDeleteObjects": {
+          "selfSumMs": 53.123,
+          "top": {
+            "Semaphore.WaitForSignal": 53.123
+          }
+        },
+        "DataDeserializer": {
+          "selfSumMs": 52.761,
+          "top": {
+            "Semaphore.WaitForSignal": 35.93,
+            "Profiler.ParseGlobalData": 13.159,
+            "Profiler.ParseThreadData": 1.098,
+            "Profiler.ParseBlock": 0.801,
+            "LargeAllocation.Free": 0.711,
+            "WaitForJobGroupID": 0.642,
+            "Profiler.SortThreadMetadata": 0.368,
+            "LargeAllocation.Alloc": 0.033,
+            "Profiler.SyncGlobalData": 0.014,
+            "Find dependency chain": 0.005,
+            "ProfilerFrameData.DeleteThreadData": 0.001,
+            "Profiler.DerializeStats": 0.0,
+            "ProfilerFrameData.DeleteUIStats": 0.0,
+            "ProfilerFrameData.ReleaseCollection": 0.0,
+            "ProfilerFrameData.DeleteAudioStats": 0.0
+          }
+        },
+        "Render Thread": {
+          "selfSumMs": 52.117,
+          "top": {
+            "GfxDeviceD3D12.WaitForGPU": 11.737,
+            "DrawBuffersBatchMode": 8.872,
+            "RenderLoop": 7.915,
+            "Semaphore.WaitForSignal": 7.586,
+            "GfxDeviceD3D12.ResourceBarriers": 3.81,
+            "MeshSkinning.GPUBatchedSkin": 3.595,
+            "GfxDeviceD3D12.ExecuteCommandList": 2.765,
+            "RenderLoop.Draw": 1.194,
+            "MeshSkinning.SkinOnGPU": 1.022,
+            "RenderLoop.DrawSRPBatcher": 0.891,
+            "BufferD3D12.UpdateInternal": 0.376,
+            "CreateCommittedResourceWithTag": 0.285,
+            "VFX.ParticleSystem.RenderQuad": 0.26,
+            "Gfx.UpdateAsyncReadbackData": 0.237,
+            "Shadows.Draw": 0.178,
+            "VFX.ParticleSystem.RenderQuadIndirect": 0.173,
+            "VFX.ParticleSystem.BatchUpdate": 0.133,
+            "RenderTexture.ResolveAA": 0.129,
+            "VFX.ParticleSystem.BatchInit": 0.082,
+            "Gfx.SetRenderTarget": 0.079,
+            "GfxDeviceD3D12.Reuse": 0.072,
+            "ScriptableRenderer.Execute: URP Data(Clone)": 0.063,
+            "VFX.CopyBuffer": 0.049,
+            "Shadows.DrawSRPBatcher": 0.045,
+            "Canvas.RenderOverlays": 0.043
+          }
+        }
+      }
+    },
+    {
+      "frames": 65,
+      "main": [
+        {
+          "path": "RenderPlayModeViewCameras",
+          "totalMs": 15.891,
+          "selfMs": 0.077,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > DestroyCullResults",
+          "totalMs": 0.183,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > DestroyCullResults > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.169,
+          "selfMs": 0.169,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]",
+          "totalMs": 15.59,
+          "selfMs": 0.045,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal",
+          "totalMs": 15.545,
+          "selfMs": 0.03,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack",
+          "totalMs": 15.399,
+          "selfMs": 0.063,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit",
+          "totalMs": 7.281,
+          "selfMs": 0.087,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.116,
+          "selfMs": 0.116,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows",
+          "totalMs": 1.749,
+          "selfMs": 0.013,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction",
+          "totalMs": 1.505,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 1.28,
+          "selfMs": 1.28,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 0.219,
+          "selfMs": 0.034,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.068,
+          "selfMs": 0.001,
+          "calls": 1.7
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID > Idle",
+          "totalMs": 0.113,
+          "selfMs": 0.113,
+          "calls": 1.1
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > Shadows.CullingCallbacks",
+          "totalMs": 0.066,
+          "selfMs": 0.047,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > afterCullingOutputReady.Invoke",
+          "totalMs": 0.145,
+          "selfMs": 0.143,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 5.31,
+          "selfMs": 0.019,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone)",
+          "totalMs": 5.29,
+          "selfMs": 0.17,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawOpaqueObjects",
+          "totalMs": 1.69,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawOpaqueObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 1.689,
+          "selfMs": 0.004,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawScreenSpaceUI",
+          "totalMs": 0.192,
+          "selfMs": 0.016,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawScreenSpaceUI > GUI.Repaint",
+          "totalMs": 0.107,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawScreenSpaceUI > UI.RenderOverlays",
+          "totalMs": 0.068,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawTransparentObjects",
+          "totalMs": 2.188,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > DrawTransparentObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 2.186,
+          "selfMs": 0.004,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > MainLightShadow",
+          "totalMs": 0.799,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > MainLightShadow > Shadows.ExecuteDrawShadows",
+          "totalMs": 0.794,
+          "selfMs": 0.014,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > OutlinePass",
+          "totalMs": 0.098,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > OutlinePass > RenderLoop.ScheduleDraw",
+          "totalMs": 0.098,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ScriptableRenderer.Execute: URP Data(Clone) > VFX.ProcessCamera",
+          "totalMs": 0.056,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 7.94,
+          "selfMs": 0.078,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable",
+          "totalMs": 5.655,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene",
+          "totalMs": 3.232,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction",
+          "totalMs": 3.197,
+          "selfMs": 0.008,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 2.31,
+          "selfMs": 2.31,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 0.878,
+          "selfMs": 0.034,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters",
+          "totalMs": 0.315,
+          "selfMs": 0.008,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > LOD.ComputeLOD",
+          "totalMs": 0.064,
+          "selfMs": 0.002,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > LOD.ComputeLOD > LOD.ComputeLOD",
+          "totalMs": 0.062,
+          "selfMs": 0.003,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID",
+          "totalMs": 0.211,
+          "selfMs": 0.053,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.126,
+          "selfMs": 0.0,
+          "calls": 1.1
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling",
+          "totalMs": 1.748,
+          "selfMs": 0.071,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullAllVisibleLights",
+          "totalMs": 0.059,
+          "selfMs": 0.018,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents",
+          "totalMs": 0.19,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents > afterCullingOutputReady.Invoke",
+          "totalMs": 0.183,
+          "selfMs": 0.182,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 0.976,
+          "selfMs": 0.305,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > JobHandle.Complete",
+          "totalMs": 0.671,
+          "selfMs": 0.002,
+          "calls": 0.3
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID",
+          "totalMs": 0.439,
+          "selfMs": 0.031,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.214,
+          "selfMs": 0.0,
+          "calls": 2.4
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > Idle",
+          "totalMs": 0.194,
+          "selfMs": 0.194,
+          "calls": 0.9
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains",
+          "totalMs": 0.317,
+          "selfMs": 0.008,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains > Terrain.Heightmap.RenderStep2",
+          "totalMs": 0.05,
+          "selfMs": 0.05,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains > Terrain.Heightmap.RenderStep3",
+          "totalMs": 0.138,
+          "selfMs": 0.138,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable",
+          "totalMs": 0.355,
+          "selfMs": 0.011,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 0.34,
+          "selfMs": 0.34,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.AddRenderPasses",
+          "totalMs": 0.08,
+          "selfMs": 0.08,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone)",
+          "totalMs": 1.311,
+          "selfMs": 0.046,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.AfterRendering",
+          "totalMs": 0.097,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.BeforeRendering",
+          "totalMs": 0.125,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.BeforeRendering > Inl_Draw Main Light Shadowmap",
+          "totalMs": 0.102,
+          "selfMs": 0.033,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque",
+          "totalMs": 0.148,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque > Inl_Blit Color LUT",
+          "totalMs": 0.084,
+          "selfMs": 0.011,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque > Inl_Blit Color LUT > Inl_ColorGradingLUT",
+          "totalMs": 0.067,
+          "selfMs": 0.067,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingOpaque > Inl_DrawOpaqueObjects",
+          "totalMs": 0.061,
+          "selfMs": 0.045,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingTransparent",
+          "totalMs": 0.316,
+          "selfMs": 0.009,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingTransparent > Inl_PostProcessPass",
+          "totalMs": 0.12,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_RenderPassBlock.MainRenderingTransparent > Inl_PostProcessPass > Inl_Blit PostProcessing Effects",
+          "totalMs": 0.101,
+          "selfMs": 0.023,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.InternalStartRendering",
+          "totalMs": 0.098,
+          "selfMs": 0.098,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.SetupLights",
+          "totalMs": 0.201,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.SetupLights > Inl_Setup Light Constants",
+          "totalMs": 0.199,
+          "selfMs": 0.083,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_ScriptableRenderer.SetupLights > Inl_Setup Light Constants > Inl_Forward+ Complete",
+          "totalMs": 0.066,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_Setup Camera Properties",
+          "totalMs": 0.228,
+          "selfMs": 0.019,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_Setup Camera Properties > VFX.CollectShadowCullResults",
+          "totalMs": 0.101,
+          "selfMs": 0.097,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Execute: URP Data(Clone) > Inl_Setup Camera Properties > VFX.ProcessCamera",
+          "totalMs": 0.075,
+          "selfMs": 0.025,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Setup",
+          "totalMs": 0.353,
+          "selfMs": 0.187,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ScriptableRenderer.Setup > Inl_Forward+ Setup",
+          "totalMs": 0.098,
+          "selfMs": 0.098,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_UniversalRenderPipeline.CreateRenderingData",
+          "totalMs": 0.052,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering",
+          "totalMs": 0.106,
+          "selfMs": 0.021,
+          "calls": 1.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete",
+          "totalMs": 0.086,
+          "selfMs": 0.007,
+          "calls": 2.0
+        },
+        {
+          "path": "RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.078,
+          "selfMs": 0.029,
+          "calls": 1.0
+        }
+      ],
+      "threads": {
+        "EnlightenWorker": {
+          "selfSumMs": 258.262,
+          "top": {
+            "Semaphore.WaitForSignal": 258.262
+          }
+        },
+        "Worker 10": {
+          "selfSumMs": 103.06,
+          "top": {
+            "Idle": 96.065,
+            "CullingJob (Burst)": 2.355,
+            "TransformChangeSystem": 0.784,
+            "UpdateRendererBoundingVolumes": 0.611,
+            "BuildDrawListsJob (Burst)": 0.538,
+            "AllocateBinsPerBatch (Burst)": 0.324,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.228,
+            "CullSceneDynamicObjects": 0.224,
+            "DrawCommandOutputPerBatch (Burst)": 0.172,
+            "Profiler.ParseThreadData": 0.165,
+            "FindDrawInstancesJob (Burst)": 0.157,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.148,
+            "CompactVisibilityMasksJob (Burst)": 0.118,
+            "MeshSkinning.CalcMatrices": 0.117,
+            "RenderLoop.Sort": 0.115,
+            "ExecuteRenderQueueJob": 0.112,
+            "RenderLoop.Prepare": 0.106,
+            "EngineJob": 0.088,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.078,
+            "CullObjectsWithoutUmbra": 0.059,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.044,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.042,
+            "VisualEffect.Update": 0.042,
+            "CalculateLODJob": 0.036,
+            "SRPBatcher.DrawCommandsInjection": 0.034
+          }
+        },
+        "Worker 9": {
+          "selfSumMs": 100.703,
+          "top": {
+            "Idle": 93.368,
+            "CullingJob (Burst)": 2.451,
+            "TransformChangeSystem": 0.832,
+            "UpdateRendererBoundingVolumes": 0.719,
+            "BuildDrawListsJob (Burst)": 0.531,
+            "AllocateBinsPerBatch (Burst)": 0.296,
+            "CullSceneDynamicObjects": 0.242,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.208,
+            "Profiler.ParseThreadData": 0.195,
+            "DrawCommandOutputPerBatch (Burst)": 0.188,
+            "FindDrawInstancesJob (Burst)": 0.182,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.161,
+            "MeshSkinning.CalcMatrices": 0.129,
+            "RenderLoop.Sort": 0.116,
+            "RenderLoop.Prepare": 0.113,
+            "ExecuteRenderQueueJob": 0.106,
+            "EngineJob": 0.097,
+            "CompactVisibilityMasksJob (Burst)": 0.095,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.085,
+            "CullObjectsWithoutUmbra": 0.063,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.048,
+            "VisualEffect.Update": 0.047,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.042,
+            "SRPBatcher.DrawCommandsInjection": 0.039,
+            "CalculateLODJob": 0.037
+          }
+        },
+        "Worker 7": {
+          "selfSumMs": 92.62,
+          "top": {
+            "Idle": 85.036,
+            "CullingJob (Burst)": 2.505,
+            "TransformChangeSystem": 0.876,
+            "UpdateRendererBoundingVolumes": 0.758,
+            "BuildDrawListsJob (Burst)": 0.635,
+            "AllocateBinsPerBatch (Burst)": 0.283,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.264,
+            "Profiler.ParseThreadData": 0.246,
+            "CullSceneDynamicObjects": 0.232,
+            "FindDrawInstancesJob (Burst)": 0.166,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.158,
+            "DrawCommandOutputPerBatch (Burst)": 0.157,
+            "MeshSkinning.CalcMatrices": 0.126,
+            "ExecuteRenderQueueJob": 0.12,
+            "RenderLoop.Sort": 0.107,
+            "EngineJob": 0.098,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.091,
+            "RenderLoop.Prepare": 0.089,
+            "CompactVisibilityMasksJob (Burst)": 0.067,
+            "CullObjectsWithoutUmbra": 0.059,
+            "VisualEffect.Update": 0.056,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.05,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.048,
+            "AnimatorControllerPlayable.PrepareFrame": 0.033,
+            "SRPBatcher.DrawCommandsInjection": 0.03
+          }
+        },
+        "Worker 8": {
+          "selfSumMs": 90.011,
+          "top": {
+            "Idle": 82.45,
+            "CullingJob (Burst)": 2.413,
+            "TransformChangeSystem": 0.885,
+            "UpdateRendererBoundingVolumes": 0.796,
+            "BuildDrawListsJob (Burst)": 0.593,
+            "AllocateBinsPerBatch (Burst)": 0.296,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.252,
+            "Profiler.ParseThreadData": 0.241,
+            "CullSceneDynamicObjects": 0.231,
+            "FindDrawInstancesJob (Burst)": 0.189,
+            "DrawCommandOutputPerBatch (Burst)": 0.17,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.165,
+            "MeshSkinning.CalcMatrices": 0.136,
+            "RenderLoop.Sort": 0.119,
+            "ExecuteRenderQueueJob": 0.119,
+            "EngineJob": 0.101,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.09,
+            "CompactVisibilityMasksJob (Burst)": 0.088,
+            "RenderLoop.Prepare": 0.079,
+            "CullObjectsWithoutUmbra": 0.061,
+            "VisualEffect.Update": 0.047,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.046,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.043,
+            "AnimatorControllerPlayable.PrepareFrame": 0.034,
+            "ComputeShadowSplitMasks": 0.03
+          }
+        },
+        "Worker 2": {
+          "selfSumMs": 86.995,
+          "top": {
+            "Idle": 77.757,
+            "Profiler.ParseThreadData": 3.611,
+            "CullingJob (Burst)": 1.163,
+            "UpdateRendererBoundingVolumes": 0.768,
+            "TransformChangeSystem": 0.698,
+            "BuildDrawListsJob (Burst)": 0.606,
+            "Profiler.SortThreadMetadata": 0.287,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.271,
+            "FindDrawInstancesJob (Burst)": 0.194,
+            "AllocateBinsPerBatch (Burst)": 0.153,
+            "DrawCommandOutputPerBatch (Burst)": 0.13,
+            "RenderLoop.Prepare": 0.122,
+            "RenderLoop.Sort": 0.116,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.116,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.098,
+            "ExecuteRenderQueueJob": 0.085,
+            "CullSceneDynamicObjects": 0.072,
+            "EngineJob": 0.061,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.055,
+            "MeshSkinning.CalcMatrices": 0.051,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.05,
+            "SRPBatcher.DrawCommandsInjection": 0.045,
+            "AnimatorControllerPlayable.PrepareFrame": 0.041,
+            "CalculateLODJob": 0.04,
+            "Animator.WriteTransforms": 0.039
+          }
+        },
+        "Worker 6": {
+          "selfSumMs": 86.642,
+          "top": {
+            "Idle": 78.863,
+            "CullingJob (Burst)": 2.513,
+            "TransformChangeSystem": 0.908,
+            "UpdateRendererBoundingVolumes": 0.723,
+            "BuildDrawListsJob (Burst)": 0.637,
+            "Profiler.ParseThreadData": 0.29,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.278,
+            "AllocateBinsPerBatch (Burst)": 0.256,
+            "CullSceneDynamicObjects": 0.238,
+            "FindDrawInstancesJob (Burst)": 0.183,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.16,
+            "DrawCommandOutputPerBatch (Burst)": 0.147,
+            "ExecuteRenderQueueJob": 0.142,
+            "MeshSkinning.CalcMatrices": 0.134,
+            "RenderLoop.Prepare": 0.124,
+            "RenderLoop.Sort": 0.109,
+            "EngineJob": 0.106,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.096,
+            "CompactVisibilityMasksJob (Burst)": 0.065,
+            "CullObjectsWithoutUmbra": 0.06,
+            "VisualEffect.Update": 0.06,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.053,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.049,
+            "SRPBatcher.DrawCommandsInjection": 0.043,
+            "AnimatorControllerPlayable.PrepareFrame": 0.039
+          }
+        },
+        "Worker 5": {
+          "selfSumMs": 86.166,
+          "top": {
+            "Idle": 78.202,
+            "CullingJob (Burst)": 2.494,
+            "TransformChangeSystem": 0.903,
+            "UpdateRendererBoundingVolumes": 0.771,
+            "BuildDrawListsJob (Burst)": 0.639,
+            "Profiler.ParseThreadData": 0.356,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.285,
+            "AllocateBinsPerBatch (Burst)": 0.264,
+            "CullSceneDynamicObjects": 0.256,
+            "FindDrawInstancesJob (Burst)": 0.193,
+            "RenderLoop.Prepare": 0.164,
+            "DrawCommandOutputPerBatch (Burst)": 0.151,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.145,
+            "ExecuteRenderQueueJob": 0.141,
+            "MeshSkinning.CalcMatrices": 0.14,
+            "RenderLoop.Sort": 0.118,
+            "EngineJob": 0.101,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.099,
+            "CompactVisibilityMasksJob (Burst)": 0.07,
+            "VisualEffect.Update": 0.061,
+            "CullObjectsWithoutUmbra": 0.059,
+            "SRPBatcher.DrawCommandsInjection": 0.059,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.054,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.049,
+            "AnimatorControllerPlayable.PrepareFrame": 0.038
+          }
+        },
+        "Worker 3": {
+          "selfSumMs": 85.861,
+          "top": {
+            "Idle": 77.366,
+            "CullingJob (Burst)": 2.51,
+            "TransformChangeSystem": 0.969,
+            "Profiler.ParseThreadData": 0.774,
+            "UpdateRendererBoundingVolumes": 0.754,
+            "BuildDrawListsJob (Burst)": 0.639,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.271,
+            "CullSceneDynamicObjects": 0.263,
+            "AllocateBinsPerBatch (Burst)": 0.204,
+            "FindDrawInstancesJob (Burst)": 0.198,
+            "ExecuteRenderQueueJob": 0.173,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.149,
+            "DrawCommandOutputPerBatch (Burst)": 0.142,
+            "MeshSkinning.CalcMatrices": 0.136,
+            "RenderLoop.Prepare": 0.13,
+            "EngineJob": 0.124,
+            "RenderLoop.Sort": 0.101,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.1,
+            "Animator.WriteTransforms": 0.09,
+            "VisualEffect.Update": 0.056,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.056,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.052,
+            "SRPBatcher.DrawCommandsInjection": 0.044,
+            "AnimatorControllerPlayable.PrepareFrame": 0.04,
+            "VFXRenderer.PrepareRenderNode": 0.04
+          }
+        },
+        "Worker 11": {
+          "selfSumMs": 85.397,
+          "top": {
+            "Idle": 78.319,
+            "CullingJob (Burst)": 2.365,
+            "TransformChangeSystem": 0.78,
+            "UpdateRendererBoundingVolumes": 0.66,
+            "BuildDrawListsJob (Burst)": 0.617,
+            "AllocateBinsPerBatch (Burst)": 0.27,
+            "Profiler.ParseThreadData": 0.243,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.232,
+            "CullSceneDynamicObjects": 0.215,
+            "DrawCommandOutputPerBatch (Burst)": 0.161,
+            "ExecuteRenderQueueJob": 0.137,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.132,
+            "FindDrawInstancesJob (Burst)": 0.131,
+            "RenderLoop.Sort": 0.116,
+            "MeshSkinning.CalcMatrices": 0.111,
+            "RenderLoop.Prepare": 0.104,
+            "EngineJob": 0.088,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.076,
+            "CompactVisibilityMasksJob (Burst)": 0.071,
+            "CullObjectsWithoutUmbra": 0.053,
+            "ComputeShadowSplitMasks": 0.043,
+            "VisualEffect.Update": 0.043,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.041,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.04,
+            "CalculateLODJob": 0.036
+          }
+        },
+        "Worker 1": {
+          "selfSumMs": 84.858,
+          "top": {
+            "Idle": 76.645,
+            "CullingJob (Burst)": 2.462,
+            "TransformChangeSystem": 0.958,
+            "UpdateRendererBoundingVolumes": 0.759,
+            "BuildDrawListsJob (Burst)": 0.639,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.353,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.28,
+            "AllocateBinsPerBatch (Burst)": 0.246,
+            "FindDrawInstancesJob (Burst)": 0.204,
+            "Shadows.ExtractCasters": 0.194,
+            "ExecuteRenderQueueJob": 0.167,
+            "DrawCommandOutputPerBatch (Burst)": 0.16,
+            "MeshSkinning.CalcMatrices": 0.139,
+            "EngineJob": 0.138,
+            "RenderLoop.Prepare": 0.131,
+            "RenderLoop.Sort": 0.11,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.099,
+            "Profiler.ParseThreadData": 0.088,
+            "CullSceneDynamicObjects": 0.079,
+            "CompactVisibilityMasksJob (Burst)": 0.065,
+            "VisualEffect.Update": 0.063,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.057,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.053,
+            "Shadows.Sort": 0.052,
+            "SRPBatcher.DrawCommandsInjection": 0.052
+          }
+        },
+        "[moorestech]ゲームアップデートスレッド": {
+          "selfSumMs": 51.649,
+          "top": {
+            "GameUpdate": 32.083,
+            "木のコンベアチェスト_VanillaChestComponent": 2.541,
+            "電気汎用工作装置_VanillaMachineProcessorComponent": 1.627,
+            "GC.Alloc": 1.191,
+            "原始的な加工機_VanillaGearMachineComponent": 1.022,
+            "石窯_VanillaMachineProcessorComponent": 1.005,
+            "鉄の歯車ベルトコンベア": 0.97,
+            "BlockUpdate": 0.878,
+            "原始的な採掘機_VanillaMinerProcessorComponent": 0.622,
+            "原始的な粉砕機_VanillaMachineProcessorComponent": 0.614,
+            "化学プラント_VanillaMachineProcessorComponent": 0.596,
+            "直線歯車ベルトコンベア": 0.522,
+            "原始的な粉砕機_VanillaGearMachineComponent": 0.489,
+            "原始的な加工機_VanillaMachineProcessorComponent": 0.447,
+            "電気炉_VanillaMachineProcessorComponent": 0.439,
+            "鉄のコンベアチェスト_VanillaChestComponent": 0.432,
+            "基本土台": 0.344,
+            "鉄の採掘機_VanillaMinerProcessorComponent": 0.315,
+            "ふいご付き精錬炉_VanillaMachineProcessorComponent": 0.292,
+            "電気採掘機_VanillaMinerProcessorComponent": 0.288,
+            "木のシャフト": 0.246,
+            "原始的な組立機_VanillaGearMachineComponent": 0.24,
+            "電気汎用工作装置": 0.198,
+            "ふいご付き精錬炉_VanillaGearMachineComponent": 0.198,
+            "石窯": 0.183
+          }
+        },
+        "BatchDeleteObjects": {
+          "selfSumMs": 51.649,
+          "top": {
+            "Semaphore.WaitForSignal": 51.649
+          }
+        },
+        "Dispatcher": {
+          "selfSumMs": 51.576,
+          "top": {
+            "Semaphore.WaitForSignal": 50.158,
+            "Profiler.WriteBuffer": 1.415,
+            "LargeAllocation.Alloc": 0.003
+          }
+        },
+        "Worker 0": {
+          "selfSumMs": 51.474,
+          "top": {
+            "Idle": 47.813,
+            "CullingJob (Burst)": 1.441,
+            "TransformChangeSystem": 0.344,
+            "UpdateRendererBoundingVolumes": 0.238,
+            "BuildDrawListsJob (Burst)": 0.228,
+            "AllocateBinsPerBatch (Burst)": 0.188,
+            "DrawCommandOutputPerBatch (Burst)": 0.151,
+            "RenderLoop.Sort": 0.111,
+            "CullSceneDynamicObjects": 0.11,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.101,
+            "ExecuteRenderQueueJob": 0.096,
+            "RenderLoop.Prepare": 0.058,
+            "FindDrawInstancesJob (Burst)": 0.057,
+            "Profiler.ParseThreadData": 0.055,
+            "MeshSkinning.CalcMatrices": 0.052,
+            "EngineJob": 0.047,
+            "CompactVisibilityMasksJob (Burst)": 0.045,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.034,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.027,
+            "ComputeShadowSplitMasks": 0.024,
+            "SRPBatcher.DrawCommandsInjection": 0.022,
+            "CullObjectsWithoutUmbra": 0.021,
+            "VisualEffect.Update": 0.021,
+            "VFXRenderer.PrepareRenderNode": 0.02,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.018
+          }
+        },
+        "Worker 18": {
+          "selfSumMs": 51.472,
+          "top": {
+            "Idle": 47.475,
+            "CullingJob (Burst)": 1.594,
+            "TransformChangeSystem": 0.341,
+            "UpdateRendererBoundingVolumes": 0.315,
+            "BuildDrawListsJob (Burst)": 0.282,
+            "AllocateBinsPerBatch (Burst)": 0.227,
+            "DrawCommandOutputPerBatch (Burst)": 0.16,
+            "RenderLoop.Sort": 0.112,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.103,
+            "ExecuteRenderQueueJob": 0.086,
+            "CullSceneDynamicObjects": 0.079,
+            "CompactVisibilityMasksJob (Burst)": 0.078,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.078,
+            "RenderLoop.Prepare": 0.077,
+            "MeshSkinning.CalcMatrices": 0.058,
+            "EngineJob": 0.045,
+            "ComputeShadowSplitMasks": 0.037,
+            "FindDrawInstancesJob (Burst)": 0.035,
+            "Profiler.ParseThreadData": 0.032,
+            "SRPBatcher.DrawCommandsInjection": 0.029,
+            "VisualEffect.Update": 0.023,
+            "VFXRenderer.PrepareRenderNode": 0.018,
+            "InstanceDataSystem:ProbesUpdateJob (Burst)": 0.017,
+            "AnimatorControllerPlayable.PrepareFrame": 0.015,
+            "CalculateLODJob": 0.015
+          }
+        },
+        "Worker 17": {
+          "selfSumMs": 51.456,
+          "top": {
+            "Idle": 46.647,
+            "CullingJob (Burst)": 1.883,
+            "TransformChangeSystem": 0.462,
+            "UpdateRendererBoundingVolumes": 0.456,
+            "BuildDrawListsJob (Burst)": 0.239,
+            "AllocateBinsPerBatch (Burst)": 0.235,
+            "DrawCommandOutputPerBatch (Burst)": 0.166,
+            "CullSceneDynamicObjects": 0.136,
+            "ExecuteRenderQueueJob": 0.126,
+            "RenderLoop.Sort": 0.115,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.109,
+            "FindDrawInstancesJob (Burst)": 0.098,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.096,
+            "RenderLoop.Prepare": 0.082,
+            "MeshSkinning.CalcMatrices": 0.067,
+            "CompactVisibilityMasksJob (Burst)": 0.058,
+            "EngineJob": 0.056,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.038,
+            "Profiler.ParseThreadData": 0.035,
+            "ComputeShadowSplitMasks": 0.035,
+            "VisualEffect.Update": 0.028,
+            "SRPBatcher.DrawCommandsInjection": 0.027,
+            "VFXRenderer.PrepareRenderNode": 0.025,
+            "CullObjectsWithoutUmbra": 0.024,
+            "CalculateLODJob": 0.021
+          }
+        },
+        "Worker 16": {
+          "selfSumMs": 51.454,
+          "top": {
+            "Idle": 46.065,
+            "CullingJob (Burst)": 1.956,
+            "TransformChangeSystem": 0.545,
+            "UpdateRendererBoundingVolumes": 0.493,
+            "BuildDrawListsJob (Burst)": 0.422,
+            "AllocateBinsPerBatch (Burst)": 0.248,
+            "DrawCommandOutputPerBatch (Burst)": 0.164,
+            "CullSceneDynamicObjects": 0.138,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.129,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.126,
+            "ExecuteRenderQueueJob": 0.123,
+            "RenderLoop.Sort": 0.115,
+            "RenderLoop.Prepare": 0.114,
+            "FindDrawInstancesJob (Burst)": 0.103,
+            "MeshSkinning.CalcMatrices": 0.084,
+            "CompactVisibilityMasksJob (Burst)": 0.071,
+            "EngineJob": 0.064,
+            "Profiler.ParseThreadData": 0.053,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.045,
+            "SRPBatcher.DrawCommandsInjection": 0.039,
+            "VisualEffect.Update": 0.035,
+            "CullObjectsWithoutUmbra": 0.032,
+            "VFXRenderer.PrepareRenderNode": 0.026,
+            "CalculateLODJob": 0.026,
+            "ComputeShadowSplitMasks": 0.025
+          }
+        },
+        "Worker 14": {
+          "selfSumMs": 51.445,
+          "top": {
+            "Idle": 45.962,
+            "CullingJob (Burst)": 2.053,
+            "TransformChangeSystem": 0.589,
+            "UpdateRendererBoundingVolumes": 0.44,
+            "BuildDrawListsJob (Burst)": 0.276,
+            "AllocateBinsPerBatch (Burst)": 0.254,
+            "CullSceneDynamicObjects": 0.172,
+            "DrawCommandOutputPerBatch (Burst)": 0.169,
+            "ExecuteRenderQueueJob": 0.137,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.137,
+            "RenderLoop.Sort": 0.128,
+            "RenderLoop.Prepare": 0.111,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.11,
+            "MeshSkinning.CalcMatrices": 0.09,
+            "FindDrawInstancesJob (Burst)": 0.08,
+            "EngineJob": 0.071,
+            "Profiler.ParseThreadData": 0.069,
+            "CompactVisibilityMasksJob (Burst)": 0.064,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.058,
+            "CullObjectsWithoutUmbra": 0.043,
+            "ComputeShadowSplitMasks": 0.041,
+            "SRPBatcher.DrawCommandsInjection": 0.04,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.034,
+            "VisualEffect.Update": 0.033,
+            "CalculateLODJob": 0.029
+          }
+        },
+        "Worker 15": {
+          "selfSumMs": 51.444,
+          "top": {
+            "Idle": 45.894,
+            "CullingJob (Burst)": 1.991,
+            "TransformChangeSystem": 0.57,
+            "BuildDrawListsJob (Burst)": 0.469,
+            "UpdateRendererBoundingVolumes": 0.438,
+            "AllocateBinsPerBatch (Burst)": 0.265,
+            "CullSceneDynamicObjects": 0.176,
+            "DrawCommandOutputPerBatch (Burst)": 0.153,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.149,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.135,
+            "RenderLoop.Sort": 0.112,
+            "RenderLoop.Prepare": 0.106,
+            "FindDrawInstancesJob (Burst)": 0.1,
+            "MeshSkinning.CalcMatrices": 0.095,
+            "ExecuteRenderQueueJob": 0.095,
+            "CompactVisibilityMasksJob (Burst)": 0.079,
+            "EngineJob": 0.071,
+            "Profiler.ParseThreadData": 0.059,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.049,
+            "CullObjectsWithoutUmbra": 0.042,
+            "ComputeShadowSplitMasks": 0.039,
+            "SRPBatcher.DrawCommandsInjection": 0.034,
+            "VisualEffect.Update": 0.033,
+            "CalculateLODJob": 0.03,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.03
+          }
+        },
+        "Worker 13": {
+          "selfSumMs": 51.442,
+          "top": {
+            "Idle": 45.304,
+            "CullingJob (Burst)": 2.226,
+            "TransformChangeSystem": 0.657,
+            "UpdateRendererBoundingVolumes": 0.512,
+            "BuildDrawListsJob (Burst)": 0.448,
+            "AllocateBinsPerBatch (Burst)": 0.229,
+            "CullSceneDynamicObjects": 0.199,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.156,
+            "ExecuteRenderQueueJob": 0.155,
+            "DrawCommandOutputPerBatch (Burst)": 0.154,
+            "RenderLoop.Prepare": 0.146,
+            "RenderLoop.Sort": 0.12,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.119,
+            "FindDrawInstancesJob (Burst)": 0.101,
+            "MeshSkinning.CalcMatrices": 0.092,
+            "Profiler.ParseThreadData": 0.089,
+            "EngineJob": 0.076,
+            "CompactVisibilityMasksJob (Burst)": 0.067,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.058,
+            "CullObjectsWithoutUmbra": 0.052,
+            "SRPBatcher.DrawCommandsInjection": 0.051,
+            "VFXRenderer.PrepareRenderNode": 0.038,
+            "VisualEffect.Update": 0.037,
+            "ComputeShadowSplitMasks": 0.037,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.036
+          }
+        },
+        "Worker 12": {
+          "selfSumMs": 51.432,
+          "top": {
+            "Idle": 44.708,
+            "CullingJob (Burst)": 2.339,
+            "TransformChangeSystem": 0.756,
+            "UpdateRendererBoundingVolumes": 0.601,
+            "BuildDrawListsJob (Burst)": 0.499,
+            "AllocateBinsPerBatch (Burst)": 0.249,
+            "CullSceneDynamicObjects": 0.222,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.208,
+            "RenderLoop.Prepare": 0.165,
+            "DrawCommandOutputPerBatch (Burst)": 0.15,
+            "Profiler.ParseThreadData": 0.132,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.129,
+            "ExecuteRenderQueueJob": 0.12,
+            "RenderLoop.Sort": 0.12,
+            "FindDrawInstancesJob (Burst)": 0.114,
+            "MeshSkinning.CalcMatrices": 0.102,
+            "EngineJob": 0.084,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.074,
+            "CompactVisibilityMasksJob (Burst)": 0.071,
+            "SRPBatcher.DrawCommandsInjection": 0.06,
+            "CullObjectsWithoutUmbra": 0.058,
+            "ComputeShadowSplitMasks": 0.045,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.043,
+            "VisualEffect.Update": 0.041,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.04
+          }
+        },
+        "Worker 4": {
+          "selfSumMs": 51.217,
+          "top": {
+            "Idle": 43.15,
+            "CullingJob (Burst)": 2.494,
+            "TransformChangeSystem": 0.956,
+            "UpdateRendererBoundingVolumes": 0.784,
+            "BuildDrawListsJob (Burst)": 0.551,
+            "Profiler.ParseThreadData": 0.533,
+            "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.282,
+            "AllocateBinsPerBatch (Burst)": 0.269,
+            "CullSceneDynamicObjects": 0.255,
+            "FindDrawInstancesJob (Burst)": 0.203,
+            "DrawCommandOutputPerBatch (Burst)": 0.156,
+            "ExecuteRenderQueueJob": 0.151,
+            "Shadows.CullShadowCastersWithoutUmbra": 0.139,
+            "MeshSkinning.CalcMatrices": 0.134,
+            "RenderLoop.Sort": 0.115,
+            "EngineJob": 0.108,
+            "InstanceDataSystem:TransformUpdateJob (Burst)": 0.099,
+            "RenderLoop.Prepare": 0.089,
+            "CompactVisibilityMasksJob (Burst)": 0.078,
+            "InstanceDataSystem:QueryRendererGroupInstancesJob (Burst)": 0.058,
+            "VisualEffect.Update": 0.057,
+            "CullObjectsWithoutUmbra": 0.056,
+            "InstanceDataSystem:UpdateCompactedInstanceVisibilityJob (Burst)": 0.051,
+            "AnimatorControllerPlayable.PrepareFrame": 0.039,
+            "CalculateLODJob": 0.039
+          }
+        },
+        "Render Thread": {
+          "selfSumMs": 51.188,
+          "top": {
+            "Semaphore.WaitForSignal": 11.095,
+            "DrawBuffersBatchMode": 9.254,
+            "GfxDeviceD3D12.WaitForGPU": 7.859,
+            "RenderLoop": 6.256,
+            "GfxDeviceD3D12.ResourceBarriers": 3.869,
+            "MeshSkinning.GPUBatchedSkin": 3.73,
+            "GfxDeviceD3D12.ExecuteCommandList": 2.814,
+            "RenderLoop.Draw": 1.231,
+            "RenderLoop.DrawSRPBatcher": 0.963,
+            "MeshSkinning.SkinOnGPU": 0.945,
+            "CreateCommittedResourceWithTag": 0.805,
+            "BufferD3D12.UpdateInternal": 0.328,
+            "Gfx.UpdateAsyncReadbackData": 0.23,
+            "VFX.ParticleSystem.RenderQuad": 0.215,
+            "Shadows.Draw": 0.183,
+            "VFX.ParticleSystem.RenderQuadIndirect": 0.176,
+            "VFX.ParticleSystem.BatchUpdate": 0.14,
+            "RenderTexture.ResolveAA": 0.134,
+            "GfxDeviceD3D12.Reuse": 0.083,
+            "Gfx.SetRenderTarget": 0.08,
+            "ScriptableRenderer.Execute: URP Data(Clone)": 0.069,
+            "VFX.ParticleSystem.BatchInit": 0.067,
+            "VFX.CopyBuffer": 0.049,
+            "Shadows.DrawSRPBatcher": 0.046,
+            "Profiler.CollectUsedTextureStats": 0.044
+          }
+        },
+        "DataDeserializer": {
+          "selfSumMs": 50.769,
+          "top": {
+            "Semaphore.WaitForSignal": 32.621,
+            "Profiler.ParseGlobalData": 14.515,
+            "Profiler.ParseThreadData": 1.153,
+            "Profiler.ParseBlock": 0.753,
+            "WaitForJobGroupID": 0.677,
+            "LargeAllocation.Free": 0.663,
+            "Profiler.SortThreadMetadata": 0.341,
+            "Profiler.SyncGlobalData": 0.026,
+            "LargeAllocation.Alloc": 0.017,
+            "Find dependency chain": 0.005,
+            "Profiler.DerializeStats": 0.0
+          }
+        }
+      }
+    }
+  ],
+  "windows": [
+    {
+      "cycle": 1,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.442,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.739,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 499.355,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9937.616,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9841.616,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743857.884,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 47.069,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 47.662,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 39.8,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 13.126,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 6.115,
+          "frames": 138,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "shadows",
+      "state": "cond=shadows renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=0/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 10.968,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 11.256,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 425.611,
+          "frames": 157,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 7769.943,
+          "frames": 157,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 7708.338,
+          "frames": 157,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 0.0,
+          "frames": 157,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 13876443.656,
+          "frames": 157,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 40.566,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 42.097,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 34.946,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 10.524,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 157,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 4.289,
+          "frames": 157,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "ssao",
+      "state": "cond=ssao renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):False/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.277,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.58,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 495.338,
+          "frames": 142,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9933.718,
+          "frames": 142,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9837.718,
+          "frames": 142,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 142,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743841.254,
+          "frames": 142,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 44.787,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 45.461,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 38.485,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.65,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 142,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 6.093,
+          "frames": 142,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "outlines",
+      "state": "cond=outlines renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):False/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.358,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.656,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 463.341,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9901.587,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9805.587,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18736152.464,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 46.123,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 46.842,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 39.109,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 13.317,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 6.999,
+          "frames": 137,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "camtex",
+      "state": "cond=camtex renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:Off,Off,post=True/Debug Cinematic Camera:Off,Off,post=True/MainCamera:Off,Off,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.818,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 15.125,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.354,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9936.792,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9840.792,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743787.846,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 48.964,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 49.375,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 40.776,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.386,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 5.943,
+          "frames": 130,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "post",
+      "state": "cond=post renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=False/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=False/MainCamera:UsePipelineSettings,UsePipelineSettings,post=False",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.337,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.627,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 497.364,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9935.636,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9839.636,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743892.455,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 47.967,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 48.475,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 39.932,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.883,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 6.027,
+          "frames": 132,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.693,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.992,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 499.357,
+          "frames": 129,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9937.791,
+          "frames": 129,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9841.791,
+          "frames": 129,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 129,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743877.992,
+          "frames": 129,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 48.79,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 48.389,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 40.571,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 11.428,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 129,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 5.344,
+          "frames": 128,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.58,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.877,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 499.353,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9937.794,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9841.794,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743850.471,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 47.086,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 47.675,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 39.836,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.134,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 6.015,
+          "frames": 136,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "shadows",
+      "state": "cond=shadows renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=0/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 11.006,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 11.306,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 428.333,
+          "frames": 153,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 7819.647,
+          "frames": 153,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 7757.647,
+          "frames": 153,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 0.0,
+          "frames": 153,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 13965375.549,
+          "frames": 153,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 41.56,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 42.133,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 35.044,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.142,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 153,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 5.808,
+          "frames": 152,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "ssao",
+      "state": "cond=ssao renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):False/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.394,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 14.688,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 495.338,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9933.669,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9837.669,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18743810.0,
+          "frames": 136,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 46.844,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 47.407,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 39.388,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.52,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 136,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 5.937,
+          "frames": 135,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "outlines",
+      "state": "cond=outlines renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):False/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.784,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 15.088,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 463.348,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9901.811,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9805.811,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18736223.606,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 48.581,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 49.021,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 40.7,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 12.628,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 6.07,
+          "frames": 130,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "camtex",
+      "state": "cond=camtex renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:Off,Off,post=True/Debug Cinematic Camera:Off,Off,post=True/MainCamera:Off,Off,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.727,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 15.025,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 504.277,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9956.723,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9860.723,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18993564.231,
+          "frames": 130,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 49.053,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 49.637,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 40.375,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 13.482,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 130,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 5.299,
+          "frames": 128,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "post",
+      "state": "cond=post renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=False/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=False/MainCamera:UsePipelineSettings,UsePipelineSettings,post=False",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 15.046,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 15.363,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 500.833,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9954.379,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9858.379,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18994614.348,
+          "frames": 132,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 48.599,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 49.507,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 40.898,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 13.136,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 132,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 5.236,
+          "frames": 131,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=SkitCamera:UsePipelineSettings,UsePipelineSettings,post=True/Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings,post=True/MainCamera:UsePipelineSettings,UsePipelineSettings,post=True",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 14.761,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 15.063,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 502.906,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 9956.348,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 9860.348,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 2102.0,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18994655.913,
+          "frames": 138,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 47.891,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuFrame": {
+          "avg": 48.548,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuMainThread": {
+          "avg": 39.933,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuRenderThread": {
+          "avg": 11.409,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.cpuMainThreadPresentWait": {
+          "avg": 0.0,
+          "frames": 138,
+          "unit": "ms"
+        },
+        "ft.gpuFrame": {
+          "avg": 4.737,
+          "frames": 137,
+          "unit": "ms"
+        }
+      }
+    }
+  ]
+}
