@@ -80,7 +80,7 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         waterMaterialIndex = (int)typeof(FluidPipeWaterLevelView).GetField("waterMaterialIndex", viewFlags).GetValue(waterLevelView);
         p.Assert(typeof(FluidPipeWaterLevelView).GetMethod("Update", viewFlags) == null, "水位ViewにUpdate無し");
         pipe = block.GetComponent<FluidPipeComponent>();
-        p.Note($"[PIPE] before UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, waterLevelView={waterLevelView.GetInstanceID()}, renderer={renderer.GetInstanceID()}, origin={origin}");
+        p.Note($"[PIPE] before UI: block={block.BlockInstanceId}, view={view.GetEntityId()}, waterLevelView={waterLevelView.GetEntityId()}, renderer={renderer.GetEntityId()}, origin={origin}");
         await AddWater(neighborPositions[0], 200.0);
         await p.Screenshot("01-medium-game");
         p.Note("Escapeからトップ4ボタンを確認して画質設定を開く");
@@ -119,7 +119,7 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         // Change water on the same receiver without resetting quality or replacing it
         p.Assert(object.ReferenceEquals(p.GetBlock(origin), block) && object.ReferenceEquals(await p.WaitBlockGameObject(origin), view), "UI切替前後で同一サーバーブロックとView");
         p.Assert(view.GetComponentInChildren<FluidPipeWaterLevelView>() == waterLevelView && (MeshRenderer)typeof(FluidPipeWaterLevelView).GetField("meshRenderer", viewFlags).GetValue(waterLevelView) == renderer, "UI切替前後で同一水位ViewとRenderer");
-        p.Note($"[PIPE] after UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, waterLevelView={waterLevelView.GetInstanceID()}, renderer={renderer.GetInstanceID()}");
+        p.Note($"[PIPE] after UI: block={block.BlockInstanceId}, view={view.GetEntityId()}, waterLevelView={waterLevelView.GetEntityId()}, renderer={renderer.GetEntityId()}");
         await AddWater(neighborPositions[1], 450.0);
         await AddWater(neighborPositions[2], 500.0);
         p.Assert(!GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out _) && !Camera.main.GetUniversalAdditionalCameraData().renderShadows, "水位確認完了まで影オフのカスタムを維持");

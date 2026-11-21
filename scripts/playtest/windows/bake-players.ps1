@@ -15,7 +15,7 @@ $MasterClone = Join-Path $Root 'moorestech_master'
 $MasterWorktree = Join-Path $Root "_release\master-$($a.masterPin.Substring(0,8))"
 $SeedPrivate = 'C:\dev\moorestech\moorestech_client\Assets\PersonalAssets\moorestech-client-private'
 $SeedLibrary = 'C:\dev\moorestech\moorestech_client\Library'
-$UnityExe = 'C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe'
+$UnityExe = 'C:\Program Files\Unity\Hub\Editor\6000.6.10f1\Editor\Unity.exe'
 $Rcodesign = 'C:\dev\tools\rcodesign\apple-codesign-0.29.0-x86_64-pc-windows-msvc\rcodesign.exe'
 $JobDir = $a.jobDir
 New-Item -ItemType Directory -Force -Path $JobDir | Out-Null

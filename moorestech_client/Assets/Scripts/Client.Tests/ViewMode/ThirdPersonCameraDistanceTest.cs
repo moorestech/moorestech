@@ -46,8 +46,8 @@ namespace Client.Tests.ViewMode
         {
             var gameObject = new GameObject("InGameCameraController");
             gameObject.SetActive(false);
-            var virtualCameraType = FindType("Cinemachine.CinemachineVirtualCamera");
-            var framingType = FindType("Cinemachine.CinemachineFramingTransposer");
+            var virtualCameraType = FindType("Unity.Cinemachine.CinemachineVirtualCamera");
+            var framingType = FindType("Unity.Cinemachine.CinemachineFramingTransposer");
             var virtualCamera = gameObject.AddComponent(virtualCameraType);
             var addFramingMethod = virtualCameraType.GetMethods().Single(method => method.Name == "AddCinemachineComponent" && method.IsGenericMethodDefinition);
             var framing = addFramingMethod.MakeGenericMethod(framingType).Invoke(virtualCamera, null);
