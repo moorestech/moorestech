@@ -10,11 +10,11 @@
       "hash": "38fecf55e4fd94ccfe58a92ed8ad1a529ba1694e"
     },
     "com.cysharp.unitask": {
-      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "9e2163616b9c527fa9461544e2bcc5f93fd12d83"
+      "hash": "2e993ff18f28c931602a07292df0b0804eebef99"
     },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
@@ -103,15 +103,6 @@
       "source": "registry",
       "dependencies": {
         "com.unity.test-framework": "1.1.33"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.inputsystem": {
-      "version": "1.20.1",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.uielements": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -241,6 +232,17 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       }
     },
+    "com.unity.timeline": {
+      "version": "6.6.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.modules.director": "1.0.0",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.audio": "1.0.0",
+        "com.unity.modules.particlesystem": "1.0.0"
+      }
+    },
     "com.unity.toolchain.macos-arm64-linux": {
       "version": "1.1.0",
       "depth": 0,
@@ -273,40 +275,37 @@
       "url": "https://packages.unity.com"
     },
     "com.vrmc.gltf": {
-      "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/UniGLTF#v0.99.0",
+      "version": "https://github.com/vrm-c/UniVRM.git?path=/Packages/UniGLTF#v0.131.4",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.vrmc.vrmshaders": "0.99.0"
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.test-framework": "1.4.6",
+        "com.unity.mathematics": "1.2.6"
       },
-      "hash": "f9ee070a7bc2a4f124795103c22bac2af9f8a241"
+      "hash": "efd20f62f1bf0ac3fcc34de1e497324c5197d146"
     },
     "com.vrmc.univrm": {
-      "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/VRM#v0.99.0",
+      "version": "https://github.com/vrm-c/UniVRM.git?path=/Packages/VRM#v0.131.4",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.vrmc.vrmshaders": "0.99.0",
-        "com.vrmc.gltf": "0.99.0"
+        "com.vrmc.gltf": "0.131.4",
+        "com.unity.ugui": "1.0.0"
       },
-      "hash": "f9ee070a7bc2a4f124795103c22bac2af9f8a241"
+      "hash": "efd20f62f1bf0ac3fcc34de1e497324c5197d146"
     },
     "com.vrmc.vrm": {
-      "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/VRM10#v0.99.0",
+      "version": "https://github.com/vrm-c/UniVRM.git?path=/Packages/VRM10#v0.131.4",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.vrmc.vrmshaders": "0.99.0",
-        "com.vrmc.gltf": "0.99.0"
+        "com.unity.timeline": "1.7.6",
+        "com.vrmc.gltf": "0.131.4"
       },
-      "hash": "f9ee070a7bc2a4f124795103c22bac2af9f8a241"
-    },
-    "com.vrmc.vrmshaders": {
-      "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/VRMShaders#v0.99.0",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "f9ee070a7bc2a4f124795103c22bac2af9f8a241"
+      "hash": "efd20f62f1bf0ac3fcc34de1e497324c5197d146"
     },
     "com.yasirkula.ingamedebugconsole": {
       "version": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
@@ -322,15 +321,15 @@
       "dependencies": {}
     },
     "io.github.hatayama.uloopmcp": {
-      "version": "https://github.com/hatayama/uLoopMCP.git?path=/Packages/src",
+      "version": "3.3.0",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {
-        "com.unity.inputsystem": "1.14.2",
-        "com.unity.ugui": "1.0.0",
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
+        "com.unity.nuget.mono-cecil": "1.11.6",
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.ugui": "1.0.0"
       },
-      "hash": "05926b529b9a1895f509904238a57fc20da0a410"
+      "url": "https://package.openupm.com"
     },
     "org.nuget.microsoft.codeanalysis.analyzers": {
       "version": "3.11.0",
