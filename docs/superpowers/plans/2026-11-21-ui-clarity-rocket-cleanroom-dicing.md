@@ -5649,7 +5649,7 @@ git commit -m "積荷の選択肢・詳細・透かしの枠・解放済みの�
   - `SpecialBlockDetailReader.Read(BlockGameObject, BlockNetworkInfoCache, BeltTransportClientCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)`
   - `SpecialBlockDetailModel(IBlockInventoryPanelSource, OpenBlockDetailTracker, BlockNetworkInfoCache, BeltTransportClientCache, IUnlockedOrbitalCargoSource)`
 
-- [ ] **Step 1: テストを書く（直す）**
+- [x] **Step 1: テストを書く（直す）**
 
 `FakeUnlockedOrbitalCargoSource.cs`（新規）:
 
@@ -5873,14 +5873,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Cargo
             var reordered = new SpaceElevatorDetail(new[] { 2 }, new[] { 1, 0 }, Array.Empty<InletSlotBinding>(), false, 1000, 1000, 0f, SpaceElevatorBaseStatus.ReadyToConnect, SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.ReadyToConnect, false, 1000, 0f).Cargo);
 ```
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
 ```
 期待: 新しい ctor・`Cargo`・`RequiredItemSlot` の引数が無いのでコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `RocketLaunchPadDetail.cs`（全体）:
 
@@ -6151,7 +6151,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 ```
 （`using System.Linq;` を足す。）
 
-- [ ] **Step 4: 解放済みの源を登録する**
+- [x] **Step 4: 解放済みの源を登録する**
 
 `SpecialBlockDetailModel` の ctor が `IUnlockedOrbitalCargoSource` を受けるようになったので、同じコミットで源を登録する（無いと実ゲームと全 EditModeInPlayingTest が DI の解決で落ちる）。`MainGameUiRegistration.cs` 51 行（`UnlockedMachineRecipeSource`）の次に（`using Client.Ui.State.BlockInventory.Special.Cargo;` を足す）:
 
@@ -6161,7 +6161,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 
 48–49 行の 2 行コメントの末尾に「・解放済みの積荷」／ "and unlocked cargo kinds" を足す。
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -6171,7 +6171,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 ```
 期待: 全部緑。テストの名前空間は実装前に各ファイルの `namespace` 行で確かめ、`--filter-value` の完全名を合わせる（`SpecialStateDetailReaderTest` は `Client.Tests.Ui.State.BlockInventory.Special` のはず）。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/Space/RocketLaunchPadBodyView.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/Ui
