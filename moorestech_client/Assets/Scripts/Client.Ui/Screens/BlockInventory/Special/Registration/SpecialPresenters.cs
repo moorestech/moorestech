@@ -1,5 +1,6 @@
 using Client.Input.ArrowKeys;
 using Client.Ui.Screens.BlockInventory.Special.Belt;
+using Client.Ui.Screens.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special;
 using Client.Ui.State.BlockInventory.Special.Selectors;
@@ -35,6 +36,13 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         public BeltThroughputSectionPresenter Belt(BeltThroughputSectionView view)
         {
             return new BeltThroughputSectionPresenter(view, _model, _arrowKeys, _routing, _panels);
+        }
+
+        // 積荷を選ぶ本文（発射台・拠点）。一覧の局所状態を持つ専用の Presenter と組む（前例 Belt）
+        // Cargo-selecting bodies (launch pad, elevator base), paired with a dedicated presenter owning the list state (precedent Belt)
+        public OrbitalCargoBodyPresenter OrbitalCargoBody<TView>(TView view) where TView : VisualElement, IOrbitalCargoBodyView
+        {
+            return new OrbitalCargoBodyPresenter(view, view, new OrbitalCargoDetailSelector(), _model, _panels);
         }
     }
 }

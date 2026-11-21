@@ -5,6 +5,7 @@ using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Items;
 using Core.Master;
 using Game.Block.Interface.State;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
@@ -22,11 +23,25 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         protected SpaceElevatorBodyView Render(SlotItem[] slots, SpecialBlockDetailViewModel detail)
         {
-            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent())));
-            view.Render(slots, detail);
+            // 見本は選んだ積荷を持つので、一覧を出さないモードで本文を直に描く（一覧を出すかは Presenter の役）
+            // Samples carry a selected cargo, so draw the body directly in the non-list mode (deciding the mode is the presenter's job)
+            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            view.Render(slots, detail, false);
 
-            // 本文は Render で格子の枠を組むので、配置を解いてから押下を送る（Task 7 と同じ）
-            // The body builds grid frames in Render, so resolve layout before sending presses (same as Task 7)
+            // 見出しを載せた後のスタイル解決で余白が変わるため、次フレームの配置で押下先の座標を取る
+            // Resolving styles after mounting the headline changes spacing; use the next frame's layout for click coordinates
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            return view;
+        }
+
+        // Presenter を通して描く（一覧を出すかを Presenter の局所状態が決める経路）
+        // Draw through the presenter (the path where its local state decides whether the cargo list shows)
+        protected SpaceElevatorBodyView Attach(SlotItem[] slots, SpaceElevatorDetail detail)
+        {
+            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            Model.Set(SpecialDetailSamples.ElevatorWithNetwork(detail));
+            Presenters.OrbitalCargoBody(view).Attach(OpenPanel(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, slots));
             simulate.FrameUpdate();
             return view;
         }

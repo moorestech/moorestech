@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
@@ -26,23 +27,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         [Test]
         public void 発射台の詳細が無い種別では取得待ちを出し落ちない()
         {
-            var view = Mount(new RocketLaunchPadBodyView(Kit(null)));
-            view.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
+            var view = Mount(new RocketLaunchPadBodyView(Kit(null), false));
+            view.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork), false);
             Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
-            Assert.IsFalse(IsShown(Find<VisualElement>(view, "rocket-launch-pad-view")));
+            Assert.IsFalse(IsShown(Find<VisualElement>(view, "rocket-launch-pad-cargo-pane")));
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">waits for initial detail and renders when the topic arrives</web-test>
         [Test]
         public void 詳細の未着は取得待ちで届いたら本文を描く()
         {
-            var view = Mount(new RocketLaunchPadBodyView(Kit(null)));
-            view.Render(NoSlots, SpecialBlockDetailViewModel.Empty);
+            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
+            view.Render(NoSlots, SpecialBlockDetailViewModel.Empty, false);
             Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
 
-            view.Render(ThreeSlots(), SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)));
+            view.Render(ThreeSlots(), SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)), false);
             Assert.IsFalse(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
-            Assert.IsTrue(IsShown(Find<VisualElement>(view, "rocket-launch-pad-view")));
+            Assert.IsTrue(IsShown(Find<VisualElement>(view, "rocket-launch-pad-cargo-pane")));
         }
 
         /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">dispatches both commands from GamePanel.titleAction and hides them outside command waits</web-test>
@@ -85,10 +86,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
         [Test]
         public void 群を描き実際の押下でもサーバーの絶対添字を保つ()
         {
-            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent())));
+            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
             var slots = new[] { new SlotItem(new ItemId(3), 20), new SlotItem(new ItemId(4), 5), new SlotItem(new ItemId(5), 7), new SlotItem(new ItemId(1), 2) };
-            var rocket = new RocketLaunchPadDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.OutputFull, 0.375f, new[] { new RequiredItemSlot(2, new ItemId(1), 20) }, new[] { new RequiredItemSlot(0, new ItemId(2), 20) }, Array.Empty<InletSlotBinding>(), 3, SpecialDetailSamples.Rocket(RocketLaunchPadPhase.Idle).Cargo);
-            view.Render(slots, SpecialDetailSamples.Only(rocket));
+            var payload = new ItemId(3);
+            var cargo = new OrbitalCargoDetail(payload, null, new[] { new OrbitalCargoChoice(payload, 20, new[] { new ItemAmount(new ItemId(1), 20) }, false) }, new[] { payload }, 120);
+            var rocket = new RocketLaunchPadDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.OutputFull, 0.375f, new[] { new RequiredItemSlot(2, new ItemId(5), 7) }, new[] { new RequiredItemSlot(0, payload, 20) }, Array.Empty<InletSlotBinding>(), 3, cargo);
+            view.Render(slots, SpecialDetailSamples.Only(rocket), false);
             simulate.FrameUpdate();
 
             Assert.AreEqual(0.375f, GaugeValue(view, "rocket-launch-pad-progress"), 0.001f);
@@ -109,6 +112,24 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
                 CollectionAssert.Contains(issued, $"DoubleClick {index}");
                 Assert.IsTrue(issued.All(line => line.EndsWith($" {index}")), string.Join(", ", issued));
             }
+        }
+
+        [Test]
+        public void 選んだ後は選んだ積荷の枠と前の種類の残りだけを積荷の群に出す()
+        {
+            var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
+            var cargo = OrbitalCargoSamples.Pad(OrbitalCargoSamples.ChipLv1, null, OrbitalCargoSamples.ChipLv1, OrbitalCargoSamples.Cable);
+            var rocket = new RocketLaunchPadDetail(RocketLaunchPadPhase.Idle, RocketLaunchPadWaitReason.MissingPayload, 0f,
+                new[] { new RequiredItemSlot(0, new ItemId(4), 20) },
+                new[] { new RequiredItemSlot(1, OrbitalCargoSamples.ChipLv1, 20), new RequiredItemSlot(2, OrbitalCargoSamples.ChipLv2, 20), new RequiredItemSlot(3, OrbitalCargoSamples.Cable, 1000) },
+                Array.Empty<InletSlotBinding>(), 4, cargo);
+            var slots = new[] { new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(OrbitalCargoSamples.Cable, 300), new SlotItem(ItemMaster.EmptyItemId, 0) };
+            view.Render(slots, SpecialDetailSamples.Only(rocket), false);
+            simulate.FrameUpdate();
+            var payloadFrames = Find<VisualElement>(view, "rocket-launch-pad-payload-slots").Query<VisualElement>().Where(e => e.name != null && e.name.StartsWith("rocket-launch-pad-payload-slots-slot-")).ToList().Select(e => e.name).ToArray();
+            CollectionAssert.AreEqual(new[] { "rocket-launch-pad-payload-slots-slot-1", "rocket-launch-pad-payload-slots-slot-3" }, payloadFrames, "選んだ枠を先に、ケーブルの残りを後に。空の Lv2 は出さない");
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-material-slots-slot-0"));
+            Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-header"));
         }
 
         private static SlotItem[] ThreeSlots()

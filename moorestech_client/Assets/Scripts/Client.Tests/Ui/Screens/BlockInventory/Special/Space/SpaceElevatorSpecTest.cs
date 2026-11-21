@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
 
             simulate.Click(Find<Button>(view, "space-elevator-connect"));
             CollectionAssert.AreEqual(new[] { "space_elevator.connect" }, Commands.Issued);
-            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.Climbing, true, 1000, 0f)));
+            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.Climbing, true, 1000, 0f)), false);
             Assert.IsTrue(IsShown(Find<VisualElement>(view, "space-elevator-progress")));
             Assert.IsFalse(IsShown(Find<Button>(view, "space-elevator-connect")));
         }
@@ -76,10 +76,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
         [Test]
         public void 取得待ちから接続可能へ移る()
         {
-            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent())));
-            view.Render(Slots(false), SpecialBlockDetailViewModel.Empty);
+            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            view.Render(Slots(false), SpecialBlockDetailViewModel.Empty, false);
             Assert.IsTrue(IsShown(Find<Label>(view, "space-elevator-loading")));
-            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(Unconnected(SpaceElevatorBaseStatus.ReadyToConnect)));
+            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(Unconnected(SpaceElevatorBaseStatus.ReadyToConnect)), false);
             Assert.IsFalse(IsShown(Find<Label>(view, "space-elevator-loading")));
             Assert.IsTrue(Find<Button>(view, "space-elevator-connect").enabledSelf);
         }
