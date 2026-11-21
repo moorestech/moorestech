@@ -2,6 +2,7 @@ using System;
 using Client.Input;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Modal.Logic;
@@ -45,6 +46,10 @@ namespace Client.Ui.Screens.Modal
             message.SetText(UiText.FromVerbatim(request.Message));
             frame.Add(message);
 
+            // 項目名と値の行は行のある要求だけ（visual-vocabulary §3。ADR 0105 §4）
+            // Label-and-values rows only for requests that carry them (visual-vocabulary §3, ADR 0105 §4)
+            if (request.Rows.Count > 0) frame.Add(CreateTable());
+
             // 入力欄は入力付きのみ、ボタンは全幅
             // The field only for input requests; the button spans the width
             if (request.RequiresInput) frame.Add(CreateInput());
@@ -59,6 +64,33 @@ namespace Client.Ui.Screens.Modal
             RegisterCallback<DetachFromPanelEvent>(OnDetached);
 
             #region Internal
+
+            VisualElement CreateTable()
+            {
+                // 1行は項目名の行と、その下に字下げした値の行の2行1組。罫線・列そろえは作らない
+                // Each row is a label line with an indented values line below; no rules or column alignment
+                var table = new UiStack(UiGap.Sm) { name = "modal-table", pickingMode = PickingMode.Ignore };
+                table.AddToClassList("modal-view__table");
+                for (var i = 0; i < request.Rows.Count; i++)
+                {
+                    var row = new UiStack(UiGap.Px2) { name = $"modal-table-row-{i}", pickingMode = PickingMode.Ignore };
+                    row.AddToClassList("modal-view__table-row");
+                    row.AddItem(TableLabel($"modal-table-row-{i}-label", request.Rows[i].Label, null));
+                    row.AddItem(TableLabel($"modal-table-row-{i}-values", request.Rows[i].Values, "modal-view__table-values"));
+                    table.AddItem(row);
+                }
+                return table;
+            }
+
+            LocalizedLabel TableLabel(string testid, string text, string extraClassName)
+            {
+                var label = new LocalizedLabel { name = testid, pickingMode = PickingMode.Ignore };
+                label.AddToClassList(UiTypographyClass.TextSm);
+                label.AddToClassList(UiTypographyClass.TextDefault);
+                if (extraClassName != null) label.AddToClassList(extraClassName);
+                label.SetText(UiText.FromVerbatim(text));
+                return label;
+            }
 
             GameTextField CreateInput()
             {
