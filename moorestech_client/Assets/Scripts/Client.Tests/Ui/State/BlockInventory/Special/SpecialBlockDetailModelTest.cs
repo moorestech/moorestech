@@ -44,7 +44,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 宇宙エレベーターの詳細は在庫を開けたパネルでだけ出る(BlockInventoryPanelError error, bool expected)
         {
             var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestSpaceElevatorBase);
-            var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing)));
+            var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing, null, null)));
             // 追跡ブロックの個体 ID（既定値）とパネルの個体 ID をそろえ、違いを Error だけにする
             // Match the panel's instance ID to the tracked block's (default) so only Error differs
             var panel = new OpenBlockInventoryPanel(master.BlockType, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), error);

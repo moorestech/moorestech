@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 接続と昇降中がセーブを往復する()
         {
             var (_, provider) = CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(elevatorBase, Vector3Int.zero, 100f);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 撤去すると昇降中の衛星とスロットがプレイヤーへ返り接続分がプールへ戻る()
         {
             var (packet, provider) = CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(elevatorBase, Vector3Int.zero, 100f);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void ロードした残りが昇降時間を超えていたら総時間に収める()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
             var satellite = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1);
             var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(satellite), RemainingClimbSeconds = param.ClimbSeconds * 10 };
@@ -111,7 +111,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 運ぶ積荷でない衛星が昇降中でロードされたら入口へ戻す()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var stray = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1);
             var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(stray), RemainingClimbSeconds = 1 };
 
@@ -136,7 +136,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 昇降中の衛星が2機以上のセーブは1機だけ昇らせ残りを入口へ戻す()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var satellites = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 3);
             var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(satellites), RemainingClimbSeconds = 1 };
 
@@ -153,7 +153,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 残りが負のセーブは最初から昇り直す()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var satellite = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1);
             var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(satellite), RemainingClimbSeconds = -5 };
 

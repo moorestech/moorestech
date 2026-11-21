@@ -73,7 +73,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 宇宙エレベーターは入口1枠と運べる積荷の束縛と出口の連番とプールと状態を持つ()
         {
             var satellite = new ItemId(5);
-            var detail = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 250, 0f, SpaceElevatorBaseStatus.InsufficientCable), 0, new[] { satellite }, 1, 2, 1000);
+            var detail = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 250, 0f, SpaceElevatorBaseStatus.InsufficientCable, null, null), 0, new[] { satellite }, 1, 2, 1000);
             CollectionAssert.AreEqual(new[] { 0 }, detail.SatelliteInputSlots);
             Assert.AreEqual(1, detail.InletBindings.Count);
             Assert.AreEqual(0, detail.InletBindings[0].Slot);

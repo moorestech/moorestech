@@ -28,7 +28,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void 受け付けないアイテムのShiftは候補が無く入れ口の物だけが入口へ向かう()
         {
-            var elevator = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 0, 0f, SpaceElevatorBaseStatus.ReadyToConnect), 0, new[] { GpuSatellite }, 1, 2, 1000);
+            var elevator = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 0, 0f, SpaceElevatorBaseStatus.ReadyToConnect, null, null), 0, new[] { GpuSatellite }, 1, 2, 1000);
             var open = Contribute(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, SpecialDetailSamples.ElevatorWithNetwork(elevator));
 
             var wood = BlockSlotRestrictionResolver.Resolve(open, Wood) as BoundBlockSlots;

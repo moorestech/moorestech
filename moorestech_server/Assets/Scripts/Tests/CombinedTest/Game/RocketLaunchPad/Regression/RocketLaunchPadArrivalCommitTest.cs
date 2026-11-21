@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
                 Assert.AreEqual(4, processor.GetRefundItems().Count);
                 Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             });
-            var elevator = SpaceElevatorTestUtil.PlaceBase(new Vector3Int(20, 0, 0));
+            var elevator = SpaceElevatorTestUtil.PlaceBase(new Vector3Int(20, 0, 0), ForUnitTestItemId.TestElevatorSatellite);
             var connect = new ConnectEntry(elevator);
             ServerContext.GetService<TickEndPacketQueue>().Enqueue(connect);
             GameUpdater.UpdateOneTick();

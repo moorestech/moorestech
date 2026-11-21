@@ -1,3 +1,4 @@
+using Game.Block.Blocks.OrbitalCargo;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -29,7 +30,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 不正な残り時間は衛星を保持して最初から昇る(double remaining)
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
             var param = (SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam;
             var save = Save(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1), remaining);
@@ -48,7 +49,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 衛星なしの残り時間はエラーログとともに取り消す()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LogAssert.Expect(LogType.Error, new Regex("衛星が無いのに残り"));
             var climber = Load(Save(ServerContext.ItemStackFactory.CreatEmpty(), 1),
                 block.GetComponent<SpaceElevatorBaseInventoryComponent>(), (SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam);
@@ -62,7 +63,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void セーブの非空超過スロットは原本を保ってロードを止める()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var param = (SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam;
             var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
             var items = (List<ItemStackSaveJsonObject>)inventory.GetSaveState();
@@ -74,7 +75,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LogAssert.Expect(LogType.Error, new Regex("出口縮小.*ロードを中断"));
             Assert.Throws<InvalidOperationException>(() => new SpaceElevatorBaseInventoryComponent(new Dictionary<string, object> { { inventory.SaveKey, items } },
                 block.BlockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(block.BlockInstanceId,
-                    block.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>()), ServerContext.GetService<global::Game.Orbit.IOrbitalArrivalService>()));
+                    block.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>()), ServerContext.GetService<global::Game.Orbit.IOrbitalArrivalService>(), new OrbitalCargoSelectionState()));
             Assert.AreEqual(3, items.Count);
             Assert.AreEqual(1, items[2].Count);
         }
@@ -83,7 +84,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 残りゼロの衛星は頂上の出口待ちとして復元する()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
             inventory.SetItem(1, ForUnitTestItemId.ItemId1, 1);
             var climber = Load(Save(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1), 0),

@@ -1,3 +1,4 @@
+using Tests.Module.TestMod;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -21,9 +22,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var (_, provider) = CreateServer();
             var service = ServerContext.GetService<SpaceElevatorConnectionService>();
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
-            var first = PlaceBase(new Vector3Int(0, 0, 0));
-            var second = PlaceBase(new Vector3Int(10, 0, 0));
-            var third = PlaceBase(new Vector3Int(20, 0, 0));
+            var first = PlaceBase(new Vector3Int(0, 0, 0), ForUnitTestItemId.TestElevatorSatellite);
+            var second = PlaceBase(new Vector3Int(10, 0, 0), ForUnitTestItemId.TestElevatorSatellite);
+            var third = PlaceBase(new Vector3Int(20, 0, 0), ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(200);
             Assert.AreEqual(SpaceElevatorConnectResult.Connected, service.Connect(first));
             Assert.AreEqual(SpaceElevatorConnectResult.Connected, service.Connect(second));
@@ -44,7 +45,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         {
             CreateServer();
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
-            PlaceBase(Vector3Int.zero);
+            PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(100);
             ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
             Assert.AreEqual(100, pool.Amount);
@@ -55,7 +56,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         {
             CreateServer();
             var service = ServerContext.GetService<SpaceElevatorConnectionService>();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(100);
             Assert.AreEqual(SpaceElevatorConnectResult.Connected, service.Connect(elevatorBase));
             Assert.AreEqual(SpaceElevatorConnectResult.AlreadyConnected, service.Connect(elevatorBase));
@@ -66,7 +67,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void プールの増減が全拠点の状態に届く()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             Assert.AreEqual(SpaceElevatorBaseStatus.InsufficientCable, ReadDetail(elevatorBase).Status);
 
             // テストmodの1エレベーター分は100。残量が届き、足りると接続できる状態に変わる

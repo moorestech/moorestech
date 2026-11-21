@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
         {
             var (packet, _) = CreateServer();
             var position = new Vector3Int(10, 0, 5);
-            var elevatorBase = PlaceBase(position);
+            var elevatorBase = PlaceBase(position, ForUnitTestItemId.TestElevatorSatellite);
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
             LaunchCables(50);
 
@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
         public void 二重接続は拒否して残量を維持する()
         {
             var (packet, _) = CreateServer();
-            PlaceBase(Vector3Int.zero);
+            PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(150);
             Assert.AreEqual(SpaceElevatorConnectResult.Connected, Send(packet, Vector3Int.zero).Result);
 
@@ -82,10 +82,10 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
         public void 送信後に置換された別個体へは接続しない()
         {
             var (packet, _) = CreateServer();
-            var old = PlaceBase(Vector3Int.zero);
+            var old = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var request = new ConnectSpaceElevatorRequest(Vector3Int.zero, old.BlockInstanceId);
             ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
-            var replacement = PlaceBase(Vector3Int.zero);
+            var replacement = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(100);
 
             // 古い要求は新しい拠点とプールを変えない
@@ -101,7 +101,7 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
         public void 欠損フィールドにも明示的な拒否応答を返す(bool missingPosition)
         {
             var (packet, _) = CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var request = new ConnectSpaceElevatorRequest(Vector3Int.zero, block.BlockInstanceId);
             if (missingPosition) request.Position = null;
             else request.ExpectedInstanceId = null;

@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void DiskMigrationPreservesUpstreamStateAndReloadsConnectedPool(int version, bool hasLaunched)
         {
             var (_, original) = CreateServer();
-            PlaceBase(Vector3Int.zero);
+            PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId,
                 new Vector3Int(10, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest));
             chest.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.ItemId2, 7);

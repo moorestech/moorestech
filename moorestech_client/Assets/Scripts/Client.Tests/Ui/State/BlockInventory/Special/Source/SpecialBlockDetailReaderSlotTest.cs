@@ -70,7 +70,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Source
             var pending = _harness.CreateBlock(Vector3Int.zero, master);
             Assert.IsFalse(Read(pending).TryGetSpaceElevator(out _));
 
-            var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing)));
+            var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing, null, null)));
             Assert.IsTrue(Read(block).TryGetSpaceElevator(out var elevator));
 
             var carried = param.CarriedPayloadItemGuids.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToList();

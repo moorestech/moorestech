@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 接続済みで電力が足りれば2秒で昇り成果が出口に出る()
         {
-            var elevatorBase = SetupConnected(100f);
+            var elevatorBase = SetupConnected(100f, ForUnitTestItemId.TestElevatorSatellite);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 2);
 
             RunSeconds(2.2);
@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 電力が半分なら倍かかる()
         {
-            var elevatorBase = SetupConnected(50f);
+            var elevatorBase = SetupConnected(50f, ForUnitTestItemId.TestElevatorSatellite);
             // 確率丸めの系列を固定し電力比の検証を安定させる
             // Fix probabilistic rounding so the power-ratio assertion is reproducible
             global::Core.Update.GameRandom.Reseed(0);
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 未接続なら昇らず衛星は入口に残る()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(elevatorBase, Vector3Int.zero, 100f);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
 
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 出口が塞がっていると昇り始めず空くと昇る()
         {
-            var elevatorBase = SetupConnected(100f);
+            var elevatorBase = SetupConnected(100f, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = Inventory(elevatorBase);
 
             // 出口を別アイテムで塞ぐと、衛星は入口に残り理由を出す
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 昇る間に出口が塞がると頂上で電力を使わず待ち空くと渡す()
         {
-            var elevatorBase = SetupConnected(100f);
+            var elevatorBase = SetupConnected(100f, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = Inventory(elevatorBase);
             var climber = elevatorBase.GetComponent<SpaceElevatorClimberComponent>();
             inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 入口は運ぶ積荷だけを受ける()
         {
             CreateServer();
-            var inventory = Inventory(PlaceBase(Vector3Int.zero));
+            var inventory = Inventory(PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite));
             var rejected = inventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
             Assert.AreEqual(3, rejected.Count);
             Assert.IsFalse(inventory.IsAllowedToPlace(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1)));
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 成果が一部しか入らないと在庫を変えず待ちちょうど入れば昇る()
         {
-            var block = SetupConnected(100f);
+            var block = SetupConnected(100f, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = Inventory(block);
             var capacity = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestElevatorReward);
             inventory.SetItem(1, ForUnitTestItemId.TestElevatorReward, capacity - 4);
@@ -145,7 +145,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 隣のチェストには出口だけを搬出し入口の衛星は残る()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId,
                 new Vector3Int(1, 0, 0), BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var chest));
             var inventory = Inventory(block);
@@ -164,7 +164,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 一括挿入は実際の余りだけ返す(string scenario, int expected)
         {
             CreateServer();
-            var inventory = Inventory(PlaceBase(Vector3Int.zero));
+            var inventory = Inventory(PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite));
             var item = scenario == "rejected" ? ForUnitTestItemId.ItemId1 : ForUnitTestItemId.TestElevatorSatellite;
             if (scenario == "partial") inventory.SetItem(0, item, ItemStackLevelDataStore.Instance.GetMaxStack(item) - 1);
             var items = new List<IItemStack>();

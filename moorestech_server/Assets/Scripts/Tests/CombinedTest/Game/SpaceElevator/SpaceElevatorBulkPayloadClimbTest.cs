@@ -13,7 +13,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 一便に満たない積荷では昇らず入口に残る()
         {
-            var elevatorBase = SetupConnected(100f);
+            var elevatorBase = SetupConnected(100f, ForUnitTestItemId.TestElevatorBulkPayload);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorBulkPayload, 2);
 
             RunSeconds(2.2);
@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 一便ぶんをまとめて運び一便ぶんの成果が出る()
         {
-            var elevatorBase = SetupConnected(100f);
+            var elevatorBase = SetupConnected(100f, ForUnitTestItemId.TestElevatorBulkPayload);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorBulkPayload, 3);
 
             RunSeconds(2.2);
@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 端数は入口に残り二便ぶんの成果が出る()
         {
-            var elevatorBase = SetupConnected(100f);
+            var elevatorBase = SetupConnected(100f, ForUnitTestItemId.TestElevatorBulkPayload);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorBulkPayload, 7);
 
             RunSeconds(4.6);
