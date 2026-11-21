@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Tests.Ui.Screens.GrabOverlay;
+using Client.Tests.Ui.State.BlockInventory.Context;
+using Client.Tests.Ui.TestDoubles;
 using Client.Tests.Ui.TestHost;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
@@ -17,9 +21,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
     {
         private static readonly IReadOnlyList<CleanRoomOddsImprovement> NoImprovements = new List<CleanRoomOddsImprovement>();
 
+        private readonly RecordingCleanRoomYieldImprovementCommands _improvementCommands = new();
+
         private CleanRoomYieldSectionView Render(SectionContent<CleanRoomYieldOdds> entry)
         {
-            var view = new CleanRoomYieldSectionView();
+            var view = new CleanRoomYieldSectionView(new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), _improvementCommands);
             view.Render(entry);
             Mount(view);
             return view;
@@ -54,6 +60,30 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
             CollectionAssert.AreEqual(new[] { "clean-room-yield-fetch-state" }, ShownNames(view));
             Assert.AreEqual("Draw details: received data could not be read (retrying)", view.Q<Label>("clean-room-yield-fetch-state").PlainText());
+        }
+
+        [Test]
+        public void 改善の行があればボタンを最後の行に置き_押すと改善方法を開く()
+        {
+            var improvements = new List<CleanRoomOddsImprovement> { CleanRoomOddsImprovement.RoomClassUp("B", new double[0], -0.1) };
+            var view = Render(SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.LayerExposure(0.308, improvements)));
+            simulate.FrameUpdate();
+
+            CollectionAssert.AreEqual(new[] { "clean-room-yield-failed-rate", "clean-room-yield-improvement-open" }, ShownNames(view.Q<VisualElement>("clean-room-yield-section")));
+            Assert.AreEqual("How to lower the failure rate", view.Q<VisualElement>("clean-room-yield-improvement-open").Q<Label>().PlainText());
+            simulate.Click(view.Q<VisualElement>("clean-room-yield-improvement-open").worldBound.center);
+            Assert.AreEqual(1, _improvementCommands.OpenCount);
+        }
+
+        [Test]
+        public void 改善の行が無くなるとボタンを外す()
+        {
+            var improvements = new List<CleanRoomOddsImprovement> { CleanRoomOddsImprovement.RoomClassUp("B", new double[0], -0.1) };
+            var view = Render(SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.LayerExposure(0.308, improvements)));
+            view.Render(SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.LayerExposure(0.308, NoImprovements)));
+            simulate.FrameUpdate();
+
+            CollectionAssert.AreEqual(new[] { "clean-room-yield-failed-rate" }, ShownNames(view.Q<VisualElement>("clean-room-yield-section")));
         }
     }
 }

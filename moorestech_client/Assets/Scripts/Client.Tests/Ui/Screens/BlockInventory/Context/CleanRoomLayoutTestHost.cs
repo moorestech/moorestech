@@ -86,8 +86,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // Plug machine, context factories and rule, as production
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
-            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), OsCursor);
-            var context = new ContextSectionFactory(Content, ContextModel, MachineModel);
+            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), OsCursor, ImprovementCommands);
+            var context = new ContextSectionFactory(Content, ContextModel, MachineModel, OsCursor, ImprovementCommands);
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), rule, machine, context);
             simulate.FrameUpdate();
             simulate.FrameUpdate();

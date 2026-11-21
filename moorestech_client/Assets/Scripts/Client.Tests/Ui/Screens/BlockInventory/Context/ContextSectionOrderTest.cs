@@ -45,7 +45,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         {
             var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter");
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, "CleanRoomAirFilter", new ContextSectionFactory(Content, _context, _machine));
+            var body = BlockInventoryTestBodies.SectionStack(source, "CleanRoomAirFilter", new ContextSectionFactory(Content, _context, _machine, NewOsCursor(), new RecordingCleanRoomYieldImprovementCommands()));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();
@@ -122,8 +122,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
             var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
-            var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", new ContextSectionFactory(Content, _context, _machine), machineFactory);
+            var osCursor = NewOsCursor();
+            var improvementCommands = new RecordingCleanRoomYieldImprovementCommands();
+            var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Content, new RecordingRecipeSelectCommand(), osCursor, improvementCommands);
+            var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", new ContextSectionFactory(Content, _context, _machine, osCursor, improvementCommands), machineFactory);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();
@@ -132,6 +134,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var stall = body.Root.Q<Label>("machine-input-stall");
             Assert.IsTrue(stall.ClassListContains("lack-highlight-text--insufficient"));
             Assert.Less(stall.worldBound.yMin, body.Root.Q("machine-inventory-body").worldBound.yMin);
+        }
+
+        private static UiOsCursorRequestStack NewOsCursor()
+        {
+            return new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
         }
     }
 }

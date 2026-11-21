@@ -40,6 +40,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         protected RecordingRecipeSelectCommand RecipeSelect { get; private set; }
         protected FakeUiOsCursorApplier AppliedCursor { get; private set; }
         protected UiOsCursorRequestStack OsCursor { get; private set; }
+        protected RecordingCleanRoomYieldImprovementCommands ImprovementCommands { get; private set; }
 
         [SetUp]
         public void SetUpMachineScreen()
@@ -52,6 +53,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             RecipeSelect = new RecordingRecipeSelectCommand();
             AppliedCursor = new FakeUiOsCursorApplier();
             OsCursor = new UiOsCursorRequestStack(AppliedCursor, new FakeUiScreenPointer(1f));
+            ImprovementCommands = new RecordingCleanRoomYieldImprovementCommands();
         }
 
         [TearDown]
@@ -70,7 +72,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         // Build view and presenter, attach, push the value and mount
         protected MachineSectionView MountSection(MachineSectionViewModel viewModel, bool fillsPanelHeight)
         {
-            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, OsCursor, RecipeSelect);
+            var view = new MachineSectionView(fillsPanelHeight, Content, Commands, OsCursor, RecipeSelect, ImprovementCommands);
             var presenter = new MachineSectionPresenter(view, MachineModel, ContextModel);
             presenter.Attach(MachineScreenViewModels.Panel());
             SetMachine(viewModel);

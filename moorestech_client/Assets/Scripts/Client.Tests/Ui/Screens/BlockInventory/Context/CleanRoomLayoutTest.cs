@@ -1,5 +1,9 @@
+using System.Collections.Generic;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Machine.RecipeSelection;
+using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.BlockInventory.Context;
+using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -88,6 +92,24 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             ExpectReachableInScrollViewport(scroll, rows[0]);
             ExpectReachableInScrollViewport(scroll, rows[rows.Count - 1]);
             ExpectSharedBodyViewport(shell, MachineRecipeSelectionList.ListTestid);
+        }
+
+        [Test]
+        public void 部屋の中の室内機械で改善のボタンへ届き押すと改善方法を開く()
+        {
+            var shell = OpenCleanRoomMachine(true);
+            var improvements = new List<CleanRoomOddsImprovement> { CleanRoomOddsImprovement.AddQualityModule(1, new[] { 0.1 }, -0.1) };
+            var yield = SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.Dicing(300, new[] { 0.4 }, 0.6, improvements));
+            ContextModel.Set(new BlockContextViewModel(MachineRoom().CleanRoom, yield, SectionContent<MachineInputStall>.Absent));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            // 部屋欄・確率の欄と同じ視口の中でボタンへ届き、押下は開く口へ届く
+            // The button is reachable in the viewport shared with the room and odds sections, and its press reaches the open entry
+            ExpectReachable(shell, "clean-room-yield-improvement-open");
+            simulate.Click(shell.View.Q("clean-room-yield-improvement-open").worldBound.center);
+            Assert.AreEqual(1, ImprovementCommands.OpenCount);
+            ExpectFooterReadable(shell);
         }
 
         /// <web-test file="e2e/tests/block/cleanRoom/cleanRoomManyFilters.spec.ts">部屋の無い大型機械は部屋欄なしで本文に届き、フッタが読める</web-test>
