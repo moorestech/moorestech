@@ -8067,7 +8067,7 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 - Consumes: B5・B6 の testid（`rocket-launch-pad-cargo-row-{id}`・`-cargo-header`・`-cargo-next-flight`・`space-elevator-cargo-row-{id}`・`space-elevator-cargo-list`・`space-elevator-cargo-status`）、A の `RocketLaunchPadStateDetail.SelectedCargoItemId`/`LoadedCargoItemId`・`SpaceElevatorBaseStateDetail.SelectedCargoItemId`・`IOrbitalCargoSelectorComponent.SelectCargo(ItemId, IOpenableInventory)`・`OrbitalCargoSelectionResult.Success`・`IGameUnlockStateDataController.UnlockItem(ItemId)`。
 - Produces: なし（録画と result.json）。
 
-- [ ] **Step 1: tier9-4（発射台の通し）を直す**
+- [x] **Step 1: tier9-4（発射台の通し）を直す**
 
 選び直しは新しいシナリオ tier9-4c（Step 1b）に分ける。tier9-4 は今 191 行で、選び直しまで入れると 200 行を超えるため。tier9-4 では「開く → 一覧の行を押して ICチップLv1 を選ぶ → 積む → 建造・発射 → 成果 → 2 便目」を通す。開いたパネルは建造ボタンまでそのまま使う。行数: 191 行 → 197 行（66–76 行の 11 行を下の 18 行に替え、81 行の 1 行を消す）。
 
@@ -8110,7 +8110,7 @@ git commit -m "拠点の接続の実ゲームテストを「選んでから接�
 
 （191 行 → 197 行。2 便目は `LoadOneLaunch()` のまま Lv1 で積む。選んだ積荷はそのまま残るので通る。）
 
-- [ ] **Step 1b: 選び直しのシナリオ tier9-4c を足す**
+- [x] **Step 1b: 選び直しのシナリオ tier9-4c を足す**
 
 新しいファイル `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/rocket/tier9-4c-rocket-cargo-reselect.cs`（0 行 → 196 行。下のコードの行数そのまま）。Lv2 を解放 → Lv1 を UI で選んで積む → 建造中に見出しから Lv2 へ選び直す → 見出しは Lv1 のまま「次の便から」が出る → 今の便は Lv1 の成果（計算データ 20）を返す → 次の便は Lv2 で積み、合図なしで建造が始まる（ADR 0106 の 4）。足場・研究・配線・`OpenPad`・`Refuel`・`WaitPhaseRefueling` は tier9-4 と同じ手順を写す。
 
@@ -8315,7 +8315,7 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
 
 （`computeDataId` は `CountInOutputs` が捕まえるので、`CountInOutputs` を呼ぶ前に宣言してある。tier9-4 と同じ並び。`Core.Master` の `ItemId` は using 済み。）
 
-- [ ] **Step 2: tier9-4b（Shift の拒否）を直す**
+- [x] **Step 2: tier9-4b（Shift の拒否）を直す**
 
 主題は Shift と拒否後の表示の一致なので、選択はサーバーで直接行う（グラフェンケーブルはこのシナリオの前提では未解放なので、先に解放する）。行数: 157 行 → 169 行（using 1 行・選ぶ段 12 行を足し、`cableId`・`playerId` の 2 行を消し、85–97 行の 13 行を 14 行に替える）。
 
@@ -8377,7 +8377,7 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
 
 1 行目のコメント（シナリオの説明）の「材料充足・積荷空の発射台で」を「グラフェンケーブルを選んだ、材料充足・積荷空の発射台で」に、英語の行の "On a pad with full materials and empty cargo" を "On a pad with graphene cable selected, full materials and empty cargo" に直す。
 
-- [ ] **Step 3: tier9-6（拠点の通し）を直す**
+- [x] **Step 3: tier9-6（拠点の通し）を直す**
 
 今 200 行で上限ちょうどなので、足す行と同じだけ減らす。既存の `#region Internal` のローカル関数 `OpenBlock` に「開いた後に待つ本文の要素」の引数を 1 つ足し、今は呼び手が `OpenBlock` の直後に 1 行で書いている本文の待ち（63–64 行・139–140 行）をその引数へ入れる。待ちは消さない（`block-inventory-close` の待ちを「本文の要素の待ち」に替える。本文の要素はパネルの中にあるので、パネルが開いたことも同時に確かめる）。行数: 200 行 → 200 行（84–90 行の 7 行を 9 行に替えて +2、63–64 行と 139–140 行をそれぞれ 1 行にして −2。`OpenBlock` の行数は変わらない）。
 
@@ -8473,7 +8473,7 @@ return PlaytestRunner.Run("tier9-4c-rocket-cargo-reselect", new PlaytestRunOptio
 
 （待ちの上限は 3 か所とも 15 秒にそろう。今の 139–140 行の出口の格子は 10 秒だったが、延ばすだけなので通る側にしか変わらない。）
 
-- [ ] **Step 4: uitk-block-special-panels（特殊族の画面）を直す**
+- [x] **Step 4: uitk-block-special-panels（特殊族の画面）を直す**
 
 今 195 行。行数: 195 行 → 199 行（using 1 行を足し、109–112 行の 4 行を 8 行に替え、115 行の `cableId` の 1 行を上の宣言へまとめて消す）。
 
@@ -8513,7 +8513,7 @@ using Game.UnlockState;
 
 （113–114 行の `p.Note`・`Capture("space-elevator")` と 116 行以降はそのまま。接続ボタンは選んだ後の画面に出る。`Detail()`・`Shown`・`Text`・`Capture`・`Open` は今のファイルの Internal〈141・156・172・186・192 行〉にある。`MasterHolder`・`Guid`・`ServerContext` は using 済み〈`Core.Master`・`System`・`Game.Context`〉。）
 
-- [ ] **Step 5: s5-retake（撮り直し）を直す**
+- [x] **Step 5: s5-retake（撮り直し）を直す**
 
 行数: 185 行 → 187 行（95–96 行の 2 行を 4 行に替える）。
 
@@ -8535,7 +8535,7 @@ using Game.UnlockState;
 
 （`pv-blocks.cs` は開けたかだけを見るので止まらない。撮る絵が一覧に変わるだけで、直さない。）
 
-- [ ] **Step 6: 流して確かめる**
+- [x] **Step 6: 流して確かめる**
 
 `unity-playmode-recorded-playtest` スキルの手順で、次を 1 本ずつ流す（Mac mini では自分の worktree の Editor 1 本、または `winunity play`。どちらを使うかは環境ローカル規約）:
 
@@ -8548,7 +8548,7 @@ using Game.UnlockState;
 
 期待: どれも result.json が成功。撮った絵（tier9-4 の `00-cargo-list`・`01-awaiting-build`、tier9-4c の `03-next-flight`、`02a-elevator-cargo-list`・`space-elevator-cargo-list`）で、一覧の行の文が「ICチップLv1 ×20 → 計算データ ×20」の形、資材・積荷の空の枠に透かし、「次の便から ICチップLv2 ×20 → 計算データ ×40」の 1 行が出ていることを目で確かめる。録画と Unity のログは worktree の gitignore 下に置き、`../moorestech_logs` には入れない（AGENTS.md）。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios
