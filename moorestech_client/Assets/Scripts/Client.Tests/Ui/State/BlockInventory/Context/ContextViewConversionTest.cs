@@ -26,7 +26,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         private static CleanRoomSummaryMessagePack Room(bool classified)
         {
             var filters = new List<CleanRoomAirFilterMessagePack> { new(new Vector3IntMessagePack(0, 0, 0), 0.5, 3, 2, 0.25) };
-            return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 2.5, 10, filters) : CleanRoomSummaryMessagePack.CreateOut(2.5, 10, filters);
+            var nextClass = CleanRoomNextClassMessagePack.CreateNotCounted();
+            var queriedAirFilter = CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter();
+            return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 2.5, 10, filters, 1, 0, nextClass, queriedAirFilter) : CleanRoomSummaryMessagePack.CreateOut(2.5, 10, filters, 1, 0, nextClass, queriedAirFilter);
         }
 
         private static T PresentValue<T>(SectionContent<T> entry)

@@ -137,7 +137,18 @@ namespace Server.Protocol.PacketResponse
                         if (filter == null || filter.Position == null) return false;
                     }
 
-                    return true;
+                    // 次のクラス・照会した清浄機の状態の欠けや未知の種別も壊れた部屋として読めない（呼び出し元が警告を出す）
+                    // A missing or unknown-kind next class or queried-purifier state is a broken room too (the caller warns)
+                    if (Room.NextClass == null || !Room.NextClass.IsReadable()) return false;
+                    if (Room.QueriedAirFilter == null || !Room.QueriedAirFilter.IsReadable()) return false;
+
+                    // 「清浄機以外から照会した」は NotCounted と NotAirFilter の組でだけ表す。片方だけの応答は2つの種別が食い違った壊れた wire
+                    // "Queried from a non-purifier" is only the NotCounted + NotAirFilter pair; a response with just one of them is broken wire whose two kinds disagree
+                    var isUncountedNextClass = Room.NextClass.Kind == CleanRoomNextClassResponseKind.NotCounted;
+                    var isNonAirFilterQuery = Room.QueriedAirFilter.Kind == CleanRoomQueriedAirFilterResponseKind.NotAirFilter;
+                    if (isUncountedNextClass == isNonAirFilterQuery) return true;
+                    Debug.LogWarning($"[GetCleanRoomInfo] Room query-source kinds disagree: nextClass={Room.NextClass.Kind} queriedAirFilter={Room.QueriedAirFilter.Kind}");
+                    return false;
                 }
 
                 #endregion

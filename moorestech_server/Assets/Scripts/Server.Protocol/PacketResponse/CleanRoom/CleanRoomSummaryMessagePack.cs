@@ -12,35 +12,49 @@ namespace Server.Protocol.PacketResponse
     [MessagePackObject]
     public class CleanRoomSummaryMessagePack
     {
-        [Key(0)] public CleanRoomClassResponseKind ClassKind { get; set; }
+        [Key(0)] public CleanRoomClassResponseKind ClassKind { get; }
 
         // ClassName と ThresholdIndex は Classified のときだけ書かれる。読むのは TryGetClass だけ
         // ClassName and ThresholdIndex are written only when Classified; only TryGetClass reads them
-        [Key(1)] public string ClassName { get; set; }
-        [Key(2)] public int ThresholdIndex { get; set; }
-        [Key(3)] public double AirChangeRate { get; set; }
-        [Key(4)] public int Volume { get; set; }
-        [Key(5)] public List<CleanRoomAirFilterMessagePack> AirFilters { get; set; }
+        [Key(1)] public string ClassName { get; }
+        [Key(2)] public int ThresholdIndex { get; }
+        [Key(3)] public double AirChangeRate { get; }
+        [Key(4)] public int Volume { get; }
+        [Key(5)] public List<CleanRoomAirFilterMessagePack> AirFilters { get; }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public CleanRoomSummaryMessagePack() { }
+        // 清浄機の台数のまとめと、次のクラスまでの台数（清浄機の画面の部屋の行）
+        // Purifier totals and units to the next class (the room line of the purifier screen)
+        [Key(6)] public int AirFilterCount { get; }
+        [Key(7)] public int StoppedAirFilterCount { get; }
+        [Key(8)] public CleanRoomNextClassMessagePack NextClass { get; }
 
-        private CleanRoomSummaryMessagePack(CleanRoomClassResponseKind classKind, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
+        // 照会した清浄機自身の状態（清浄機の画面の「この清浄機」の行）
+        // The queried purifier's own state (the purifier screen's "this purifier" line)
+        [Key(9)] public CleanRoomQueriedAirFilterMessagePack QueriedAirFilter { get; }
+
+        [SerializationConstructor]
+        public CleanRoomSummaryMessagePack(CleanRoomClassResponseKind classKind, string className, int thresholdIndex, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
             ClassKind = classKind;
+            ClassName = className;
+            ThresholdIndex = thresholdIndex;
             AirChangeRate = airChangeRate;
             Volume = volume;
             AirFilters = airFilters;
+            AirFilterCount = airFilterCount;
+            StoppedAirFilterCount = stoppedAirFilterCount;
+            NextClass = nextClass;
+            QueriedAirFilter = queriedAirFilter;
         }
 
-        public static CleanRoomSummaryMessagePack CreateClassified(string className, int thresholdIndex, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
+        public static CleanRoomSummaryMessagePack CreateClassified(string className, int thresholdIndex, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Classified, airChangeRate, volume, airFilters) { ClassName = className, ThresholdIndex = thresholdIndex };
+            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Classified, className, thresholdIndex, airChangeRate, volume, airFilters, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
         }
 
-        public static CleanRoomSummaryMessagePack CreateOut(double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)
+        public static CleanRoomSummaryMessagePack CreateOut(double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Out, airChangeRate, volume, airFilters);
+            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Out, null, 0, airChangeRate, volume, airFilters, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
         }
 
         // Out なら false。判別子の読み分けはここだけで行う
