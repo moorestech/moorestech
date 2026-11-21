@@ -1,7 +1,7 @@
-// 文字組みの並べ比べ撮影: GameUi（UITK）のポーズの題・設定の節の題・清浄機 30 台の部屋欄・回転発電機（停止）を日本語と英語で開き、Game View の実画面を 1280×720 と 2560×1080 で撮る
-// 部屋欄は参照（mock-host の cleanRoomAirFilter30Filters）と同じ中身（クラス ISO 5・濃度 1.2・換気 0.8・清浄機 30 台が電力 100%・5 個・50%）と題（電気機械）に差し替える。段組・色・寸法は本番のまま
-// Typography comparison shots: open the pause title, settings section titles, the 30-purifier room section and the stopped rotary generator on GameUi (UITK) in Japanese and English, and shoot the real Game View at 1280x720 and 2560x1080
-// The room section is swapped to the reference contents (mock-host cleanRoomAirFilter30Filters: class ISO 5, concentration 1.2, air changes 0.8, 30 purifiers at 100% / 5 / 50%) and title (電気機械); layout, colors and sizes stay production
+// 文字組みの並べ比べ撮影: GameUi（UITK）のポーズの題・設定の節の題・清浄機 30 台の部屋の清浄機の画面・回転発電機（停止）を日本語と英語で開き、Game View の実画面を 1280×720 と 2560×1080 で撮る
+// 部屋欄は固定の中身（クラス C・クラス B まであと 5 台・清浄機 30 台・この清浄機 電力 100% / 残量 50%）と題（電気機械）に差し替える。段組・色・寸法は本番のまま
+// Typography comparison shots: open the pause title, settings section titles, the purifier screen in a 30-purifier room and the stopped rotary generator on GameUi (UITK) in Japanese and English, and shoot the real Game View at 1280x720 and 2560x1080
+// The room section is swapped to fixed contents (class C, five more to class B, 30 purifiers, this purifier at 100% power / 50% life) and title (電気機械); layout, colors and sizes stay production
 using System.Linq;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
@@ -26,7 +26,7 @@ using UnityEngine.UIElements;
 
 const int FilterCount = 30;
 var shootingLanguage = "japanese";
-var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f };
+var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 600f };
 return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
 {
     InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
@@ -81,7 +81,7 @@ return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.Until(() => Root().Q<VisualElement>($"clean-room-air-filter-{FilterCount - 1}") != null, 10f, "部屋欄に 30 台");
+        await p.Until(() => Root().Q<VisualElement>("clean-room-air-filter-count") != null, 10f, "部屋欄に清浄機の台数");
         await Shoot("cleanroom30", MatchReferenceRoom);
         await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
@@ -135,12 +135,12 @@ return PlaytestRunner.Run("uitk-typography-compare", options, async p =>
         }
     }
 
-    // 部屋欄と題を参照と同じ中身にする（清浄機の行と同じ書式の UiText を本番の組み立てで作る）
-    // Swap the room section and title to the reference contents (production builds the UiText rows)
+    // 部屋欄と題を固定の中身にする（行の UiText は本番の組み立てで作る）
+    // Swap the room section and title to fixed contents (production builds the UiText rows)
     void MatchReferenceRoom()
     {
-        var filters = Enumerable.Range(0, FilterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
-        var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 0.8, filters);
+        var status = CleanRoomAirFilterRoomStatus.WithUnitsToNextClass(FilterCount, 0, 1, 0.5, "B", 5);
+        var room = CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("C"), status);
         Root().Q<CleanRoomSectionView>().Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None)));
         var title = Root().Q("block-inventory").Q<LocalizedLabel>(className: "game-panel__title");
         title.SetText(UiText.FromVerbatim(shootingLanguage == "japanese" ? "電気機械" : "Electric Machine"));
