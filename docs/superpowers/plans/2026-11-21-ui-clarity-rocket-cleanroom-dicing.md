@@ -18039,7 +18039,7 @@ git commit -m "出荷マスタでフィルター分岐器の見出しが左・�
 
 Task E7 の後に品質モジュールと速度モジュールの両方の研究から解放されるのは 13 品目（シリコンダイLv2〜5・ICチップLv2〜5・品質モジュールLv1〜5）。直す所はアイテムを選ばず全アイテムに効くので、NUnit は forUnitTest の ItemId4 を 2 回解放して通知の回数を見る（出荷マスタの 13 品目は v8 を読む NUnit にしない〈「判断」12〉。13 品目で解放の状態が保たれ例外が出ないことは Task E8 の録画が見る）。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 ```csharp
 using Game.UnlockState;
@@ -18076,12 +18076,12 @@ namespace Tests.CombinedTest.Game.UnlockState
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.UnlockState.ItemUnlockDuplicateTest"`
 Expected: FAIL（`Expected: 1 But was: 2`）。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 直す前:
 ```csharp
@@ -18104,12 +18104,12 @@ Expected: FAIL（`Expected: 1 But was: 2`）。
         }
 ```
 
-- [ ] **Step 4: コンパイルしテストを通す**
+- [x] **Step 4: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ItemUnlockDuplicateTest|UnlockedEventPacketTest|GetGameUnlockStateProtocolTest|ResearchUnlockRecordFallbackLoadTest|AchievementNotification"`
 Expected: 全 PASS（`UnlockedEventPacketTest` は未解放〈forUnitTest の items.json で Test4 は `initialUnlocked: false`〉の ItemId4 を1回解放するだけで変わらない。テストで `UnlockItem(` を呼ぶのはほかに `GetGameUnlockStateProtocolTest.cs:61`〈ItemId3 を1回。状態だけを見る〉だけ）。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.UnlockState/Holders/ItemUnlockStateHolder.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/UnlockState moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/UnlockState.meta
