@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Core.Master;
 using Core.Update;
@@ -120,13 +121,14 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         {
             // 判別子と違う役割の確定済み抽選や、率の無い種別に付いた確定済み抽選は、壊れた wire として警告し読めない扱いにする
             // A fixed draw of another role, or one on a kind without rates, is broken wire: it warns and is unreadable
-            var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1, null);
-            layerExposure.PendingDicing = new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2);
+            var layerExposure = new GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack(GetCleanRoomYieldInfoProtocol.ProtocolTag, 0, CleanRoomYieldResponseKind.LayerExposure,
+                new LayerExposureYieldMessagePack(0.1), null, null, new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2),
+                new LayerExposureOddsMessagePack(0.1), null, new List<CleanRoomYieldImprovementMessagePack>());
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] LayerExposure response carries a fixed draw of another role"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, layerExposure.TryReadView(out _));
 
-            var notOperable = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable();
-            notOperable.PendingLayerExposure = new LayerExposureYieldMessagePack(0.1);
+            var notOperable = new GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack(GetCleanRoomYieldInfoProtocol.ProtocolTag, 0, CleanRoomYieldResponseKind.NotOperable,
+                null, null, new LayerExposureYieldMessagePack(0.1), null, null, null, null);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] NotOperable response carries a fixed draw of another role"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, notOperable.TryReadView(out _));
         }

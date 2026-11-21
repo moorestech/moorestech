@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -10,8 +10,8 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 室内機械の選択工程について、次の抽選に使う失敗率・損失率・品質Tier・レベル別割合を返すプロトコル
-    // Protocol returning the fail rate, loss rate, quality tier and level rates the next draw of an interior machine will use
+    // 室内機械の選択工程について、最終の出力割合と改善の差分を返すプロトコル
+    // Protocol returning final outcome odds and improvement deltas for an interior machine’s selected recipe
     public class GetCleanRoomYieldInfoProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getCleanRoomYieldInfo";
@@ -36,41 +36,7 @@ namespace Server.Protocol.PacketResponse
                 Debug.LogWarning($"[GetCleanRoomYieldInfo] block {request.BlockInstanceId} has no CleanRoomYieldPreviewComponent; returning UnsupportedTarget");
                 return ResponseCleanRoomYieldInfoMessagePack.CreateUnsupportedTarget();
             }
-            return CreateResponse(yieldPreview.GetPreview());
-
-            #region Internal
-
-            // サーバーの報告の種別ごとの型を種別ごとの factory へ写す（クライアントは Game.Block の型を持たない）。出力待ちの確定済み抽選は同じ役割の値として添える
-            // Map each per-kind server report onto its per-kind factory, so the client never holds Game.Block types; a fixed draw waiting for output rides along as the same role's values
-            static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewReport report)
-            {
-                return report switch
-                {
-                    CleanRoomNoRoleYieldReport _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
-                    // 稼働できない間は率の欄を出さない（停止理由は部屋欄が出す）ので、確定済みの率も載せない
-                    // While the machine cannot operate no rate section is shown (the room section shows the halt reason), so fixed rates are not carried either
-                    CleanRoomNotOperableYieldReport _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
-                    CleanRoomOddsYieldReport { Next: LayerExposurePreview layerExposure } withOdds => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, withOdds.PendingDraw == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(withOdds).LayerFailRate)),
-                    CleanRoomOddsYieldReport { Next: DicingPreview dicing } withOdds => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(ToDicingMessagePack(dicing), withOdds.PendingDraw == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(withOdds))),
-                    _ => throw new ArgumentOutOfRangeException(nameof(report), report.GetType().Name, "未対応の抽選の中身の報告 / Unsupported draw-detail report"),
-                };
-
-                // 確定済み抽選は選択レシピのものだけが届くので役割は次の抽選と同じ。違えば部品の約束の破れなので止める
-                // Only the selected recipe's fixed draw arrives, so its role matches the next draw; a mismatch breaks the component's contract, so stop
-                static T RequireSameRole<T>(CleanRoomOddsYieldReport withOdds) where T : CleanRoomYieldPreviewResult
-                {
-                    return withOdds.PendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={withOdds.Next.GetType().Name} pending={withOdds.PendingDraw.GetType().Name}");
-                }
-            }
-
-            // 次の抽選も確定済み抽選も同じ形でダイシングの4値を写す
-            // Copy the four dicing values the same way for the next draw and a fixed draw
-            static DicingYieldMessagePack ToDicingMessagePack(DicingPreview dicing)
-            {
-                return new DicingYieldMessagePack(dicing.DieLossRate, dicing.QualityTier, dicing.LevelRates.ToArray(), dicing.FailedRate);
-            }
-
-            #endregion
+            return CleanRoomYieldResponseFactory.Create(yieldPreview.GetPreview());
         }
 
         #region MessagePack
@@ -95,23 +61,41 @@ namespace Server.Protocol.PacketResponse
         {
             // wire は判別子と役割ごとの入れ子が並ぶ形。その役割の入れ子だけが書かれ、他は null。組み立ては下の factory、読み出しは TryReadView だけ
             // The wire has a discriminator plus per-role nested objects; only that role's object is written and the rest stay null. Build only via the factories below and read only via TryReadView
-            [Key(2)] public CleanRoomYieldResponseKind Kind { get; set; }
-            [Key(3)] public LayerExposureYieldMessagePack LayerExposure { get; set; }
-            [Key(4)] public DicingYieldMessagePack Dicing { get; set; }
+            [Key(2)] public CleanRoomYieldResponseKind Kind { get; }
+            [Key(3)] public LayerExposureYieldMessagePack LayerExposure { get; }
+            [Key(4)] public DicingYieldMessagePack Dicing { get; }
 
-            // 出力の空きを待っている確定済み抽選に使った値。判別子と同じ役割の欄だけが書かれ、待っていなければ全部 null
-            // Values a fixed draw waiting for output space used; only the discriminator's role is written, and all stay null when nothing waits
-            [Key(5)] public LayerExposureYieldMessagePack PendingLayerExposure { get; set; }
-            [Key(6)] public DicingYieldMessagePack PendingDicing { get; set; }
+            // 出力の空きを待っている確定済み抽選に使った値（C7 で外す）
+            // Values a fixed draw waiting for output space used (removed in C7)
+            [Key(5)] public LayerExposureYieldMessagePack PendingLayerExposure { get; }
+            [Key(6)] public DicingYieldMessagePack PendingDicing { get; }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public ResponseCleanRoomYieldInfoMessagePack() { }
+            // 画面に出す最終の内訳と、失敗率の改善方法の行（並べる順）
+            // Final odds for the screen and the improvement rows in display order
+            [Key(7)] public LayerExposureOddsMessagePack LayerExposureOdds { get; }
+            [Key(8)] public DicingOddsMessagePack DicingOdds { get; }
+            [Key(9)] public List<CleanRoomYieldImprovementMessagePack> Improvements { get; }
+
+            [SerializationConstructor]
+            public ResponseCleanRoomYieldInfoMessagePack(string tag, int sequenceId, CleanRoomYieldResponseKind kind,
+                LayerExposureYieldMessagePack layerExposure, DicingYieldMessagePack dicing,
+                LayerExposureYieldMessagePack pendingLayerExposure, DicingYieldMessagePack pendingDicing,
+                LayerExposureOddsMessagePack layerExposureOdds, DicingOddsMessagePack dicingOdds, List<CleanRoomYieldImprovementMessagePack> improvements)
+            {
+                Tag = tag;
+                SequenceId = sequenceId;
+                Kind = kind;
+                LayerExposure = layerExposure;
+                Dicing = dicing;
+                PendingLayerExposure = pendingLayerExposure;
+                PendingDicing = pendingDicing;
+                LayerExposureOdds = layerExposureOdds;
+                DicingOdds = dicingOdds;
+                Improvements = improvements;
+            }
 
             private ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind kind)
-            {
-                Tag = ProtocolTag;
-                Kind = kind;
-            }
+                : this(ProtocolTag, 0, kind, null, null, null, null, null, null, null) { }
 
             public static ResponseCleanRoomYieldInfoMessagePack CreateBlockNotFound()
             {
@@ -135,14 +119,16 @@ namespace Server.Protocol.PacketResponse
 
             // pendingDraw は出力待ちの確定済み抽選の値。待っていなければ null
             // pendingDraw holds the values of a fixed draw waiting for output; null when nothing waits
-            public static ResponseCleanRoomYieldInfoMessagePack CreateLayerExposure(double layerFailRate, LayerExposureYieldMessagePack pendingDraw)
+            public static ResponseCleanRoomYieldInfoMessagePack CreateLayerExposure(double layerFailRate, LayerExposureYieldMessagePack pendingDraw, LayerExposureOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.LayerExposure) { LayerExposure = new LayerExposureYieldMessagePack(layerFailRate), PendingLayerExposure = pendingDraw };
+                return new ResponseCleanRoomYieldInfoMessagePack(ProtocolTag, 0, CleanRoomYieldResponseKind.LayerExposure,
+                    new LayerExposureYieldMessagePack(layerFailRate), null, pendingDraw, null, odds, null, improvements);
             }
 
-            public static ResponseCleanRoomYieldInfoMessagePack CreateDicing(DicingYieldMessagePack dicing, DicingYieldMessagePack pendingDraw)
+            public static ResponseCleanRoomYieldInfoMessagePack CreateDicing(DicingYieldMessagePack dicing, DicingYieldMessagePack pendingDraw, DicingOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.Dicing) { Dicing = dicing, PendingDicing = pendingDraw };
+                return new ResponseCleanRoomYieldInfoMessagePack(ProtocolTag, 0, CleanRoomYieldResponseKind.Dicing,
+                    null, dicing, null, pendingDraw, null, odds, improvements);
             }
 
             // 判別子と確定済み抽選の欄の読み分けは読み口1か所（CleanRoomYieldResponseReader）で行う

@@ -100,17 +100,18 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         {
             Assert.AreEqual(BlockInfoFetchState.TransportFailed, UnavailableState(ContextViewConversion.Yield(BlockInfoFetchState.TransportFailed, null, out _)));
 
-            var layer = Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), null));
+            var layer = Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), null, new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack>()));
             Assert.IsInstanceOf<SettledCleanRoomYield>(layer);
             Assert.AreEqual(0.1, ((LayerExposureYieldRates)layer.Current).LayerFailRate);
-            var pendingLayer = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), new LayerExposureYieldMessagePack(0.3)));
+            var pendingLayer = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), new LayerExposureYieldMessagePack(0.3), new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack>()));
             Assert.AreEqual(0.3, ((LayerExposureYieldRates)pendingLayer.PendingDraw).LayerFailRate);
 
             var dicing = new DicingYieldMessagePack(0.2, 2, new[] { 0.5, 0.3 }, 0.1);
-            var settled = Yielded(new CleanRoomYieldDicingView(dicing, null));
+            var odds = new DicingOddsMessagePack(300, new[] { 0.4, 0.24 }, 0.36);
+            var settled = Yielded(new CleanRoomYieldDicingView(dicing, null, odds, new List<CleanRoomYieldImprovementMessagePack>()));
             Assert.AreEqual(2, ((DicingYieldRates)settled.Current).QualityTier);
             Assert.AreEqual(2, ((DicingYieldRates)settled.Current).LevelRates.Count);
-            var pendingDicing = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldDicingView(dicing, new DicingYieldMessagePack(0.4, 1, new[] { 0.9 }, 0.0)));
+            var pendingDicing = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldDicingView(dicing, new DicingYieldMessagePack(0.4, 1, new[] { 0.9 }, 0.0), odds, new List<CleanRoomYieldImprovementMessagePack>()));
             Assert.AreEqual(0.4, ((DicingYieldRates)pendingDicing.PendingDraw).DieLossRate);
 
             Assert.IsTrue(ContextViewConversion.Yield(Fetched, CleanRoomYieldNoRoleView.Instance, out _).IsAbsent);

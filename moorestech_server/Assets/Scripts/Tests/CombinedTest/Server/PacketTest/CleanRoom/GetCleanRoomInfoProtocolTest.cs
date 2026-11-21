@@ -103,8 +103,8 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             Assert.AreEqual(BlockInfoReadResult.Unreadable, response.TryReadView(out _));
             room.AirFilters[0] = new CleanRoomAirFilterMessagePack(null, 1, 1, 1, 1);
             Assert.AreEqual(BlockInfoReadResult.Unreadable, response.TryReadView(out _));
-            var yieldResponse = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
-            yieldResponse.Kind = (CleanRoomYieldResponseKind)999;
+            var yieldResponse = new GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack(GetCleanRoomYieldInfoProtocol.ProtocolTag, 0, (CleanRoomYieldResponseKind)999,
+                null, null, null, null, null, null, null);
             Assert.AreEqual(BlockInfoReadResult.Unreadable, yieldResponse.TryReadView(out _));
             var stall = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled();
             stall.Kind = (MachineInputStallResponseKind)999;

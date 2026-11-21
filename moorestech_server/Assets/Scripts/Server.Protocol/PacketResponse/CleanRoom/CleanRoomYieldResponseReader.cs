@@ -24,15 +24,18 @@ namespace Server.Protocol.PacketResponse
                     view = CleanRoomYieldNotOperableView.Instance;
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.LayerExposure:
-                    if (response.LayerExposure == null) return WarnMissingNested();
+                    if (response.LayerExposure == null || response.LayerExposureOdds == null) return WarnMissingNested();
                     if (response.PendingDicing != null) return WarnMismatchedPending();
-                    view = new CleanRoomYieldLayerExposureView(response.LayerExposure, response.PendingLayerExposure);
+                    if (!CleanRoomYieldImprovementMessagePack.AreReadable(response.Improvements, 0)) return WarnBrokenImprovements();
+                    view = new CleanRoomYieldLayerExposureView(response.LayerExposure, response.PendingLayerExposure, response.LayerExposureOdds, response.Improvements);
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.Dicing:
                     if (response.Dicing == null || response.Dicing.LevelRates == null) return WarnMissingNested();
+                    if (response.DicingOdds == null || response.DicingOdds.LevelRates == null) return WarnMissingNested();
                     if (response.PendingDicing != null && response.PendingDicing.LevelRates == null) return WarnMissingNested();
                     if (response.PendingLayerExposure != null) return WarnMismatchedPending();
-                    view = new CleanRoomYieldDicingView(response.Dicing, response.PendingDicing);
+                    if (!CleanRoomYieldImprovementMessagePack.AreReadable(response.Improvements, response.DicingOdds.LevelRates.Length)) return WarnBrokenImprovements();
+                    view = new CleanRoomYieldDicingView(response.Dicing, response.PendingDicing, response.DicingOdds, response.Improvements);
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.BlockNotFound:
                     return BlockInfoReadResult.BlockNotFound;
@@ -61,6 +64,12 @@ namespace Server.Protocol.PacketResponse
             BlockInfoReadResult WarnMismatchedPending()
             {
                 Debug.LogWarning($"[GetCleanRoomYieldInfo] {kind} response carries a fixed draw of another role; treating it as unreadable");
+                return BlockInfoReadResult.Unreadable;
+            }
+
+            BlockInfoReadResult WarnBrokenImprovements()
+            {
+                Debug.LogWarning($"[GetCleanRoomYieldInfo] {kind} response has broken improvements; treating it as unreadable");
                 return BlockInfoReadResult.Unreadable;
             }
 
