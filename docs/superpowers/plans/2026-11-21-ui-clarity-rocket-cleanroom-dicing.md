@@ -6201,7 +6201,7 @@ git commit -m "発射台・拠点の詳細に積荷の選択を載せ、Shift �
   - `SpecialBlockRequestOutcome SpecialBlockResponseCodes.FromCargoSelectionFailure(OrbitalCargoSelectionFailureReason)`
   - 失敗コード: `cargo_select_invalid_request`・`cargo_select_block_not_found`・`cargo_select_instance_mismatch`・`cargo_select_not_cargo_selector`・`cargo_select_not_carried_here`・`cargo_select_locked`・`cargo_select_timeout`・`cargo_select_invalid_response`
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `RecordingSpecialRequestSender.cs` の 30 行の後に:
 
@@ -6264,14 +6264,14 @@ git commit -m "発射台・拠点の詳細に積荷の選択を載せ、Shift �
         }
 ```
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
 ```
 期待: `SelectOrbitalCargo`・`SelectOrbitalCargoCommandName`・`FromCargoSelectionFailure` が無いのでコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `ISpecialBlockCommands.cs`（`using Core.Master;` を足す）の `SendRocketCommand` の次に:
 
@@ -6351,7 +6351,7 @@ uloop compile --project-path ./moorestech_client
 
 （85 行 → 93 行。）
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -6360,7 +6360,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 ```
 期待: 全部緑。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands moorestech_client/Assets/Scripts/Client.Tests/Ui
