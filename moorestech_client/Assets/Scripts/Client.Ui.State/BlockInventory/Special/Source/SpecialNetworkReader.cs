@@ -7,6 +7,7 @@ using Client.Ui.State.Text;
 using Game.Gear.Common;
 using Server.Protocol.PacketResponse;
 using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;
+using ServerFilterSplitterOutputSide = Game.Block.Interface.Component.FilterSplitterOutputSide;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {
@@ -30,12 +31,22 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return new GearNetworkDetail(UiNumberFormat.FromServerFloat(snapshot.TotalGenerateGearPower), UiNumberFormat.FromServerFloat(snapshot.TotalRequiredGearPower), ToStopReasonKind(snapshot.StopReason));
         }
 
-        public static FilterSplitterDetail FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
+        // 側は開いたブロックのマスタから呼び手が決める。方向の番号はサーバーも同じ outputConnects の並びで振る
+        // The caller derives sides from the open block's master; the server numbers directions in the same outputConnects order
+        public static FilterSplitterDetail FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<ServerFilterSplitterOutputSide> sides)
         {
             // silent-ok: 未取得は分配器の初回取得の到着待ち / 届かないままなら録画（R-12）の分配器の段で気づく
             if (response == null) return null;
+
+            // 数が違えばクライアントとサーバーのマスタが食い違っている。見出しが嘘になるので止める
+            // A count mismatch means client and server masters differ; the headings would lie, so stop
+            if (response.Directions.Count != sides.Count) throw new InvalidOperationException($"FilterSplitter response has {response.Directions.Count} directions but the client master has {sides.Count} outputs");
             var directions = new List<FilterSplitterDirectionDetail>(response.Directions.Count);
-            foreach (var direction in response.Directions) directions.Add(new FilterSplitterDirectionDetail(ToClientMode(direction.Mode), direction.FilterItemIds));
+            for (var index = 0; index < response.Directions.Count; index++)
+            {
+                var direction = response.Directions[index];
+                directions.Add(new FilterSplitterDirectionDetail(ToClientSide(sides[index]), ToClientMode(direction.Mode), direction.FilterItemIds));
+            }
             return new FilterSplitterDetail(directions);
         }
 
@@ -60,6 +71,17 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 ServerFilterSplitterMode.Whitelist => FilterSplitterMode.Whitelist,
                 ServerFilterSplitterMode.Blacklist => FilterSplitterMode.Blacklist,
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "未知のフィルタ分配器のモード"),
+            };
+        }
+
+        internal static FilterSplitterOutputSide ToClientSide(ServerFilterSplitterOutputSide side)
+        {
+            return side switch
+            {
+                ServerFilterSplitterOutputSide.Left => FilterSplitterOutputSide.Left,
+                ServerFilterSplitterOutputSide.Front => FilterSplitterOutputSide.Front,
+                ServerFilterSplitterOutputSide.Right => FilterSplitterOutputSide.Right,
+                _ => throw new ArgumentOutOfRangeException(nameof(side), side, "未知のフィルタ分配器の出口の側"),
             };
         }
 

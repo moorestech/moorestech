@@ -70,10 +70,13 @@ ui.blockInventory.changeRecipe,Change recipe,Change recipe,レシピを変更,Re
 ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率,Deckung,충족률
 ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W,Energieverbrauch: {power} W,소비 전력: {power} W
 ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} U/min / {torque} Nm / {power} W,{rpm} rpm / {torque} trq / {power} W
-ui.blockInventory.filterDefault,Default,Default,デフォルト,Standard,기본
-ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Positivliste,화이트리스트
-ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト,Sperrliste,블랙리스트
+ui.blockInventory.filterDefault,Others,Others,その他すべて,Rest,그 외 전부
+ui.blockInventory.filterWhitelist,Only Listed,Only Listed,指定した物だけ,Nur Liste,지정한 것만
+ui.blockInventory.filterBlacklist,Not Listed,Not Listed,指定した物以外,Außer Liste,지정한 것 외
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
+ui.blockInventory.filterOutputLeft,Left,Left,左,Links,왼쪽
+ui.blockInventory.filterOutputFront,Front,Front,正面,Vorne,정면
+ui.blockInventory.filterOutputRight,Right,Right,右,Rechts,오른쪽
 ui.blockInventory.pumpNoVein,No fluid vein to draw from,No fluid vein to draw from,汲み上げられる鉱脈がありません,Keine Flüssigkeitsader zum Fördern,끌어올 수 있는 유체 광맥이 없습니다
 ui.buildMenu.blueprintCopy,Blueprint Copy,Blueprint Copy,ブループリントコピー,Bauplan kopieren,설계도 복사
 ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します,"Bewegen Sie den Mauszeiger über einen Eintrag, um Details anzuzeigen",아이템에 마우스를 올리면 상세 정보가 표시됩니다

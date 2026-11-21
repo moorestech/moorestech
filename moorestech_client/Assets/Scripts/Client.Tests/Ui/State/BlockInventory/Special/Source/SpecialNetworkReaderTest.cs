@@ -8,6 +8,7 @@ using Game.Gear.Common;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;
+using ServerFilterSplitterOutputSide = Game.Block.Interface.Component.FilterSplitterOutputSide;
 
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
@@ -22,7 +23,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             Assert.IsNull(SpecialNetworkReader.Electric(null));
             Assert.IsNull(SpecialNetworkReader.Gear(null));
-            Assert.IsNull(SpecialNetworkReader.FilterSplitter(null));
+            Assert.IsNull(SpecialNetworkReader.FilterSplitter(null, new[] { ServerFilterSplitterOutputSide.Left }));
         }
 
         [Test]
@@ -69,11 +70,26 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
                 new() { Mode = ServerFilterSplitterMode.Whitelist, FilterItemIds = new List<ItemId> { new(4), ItemMaster.EmptyItemId } },
                 new() { Mode = ServerFilterSplitterMode.Blacklist, FilterItemIds = new List<ItemId> { new(7), new(8) } },
             });
-            var detail = SpecialNetworkReader.FilterSplitter(response);
+            var detail = SpecialNetworkReader.FilterSplitter(response, new[] { ServerFilterSplitterOutputSide.Right, ServerFilterSplitterOutputSide.Front });
             Assert.AreEqual(2, detail.Directions.Count);
             Assert.AreEqual(FilterSplitterMode.Whitelist, detail.Directions[0].Mode);
             CollectionAssert.AreEqual(new[] { new ItemId(4), ItemMaster.EmptyItemId }, detail.Directions[0].FilterItemIds);
             Assert.AreEqual(FilterSplitterMode.Blacklist, detail.Directions[1].Mode);
+            Assert.AreEqual(FilterSplitterOutputSide.Right, detail.Directions[0].Side);
+            Assert.AreEqual(FilterSplitterOutputSide.Front, detail.Directions[1].Side);
+        }
+
+        [Test]
+        public void 応答の方向数とマスタの出口の数が違えば止める()
+        {
+            // 数の食い違いはクライアントとサーバーのマスタが違うときだけ起きる。見出しが嘘になるので黙って詰めない
+            // A count mismatch only happens when client and server masters differ; the headings would lie, so do not pad silently
+            var response = new FilterSplitterStateProtocol.FilterSplitterStateResponse(true, FilterSplitterStateProtocol.FilterSplitterStateFailureReason.None, 1, 2, new List<FilterSplitterStateProtocol.DirectionStatePack>
+            {
+                new() { Mode = ServerFilterSplitterMode.Default, FilterItemIds = new List<ItemId> { ItemMaster.EmptyItemId, ItemMaster.EmptyItemId } },
+            });
+
+            Assert.Throws<InvalidOperationException>(() => SpecialNetworkReader.FilterSplitter(response, new[] { ServerFilterSplitterOutputSide.Left, ServerFilterSplitterOutputSide.Front }));
         }
     }
 }

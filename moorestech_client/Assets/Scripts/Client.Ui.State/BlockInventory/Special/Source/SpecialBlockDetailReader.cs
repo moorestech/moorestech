@@ -36,7 +36,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             var gearDetail = ReadGear(out gearAnomaly);
             return new SpecialBlockDetailViewModel(
                 ReadElectricToGear(), ReadGearToElectric(), gearDetail, BeltThroughputReader.Read(block, beltCache),
-                SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),
+                SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), ReadFilterSplitter(),
                 ReadRocketLaunchPad(), ReadSpaceElevator());
 
             #region Internal
@@ -88,6 +88,16 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 // Called only for the Consumer kind, so it is always available
                 drive.TryGetConsumption(out var consumption);
                 return consumption;
+            }
+
+            FilterSplitterDetail ReadFilterSplitter()
+            {
+                // silent-ok: 分岐器でないブロックは分岐器の詳細を持たない（キャッシュも分岐器のときだけ取りに行く。BlockNetworkInfoCache.Track） / 分岐器で出ないなら録画の分岐器の段で気づく
+                if (param is not FilterSplitterBlockParam splitterParam) return null;
+
+                // 出口の側は開いた分岐器のマスタの接続で決まる（発射台の枠の並びをマスタから組むのと同じ）
+                // Exit sides come from the open splitter's master connectors (same as building the launch pad slot layout from the master)
+                return SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter, FilterSplitterOutputSideResolver.ResolveAll(splitterParam.InventoryConnectors));
             }
 
             RocketLaunchPadDetail ReadRocketLaunchPad()

@@ -19,6 +19,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.FilterBlacklist.Key, FilterSplitterLogic.ModeKey(FilterSplitterMode.Blacklist).Key);
         }
 
+        [Test]
+        public void 三つの出口の側を文言キーへ対応づける()
+        {
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.FilterOutputLeft.Key, FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide.Left).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.FilterOutputFront.Key, FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide.Front).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.FilterOutputRight.Key, FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide.Right).Key);
+        }
+
         /// <web-test file="src/features/blockInventory/filterSplitterLogic.test.ts">grabCount=0 かつ clear=false は noop</web-test>
         [Test]
         public void 何も掴まず消去でもなければ無操作()

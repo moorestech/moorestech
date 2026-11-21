@@ -23,9 +23,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         public static FilterSplitterDetail FilterSplitter => new(new[]
         {
-            new FilterSplitterDirectionDetail(FilterSplitterMode.Whitelist, new[] { new ItemId(4), ItemMaster.EmptyItemId }),
-            new FilterSplitterDirectionDetail(FilterSplitterMode.Default, new[] { ItemMaster.EmptyItemId, ItemMaster.EmptyItemId }),
-            new FilterSplitterDirectionDetail(FilterSplitterMode.Blacklist, new[] { new ItemId(7), new ItemId(8) }),
+            new FilterSplitterDirectionDetail(FilterSplitterOutputSide.Left, FilterSplitterMode.Whitelist, new[] { new ItemId(4), ItemMaster.EmptyItemId }),
+            new FilterSplitterDirectionDetail(FilterSplitterOutputSide.Front, FilterSplitterMode.Default, new[] { ItemMaster.EmptyItemId, ItemMaster.EmptyItemId }),
+            new FilterSplitterDirectionDetail(FilterSplitterOutputSide.Right, FilterSplitterMode.Blacklist, new[] { new ItemId(7), new ItemId(8) }),
         });
 
         public static BeltThroughputDetail Belt => new(new[] { BeltThroughputWindow.Measured(90, 4, 4.5), BeltThroughputWindow.Measured(180, 9, 9), BeltThroughputWindow.Measuring(360, 18) }, new[] { 1, 0, 1 }, 1);
