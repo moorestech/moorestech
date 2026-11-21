@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -34,7 +35,8 @@ namespace Game.SpaceElevator
             {
                 if (!block.ComponentManager.TryGetComponent<ISpaceElevatorBase>(out var elevatorBase)) return;
                 var cablesPerElevator = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
-                var tracked = new TrackedSpaceElevatorBase(elevatorBase, cablesPerElevator);
+                var cargoSelector = block.GetComponent<IOrbitalCargoSelectorComponent>();
+                var tracked = new TrackedSpaceElevatorBase(elevatorBase, cargoSelector, cablesPerElevator);
                 _bases[block.BlockInstanceId] = tracked;
                 PushAvailability(tracked);
             }
@@ -76,6 +78,9 @@ namespace Game.SpaceElevator
         {
             if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return Refuse(SpaceElevatorConnectResult.NotSpaceElevatorBase);
             if (tracked.Base.IsConnected) return Refuse(SpaceElevatorConnectResult.AlreadyConnected);
+            // 積荷を選ぶまで接続させず、ケーブル消費より先に拒否する（ADR 0106 7）
+            // Refuse until a cargo is selected, before consuming cables (ADR 0106 7)
+            if (tracked.CargoSelector.Selection is UnselectedOrbitalCargo) return Refuse(SpaceElevatorConnectResult.CargoNotSelected);
 
             // 1基分の残量を引いて接続
             // Take one base's cable requirement and connect it
@@ -101,11 +106,13 @@ namespace Game.SpaceElevator
         private class TrackedSpaceElevatorBase
         {
             public readonly ISpaceElevatorBase Base;
+            public readonly IOrbitalCargoSelectorComponent CargoSelector;
             public readonly int CablesPerElevator;
 
-            public TrackedSpaceElevatorBase(ISpaceElevatorBase elevatorBase, int cablesPerElevator)
+            public TrackedSpaceElevatorBase(ISpaceElevatorBase elevatorBase, IOrbitalCargoSelectorComponent cargoSelector, int cablesPerElevator)
             {
                 Base = elevatorBase;
+                CargoSelector = cargoSelector;
                 CablesPerElevator = cablesPerElevator;
             }
         }

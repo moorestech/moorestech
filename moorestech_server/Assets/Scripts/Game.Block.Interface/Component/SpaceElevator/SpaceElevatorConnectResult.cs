@@ -9,5 +9,6 @@ namespace Game.Block.Interface.Component
         InvalidRequest,
         BlockNotFound,
         InstanceMismatch,
+        CargoNotSelected,
     }
 }
