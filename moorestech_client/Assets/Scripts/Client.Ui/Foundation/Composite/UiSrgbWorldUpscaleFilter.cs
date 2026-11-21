@@ -70,7 +70,8 @@ namespace Client.Ui.Foundation.Composite
             {
                 if (_reportedUnsupportedFilter) return;
                 _reportedUnsupportedFilter = true;
-                Debug.LogError($"[UiSrgbWorldUpscaleFilter] URP の拡大フィルタ {selection}（TAA の CAS を含む）は合成で写せないので、UI の下の世界の色は双線形で読む（URP とずれる）");
+                var cause = finalPassSharpens ? "TAA の CAS（コントラスト適応シャープ）" : $"URP の拡大フィルタ {selection}";
+                Debug.LogError($"[UiSrgbWorldUpscaleFilter] {cause} は合成で写せないので、UI の下の世界の色は双線形で読む（URP とずれる）");
             }
 
             #endregion

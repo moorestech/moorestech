@@ -57,7 +57,7 @@ namespace Client.Tests.Ui.Composite
             // URP は CAS で鋭くするので合成では写せず、双線形で読んで 1 回エラーを出す
             // URP sharpens with CAS, which the composite cannot reproduce, so it reads bilinearly and logs once
             UnityEngine.TestTools.LogAssert.ignoreFailingMessages = true;
-            Assert.IsFalse(UiSrgbWorldUpscaleFilter.UsesPointSampling(true, false, true, 0.5f, 1280, 720, UpscalingFilterSelection.Point));
+            Assert.IsFalse(UiSrgbWorldUpscaleFilter.UsesPointSampling(true, true, true, 0.5f, 1280, 720, UpscalingFilterSelection.Point));
         }
     }
 }
