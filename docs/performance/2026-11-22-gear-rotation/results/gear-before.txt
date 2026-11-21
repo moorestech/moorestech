@@ -1,0 +1,88 @@
+enableFrameTimingStats=True
+started world=C:\moorestech-perf\work\current wasMinimized=False
+grdInstance=False visible=43573 supportedMeshRenderers=39840 notMeshRenderer=3725 propertyBlock=0 unsupportedShaders=Unlit/Outline:12
+{"frames":141,"seconds":10.560,"fps":13.352,"frameMsAvg":74.893}
+frames=70
+69.12 self=0.00 calls=3.0  PlayerLoop
+29.25 self=0.11 calls=1.0  UpdateScene
+13.87 self=7.35 calls=72.6  UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]
+7.35 self=0.00 calls=1.0  VContainerUpdate
+6.40 self=0.00 calls=1.0  UniTaskLoopRunnerYieldUpdate
+6.16 self=0.00 calls=1.0  Update.ScriptRunBehaviourUpdate
+6.16 self=1.23 calls=1.0  BehaviourUpdate
+4.39 self=4.39 calls=1893.0  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]
+2.52 self=0.05 calls=1.0  PostLateUpdate.UpdateAllSkinnedMeshes
+2.47 self=1.02 calls=1.0  MeshSkinning.Update
+1.81 self=0.00 calls=3.9  FixedUpdate.PhysicsFixedUpdate
+1.42 self=0.01 calls=1.0  PostLateUpdate.UpdateAllRenderers
+1.22 self=0.00 calls=2.0  FinalizeUpdateRendererBoundingVolumes
+1.01 self=0.00 calls=1.0  MeshRendererFinalizeUpdate
+0.74 self=0.74 calls=4.0  UpdateRendererBoundingVolumes
+0.65 self=0.02 calls=2.0  Animators.Update
+0.61 self=0.59 calls=303.2  BlockState.Processor.GearStateChangeProcessor
+0.51 self=0.00 calls=1.0  PostLateUpdate.VFXUpdate
+0.51 self=0.00 calls=1.0  VFX.Update
+0.51 self=0.51 calls=3.9  PhysX.FinalizeUpdateTask
+0.41 self=0.00 calls=1.0  PreLateUpdate.DirectorUpdateAnimationBegin
+0.40 self=0.00 calls=1.0  PreLateUpdate.DirectorUpdateAnimationEnd
+0.28 self=0.00 calls=1.0  PostLateUpdate.PlayerUpdateCanvases
+0.27 self=0.26 calls=147.5  BlockState.Processor.GearBeltConveyorStateChangeProcessor
+0.26 self=0.01 calls=1.0  UGUI.Rendering.UpdateBatches
+0.24 self=0.01 calls=1.0  EarlyUpdate.UpdateAsyncReadbackManager
+0.23 self=0.00 calls=1.0  PreLateUpdate.ScriptRunBehaviourLateUpdate
+0.23 self=0.02 calls=1.0  LateBehaviourUpdate
+0.21 self=0.00 calls=1.0  SkinnedMeshFinalizeUpdate
+0.18 self=0.00 calls=1.0  PostLateUpdate.UIElementsRepaintPanels
+0.18 self=0.00 calls=1.0  PreLateUpdate.UIElementsUpdatePanels
+0.17 self=0.03 calls=1.0  UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.UpdatePanels() [Invoke]
+0.14 self=0.00 calls=1.0  RayTracingAccelerationStructureManager.Update
+0.14 self=0.00 calls=1.0  UIElements.UpdateRenderData
+0.14 self=0.14 calls=73.0  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::SteamEngineEffectStateChangeProcessor.Update() [Invoke]
+0.13 self=0.11 calls=1.0  Cinemachine.dll!Cinemachine::CinemachineBrain.LateUpdate() [Invoke]
+0.12 self=0.07 calls=28.0  VFX.ParticleSystem.BatchUpdate
+0.12 self=0.12 calls=1.0  EarlyUpdate.RendererNotifyInvisible
+0.12 self=0.00 calls=3.9  FixedUpdate.ScriptRunDelayedFixedFrameRate
+0.10 self=0.09 calls=44.6  VisualEffect.Update
+{"frames":136,"seconds":10.330,"fps":13.166,"frameMsAvg":75.955}
+frames=68
+68.20 self=0.00 calls=3.0  PlayerLoop
+29.30 self=0.11 calls=1.0  UpdateScene
+13.76 self=7.49 calls=72.5  UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]
+7.48 self=0.00 calls=1.0  VContainerUpdate
+6.16 self=0.00 calls=1.0  UniTaskLoopRunnerYieldUpdate
+6.15 self=0.00 calls=1.0  Update.ScriptRunBehaviourUpdate
+6.15 self=1.22 calls=1.0  BehaviourUpdate
+4.37 self=4.37 calls=1893.0  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]
+2.60 self=0.05 calls=1.0  PostLateUpdate.UpdateAllSkinnedMeshes
+2.55 self=1.03 calls=1.0  MeshSkinning.Update
+1.88 self=0.00 calls=3.9  FixedUpdate.PhysicsFixedUpdate
+1.40 self=0.01 calls=1.0  PostLateUpdate.UpdateAllRenderers
+1.21 self=0.00 calls=2.0  FinalizeUpdateRendererBoundingVolumes
+1.01 self=0.00 calls=1.0  MeshRendererFinalizeUpdate
+0.69 self=0.69 calls=3.5  UpdateRendererBoundingVolumes
+0.65 self=0.02 calls=2.0  Animators.Update
+0.58 self=0.56 calls=298.3  BlockState.Processor.GearStateChangeProcessor
+0.56 self=0.56 calls=3.9  PhysX.FinalizeUpdateTask
+0.53 self=0.00 calls=1.0  PostLateUpdate.VFXUpdate
+0.53 self=0.00 calls=1.0  VFX.Update
+0.40 self=0.00 calls=1.0  PreLateUpdate.DirectorUpdateAnimationBegin
+0.40 self=0.00 calls=1.0  PreLateUpdate.DirectorUpdateAnimationEnd
+0.29 self=0.00 calls=1.0  PostLateUpdate.PlayerUpdateCanvases
+0.28 self=0.01 calls=1.0  UGUI.Rendering.UpdateBatches
+0.25 self=0.24 calls=141.4  BlockState.Processor.GearBeltConveyorStateChangeProcessor
+0.23 self=0.01 calls=1.0  EarlyUpdate.UpdateAsyncReadbackManager
+0.23 self=0.00 calls=1.0  PreLateUpdate.ScriptRunBehaviourLateUpdate
+0.23 self=0.02 calls=1.0  LateBehaviourUpdate
+0.19 self=0.00 calls=1.0  SkinnedMeshFinalizeUpdate
+0.19 self=0.00 calls=1.0  PostLateUpdate.UIElementsRepaintPanels
+0.17 self=0.00 calls=1.0  PreLateUpdate.UIElementsUpdatePanels
+0.17 self=0.03 calls=1.0  UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.UpdatePanels() [Invoke]
+0.15 self=0.00 calls=1.0  UIElements.UpdateRenderData
+0.14 self=0.14 calls=73.0  Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::SteamEngineEffectStateChangeProcessor.Update() [Invoke]
+0.13 self=0.00 calls=1.0  RayTracingAccelerationStructureManager.Update
+0.13 self=0.11 calls=1.0  Cinemachine.dll!Cinemachine::CinemachineBrain.LateUpdate() [Invoke]
+0.12 self=0.07 calls=28.0  VFX.ParticleSystem.BatchUpdate
+0.12 self=0.12 calls=1.0  EarlyUpdate.RendererNotifyInvisible
+0.12 self=0.00 calls=3.9  FixedUpdate.ScriptRunDelayedFixedFrameRate
+0.10 self=0.09 calls=43.1  VisualEffect.Update
+[drawcall] 保存: /private/tmp/claude-501/-Users-juha-Documents-GitHub-moorestech/2fcd9adb-a282-412c-a41f-2919bcbb3321/scratchpad/perf2/drawcall/results/2026-11-22T0025_gear-before_85f0aa1334.json
