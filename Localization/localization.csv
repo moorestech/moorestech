@@ -462,6 +462,19 @@ ui.blockInventory.cleanRoomTooLarge,Room too large (max {max} cells),Room too la
 ui.blockInventory.cleanRoomDetecting,Detecting room...,Detecting room...,部屋を検出中…,Raum wird erkannt...,방 감지 중...
 ui.blockInventory.cleanRoomHaltNotEnclosed,Halted: not in a sealed room,Halted: not in a sealed room,停止中: 密閉された部屋の外です,Angehalten: nicht in einem abgedichteten Raum,정지: 밀폐된 방 밖입니다
 ui.blockInventory.cleanRoomHaltClassOut,Halted: room below class,Halted: room below class,停止中: 部屋がクラス未達です,Angehalten: Raum unter Klasse,정지: 방 등급 미달입니다
+ui.blockInventory.cleanRoomPurifierClass,Class {className},Class {className},クラス{className},Klasse {className},{className} 등급
+ui.blockInventory.cleanRoomPurifierClassUnitsToNext,Class {className} ({units} more to class {nextClassName}),Class {className} ({units} more to class {nextClassName}),クラス{className}（クラス{nextClassName}まであと{units}台）,Klasse {className} (noch {units} bis Klasse {nextClassName}),{className} 등급 ({nextClassName} 등급까지 {units}대 더)
+ui.blockInventory.cleanRoomPurifierClassOutUnitsToNext,Below class ({units} more to class {nextClassName}),Below class ({units} more to class {nextClassName}),クラス未達（クラス{nextClassName}まであと{units}台）,Unter Klasse (noch {units} bis Klasse {nextClassName}),등급 미달 ({nextClassName} 등급까지 {units}대 더)
+ui.blockInventory.cleanRoomAirFilterCount,Purifiers: {count},Purifiers: {count},清浄機 {count}台,Luftreiniger: {count},공기청정기 {count}대
+ui.blockInventory.cleanRoomAirFilterCountStopped,Purifiers: {count} ({stopped} stopped),Purifiers: {count} ({stopped} stopped),清浄機 {count}台（うち{stopped}台が止まっています）,Luftreiniger: {count} ({stopped} angehalten),공기청정기 {count}대 ({stopped}대 정지됨)
+ui.blockInventory.cleanRoomQueriedAirFilter,This purifier: power {power}% / life {remaining}%,This purifier: power {power}% / life {remaining}%,この清浄機: 電力 {power}% / 残量 {remaining}%,Dieser Luftreiniger: Strom {power} % / Lebensdauer {remaining} %,이 공기청정기: 전력 {power}% / 잔량 {remaining}%
+ui.blockInventory.cleanRoomYieldOutputCount,Output: {count},Output: {count},出力：{count}個,Ausgabe: {count} Stück,출력: {count}개
+ui.blockInventory.cleanRoomYieldLevelValue,Lv{level} {percent}%,Lv{level} {percent}%,Lv{level} {percent}%,Lv{level} {percent} %,Lv{level} {percent}%
+ui.blockInventory.cleanRoomYieldFailedValue,Failed {percent}%,Failed {percent}%,失敗 {percent}%,Fehlschlag {percent} %,실패 {percent}%
+ui.blockInventory.cleanRoomYieldImprovementOpen,How to lower the failure rate,How to lower the failure rate,失敗率の改善方法,Fehlerrate senken,실패율 개선 방법
+ui.blockInventory.cleanRoomYieldImprovementNow,Now,Now,今,Jetzt,현재
+ui.blockInventory.cleanRoomYieldImproveRoomClass,Raise room class to {className},Raise room class to {className},部屋クラスを {className} に,Raumklasse auf {className} anheben,방 등급을 {className}(으)로
+ui.blockInventory.cleanRoomYieldImproveAddModule,Add quality module Lv{tier},Add quality module Lv{tier},品質モジュールLv{tier} を追加,Qualitätsmodul Lv{tier} hinzufügen,품질 모듈 Lv{tier} 추가
 ui.blockInventory.machineInputStallMixedLevel,Stopped: {itemName} of a different level arrived,Stopped: {itemName} of a different level arrived,レベルの違う品（{itemName}）が届いて止まっています,Angehalten: {itemName} mit anderer Stufe ist angekommen,정지됨: 레벨이 다른 {itemName}이(가) 도착했습니다
 ui.blockInventory.machineInputStallAboveCraftCap,Stopped: {itemName} above the craft cap arrived,Stopped: {itemName} above the craft cap arrived,製作上限を超えるレベルの品（{itemName}）が届いて止まっています,Angehalten: {itemName} über der Herstellungsgrenze ist angekommen,정지됨: 제작 상한을 넘는 {itemName}이(가) 도착했습니다
 ui.blockInventory.cleanRoomYieldQualityTier,Quality module tier {tier},Quality module tier {tier},品質モジュールTier {tier},Qualitätsmodul-Stufe {tier},품질 모듈 티어 {tier}
