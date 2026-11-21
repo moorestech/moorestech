@@ -15892,9 +15892,9 @@ Expected: 出力なし。
   - `CleanRoomOddsYieldReport(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)`（`Next`・`PendingDraw` が消え、数字ありの報告は最終の内訳と改善の一覧だけを持つ。役割は `Odds` の型〈`LayerExposureFinalOdds`・`DicingFinalOdds`〉が表す）
   - `CleanRoomRoomSummary` は `Class`・`AirFilterCount`・`StoppedAirFilterCount`・`QueriedFrom` だけになる
 
-- [ ] **Step 1: 前提を確かめる** — 上の grep が出力なしであること。
+- [x] **Step 1: 前提を確かめる** — 上の grep が出力なしであること。
 
-- [ ] **Step 2: テストを直す（今の振る舞いを新しい形で書く）**
+- [x] **Step 2: テストを直す（今の振る舞いを新しい形で書く）**
 
 `CleanRoomPendingDrawYieldInfoTest.cs` を全体で書き直す（加工時間とセーブ往復の確認は残し、確定済み抽選の組の確認を「今の条件の1組」の確認に替える。別役割の確定済み抽選のテストは wire から項目が消えるので消す）:
 
@@ -16220,9 +16220,9 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         }
 ```
 
-- [ ] **Step 3: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CreateDicing` の引数の数・`LayerExposureOdds`（読み口）などで失敗する。
+- [x] **Step 3: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `CreateDicing` の引数の数・`LayerExposureOdds`（読み口）などで失敗する。
 
-- [ ] **Step 4: 実装を書く**
+- [x] **Step 4: 実装を書く**
 
 `CleanRoomYieldPreviewReport.cs` 直した後（全体。C3 の形から `CleanRoomOddsYieldReport` の `Next`・`PendingDraw` と ctor の2引数を外す）:
 
@@ -16838,7 +16838,7 @@ git rm moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomAirFilterSu
 git rm moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachinePendingRealizationReader.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachinePendingRealizationReader.cs.meta
 ```
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -16852,7 +16852,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 
 `Tests.CombinedTest.Core.Machine.` は確定済み抽選のセーブ（`MachineRealizationSaveJsonObject`）を通るテストが壊れていないことの確認。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```
 git add -A moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Game.CleanRoom moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom moorestech_server/Assets/Scripts/Tests moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs
