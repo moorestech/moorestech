@@ -4771,7 +4771,7 @@ A が足す `RocketLaunchPadWaitReason.CargoNotSelected`・`SpaceElevatorBaseSta
 - Consumes: A の enum 値 4 つ（上）。
 - Produces: `LocalizationKeys.Ui.BlockInventory.RocketWaitCargoNotSelected`・`SpaceElevatorStatusCargoNotSelected`・`OrbitalCargoRow`・`OrbitalCargoOutcomeItem`・`OrbitalCargoOutcomeCablePool`・`OrbitalCargoNextFlight`・`ChangeOrbitalCargo`（CSV から生成）。失敗コード `connect_cargo_not_selected`・`rocket_command_cargo_not_selected`。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `SpecialBlockResponseCodesTest.cs` の `接続の結果を写す` の TestCase に 1 行足す:
 
@@ -4801,7 +4801,7 @@ A が足す `RocketLaunchPadWaitReason.CargoNotSelected`・`SpaceElevatorBaseSta
 
 注: B6 の後も、このテストは `SpaceElevatorTestHost.Render` で本文を「一覧を出さないモード」で直に描く（`Unconnected` の見本は B3 から選んだ積荷を持つ）ので、`space-elevator-status` は出たまま通る。未選択で一覧を出す経路は B6 の `SpaceElevatorViewTest`（Presenter を通す `Attach`）が見る。
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -4809,7 +4809,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 ```
 期待: `接続の結果を写す(CargoNotSelected,…)` と `積荷を選んでいない合図の拒否は失敗のコードになる` が `ArgumentOutOfRangeException` で赤。`合図の拒否はどの理由もコードを持ち…` も `CargoNotSelected` で赤（A が値を足した時点から赤のまま。B1 で緑に戻る）。
 
-- [ ] **Step 3: CSV を足す**
+- [x] **Step 3: CSV を足す**
 
 `Localization/localization.csv` の 62 行（`rocketWaitNoPower`）の直後に:
 
@@ -4842,7 +4842,7 @@ ui.blockInventory.orbitalCargoNextFlight,From the next launch: {cargo},From the 
 ui.blockInventory.changeOrbitalCargo,Change cargo,Change cargo,積荷を変更,Fracht ändern,적재물 변경
 ```
 
-- [ ] **Step 4: 腕を足す**
+- [x] **Step 4: 腕を足す**
 
 `RocketLaunchPadLogic.cs` 37–45 行。前:
 
@@ -4891,7 +4891,7 @@ ui.blockInventory.changeOrbitalCargo,Change cargo,Change cargo,積荷を変更,F
                 FailureReason.CargoNotSelected => SpecialBlockRequestOutcome.Failed("rocket_command_cargo_not_selected"),
 ```
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client --force-recompile
@@ -4902,7 +4902,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 先頭の `--force-recompile` は、`localization.csv` が Assets の外にあり `Client.Localization/csc.rsp` の `/additionalfile` 経由で SourceGenerator に渡るため、AssetDatabase が変更に気づかず CSV を変えただけではキー（`LocalizationKeys.Ui.BlockInventory.RocketWaitCargoNotSelected` 等）が作り直されないから（`docs/development/uloop-troubleshooting.md`「localization.csv だけ変えたのに古いキーのまま」）。force 版はエラー本文を返さず `COMPILE_RESULT_UNKNOWN` になることがあるので、結果は続く通常の `uloop compile` の `ErrorCount 0` で読む。
 期待: 全部緑。CSV の Source/english の対の契約は mooresmaster.Tests（Unity の外の dotnet テスト）が見る。その実行コマンドはこの下書きでは確かめていない（「未確認」2）。CI の同じジョブで通ることを確かめる。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```
 git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Commands/SpecialBlockResponseCodes.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockResponseCodesTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Space/SpaceElevatorViewTest.cs
