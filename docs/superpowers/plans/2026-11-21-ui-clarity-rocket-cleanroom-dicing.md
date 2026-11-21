@@ -3539,7 +3539,7 @@ ADR 0106 の 7「まだ接続していない拠点は、積荷を選んでから
 - Consumes: A1 `IOrbitalCargoSelectorComponent`・`UnselectedOrbitalCargo`、A3 で拠点に載った選択部品
 - Produces: `SpaceElevatorConnectResult.CargoNotSelected`（`ConnectSpaceElevatorProtocol` の応答 `ConnectSpaceElevatorResponse.Result` にそのまま載る）。拒否は `[SpaceElevator] connection denied: CargoNotSelected instance=… position=…` を `Debug.Log` に1行出す（既存の `Refuse` と同じ）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoBaseConnectTest.cs`:
 
@@ -3602,11 +3602,11 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 ```
 （`elevatorBase.GetComponent` は `using Game.Block.Interface.Extension;` も足す）
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `SpaceElevatorConnectResult.CargoNotSelected` が無くてコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs` 全文:
 
@@ -3751,7 +3751,7 @@ namespace Game.SpaceElevator
 }
 ```
 
-- [ ] **Step 4: 既存テストを直す**
+- [x] **Step 4: 既存テストを直す**
 
 | ファイル | 行 | 扱い | 理由 |
 |---|---|---|---|
@@ -3760,7 +3760,7 @@ namespace Game.SpaceElevator
 | 同 | 55–71 | 変更なし | `MarkConnected` 済みの拠点の `AlreadyConnected` は未選択より先に判定する |
 | A3 で `PlaceBase(…, 積荷)` にした接続テスト（`SpaceElevatorConnectionTest`・`ConnectSpaceElevatorProtocolTest`・`SpaceElevatorUpstreamMigrationSaveLoadTest:91` ほか） | — | 変更なし | 選んでから接続している。Upstream の旧版セーブは今のコードで作った世界の版番号だけを書き換えたものなので、選択の項目を持ったまま読み込まれる |
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.OrbitalCargo.OrbitalCargoBaseConnectTest"`
@@ -3768,7 +3768,7 @@ namespace Game.SpaceElevator
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 期待: すべて成功。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 `git commit -m "積荷を選んでいない宇宙エレベーター拠点の接続をサーバーで拒否する"`
 
