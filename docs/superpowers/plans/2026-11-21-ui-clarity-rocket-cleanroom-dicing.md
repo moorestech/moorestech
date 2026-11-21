@@ -847,7 +847,7 @@ ADR 0106 の 3（解放の拒否・ロードは解放を見ない）・5（`Game
   - `internal static class OrbitalCargoItemGuid { public static bool TryParseExistingItemGuid(string guidText, out ItemId itemId); }`（`Game.Block.Blocks.OrbitalCargo`。読めない文字列・今のマスタに無い GUID はどちらも false。呼ぶのは選択部品のロードと、A6 のブループリント部品。ログは呼び手が出す。判断 23）
   - テスト補助 `Tests.Util.OrbitalCargo.OrbitalCargoTestUtil`: `NoRefundInventory()`・`SelectCargo(IBlock, ItemId)`・`LockItem(ItemId)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/Util/OrbitalCargo/OrbitalCargoTestUtil.cs`:
 
@@ -1054,11 +1054,11 @@ namespace Tests.UnitTest.Game.OrbitalCargo
 }
 ```
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `OrbitalCargoSelectorComponent` 等が無くてコンパイルエラーになる。
 
-- [ ] **Step 3: 型と部品を書く**
+- [x] **Step 3: 型と部品を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/OrbitalCargo/OrbitalCargoSelection.cs`:
 
@@ -1387,13 +1387,13 @@ namespace Game.Block.Blocks.OrbitalCargo
 }
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Game.OrbitalCargo.OrbitalCargoSelectorComponentTest"`
 期待: 7 件すべて成功（`[Test]` 4 本＋`[TestCase]` 3 本）。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 `git add` で上の 10 ファイル（Unity が作った `.meta` を含む）を入れ、`git commit -m "積荷の選択の型と、発射台・拠点が共有する選択部品を足す"`。
 
