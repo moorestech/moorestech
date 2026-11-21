@@ -15384,6 +15384,11 @@ git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory moores
 git commit -m "確率の欄に「失敗率の改善方法」ボタンを置き、押すと改善方法のモーダルを開く（ADR 0105 §4）"
 ```
 
+実装時の追加確認（D7 の実画面で発見）: 共通の `PanelActionButton` の既定幅87pxでは、改善方法のラベルが4言語とも面からはみ出す。実UIの独立検証で必要幅は英202px・日121px・独127px・韓105px。既存の PauseMenu と同じ自動幅を改善ボタンの局所USSへ適用する（agent判断）。
+
+- [x] 4言語の実ラベルで幅不足を独立再現し、局所修正後にクリックを含む対象73件を通す
+- [x] 修正後の `tier9-3-yield-ui` を再録画し、全文が読めることを実画面で確認して再レビューを通す
+
 ### Task D7: unity プレイ録画テストを新しい画面に合わせ、「あと何台」が本当に当たることを録画で確かめる
 
 D3・D4 で testid と文言が変わり、今の録画シナリオ4本が壊れる（grep の結果は Step 1）。壊れない `uitk/post-visual/pv-cleanroom.cs` は、Web との差が意図どおりであることを見出しのコメントに書く（判断 D-31）。直したうえで、「失敗率の改善方法」のモーダルを実プレイで開き（tier9-3）、清浄機の画面の「あと N 台」どおりに N 台を足すと本当に次のクラスへ上がることを新しいシナリオで確かめる（ADR 0105 §5 の数字がプレイヤーの手元で当たることは、L1 のテストでは見られない）。
@@ -15402,7 +15407,7 @@ D3・D4 で testid と文言が変わり、今の録画シナリオ4本が壊れ
 - Consumes: testid `clean-room-yield-improvement-open`・`clean-room-yield-output-count`・`clean-room-yield-level-rate-{n}`・`clean-room-yield-failed-rate`（D3・D6）、`clean-room-air-filter-count`・`clean-room-queried-air-filter`・`clean-room-headline`（D4）、`modal`・`modal-message`・`modal-table`・`modal-table-row-0`・`modal-button`（D2・既存）、`PlaytestDriver.UntilUiElement`・`ClickUi`・`Screenshot`・`Note`・`Assert`、`PlaytestUiElementOps.FindUi`、`PlaytestCleanRoomSnapshots.WaitForCleanRoom`/`WaitForCleanRoomClass`、`CleanRoomDatastore.TryGetCleanRoom(IBlock, out room)`・`room.ThresholdIndex`
 - Produces: `public static UniTask PlaytestCleanRoomUiOps.CheckCleanRoomYieldImprovementModal(this PlaytestDriver p, string screenshotName)`（namespace `Client.Playtest.Operations.Ui`）
 
-- [ ] **Step 1: 壊れる所を全部挙げる**
+- [x] **Step 1: 壊れる所を全部挙げる**
 
 Run: `grep -rnE "clean-room-(air\"|air-filter-|no-filter|yield-(layer|quality|die|pending|next))|部屋のクラス|CleanRoomAirFilter\(|new CleanRoomSummary|CleanRoomYieldFetched|EnclosedCleanRoomDisplay" .agents/skills moorestech_client/Assets/Scripts/Client.Playtest`
 Expected: 次の4ファイルだけが当たる（D3・D4 の後の今の版で確かめた結果）
@@ -15415,7 +15420,7 @@ Expected: 次の4ファイルだけが当たる（D3・D4 の後の今の版で�
 
 `scenarios/uitk/post-visual/pv-cleanroom.cs` は上の grep に当たらない（testid・文言・部屋の型を読まず、UI 状態と部屋の検出〈`WaitForCleanRoom`〉を待って撮るだけ）ので止まらない。ただし見出しのコメントが「清浄機を 0→30 台と増やしながら Web と UITK を同じ状態で撮る」と言うだけで、今回の後は清浄機1台以上で UITK の画面が Web の参照（`moorestech_web/webui/e2e/mock-host/fixtures/blocks/cleanRoomFixtures.ts` の `cleanRoomAirFilter*Filters`。清浄機1台ずつの行・換気回数）と意図して違う。差を後退と読み違えないよう、Step 5 で見出しのコメントにそれを書く（判断 D-31）。
 
-- [ ] **Step 2: 改善方法のモーダルを開いて記録する DSL を作る**
+- [x] **Step 2: 改善方法のモーダルを開いて記録する DSL を作る**
 
 `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ui/CleanRoom/PlaytestCleanRoomUiOps.cs` を作る（`.meta` は Unity が作る）。
 
@@ -15471,7 +15476,7 @@ namespace Client.Playtest.Operations.Ui
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount 0`
 
-- [ ] **Step 3: tier9-3 を新しい行とモーダルに合わせる**
+- [x] **Step 3: tier9-3 を新しい行とモーダルに合わせる**
 
 `scenarios/tier9/tier9-3-yield-ui.cs`。1-2行目。直す前:
 
@@ -15538,7 +15543,7 @@ Expected: `ErrorCount 0`
 
 （`Client.Playtest.Operations.Ui` は11行目で using 済み。行数は 199 → 199。）
 
-- [ ] **Step 4: フィルター消費のシナリオから清浄機の画面の検査を外す**
+- [x] **Step 4: フィルター消費のシナリオから清浄機の画面の検査を外す**
 
 清浄機の画面の検査は新しいシナリオ（Step 6）へ移し、ここはフィルター消費と壁を外したときだけを見る（判断 D-22）。
 
@@ -15572,7 +15577,7 @@ Expected: `ErrorCount 0`
 
 206行目 `    bool ContainsConcentration(string text) => …;` を消す（使い手の (4) が無くなる）。
 
-- [ ] **Step 5: UITK の3本を新しい部屋欄に合わせる**（2本は止まる所を直す。`pv-cleanroom.cs` は見出しのコメントだけ）
+- [x] **Step 5: UITK の3本を新しい部屋欄に合わせる**（2本は止まる所を直す。`pv-cleanroom.cs` は見出しのコメントだけ）
 
 `scenarios/uitk/integrator/uitk-typography-compare.cs`。1-4行目。直す前:
 
@@ -15648,7 +15653,7 @@ Expected: `ErrorCount 0`
 
 111行目。直す前 `        foreach (var target in new[] { Root().Q<VisualElement>($"clean-room-air-filter-{FilterCount - 1}"), grid })` → 直した後 `        foreach (var target in new[] { Root().Q<VisualElement>("clean-room-queried-air-filter"), grid })`
 
-- [ ] **Step 6: 「あと N 台」どおりに足すと次のクラスへ上がることを録画で確かめる**
+- [x] **Step 6: 「あと N 台」どおりに足すと次のクラスへ上がることを録画で確かめる**
 
 `.agents/skills/unity-playmode-recorded-playtest/scenarios/cleanroom/cleanroom-purifier-units-to-next-class.cs` を作る（部屋・発電機・清浄機を開く手順は `misc/cleanroom-purifier-filter-consumption.cs` と同じ置き方。1台のときの見出しから N と次のクラス名を読み、N 台を足して部屋がそのクラスになるのを待ち、見出しがそのクラスになることを見る）。
 
@@ -15809,7 +15814,7 @@ return PlaytestRunner.Run("cleanroom-purifier-units-to-next-class", new Playtest
 });
 ```
 
-- [ ] **Step 7: 録画を回す**
+- [x] **Step 7: 録画を回す**
 
 master ピンの worktree は `run-scenario.sh` が自動で解く（`.agents/skills/unity-playmode-recorded-playtest/SKILL.md`）。5本を1本ずつ前景で回す。
 
@@ -15826,7 +15831,7 @@ Expected: 3本とも終了コード 0（`uitk/post-visual/pv-cleanroom.cs` は�
 
 （`Saves/` に作られたワールドは作業の終わりに `list-work-saves.sh` で探して消す。録画・ログは worktree の gitignore 下に置く。AGENTS.md「スキル配置と実行記録」。）
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ui/CleanRoom .agents/skills/unity-playmode-recorded-playtest/scenarios
