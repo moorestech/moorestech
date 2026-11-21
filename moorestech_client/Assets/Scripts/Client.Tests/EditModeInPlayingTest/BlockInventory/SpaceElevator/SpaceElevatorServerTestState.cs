@@ -5,10 +5,12 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Orbit;
 using Game.SpaceElevator;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 
@@ -21,6 +23,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         internal int PoolAmount { get; private set; }
         internal bool TargetConnected { get; private set; }
         internal bool DecoyConnected { get; private set; }
+        internal ItemId? TargetSelectedCargo { get; private set; }
 
         private SpaceElevatorServerTestState(IBlock target, IBlock decoy)
         {
@@ -45,6 +48,13 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             return action.Amount;
         }
 
+        // テスト用Modの初期解放に依らず積荷を選べるようにする
+        // Enable cargo selection regardless of the test mod's initial unlocks
+        internal static async UniTask UnlockPayloadAsync(ItemId payload)
+        {
+            await new PayloadUnlock(payload).ExecuteAsync();
+        }
+
         protected override void ExecuteOnServer()
         {
             // 期待値用の状態も同じ所有スレッドで読む
@@ -52,6 +62,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             PoolAmount = ServerContext.GetService<SpaceElevatorCablePool>().Amount;
             TargetConnected = _target.GetComponent<SpaceElevatorClimberComponent>().IsConnected;
             DecoyConnected = _decoy.GetComponent<SpaceElevatorClimberComponent>().IsConnected;
+            TargetSelectedCargo = _target.GetComponent<IOrbitalCargoSelectorComponent>().Selection is SelectedOrbitalCargo selected ? selected.PayloadItemId : null;
         }
 
         private sealed class CableArrival : ServerTestAction
@@ -74,6 +85,21 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 while (pool.Amount < _param.CablesPerElevator)
                     ServerContext.GetService<IOrbitalArrivalService>().Arrive(cable, perLaunch);
                 Amount = pool.Amount;
+            }
+        }
+
+        private sealed class PayloadUnlock : ServerTestAction
+        {
+            private readonly ItemId _payload;
+
+            internal PayloadUnlock(ItemId payload)
+            {
+                _payload = payload;
+            }
+
+            protected override void ExecuteOnServer()
+            {
+                ServerContext.GetService<IGameUnlockStateDataController>().UnlockItem(_payload);
             }
         }
     }
