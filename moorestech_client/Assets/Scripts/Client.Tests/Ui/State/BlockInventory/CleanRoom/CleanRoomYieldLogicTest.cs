@@ -37,6 +37,24 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
             AssertLine(lines[3], "clean-room-yield-failed-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldFailedRate, new[] { "percent", "50.5" });
         }
 
+        [TestCase(0.33334, 0.33333, 0.33333, "33.4", "33.3", "33.3")]
+        [TestCase(0.12356, 0.32157, 0.55487, "12.3", "32.2", "55.5")]
+        public void RoundedDistributionTotalsOneHundred(double first, double second, double failed, string firstText, string secondText, string failedText)
+        {
+            var odds = CleanRoomYieldOdds.Dicing(1, new[] { first, second }, failed, NoImprovements);
+            var lines = CleanRoomYieldLogic.Lines(odds);
+            var current = CleanRoomYieldImprovementLogic.CurrentValues(odds);
+
+            // 欄とモーダルが同じ合計100%の内訳を使う
+            // The section and the modal share a breakdown totaling 100 percent
+            AssertLine(lines[1], "clean-room-yield-level-rate-1", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { "level", "1", "percent", firstText });
+            AssertLine(lines[2], "clean-room-yield-level-rate-2", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { "level", "2", "percent", secondText });
+            AssertLine(lines[3], "clean-room-yield-failed-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldFailedRate, new[] { "percent", failedText });
+            UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelValue, new[] { "level", "1", "percent", firstText }, current[0]);
+            UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelValue, new[] { "level", "2", "percent", secondText }, current[1]);
+            UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldFailedValue, new[] { "percent", failedText }, current[2]);
+        }
+
         private static void AssertLine(CleanRoomYieldLine line, string rowId, LocalizationKey key, string[] nameValuePairs)
         {
             Assert.AreEqual(rowId, line.RowId);
