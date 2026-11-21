@@ -73,7 +73,6 @@ ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,
 ui.blockInventory.filterDefault,Others,Others,その他すべて,Rest,그 외 전부
 ui.blockInventory.filterWhitelist,Only Listed,Only Listed,指定した物だけ,Nur Liste,지정한 것만
 ui.blockInventory.filterBlacklist,Not Listed,Not Listed,指定した物以外,Außer Liste,지정한 것 외
-ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
 ui.blockInventory.filterOutputLeft,Left,Left,左,Links,왼쪽
 ui.blockInventory.filterOutputFront,Front,Front,正面,Vorne,정면
 ui.blockInventory.filterOutputRight,Right,Right,右,Rechts,오른쪽
