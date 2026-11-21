@@ -120,6 +120,7 @@ namespace Client.Starter.Registration
             builder.Register<BlockPreviewEdgeFramePool>(Lifetime.Singleton);
             builder.Register<GearRotationCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<GearRotationCullingRegisterService>();
+            builder.Register<GearRotationTicker>(Lifetime.Singleton).As<ITickable>();
             builder.RegisterEntryPoint<RenderPipelineQualityApplier>();
             builder.RegisterEntryPoint<EffectsQualityApplier>();
             builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();

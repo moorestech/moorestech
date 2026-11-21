@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.GearRotation;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -21,11 +22,23 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             _currentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }
 
-        private void Update()
+        // 回転は個別のUpdateではなくGearRotationTickerが一覧から進める。有効な間だけ一覧に載る
+        // Rotation is advanced by GearRotationTicker from the list rather than per-gear Update; listed only while enabled
+        private void OnEnable()
         {
-            if (_currentGearState == null) return;
+            GearRotationUpdateList.Add(this);
+        }
 
-            Rotate(_currentGearState, Time.deltaTime);
+        private void OnDisable()
+        {
+            GearRotationUpdateList.Remove(this);
+        }
+
+        public void AdvanceRotation(float deltaTime)
+        {
+            if (_currentGearState == null) return; // silent-ok: 状態の受信前は回転させない / 状態の受信後に回り出すことで確認する
+
+            Rotate(_currentGearState, deltaTime);
         }
 
         public void SetRotationWithinRange(bool withinRange)
