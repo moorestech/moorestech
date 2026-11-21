@@ -53,16 +53,25 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             // Fill the failed-die slot and load a wafer so idle fixes a draw (failed dies at about 40% make zero failed dies practically impossible)
             inventory.SetItem(FailedDieSlot, ForUnitTestItemId.TestFailedDie, FailedDieMaxStack);
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWafer, 1);
-            Assert.IsNull(ReadDicing(packet, machine).PendingDraw);
-            RunTicks(filter, machine, 3);
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
+
+            // 入力がそろっていても、照会だけでは抽選カウンタも加工・在庫の状態も進まない
+            // Even with the input ready, a query advances neither the draw counter nor processing or inventory
+            var readyState = Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState());
+            Assert.IsNull(ReadDicing(packet, machine).PendingDraw);
+            Assert.AreEqual(readyState, Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState()));
+            RunTicks(filter, machine, 3);
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
 
             // モジュールを外すと次の新規抽選はTier0・低減なしへ下がり、待っている抽選は確定時のTier1の値のまま返る
             // Removing the module drops the next new draw to tier 0 with no reduction, while the waiting draw keeps its draw-time tier-1 values
             inventory.SetItem(FirstModuleSlot, ServerContext.ItemStackFactory.CreatEmpty());
             RunTicks(filter, machine, 1);
+            // 出力待ちでも照会で確定済みの抽選記録は変わらない
+            // Querying while waiting for output leaves the fixed draw record unchanged
+            var waitingState = Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState());
             var view = ReadDicing(packet, machine);
+            Assert.AreEqual(waitingState, Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState()));
             AssertDicing(view.Dicing, 0.15, 0, new[] { 0.2, 0d, 0d }, 0.8);
             Assert.IsNotNull(view.PendingDraw);
             AssertDicing(view.PendingDraw, 0.074146, 1, new[] { 0.531130, 0.066226, 0d }, 0.402644);

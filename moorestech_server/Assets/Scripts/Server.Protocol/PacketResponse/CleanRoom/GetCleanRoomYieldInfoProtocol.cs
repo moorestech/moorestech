@@ -40,27 +40,26 @@ namespace Server.Protocol.PacketResponse
 
             #region Internal
 
-            // サーバーの役割ごとの結果を役割ごとの factory へ写す（クライアントは Game.Block の型を持たない）。出力待ちの確定済み抽選は同じ役割の値として添える
-            // Map each per-role server result onto its per-role factory, so the client never holds Game.Block types; a fixed draw waiting for output rides along as the same role's values
+            // サーバーの報告の種別ごとの型を種別ごとの factory へ写す（クライアントは Game.Block の型を持たない）。出力待ちの確定済み抽選は同じ役割の値として添える
+            // Map each per-kind server report onto its per-kind factory, so the client never holds Game.Block types; a fixed draw waiting for output rides along as the same role's values
             static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewReport report)
             {
-                var pending = report.PendingDraw;
-                return report.Next switch
+                return report switch
                 {
-                    NoRolePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
+                    CleanRoomNoRoleYieldReport _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
                     // 稼働できない間は率の欄を出さない（停止理由は部屋欄が出す）ので、確定済みの率も載せない
                     // While the machine cannot operate no rate section is shown (the room section shows the halt reason), so fixed rates are not carried either
-                    NotOperablePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
-                    LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, pending == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(pending).LayerFailRate)),
-                    DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(ToDicingMessagePack(dicing), pending == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(pending))),
-                    _ => throw new ArgumentOutOfRangeException(nameof(report.Next), report.Next.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
+                    CleanRoomNotOperableYieldReport _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
+                    CleanRoomOddsYieldReport { Next: LayerExposurePreview layerExposure } withOdds => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, withOdds.PendingDraw == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(withOdds).LayerFailRate)),
+                    CleanRoomOddsYieldReport { Next: DicingPreview dicing } withOdds => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(ToDicingMessagePack(dicing), withOdds.PendingDraw == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(withOdds))),
+                    _ => throw new ArgumentOutOfRangeException(nameof(report), report.GetType().Name, "未対応の抽選の中身の報告 / Unsupported draw-detail report"),
                 };
 
                 // 確定済み抽選は選択レシピのものだけが届くので役割は次の抽選と同じ。違えば部品の約束の破れなので止める
                 // Only the selected recipe's fixed draw arrives, so its role matches the next draw; a mismatch breaks the component's contract, so stop
-                T RequireSameRole<T>(CleanRoomYieldPreviewResult pendingDraw) where T : CleanRoomYieldPreviewResult
+                static T RequireSameRole<T>(CleanRoomOddsYieldReport withOdds) where T : CleanRoomYieldPreviewResult
                 {
-                    return pendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={report.Next.GetType().Name} pending={pendingDraw.GetType().Name}");
+                    return withOdds.PendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={withOdds.Next.GetType().Name} pending={withOdds.PendingDraw.GetType().Name}");
                 }
             }
 
