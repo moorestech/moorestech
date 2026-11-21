@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 抽選の中身欄: 失敗率またはダイシング品質
-    /// Draw-detail section: fail rate or dicing tier, loss and level shares; fetch-state line only while unavailable
+    /// 確率の欄: 最終の確率の行（露光は失敗、ダイシングは出力・Lv・失敗）
+    /// Odds section: final-odds rows (failure for exposure; output, levels and failure for dicing); fetch-state line only while unavailable
     /// </summary>
     public sealed class CleanRoomYieldSectionView : VisualElement
     {
@@ -25,7 +25,7 @@ namespace Client.Ui.Screens.BlockInventory.Context
             name = "clean-room-yield-section-view";
         }
 
-        public void Render(SectionContent<CleanRoomYieldFetched> entry)
+        public void Render(SectionContent<CleanRoomYieldOdds> entry)
         {
             if (entry.TryGetUnavailable(out var fetchState))
             {

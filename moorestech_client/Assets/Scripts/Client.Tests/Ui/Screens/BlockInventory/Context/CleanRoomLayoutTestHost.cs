@@ -101,7 +101,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var filters = Enumerable.Range(0, filterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
             var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 0.8, filters);
             var entry = SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None));
-            return new BlockContextViewModel(entry, SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent);
+            return new BlockContextViewModel(entry, SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent);
         }
 
         // Web expectReachableInScroll

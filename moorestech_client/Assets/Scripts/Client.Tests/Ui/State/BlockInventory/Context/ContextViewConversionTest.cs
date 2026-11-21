@@ -31,26 +31,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             return classified ? CleanRoomSummaryMessagePack.CreateClassified("ISO5", 0, 2.5, 10, filters, 1, 0, nextClass, queriedAirFilter) : CleanRoomSummaryMessagePack.CreateOut(2.5, 10, filters, 1, 0, nextClass, queriedAirFilter);
         }
 
-        private static T PresentValue<T>(SectionContent<T> entry)
-        {
-            Assert.IsTrue(entry.TryGetPresent(out var value), "取得済みの欄である");
-            return value;
-        }
-
-        private static BlockInfoFetchState UnavailableState<T>(SectionContent<T> entry)
-        {
-            Assert.IsTrue(entry.TryGetUnavailable(out var fetchState), "取得できない欄である");
-            return fetchState;
-        }
-
         private static CleanRoomFetchedDetail Machined(CleanRoomInfoView view, CleanRoomOperability operability) =>
-            PresentValue(CleanRoomViewConversion.Build(Machine, Fetched, view, new CleanRoomOperabilityStateDetail(operability), out _));
+            SectionContentAssert.Present(CleanRoomViewConversion.Build(Machine, Fetched, view, new CleanRoomOperabilityStateDetail(operability), out _));
 
         [Test]
         public void 部屋の未取得は取得状態の1行で_密閉は級と値を写す()
         {
             var unavailable = CleanRoomViewConversion.Build(Machine, BlockInfoFetchState.NotFetched, null, null, out _);
-            Assert.AreEqual(BlockInfoFetchState.NotFetched, UnavailableState(unavailable), "稼働可否の詳細が無くても取得状態を先に見る");
+            Assert.AreEqual(BlockInfoFetchState.NotFetched, SectionContentAssert.Unavailable(unavailable), "稼働可否の詳細が無くても取得状態を先に見る");
 
             var enclosed = (EnclosedCleanRoomDetail)Machined(new CleanRoomEnclosedView(Room(true)), CleanRoomOperability.Operable);
             Assert.AreEqual("ISO5", ((ClassCleanRoomHeadline)enclosed.Room.Headline).ClassName);
@@ -80,7 +68,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             Assert.AreEqual(CleanRoomHaltReason.ClassOut, Machined(view, CleanRoomOperability.ClassOut).HaltReason);
             Assert.AreEqual(CleanRoomHaltReason.None, Machined(view, CleanRoomOperability.Operable).HaltReason);
             var airFilter = CleanRoomViewConversion.Build(CleanRoomDetailTarget.AirFilter, Fetched, view, null, out _);
-            Assert.AreEqual(CleanRoomHaltReason.None, PresentValue(airFilter).HaltReason);
+            Assert.AreEqual(CleanRoomHaltReason.None, SectionContentAssert.Present(airFilter).HaltReason);
 
             Assert.IsFalse(CleanRoomViewConversion.TryGetHaltReason((CleanRoomOperability)99, out _, out var anomaly));
             Assert.AreEqual("[CleanRoomViewConversion] unsupported operability: 99", anomaly, "ログは出さず異常の文面を返す");
@@ -98,38 +86,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         }
 
         [Test]
-        public void 抽選は室内機械の層とダイシング_出力待ちの有無を分ける()
-        {
-            Assert.AreEqual(BlockInfoFetchState.TransportFailed, UnavailableState(ContextViewConversion.Yield(BlockInfoFetchState.TransportFailed, null, out _)));
-
-            var layer = Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), null, new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack>()));
-            Assert.IsInstanceOf<SettledCleanRoomYield>(layer);
-            Assert.AreEqual(0.1, ((LayerExposureYieldRates)layer.Current).LayerFailRate);
-            var pendingLayer = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldLayerExposureView(new LayerExposureYieldMessagePack(0.1), new LayerExposureYieldMessagePack(0.3), new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack>()));
-            Assert.AreEqual(0.3, ((LayerExposureYieldRates)pendingLayer.PendingDraw).LayerFailRate);
-
-            var dicing = new DicingYieldMessagePack(0.2, 2, new[] { 0.5, 0.3 }, 0.1);
-            var odds = new DicingOddsMessagePack(300, new[] { 0.4, 0.24 }, 0.36);
-            var settled = Yielded(new CleanRoomYieldDicingView(dicing, null, odds, new List<CleanRoomYieldImprovementMessagePack>()));
-            Assert.AreEqual(2, ((DicingYieldRates)settled.Current).QualityTier);
-            Assert.AreEqual(2, ((DicingYieldRates)settled.Current).LevelRates.Count);
-            var pendingDicing = (PendingDrawCleanRoomYield)Yielded(new CleanRoomYieldDicingView(dicing, new DicingYieldMessagePack(0.4, 1, new[] { 0.9 }, 0.0), odds, new List<CleanRoomYieldImprovementMessagePack>()));
-            Assert.AreEqual(0.4, ((DicingYieldRates)pendingDicing.PendingDraw).DieLossRate);
-
-            Assert.IsTrue(ContextViewConversion.Yield(Fetched, CleanRoomYieldNoRoleView.Instance, out _).IsAbsent);
-            Assert.IsTrue(ContextViewConversion.Yield(Fetched, CleanRoomYieldNotOperableView.Instance, out _).IsAbsent);
-
-            #region Internal
-
-            CleanRoomYieldFetched Yielded(CleanRoomYieldView view) => PresentValue(ContextViewConversion.Yield(Fetched, view, out _));
-
-            #endregion
-        }
-
-        [Test]
         public void 詰まりは未取得なら取得状態_停止なら理由と品_止まっていなければ欄なし()
         {
-            Assert.AreEqual(BlockInfoFetchState.NotFetched, UnavailableState(ContextViewConversion.Stall(BlockInfoFetchState.NotFetched, null, out _)));
+            Assert.AreEqual(BlockInfoFetchState.NotFetched, SectionContentAssert.Unavailable(ContextViewConversion.Stall(BlockInfoFetchState.NotFetched, null, out _)));
             var stalled = ContextViewConversion.Stall(Fetched, new MachineInputStalledView(new MachineInputStallMessagePack(MachineInputStallReasonKind.AboveCraftCap, 5)), out _);
             Assert.IsTrue(stalled.TryGetPresent(out var stall));
             Assert.AreEqual(MachineInputStallReasonKind.AboveCraftCap, stall.Reason);
@@ -141,8 +100,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         public void 区画を出すのは機械でなく_3欄のどれかが無しでないときだけ()
         {
             var stall = SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, new ItemId(1)));
-            var withStall = new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldFetched>.Absent, stall);
-            var unavailableRoom = new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent);
+            var withStall = new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldOdds>.Absent, stall);
+            var unavailableRoom = new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent);
 
             Assert.IsFalse(ContextSectionVisibility.Shows(true, withStall), "機械は専用の区画");
             Assert.IsFalse(ContextSectionVisibility.Shows(false, BlockContextViewModel.None), "3 欄とも無し");

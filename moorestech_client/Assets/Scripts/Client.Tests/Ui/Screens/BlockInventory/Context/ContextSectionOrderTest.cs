@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Tests.Ui.Screens.BlockInventory.Machine;
@@ -54,7 +55,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         private static BlockContextViewModel RoomAndYield()
         {
             var room = SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(Room, CleanRoomHaltReason.None));
-            var yield = SectionContent<CleanRoomYieldFetched>.Present(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.LayerExposure(0.02)));
+            var yield = SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.LayerExposure(0.02, new List<CleanRoomOddsImprovement>()));
             return new BlockContextViewModel(room, yield, SectionContent<MachineInputStall>.Absent);
         }
 
@@ -88,7 +89,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var body = MountBody();
             Assert.AreEqual(new[] { "section-stack-item-grid" }, ShownNames(body.Root));
 
-            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
+            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent));
             simulate.FrameUpdate();
 
             Assert.AreEqual(new[] { "block-context-sections", "section-stack-item-grid" }, ShownNames(body.Root));
@@ -104,7 +105,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             simulate.FrameUpdate();
             Assert.IsNotNull(body.Root.Q<VisualElement>("clean-room-air-filter-0"));
 
-            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.Vanished), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
+            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.Vanished), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent));
             simulate.FrameUpdate();
 
             Assert.IsNull(body.Root.Q<VisualElement>("clean-room-section"));
@@ -118,7 +119,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // 機械では文脈を本文の器の先頭に置く
             // On machines the context leads the body box
             _machine.Set(SectionContent<MachineSectionViewModel>.Present(MachineScreenViewModels.WithState(MachineProcessDisplayState.Processing, 1, 1, false, false)));
-            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
+            _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
             var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));

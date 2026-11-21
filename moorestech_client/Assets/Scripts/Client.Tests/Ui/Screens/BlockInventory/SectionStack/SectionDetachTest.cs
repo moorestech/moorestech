@@ -37,7 +37,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [Test]
         public void 文脈の区画はDetachで偽へ戻る()
         {
-            ContextModel.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
+            ContextModel.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent));
             AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel).Create(Mount("Chest")), "Chest");
         }
 
