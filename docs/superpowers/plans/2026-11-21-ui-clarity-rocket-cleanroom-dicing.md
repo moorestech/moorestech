@@ -18138,7 +18138,7 @@ git commit -m "解放済みのアイテムをもう一度解放しても解放�
 
 5 つの研究のどれも `clearedActions` に `unlockItemRecipeView` をまだ持たない。足す 13 品目はどれも `initialUnlocked: false`・`recipeViewType: IsUnlocked` で、今これらを解放する研究は速度モジュールLv1〜5 だけ（ピン `aaa89bc` の research.json で確かめた）。
 
-- [ ] **Step 1: マスタの作業 worktree を作る**
+- [x] **Step 1: マスタの作業 worktree を作る**
 
 ```bash
 git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master fetch origin
@@ -18146,7 +18146,7 @@ git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add 
 ```
 `git -C <master worktree> diff aaa89bcf971289dc252dad4161ffec7ee54875e2 HEAD --stat` が空であること（2026-11-21 時点で origin/master `2d70ca2` はピンのマージで中身は同じ）。空でなければ research.json・items.json に当たる差分が無いかを見てから進める。
 
-- [ ] **Step 2: research.json に5か所足す**
+- [x] **Step 2: research.json に5か所足す**
 
 各研究の `clearedActions` の最後の要素の閉じ `}` を `},` にし、その後に次の要素を足す（インデントは要素の `{` が 8 空白）。研究は `researchNodeGuid` で探す（`level` の値だけで探すと、Lv2〜5 の 4 つは `targetItemGuids` が同じ品質モジュールなので取り違えやすい）。
 
@@ -18301,7 +18301,7 @@ git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add 
 
 ファイルは末尾に改行を持たない（そのまま保つ）。保存後 `python3 -c "import json,sys; json.load(open(sys.argv[1]))" server_v8/mods/moorestechAlphaMod_8/master/research.json` が通り、`git diff --stat` が research.json の `48 insertions(+)` だけであること（Lv1〜4 が各 10 行・Lv5 が 8 行。git は直前の `}` を `},` にした行を挿入の側へ寄せるので削除は 0 行。下書き時に scratchpad でピン `aaa89bc` の research.json に同じ 5 か所を足して測った値）。
 
-- [ ] **Step 3: 解放の並び順を再計算する（master-refine 操作 A）**
+- [x] **Step 3: 解放の並び順を再計算する（master-refine 操作 A）**
 
 解放の順が変わったので sortPriority を作り直す。本 repo（moorestech の作業 worktree）のルートで:
 ```bash
@@ -18310,7 +18310,7 @@ git -C /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-r
 ```
 Expected: `WARN` が出ない。変わるのは research.json と items.json だけで blocks.json は変わらない。items.json は 34 品目の sortPriority と並びが動く（`87 insertions(+), 87 deletions(-)`）。下書き時に scratchpad で同じスクリプトを走らせた再現: 前へ出るのは 品質モジュールLv1 780→730・シリコンダイLv2 790→740・ICチップLv2 800→750・品質モジュールLv2 880→810・シリコンダイLv3 890→820・ICチップLv3 900→830・品質モジュールLv3 940→910・シリコンダイLv4 950→920・ICチップLv4 960→930・品質モジュールLv4 1000→970・シリコンダイLv5 1010→980・ICチップLv5 1020→990・品質モジュールLv5 1060→1030 の 13 品目。残る 21 品目（計算データ 730→760・ロケット筐体素材 740→770 から 生産性モジュールLv4 1050→1060 まで）は後ろへずれる。これと違う動きなら止めて理由を調べる。
 
-- [ ] **Step 4: マスタ repo の検査を通す**
+- [x] **Step 4: マスタ repo の検査を通す**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items
@@ -18319,7 +18319,7 @@ git show HEAD:.github/workflows/check-zero-width-json.yml | sed -n "/python3 - <
 ```
 Expected: どちらも失敗なし。2つ目は `.github/workflows/check-zero-width-json.yml` の「Check JSON files for zero-width characters」の Python をそのまま取り出して走らせている（U+200B・200C・200D・FEFF・2060 を全 .json で探す）。
 
-- [ ] **Step 5: コミットして push し、マスタの PR を作る**
+- [x] **Step 5: コミットして push し、マスタの PR を作る**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items
