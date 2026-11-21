@@ -14908,7 +14908,7 @@ git commit -m "「失敗率の改善方法」のモーダルを開き、取り�
   - testid: `clean-room-yield-improvement-open`
   - テスト用: `MachineScreenTestHost.ImprovementCommands`（`RecordingCleanRoomYieldImprovementCommands`）
 
-- [ ] **Step 1: 失敗するテストを書く（欄）**
+- [x] **Step 1: 失敗するテストを書く（欄）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionTest.cs`（D3 の全文）。using に次の4行を足す:
 
@@ -14973,7 +14973,7 @@ using Client.Ui.Foundation.Input.OsCursor;
         }
 ```
 
-- [ ] **Step 2: 失敗するテストを書く（機械の画面での結線）**
+- [x] **Step 2: 失敗するテストを書く（機械の画面での結線）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Machine/MachineScreenTestHost.cs`。直す前（43行目の後と55行目の前）:
 
@@ -15042,7 +15042,7 @@ using Client.Ui.State.BlockInventory.Logic.CleanRoom;
         }
 ```
 
-- [ ] **Step 3: 残りの呼び手を直す**
+- [x] **Step 3: 残りの呼び手を直す**
 
 - `SectionDetachTest.cs:41` 直す前 `AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel).Create(Mount("Chest")), "Chest");` → 直した後 `AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel, OsCursor, ImprovementCommands).Create(Mount("Chest")), "Chest");`
 - `SectionDetachTest.cs:48` 直す前 `AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor).Create(Mount("ElectricMachine")), "ElectricMachine");` → 直した後 `AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor, ImprovementCommands).Create(Mount("ElectricMachine")), "ElectricMachine");`
@@ -15116,12 +15116,12 @@ using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 Run: `grep -rnE "new (ContextSectionFactory|MachineSectionFactory|MachineSectionView|BlockContextSectionsView|CleanRoomYieldSectionView)\(" --include='*.cs' moorestech_client/Assets/Scripts .agents/skills`
 Expected: 当たる行がすべて新しい引数の数（`ContextSectionFactory` 5・`MachineSectionFactory` 7・`MachineSectionView` 6・`BlockContextSectionsView` 3・`CleanRoomYieldSectionView` 2）
 
-- [ ] **Step 4: 赤を確かめる**
+- [x] **Step 4: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`CleanRoomYieldSectionView` が2引数を取らない CS1729 ほか、工場の引数の数の誤り）
 
-- [ ] **Step 5: 欄にボタンを置く**
+- [x] **Step 5: 欄にボタンを置く**
 
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionView.cs` を次の全文に替える。
 
@@ -15211,7 +15211,7 @@ namespace Client.Ui.Screens.BlockInventory.Context
 }
 ```
 
-- [ ] **Step 6: 引数を通す**
+- [x] **Step 6: 引数を通す**
 
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/BlockContextSectionsView.cs` の1-27行目。直す前:
 
@@ -15363,7 +15363,7 @@ namespace Client.Ui.Screens.BlockInventory.Machine
 
 （本番の工場は DI が組む。`ICleanRoomYieldImprovementCommands` は D5 で、`IUiOsCursor` は既存の登録で解決される。）
 
-- [ ] **Step 7: コンパイルとテスト**
+- [x] **Step 7: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount 0`
@@ -15377,7 +15377,7 @@ Expected: 全件 PASS
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SectionDetachTest|BlockDetailsMachineTest|MachineProcessRowWidthTest|SectionStackMachineRegressionTest|MachineRecipeLayout|ContextSectionOrderTest|MachineSectionTest|CleanRoomWideProcessRowTest|MachineScreen"`
 Expected: 全件 PASS
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory
