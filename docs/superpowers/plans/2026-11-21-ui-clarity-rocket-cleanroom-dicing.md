@@ -4946,7 +4946,7 @@ git commit -m "積荷を選んでいない状態と拒否をクライアント�
   - `OrbitalCargoSelectionModeState.OpenSelection()`・`RememberRequest(ItemId)`・`ResolveShowsSelection(OrbitalCargoDetail) → bool`（持ち主は B6 の `OrbitalCargoBodyPresenter`。View は持たない。前例 `MachineSectionPresenter` が `MachineSelectionModeState` を持つ形）
   - `OrbitalCargoLargePanelRule : IBlockInventoryLargePanelRule`
 
-- [ ] **Step 1: テストの見本を書く**
+- [x] **Step 1: テストの見本を書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSamples.cs`:
 
@@ -4988,7 +4988,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Cargo
 }
 ```
 
-- [ ] **Step 2: テストを書く**
+- [x] **Step 2: テストを書く**
 
 `OrbitalCargoDetailTest.cs`:
 
@@ -5166,14 +5166,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Cargo
 }
 ```
 
-- [ ] **Step 3: 赤を確かめる**
+- [x] **Step 3: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
 ```
 期待: `Client.Ui.State.BlockInventory.Special.Cargo` が無いのでコンパイルエラー。
 
-- [ ] **Step 4: 実装を書く**
+- [x] **Step 4: 実装を書く**
 
 `OrbitalCargoChoice.cs`:
 
@@ -5601,7 +5601,7 @@ namespace Client.Ui.State.BlockInventory.Special.Cargo
 }
 ```
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -5611,7 +5611,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 ```
 期待: 全部緑。`SpaceElevatorCableItems` が無ければコンパイルエラー（サーバーへの注文 1 が先に入っている必要がある）。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo
