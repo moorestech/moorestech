@@ -62,40 +62,26 @@ namespace Server.Protocol.PacketResponse
             // wire は判別子と役割ごとの入れ子が並ぶ形。その役割の入れ子だけが書かれ、他は null。組み立ては下の factory、読み出しは TryReadView だけ
             // The wire has a discriminator plus per-role nested objects; only that role's object is written and the rest stay null. Build only via the factories below and read only via TryReadView
             [Key(2)] public CleanRoomYieldResponseKind Kind { get; }
-            [Key(3)] public LayerExposureYieldMessagePack LayerExposure { get; }
-            [Key(4)] public DicingYieldMessagePack Dicing { get; }
-
-            // 出力の空きを待っている確定済み抽選に使った値（C7 で外す）
-            // Values a fixed draw waiting for output space used (removed in C7)
-            [Key(5)] public LayerExposureYieldMessagePack PendingLayerExposure { get; }
-            [Key(6)] public DicingYieldMessagePack PendingDicing { get; }
-
-            // 画面に出す最終の内訳と、失敗率の改善方法の行（並べる順）
-            // Final odds for the screen and the improvement rows in display order
+            // 画面に出す最終の内訳と改善の行。Key 3〜6 は外した項目の欠番
+            // Final odds and improvement rows for the screen. Keys 3–6 are retired gaps
             [Key(7)] public LayerExposureOddsMessagePack LayerExposureOdds { get; }
             [Key(8)] public DicingOddsMessagePack DicingOdds { get; }
             [Key(9)] public List<CleanRoomYieldImprovementMessagePack> Improvements { get; }
 
             [SerializationConstructor]
             public ResponseCleanRoomYieldInfoMessagePack(string tag, int sequenceId, CleanRoomYieldResponseKind kind,
-                LayerExposureYieldMessagePack layerExposure, DicingYieldMessagePack dicing,
-                LayerExposureYieldMessagePack pendingLayerExposure, DicingYieldMessagePack pendingDicing,
                 LayerExposureOddsMessagePack layerExposureOdds, DicingOddsMessagePack dicingOdds, List<CleanRoomYieldImprovementMessagePack> improvements)
             {
                 Tag = tag;
                 SequenceId = sequenceId;
                 Kind = kind;
-                LayerExposure = layerExposure;
-                Dicing = dicing;
-                PendingLayerExposure = pendingLayerExposure;
-                PendingDicing = pendingDicing;
                 LayerExposureOdds = layerExposureOdds;
                 DicingOdds = dicingOdds;
                 Improvements = improvements;
             }
 
             private ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind kind)
-                : this(ProtocolTag, 0, kind, null, null, null, null, null, null, null) { }
+                : this(ProtocolTag, 0, kind, null, null, null) { }
 
             public static ResponseCleanRoomYieldInfoMessagePack CreateBlockNotFound()
             {
@@ -117,22 +103,18 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.NotOperable);
             }
 
-            // pendingDraw は出力待ちの確定済み抽選の値。待っていなければ null
-            // pendingDraw holds the values of a fixed draw waiting for output; null when nothing waits
-            public static ResponseCleanRoomYieldInfoMessagePack CreateLayerExposure(double layerFailRate, LayerExposureYieldMessagePack pendingDraw, LayerExposureOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)
+            public static ResponseCleanRoomYieldInfoMessagePack CreateLayerExposure(LayerExposureOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(ProtocolTag, 0, CleanRoomYieldResponseKind.LayerExposure,
-                    new LayerExposureYieldMessagePack(layerFailRate), null, pendingDraw, null, odds, null, improvements);
+                return new ResponseCleanRoomYieldInfoMessagePack(ProtocolTag, 0, CleanRoomYieldResponseKind.LayerExposure, odds, null, improvements);
             }
 
-            public static ResponseCleanRoomYieldInfoMessagePack CreateDicing(DicingYieldMessagePack dicing, DicingYieldMessagePack pendingDraw, DicingOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)
+            public static ResponseCleanRoomYieldInfoMessagePack CreateDicing(DicingOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(ProtocolTag, 0, CleanRoomYieldResponseKind.Dicing,
-                    null, dicing, null, pendingDraw, null, odds, improvements);
+                return new ResponseCleanRoomYieldInfoMessagePack(ProtocolTag, 0, CleanRoomYieldResponseKind.Dicing, null, odds, improvements);
             }
 
-            // 判別子と確定済み抽選の欄の読み分けは読み口1か所（CleanRoomYieldResponseReader）で行う
-            // The single reader (CleanRoomYieldResponseReader) branches on the discriminator and the fixed-draw fields
+            // 判別子の読み分けは読み口1か所（CleanRoomYieldResponseReader）で行う
+            // The single reader (CleanRoomYieldResponseReader) branches on the discriminator
             public BlockInfoReadResult TryReadView(out CleanRoomYieldView view)
             {
                 return CleanRoomYieldResponseReader.Read(this, out view);

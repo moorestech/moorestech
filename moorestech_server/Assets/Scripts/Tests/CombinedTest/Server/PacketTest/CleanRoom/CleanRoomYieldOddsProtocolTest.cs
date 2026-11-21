@@ -104,21 +104,21 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             // A row whose per-level deltas differ in length from the final odds is broken wire: it warns and is unreadable
             var odds = new DicingOddsMessagePack(300, new[] { 0.5, 0.1, 0d }, 0.4);
             var shortDeltas = new List<CleanRoomYieldImprovementMessagePack> { CleanRoomYieldImprovementMessagePack.CreateAddQualityModule(1, new[] { 0.1, 0.1 }, -0.2) };
-            var dicing = Response.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.6, 0.1, 0d }, 0.3), null, odds, shortDeltas);
+            var dicing = Response.CreateDicing(odds, shortDeltas);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has broken improvements"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, dicing.TryReadView(out _));
 
             // クラス名の無い RoomClassUp も、wire を通した後で読めない
             // A RoomClassUp without a class name is unreadable after the wire as well
             var noClassName = CleanRoomYieldImprovementMessagePack.CreateRoomClassUp(null, Array.Empty<double>(), -0.05);
-            var layer = Response.CreateLayerExposure(0.1, null, new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack> { noClassName });
+            var layer = Response.CreateLayerExposure(new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack> { noClassName });
             var received = MessagePackSerializer.Deserialize<Response>(MessagePackSerializer.Serialize(layer));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] LayerExposure response has broken improvements"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, received.TryReadView(out _));
 
             // 最終の内訳が欠けた応答は入れ子の欠けとして読めない
             // A response missing its final odds is unreadable as a missing nested object
-            var noOdds = Response.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.6, 0.1, 0d }, 0.3), null, null, new List<CleanRoomYieldImprovementMessagePack>());
+            var noOdds = Response.CreateDicing(null, new List<CleanRoomYieldImprovementMessagePack>());
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, noOdds.TryReadView(out _));
         }
@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             {
                 CleanRoomYieldImprovementMessagePack.CreateRoomClassUp("B", Array.Empty<double>(), -0.05),
             };
-            var response = Response.CreateLayerExposure(0.1, null, new LayerExposureOddsMessagePack(0.1), improvements);
+            var response = Response.CreateLayerExposure(new LayerExposureOddsMessagePack(0.1), improvements);
             response.SequenceId = 42;
             var received = MessagePackSerializer.Deserialize<Response>(MessagePackSerializer.Serialize(response));
 

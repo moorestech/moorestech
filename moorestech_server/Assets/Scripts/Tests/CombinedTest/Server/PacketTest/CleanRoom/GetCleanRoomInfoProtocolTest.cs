@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Core.Master;
 using Core.Update;
-using Server.Util.MessagePack;
 using Game.Block.Interface;
 using Game.Context;
 using MessagePack;
@@ -32,11 +30,6 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             Assert.AreEqual(BlockInfoReadResult.Success, Invoke(packet, filter.BlockInstanceId).TryReadView(out var view));
             Assert.IsInstanceOf<CleanRoomEnclosedView>(view);
             var room = ((CleanRoomEnclosedView)view).Room;
-            Assert.AreEqual(26, room.Volume);
-            Assert.AreEqual(1, room.AirFilters.Count);
-            Assert.AreEqual(new Vector3Int(1, 1, 1), room.AirFilters[0].Position.Vector3Int);
-            Assert.AreEqual(5, room.AirFilters[0].FilterItemCount);
-
             // 電線の無い清浄機1台は止まっていて、Out からいちばん下のクラスを目指す
             // The single unwired purifier is stopped, and the next class from Out is the lowest one
             Assert.AreEqual(1, room.AirFilterCount);
@@ -111,22 +104,16 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             Assert.IsFalse(leak.TryGetView(out _));
             var nextClass = CleanRoomNextClassMessagePack.CreateNotCounted();
             var queriedAirFilter = CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter();
-            var filters = new List<CleanRoomAirFilterMessagePack>();
-            AssertUnreadable(new CleanRoomSummaryMessagePack((CleanRoomClassResponseKind)999, null, 0, 0, 1, filters, 0, 0, nextClass, queriedAirFilter));
-            filters.Add(null);
-            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 1, filters, 0, 0, nextClass, queriedAirFilter));
-            filters[0] = new CleanRoomAirFilterMessagePack(null, 1, 1, 1, 1);
-            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 1, filters, 0, 0, nextClass, queriedAirFilter));
+            AssertUnreadable(new CleanRoomSummaryMessagePack((CleanRoomClassResponseKind)999, null, 0, 0, 0, nextClass, queriedAirFilter));
 
             // 入れ子をワイヤーで往復し、欠損と未知の種別を拒否する
             // Round-trip nested fields over the wire and reject missing or unknown kinds
-            filters.Clear();
-            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 1, filters, 0, 0, null, queriedAirFilter));
-            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 1, filters, 0, 0, new CleanRoomNextClassMessagePack((CleanRoomNextClassResponseKind)999, null, 0), queriedAirFilter));
-            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 1, filters, 0, 0, nextClass, null));
-            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 1, filters, 0, 0, nextClass, new CleanRoomQueriedAirFilterMessagePack((CleanRoomQueriedAirFilterResponseKind)999, 0, 0)));
+            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 0, null, queriedAirFilter));
+            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 0, new CleanRoomNextClassMessagePack((CleanRoomNextClassResponseKind)999, null, 0), queriedAirFilter));
+            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 0, nextClass, null));
+            AssertUnreadable(CleanRoomSummaryMessagePack.CreateOut(0, 0, nextClass, new CleanRoomQueriedAirFilterMessagePack((CleanRoomQueriedAirFilterResponseKind)999, 0, 0)));
             var yieldResponse = new GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack(GetCleanRoomYieldInfoProtocol.ProtocolTag, 0, (CleanRoomYieldResponseKind)999,
-                null, null, null, null, null, null, null);
+                null, null, null);
             Assert.AreEqual(BlockInfoReadResult.Unreadable, yieldResponse.TryReadView(out _));
             var stall = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled();
             stall.Kind = (MachineInputStallResponseKind)999;
@@ -138,18 +125,18 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         {
             // 次のクラスが NotCounted なのに自身の状態がある応答と、台数があるのに NotAirFilter の応答は、2つの種別が食い違った壊れた wire なので警告して読めない
             // A response with NotCounted but its own state, or with units but NotAirFilter, is broken wire whose two kinds disagree, so it warns and is unreadable
-            var uncountedWithStatus = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            var uncountedWithStatus = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
             ExpectDisagreementWarnings();
             Assert.AreEqual(BlockInfoReadResult.Unreadable, RoundTrip(uncountedWithStatus).TryReadView(out _));
-            var countedWithoutStatus = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var countedWithoutStatus = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
             ExpectDisagreementWarnings();
             Assert.AreEqual(BlockInfoReadResult.Unreadable, RoundTrip(countedWithoutStatus).TryReadView(out _));
 
             // そろった組（機械からの照会・清浄機からの照会）はどちらも読める
             // Agreeing pairs (queried from a machine, queried from a purifier) are both readable
-            var fromMachine = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var fromMachine = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
             Assert.AreEqual(BlockInfoReadResult.Success, RoundTrip(fromMachine).TryReadView(out _));
-            var fromPurifier = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            var fromPurifier = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
             Assert.AreEqual(BlockInfoReadResult.Success, RoundTrip(fromPurifier).TryReadView(out _));
 
             #region Internal

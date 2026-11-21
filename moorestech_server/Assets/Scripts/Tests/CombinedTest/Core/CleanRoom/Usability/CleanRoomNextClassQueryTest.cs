@@ -40,6 +40,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // The returned count promotes the room, and one fewer does not
             var outIndex = MasterHolder.CleanRoomMaster.OutThresholdIndex;
             var targetIndex = outIndex - 1;
+            Assert.IsTrue(datastore.TryGetCleanRoom(filter, out var detectedRoom));
             var unitCells = filter.BlockPositionInfo.EnumeratePositions().Count();
             Assert.AreEqual(MasterHolder.CleanRoomMaster.Thresholds[targetIndex].ClassName, units.NextClassName);
             Assert.Greater(units.Units, 0);
@@ -55,7 +56,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
 
             int ProjectedIndex(int count)
             {
-                var projectedRate = count * airFilter.RatedRemovalVolumePerSecond / (room.Volume - count * unitCells);
+                var projectedRate = count * airFilter.RatedRemovalVolumePerSecond / (detectedRoom.Volume - count * unitCells);
                 return CleanRoomPurityLogic.DecideThresholdIndex(outIndex, projectedRate, datastore.RequiredAirChangeRates);
             }
 

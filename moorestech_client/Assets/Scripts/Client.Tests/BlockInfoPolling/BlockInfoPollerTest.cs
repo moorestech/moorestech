@@ -103,9 +103,9 @@ namespace Client.Tests.BlockInfoPolling
         [UnityTest]
         public IEnumerator InvalidYieldWireResponseDropsAndRecoversTest() => UniTask.ToCoroutine(async () =>
         {
-            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.03, 1, new[] { 0.7, 0.1, 0d }, 0.2), null, new DicingOddsMessagePack(300, new[] { 0.679, 0.097, 0d }, 0.224), new List<CleanRoomYieldImprovementMessagePack>());
+            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingOddsMessagePack(300, new[] { 0.679, 0.097, 0d }, 0.224), new List<CleanRoomYieldImprovementMessagePack>());
             var invalid = new GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack(GetCleanRoomYieldInfoProtocol.ProtocolTag, 0, (CleanRoomYieldResponseKind)999,
-                null, null, null, null, null, null, null);
+                null, null, null);
             var source = new WireResponsePollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>(new CleanRoomYieldInfoPollSource());
             await source.AssertInvalidResponseDropsAndRecovers(valid, invalid);
         });

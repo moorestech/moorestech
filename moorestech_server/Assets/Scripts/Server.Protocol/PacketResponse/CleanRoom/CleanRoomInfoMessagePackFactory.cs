@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Game.CleanRoom.Info;
 using Game.CleanRoom.Util;
-using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -28,17 +25,11 @@ namespace Server.Protocol.PacketResponse
 
             static CleanRoomSummaryMessagePack CreateSummary(CleanRoomRoomSummary room)
             {
-                var filters = room.AirFilters.Select(filter => new CleanRoomAirFilterMessagePack(
-                    new Vector3IntMessagePack(filter.Position),
-                    filter.Status.PowerRatio,
-                    filter.Status.RemovalVolumePerSecond,
-                    filter.Status.FilterItemCount,
-                    filter.Status.CurrentFilterRemainingRatio)).ToList();
                 var (nextClass, queriedAirFilter) = CreateQueriedFrom(room.QueriedFrom);
                 return room.Class switch
                 {
-                    CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirChangeRate, room.Volume, filters, room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
-                    CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.AirChangeRate, room.Volume, filters, room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
+                    CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
+                    CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
                     _ => throw new ArgumentOutOfRangeException(nameof(room.Class), room.Class.GetType().Name, "未対応のクラス種別 / Unsupported class standing"),
                 };
             }

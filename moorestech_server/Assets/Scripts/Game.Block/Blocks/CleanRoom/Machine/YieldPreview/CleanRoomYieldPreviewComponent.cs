@@ -1,6 +1,5 @@
 using Core.Master;
 using Game.Block.Blocks.Machine.Module;
-using Game.Block.Blocks.Machine.State;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 
@@ -15,14 +14,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         private readonly IMachineRecipeSelectorComponent _recipeSelector;
         private readonly MachineModuleEffectComponent _moduleEffectComponent;
         private readonly ICleanRoomEffectLookup _effectLookup;
-        private readonly IMachinePendingRealizationReader _pendingRealizationReader;
 
-        internal CleanRoomYieldPreviewComponent(IMachineRecipeSelectorComponent recipeSelector, MachineModuleEffectComponent moduleEffectComponent, ICleanRoomEffectLookup effectLookup, IMachinePendingRealizationReader pendingRealizationReader)
+        internal CleanRoomYieldPreviewComponent(IMachineRecipeSelectorComponent recipeSelector, MachineModuleEffectComponent moduleEffectComponent, ICleanRoomEffectLookup effectLookup)
         {
             _recipeSelector = recipeSelector;
             _moduleEffectComponent = moduleEffectComponent;
             _effectLookup = effectLookup;
-            _pendingRealizationReader = pendingRealizationReader;
         }
 
         public CleanRoomYieldPreviewReport GetPreview()
@@ -38,27 +35,14 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             // Read the room effect through the draw owner's (decorator's) read view; a halted effect has no class values, so neither numbers nor improvements are built
             if (!_effectLookup.CurrentEffect.TryGetClassYield(out var classYield)) return CleanRoomNotOperableYieldReport.Instance;
 
-            // 装着（上限で切った個数）の集計・次の抽選の率・今の最終の内訳はここで1回だけ出し、候補選びと改善の計算へ渡す
-            // Aggregate the loadout (counts clipped to the limit), the next draw's rates and the current final odds once here, and hand them to candidate selection and the improvement calculation
+            // 装着の集計と今の最終の内訳はここで1回だけ出し、候補選びと改善の計算へ渡す。出力待ちの確定済み抽選があっても今の条件の1組だけを答える
+            // Aggregate the loadout and derive the current final odds once here, handing them to candidate selection and the improvement calculation; even with a fixed draw waiting, answer only the single current set
             var equipped = _moduleEffectComponent.CollectEffectiveModules();
             var moduleEffect = MachineModuleEffect.Aggregate(equipped);
-            var next = CleanRoomYieldPreview.Evaluate(role, classYield, moduleEffect, null, out _);
-            var current = CleanRoomFinalOdds.Of(role, next);
+            var current = CleanRoomFinalOdds.Of(role, CleanRoomYieldPreview.Evaluate(role, classYield, moduleEffect, null, out _));
             var candidates = CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, moduleEffect.HighestQualityModuleTier);
             var improvements = CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, current, candidates);
-            return new CleanRoomOddsYieldReport(current, improvements, next, FindPendingDraw());
-
-            #region Internal
-
-            // 待機中の確定結果が今の選択レシピのものなら、抽選に使った率を返す（C7 で外す）
-            // Return the draw rates when the waiting realization belongs to the selected recipe (removed in C7)
-            CleanRoomYieldPreviewResult FindPendingDraw()
-            {
-                if (!_pendingRealizationReader.TryGetPendingRealization(out var pending) || pending.Recipe != recipe) return null;
-                return pending.DrawRecord as CleanRoomYieldPreviewResult;
-            }
-
-            #endregion
+            return new CleanRoomOddsYieldReport(current, improvements);
         }
 
         public bool IsDestroy { get; private set; }

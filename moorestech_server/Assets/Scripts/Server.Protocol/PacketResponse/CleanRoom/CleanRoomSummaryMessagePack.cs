@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using MessagePack;
-using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -18,10 +16,9 @@ namespace Server.Protocol.PacketResponse
         // ClassName and ThresholdIndex are written only when Classified; only TryGetClass reads them
         [Key(1)] public string ClassName { get; }
         [Key(2)] public int ThresholdIndex { get; }
-        [Key(3)] public double AirChangeRate { get; }
-        [Key(4)] public int Volume { get; }
-        [Key(5)] public List<CleanRoomAirFilterMessagePack> AirFilters { get; }
 
+        // Key 3・4・5 は外した項目（換気回数・体積・清浄機の一覧）の欠番
+        // Keys 3, 4 and 5 are retired gaps (air change rate, volume, purifier list)
         // 清浄機の台数のまとめと、次のクラスまでの台数（清浄機の画面の部屋の行）
         // Purifier totals and units to the next class (the room line of the purifier screen)
         [Key(6)] public int AirFilterCount { get; }
@@ -33,28 +30,25 @@ namespace Server.Protocol.PacketResponse
         [Key(9)] public CleanRoomQueriedAirFilterMessagePack QueriedAirFilter { get; }
 
         [SerializationConstructor]
-        public CleanRoomSummaryMessagePack(CleanRoomClassResponseKind classKind, string className, int thresholdIndex, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
+        public CleanRoomSummaryMessagePack(CleanRoomClassResponseKind classKind, string className, int thresholdIndex, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
             ClassKind = classKind;
             ClassName = className;
             ThresholdIndex = thresholdIndex;
-            AirChangeRate = airChangeRate;
-            Volume = volume;
-            AirFilters = airFilters;
             AirFilterCount = airFilterCount;
             StoppedAirFilterCount = stoppedAirFilterCount;
             NextClass = nextClass;
             QueriedAirFilter = queriedAirFilter;
         }
 
-        public static CleanRoomSummaryMessagePack CreateClassified(string className, int thresholdIndex, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
+        public static CleanRoomSummaryMessagePack CreateClassified(string className, int thresholdIndex, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Classified, className, thresholdIndex, airChangeRate, volume, airFilters, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
+            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Classified, className, thresholdIndex, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
         }
 
-        public static CleanRoomSummaryMessagePack CreateOut(double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
+        public static CleanRoomSummaryMessagePack CreateOut(int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Out, null, 0, airChangeRate, volume, airFilters, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
+            return new CleanRoomSummaryMessagePack(CleanRoomClassResponseKind.Out, null, 0, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
         }
 
         // Out なら false。判別子の読み分けはここだけで行う
@@ -74,28 +68,6 @@ namespace Server.Protocol.PacketResponse
                 default:
                     throw new ArgumentOutOfRangeException(nameof(ClassKind), ClassKind, "未対応のクラス種別 / Unsupported class kind");
             }
-        }
-    }
-
-    [MessagePackObject]
-    public class CleanRoomAirFilterMessagePack
-    {
-        [Key(0)] public Vector3IntMessagePack Position { get; set; }
-        [Key(1)] public double PowerRatio { get; set; }
-        [Key(2)] public double RemovalVolumePerSecond { get; set; }
-        [Key(3)] public int FilterItemCount { get; set; }
-        [Key(4)] public double FilterRemainingRatio { get; set; }
-
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public CleanRoomAirFilterMessagePack() { }
-
-        public CleanRoomAirFilterMessagePack(Vector3IntMessagePack position, double powerRatio, double removalVolumePerSecond, int filterItemCount, double filterRemainingRatio)
-        {
-            Position = position;
-            PowerRatio = powerRatio;
-            RemovalVolumePerSecond = removalVolumePerSecond;
-            FilterItemCount = filterItemCount;
-            FilterRemainingRatio = filterRemainingRatio;
         }
     }
 }

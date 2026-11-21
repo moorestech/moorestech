@@ -7,7 +7,7 @@ namespace Game.Block.Blocks.Machine.State
 {
     // 待機ステート。レシピが揃えば加工ジョブを確定し加工へ遷移する
     // Idle state: fixes the processing job and transitions to processing once a recipe is ready
-    internal class IdleMachineProcessState : IMachineProcessState, IMachinePendingRealizationReader
+    internal class IdleMachineProcessState : IMachineProcessState
     {
         private readonly MachineProcessContext _context;
         private readonly ProcessingMachineProcessState _processingState;

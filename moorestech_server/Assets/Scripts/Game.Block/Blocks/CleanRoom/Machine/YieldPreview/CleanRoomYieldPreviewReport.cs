@@ -44,17 +44,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         public CleanRoomFinalOdds Odds { get; }
         public IReadOnlyList<CleanRoomYieldImprovement> Improvements { get; }
 
-        // 古い wire 項目（Key 3〜6）のためだけに持つ次の抽選の率と、出力の空きを待つ確定済み抽選の率（無ければ null）。クライアントが移り終えたら C7 で外す
-        // The next draw's rates and a fixed draw's rates waiting for output space (null when none), kept only for the old wire keys 3-6 and removed in C7
-        public CleanRoomYieldPreviewResult Next { get; }
-        public CleanRoomYieldPreviewResult PendingDraw { get; }
-
-        public CleanRoomOddsYieldReport(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements, CleanRoomYieldPreviewResult next, CleanRoomYieldPreviewResult pendingDraw)
+        public CleanRoomOddsYieldReport(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)
         {
             Odds = odds;
             Improvements = improvements;
-            Next = next;
-            PendingDraw = pendingDraw;
         }
     }
 }

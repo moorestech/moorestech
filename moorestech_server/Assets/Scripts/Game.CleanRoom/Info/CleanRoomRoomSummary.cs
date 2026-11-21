@@ -17,9 +17,6 @@ namespace Game.CleanRoom.Info
         // Out か分類済みかは型で表し、クラス名を空文字で埋めない
         // Out versus classified is told by the type; the class name is never padded with an empty string
         public CleanRoomClassStanding Class { get; }
-        public double AirChangeRate { get; }
-        public int Volume { get; }
-        public IReadOnlyList<CleanRoomAirFilterSummary> AirFilters { get; }
 
         // 部屋の清浄機の台数と、そのうち止まっている（電力かフィルターが無く除去0の）台数
         // Purifiers in the room and how many of them are stopped (no power or no filter, removing nothing)
@@ -27,12 +24,9 @@ namespace Game.CleanRoom.Info
         public int StoppedAirFilterCount { get; }
         public CleanRoomQueriedFrom QueriedFrom { get; }
 
-        private CleanRoomRoomSummary(CleanRoomClassStanding standing, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterSummary> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomQueriedFrom queriedFrom)
+        private CleanRoomRoomSummary(CleanRoomClassStanding standing, int airFilterCount, int stoppedAirFilterCount, CleanRoomQueriedFrom queriedFrom)
         {
             Class = standing;
-            AirChangeRate = airChangeRate;
-            Volume = volume;
-            AirFilters = airFilters;
             AirFilterCount = airFilterCount;
             StoppedAirFilterCount = stoppedAirFilterCount;
             QueriedFrom = queriedFrom;
@@ -40,20 +34,15 @@ namespace Game.CleanRoom.Info
 
         public static CleanRoomRoomSummary Create(CleanRoom room, IWorldBlockDatastore world, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)
         {
-            // 清浄機一覧はクラス判定と同じ収集関数で集める
-            // The purifier list is gathered with the same collection function as the class decision
+            // 清浄機はクラス判定と同じ収集関数で集める
+            // Purifiers are gathered with the same collection function as the class decision
             var entries = CleanRoomAirFilterCollector.Collect(room, world);
-            var airFilters = entries.Select(entry => new CleanRoomAirFilterSummary(entry.Block.BlockPositionInfo.OriginalPos, entry.Filter.GetStatus())).ToList();
-
-            // 換気回数はクラス判定と同じ関数で出す（体積0の部屋は0）
-            // The air change rate comes from the same function as the class decision (zero for a zero-volume room)
-            var airChangeRate = CleanRoomAirFilterCollector.AirChangeRate(room, entries);
 
             // 止まっている台は、クラス判定で除去0として数えられる台
             // A stopped unit is one the class decision counts as removing nothing
             var stoppedCount = entries.Count(entry => entry.Filter.RemovalVolumePerSecond <= 0);
             var queriedFrom = CleanRoomQueriedFrom.Of(room, entries, queriedBlock, requiredAirChangeRates);
-            return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), airChangeRate, room.Volume, airFilters, entries.Count, stoppedCount, queriedFrom);
+            return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), entries.Count, stoppedCount, queriedFrom);
         }
     }
 
