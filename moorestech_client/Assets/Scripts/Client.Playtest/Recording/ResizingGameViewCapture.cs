@@ -17,6 +17,10 @@ namespace Client.Playtest.Recording
         public ResizingGameViewCapture(int width, int height)
         {
             Output = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
+        }
+
+        public void StartCapturing()
+        {
             ClearOutput();
             _recording = true;
             CaptureFrames().Forget();
