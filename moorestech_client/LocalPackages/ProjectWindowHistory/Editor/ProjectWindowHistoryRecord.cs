@@ -13,15 +13,15 @@ namespace ProjectWindowHistory
     [Serializable]
     public class ProjectWindowHistoryRecord
     {
-        [SerializeField] private int[] _selectedFolderInstanceIds;
+        [SerializeField] private EntityId[] _selectedFolderInstanceIds;
         [SerializeField] private string _searchedText;
         [SerializeField] private SearchViewState _searchViewState;
 
-        public int[] SelectedFolderInstanceIDs => _selectedFolderInstanceIds;
+        public EntityId[] SelectedFolderInstanceIDs => _selectedFolderInstanceIds;
         public string SearchedText => _searchedText;
         public SearchViewState SearchViewState => _searchViewState;
 
-        public ProjectWindowHistoryRecord(int[] selectedFolderInstanceIds, string searchedText, SearchViewState searchViewState)
+        public ProjectWindowHistoryRecord(EntityId[] selectedFolderInstanceIds, string searchedText, SearchViewState searchViewState)
         {
             _selectedFolderInstanceIds = selectedFolderInstanceIds;
             _searchedText = searchedText;
@@ -37,7 +37,7 @@ namespace ProjectWindowHistory
         {
             // フォルダが何かしら削除されていた場合は無効にしておく
             return (_selectedFolderInstanceIds?.Any() ?? false)
-                   && _selectedFolderInstanceIds.All(instanceId => EditorUtility.InstanceIDToObject(instanceId) != null);
+                   && _selectedFolderInstanceIds.All(instanceId => EditorUtility.EntityIdToObject(instanceId) != null);
         }
 
         /// <summary>

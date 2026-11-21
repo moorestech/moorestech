@@ -18,17 +18,17 @@ namespace Client.Game.InGame.Context
             return DIContainerResolver.Instantiate(prefab);
         }
         
-        public T Instantiate<T>(T prefab, Transform parent, bool worldPositionStays = false) where T : Object
+        public T Instantiate<T>(T prefab, Transform parent, bool worldPositionStays = false) where T : Component
         {
             return DIContainerResolver.Instantiate(prefab, parent, worldPositionStays);
         }
         
-        public T Instantiate<T>(T prefab, Vector3 position, Quaternion rotation) where T : Object
+        public T Instantiate<T>(T prefab, Vector3 position, Quaternion rotation) where T : Component
         {
             return DIContainerResolver.Instantiate(prefab, position, rotation);
         }
         
-        public T Instantiate<T>(T prefab, Vector3 position, Quaternion rotation, Transform parent) where T : Object
+        public T Instantiate<T>(T prefab, Vector3 position, Quaternion rotation, Transform parent) where T : Component
         {
             return DIContainerResolver.Instantiate(prefab, position, rotation, parent);
         }

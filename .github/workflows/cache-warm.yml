@@ -4,6 +4,8 @@
 # cold forever unless master has them (ADR 0028). Refresh client test caches on master updates and all caches before the daily build.
 # 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
 # The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix, unityVersion, and the cache path/key/restore-keys in both
+# キャッシュキーにはUnity版を含める。版上げ時に旧版のLibraryを新版へ復元させず、unityVersionと同時に書き換える
+# Cache keys carry the Unity version so an upgrade never restores an old-version Library; rewrite it together with unityVersion
 name: Cache Warm
 
 on:
@@ -78,9 +80,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-${{ github.sha }}
+          key: Library_Test_client-6000.6.10f1-${{ github.sha }}
           restore-keys: |
-            Library_Test_client-
+            Library_Test_client-6000.6.10f1-
 
       # テストを1本も実行せずインポートだけ済ませる（Libraryを作るのが目的）
       # Import only, without running any test, since the goal is to produce the Library
@@ -96,7 +98,10 @@ jobs:
         with:
           projectPath: moorestech/moorestech_client/
           githubToken: ${{ steps.generate_token.outputs.token }}
-          unityVersion: 6000.3.8f1
+          unityVersion: 6000.6.10f1
+          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
+          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          containerRegistryImageVersion: 4
           testMode: editmode
           customParameters: '-testFilter __cache_warm_matches_nothing__'
 
@@ -125,7 +130,7 @@ jobs:
         if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-${{ github.sha }}
+          key: Library_Test_client-6000.6.10f1-${{ github.sha }}
 
       # 最新cacheの保存成功後だけmaster上の旧client cacheを消し、10GB枠内に保つ。
       # Delete old master client caches only after a successful warm and save to stay within the 10GB budget.
@@ -135,7 +140,7 @@ jobs:
         working-directory: moorestech
         env:
           GH_TOKEN: ${{ github.token }}
-          CURRENT_CACHE_KEY: Library_Test_client-${{ github.sha }}
+          CURRENT_CACHE_KEY: Library_Test_client-6000.6.10f1-${{ github.sha }}
           CACHE_DELETE_BATCH_SIZE: 100
         run: |
           # save actionが警告終了しても旧cacheを消さないよう、現commitのcache実在を先に確認する。
@@ -179,9 +184,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech_server/Library
-          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
+          key: Library_compile_server_6000.6.10f1_${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
-            Library_compile_server_${{ matrix.target }}-
+            Library_compile_server_6000.6.10f1_${{ matrix.target }}-
 
       - name: Warm Library - ${{ matrix.target }}
         id: warm
@@ -193,7 +198,10 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.3.8f1
+          unityVersion: 6000.6.10f1
+          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
+          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          containerRegistryImageVersion: 4
           buildMethod: Server.Editor.PlatformCompileCheck.RunFromGithubAction
           targetPlatform: ${{ matrix.target }}
           allowDirtyBuild: true
@@ -225,4 +233,4 @@ jobs:
         if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech_server/Library
-          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
+          key: Library_compile_server_6000.6.10f1_${{ matrix.target }}-${{ github.sha }}

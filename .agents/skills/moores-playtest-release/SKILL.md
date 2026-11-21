@@ -10,7 +10,7 @@ description: moorestech のプレイテスト配布を通しで行う。最新 o
 ## 前提条件
 
 - Mac mini の本体 clone（`~/hermes-agent/data/repos/moorestech`）から実行する。標準経路は Windows 側の `C:\dev\worktrees\moorestech\release-bake` を使い回して焼き（Library を持ち越すため）、予備経路は Mac に worktree を作る。
-- 標準経路は env.sh の `MOORESTECH_WINBUILD_HOST`（配布ビルド機の ssh 宛先）と、Windows 側の Unity 6000.3.8f1 の Mac Build Support（Mono）・`C:\dev\tools\rcodesign\apple-codesign-0.29.0-x86_64-pc-windows-msvc\rcodesign.exe` が要る。
+- 標準経路は env.sh の `MOORESTECH_WINBUILD_HOST`（配布ビルド機の ssh 宛先）と、Windows 側の Unity 6000.6.10f1 の Mac Build Support（Mono）・`C:\dev\tools\rcodesign\apple-codesign-0.29.0-x86_64-pc-windows-msvc\rcodesign.exe` が要る。
 - `~/hermes-agent/data/services/playtest/env.sh` に次の変数がある。README に載っている変数と `MOORESTECH_STEAM_OP_HELPER`（1Password ラッパーのパス）、`MOORESTECH_STEAM_OP_ITEM`（Steam 資格の項目 ID）。このファイルは並列セッションと共有しているので、`>` で作り直さず追記する。
 - 成果物は `~/hermes-agent/data/services/playtest/runs/<label>/` に置く。label は `playtest-YYYYMMDD-HHMM`。
 

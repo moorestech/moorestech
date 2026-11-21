@@ -131,7 +131,7 @@ namespace ProjectWindowHistory
         /// 左側のツリーで選択したフォルダのインスタンスIDを取得する
         /// </summary>
         /// <returns></returns>
-        public static int[] GetLastFolderInstanceIds(EditorWindow targetProjectWindow)
+        public static EntityId[] GetLastFolderInstanceIds(EditorWindow targetProjectWindow)
         {
             // 選択中のフォルダのパス配列を取得
             // Get selected folder path array
@@ -139,9 +139,7 @@ namespace ProjectWindowHistory
 
             // Unity 6.3でint[]からEntityId[]に変更された
             // Unity 6.3 changed return type from int[] to EntityId[]
-            var result = GetFolderInstanceIDsMethod.Invoke(null, new[] { lastFolderPaths });
-            var entityIds = (EntityId[]) result;
-            return entityIds.Select(id => (int) id).ToArray();
+            return (EntityId[]) GetFolderInstanceIDsMethod.Invoke(null, new[] { lastFolderPaths });
         }
 
         /// <summary>
@@ -149,12 +147,11 @@ namespace ProjectWindowHistory
         /// </summary>
         /// <param name="targetProjectWindow"></param>
         /// <param name="selectedFolderInstanceIds"></param>
-        public static void SetFolderSelection(EditorWindow targetProjectWindow, int[] selectedFolderInstanceIds)
+        public static void SetFolderSelection(EditorWindow targetProjectWindow, EntityId[] selectedFolderInstanceIds)
         {
             // Unity 6.3でint[]からEntityId[]に変更された
             // Unity 6.3 changed parameter type from int[] to EntityId[]
-            var entityIds = selectedFolderInstanceIds.Select(id => (EntityId) id).ToArray();
-            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { entityIds, false });
+            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { selectedFolderInstanceIds, false });
         }
 
         /// <summary>
@@ -173,13 +170,13 @@ namespace ProjectWindowHistory
         /// <param name="targetProjectWindow"></param>
         /// <param name="searchedText"></param>
         /// <param name="selectedFolderInstanceIds"></param>
-        public static void SetSearch(EditorWindow targetProjectWindow, string searchedText, int[] selectedFolderInstanceIds)
+        public static void SetSearch(EditorWindow targetProjectWindow, string searchedText, EntityId[] selectedFolderInstanceIds)
         {
             // 検索文字列からsearchFilterを生成する
             var searchFilter = CreateSearchFilterFromStringMethod.Invoke(null, new object[] { searchedText });
 
             // searchFilterに選択中のフォルダを設定する
-            var selectedFolderPathList = selectedFolderInstanceIds.Select(AssetDatabase.GetAssetPath).ToArray();
+            var selectedFolderPathList = selectedFolderInstanceIds.Select(id => AssetDatabase.GetAssetPath(id)).ToArray();
             SearchFilterFoldersField.SetValue(searchFilter, selectedFolderPathList);
 
             // targetProjectWindowにsearchFilterを設定する

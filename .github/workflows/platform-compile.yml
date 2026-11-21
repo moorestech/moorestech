@@ -43,9 +43,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech_server/Library
-          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
+          key: Library_compile_server_6000.6.10f1_${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
-            Library_compile_server_${{ matrix.target }}-
+            Library_compile_server_6000.6.10f1_${{ matrix.target }}-
 
       # buildMethodはプレイヤービルドをせず終了するため、実質「そのdefineでコンパイルが通るか」の検査になる
       # The buildMethod exits without building a player, so this effectively checks compilation under those defines
@@ -58,7 +58,10 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.3.8f1
+          unityVersion: 6000.6.10f1
+          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
+          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          containerRegistryImageVersion: 4
           buildMethod: Server.Editor.PlatformCompileCheck.RunFromGithubAction
           targetPlatform: ${{ matrix.target }}
           allowDirtyBuild: true

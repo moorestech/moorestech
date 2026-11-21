@@ -121,9 +121,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-${{ github.sha }}
+          key: Library_Test_client-6000.6.10f1-${{ github.sha }}
           restore-keys: |
-            Library_Test_client-
+            Library_Test_client-6000.6.10f1-
 
       # 打ち切りに達したかを後続stepが根拠付きで判定できるよう、テスト開始時刻をepoch秒で残す。
       # Record the test start time in epoch seconds so a later step can decide on evidence whether the cutoff was reached.
@@ -158,7 +158,10 @@ jobs:
           projectPath: moorestech/moorestech_client/
           githubToken: ${{ github.token }}
           checkName: Test Results - ${{ matrix.shard }}
-          unityVersion: 6000.3.8f1
+          unityVersion: 6000.6.10f1
+          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
+          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          containerRegistryImageVersion: 4
           testMode: editmode
           customParameters: >-
             ${{ steps.shard.outputs.use_assembly_filter == 'true' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}

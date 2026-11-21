@@ -20,11 +20,11 @@
       "hash": "38fecf55e4fd94ccfe58a92ed8ad1a529ba1694e"
     },
     "com.cysharp.unitask": {
-      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "f213ff497e4ff462a77319cf677cf20cc0860ca9"
+      "hash": "2e993ff18f28c931602a07292df0b0804eebef99"
     },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
@@ -34,11 +34,11 @@
       "hash": "a7c6b49a0141a5bff9b1983e38137522ef61977d"
     },
     "com.harumak.unitydebugsheet": {
-      "version": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet",
+      "version": "https://github.com/Haruma-K/UnityDebugSheet.git?path=/Assets/UnityDebugSheet#7dd21be6934f52c508580cb2c42d324803f3c7cd",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "2b1cf90f0375e10c9c0909cc91c5b92d707f2ce3"
+      "hash": "7dd21be6934f52c508580cb2c42d324803f3c7cd"
     },
     "com.hecomi.ulipsync": {
       "version": "https://github.com/hecomi/uLipSync.git#upm",
@@ -58,11 +58,11 @@
       "hash": "341069f0d381c7665f11a42566dad6d255c0bf38"
     },
     "com.moorestech.dependency-tracer": {
-      "version": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages",
+      "version": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages#6e9a3c9d2480010045b31d6b9013b8b499b7b117",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "0da3e2168a0d1fbdace3b41b10fd446b07211cde"
+      "hash": "6e9a3c9d2480010045b31d6b9013b8b499b7b117"
     },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
@@ -407,23 +407,17 @@
       "url": "https://packages.unity.com"
     },
     "com.vrmc.gltf": {
-      "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/UniGLTF#v0.121.0",
+      "version": "https://github.com/vrm-c/UniVRM.git?path=/Packages/UniGLTF#v0.131.4",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.vrmc.vrmshaders": "0.121.0",
-        "com.unity.modules.animation": "1.0.0"
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.test-framework": "1.4.6",
+        "com.unity.mathematics": "1.2.6"
       },
-      "hash": "640fabea73060227c33d0e4386e0ba504a99c3e4"
-    },
-    "com.vrmc.vrmshaders": {
-      "version": "https://github.com/vrm-c/UniVRM.git?path=/Assets/VRMShaders#v0.121.0",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.modules.imageconversion": "1.0.0"
-      },
-      "hash": "640fabea73060227c33d0e4386e0ba504a99c3e4"
+      "hash": "efd20f62f1bf0ac3fcc34de1e497324c5197d146"
     },
     "com.yasirkula.ingamedebugconsole": {
       "version": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
@@ -457,20 +451,18 @@
       "url": "https://package.openupm.com"
     },
     "jp.co.cyberagent.smartaddresser": {
-      "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",
+      "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser#1.2.0",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "a11746e4241ebbef7779a947cbaa6e826d599575"
+      "hash": "fe0e41d8c40bb1baa49fe7b66cdee4d85bc80cb7"
     },
     "jp.hadashikick.vcontainer": {
-      "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.10.0",
+      "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.19.0",
       "depth": 0,
       "source": "git",
-      "dependencies": {
-        "com.unity.nuget.mono-cecil": "1.10.1"
-      },
-      "hash": "7746d058e39c5de6b3bde667d5a852f9b8c89fdc"
+      "dependencies": {},
+      "hash": "5401e5a7ebc4980a2b82141ffc26391a6547edd7"
     },
     "tech.moores.server": {
       "version": "file:../../moorestech_server/Assets/Scripts",

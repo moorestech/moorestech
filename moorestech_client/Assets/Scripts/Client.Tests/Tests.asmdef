@@ -57,7 +57,7 @@
         "Game.MapGeneration",
         "Game.MapGeneration.Contract",
         "Game.MapGeneration.Facade",
-        "Cinemachine",
+        "Unity.Cinemachine",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Mathematics",
@@ -93,7 +93,6 @@
         "DOTween.dll",
         "MessagePack.dll",
         "MessagePack.Annotations.dll",
-        "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
         "Newtonsoft.Json.dll",
         "mooresmaster.LocalizationCsv.dll"

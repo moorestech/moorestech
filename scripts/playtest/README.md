@@ -77,7 +77,7 @@ scripts/playtest/release-playtest-windows.sh <SHA または origin/master>
 ```
 
 - env.sh の `MOORESTECH_WINBUILD_HOST`（配布ビルド機の ssh 宛先）が要る。無ければビルド前に止まる。
-- 配布ビルド機では `C:\dev\worktrees\moorestech\release-bake` を使い回して焼く（Library を持ち越すため）。Unity 6000.3.8f1 の Mac Build Support（Mono）と rcodesign（ad-hoc 署名）が入っていること。焼きは Windows 側で切り離して走り、`release-bake` の job の `result.json` を待って `runs/<label>/build-windows/`・`build-mac/` へ持ち帰る。
+- 配布ビルド機では `C:\dev\worktrees\moorestech\release-bake` を使い回して焼く（Library を持ち越すため）。Unity 6000.6.10f1 の Mac Build Support（Mono）と rcodesign（ad-hoc 署名）が入っていること。焼きは Windows 側で切り離して走り、`release-bake` の job の `result.json` を待って `runs/<label>/build-windows/`・`build-mac/` へ持ち帰る。
 - 持ち帰った後の検査（構成・出所・ad-hoc 署名・arm64・実行権。下の予備経路の箇条書きと同じ検査）は Mac の `codesign`・`lipo` で行う。だから入口は Mac mini のまま。以降の Steam へのアップロード・Windows 検証機の通し検証・`promotion.md` は予備経路と同じ。
 - `<commit>` の渡し方、必須 env とラベルの検査、`origin/$MOORESTECH_BUILD_BRANCH` に含まれることの検査は予備経路と同じ（下の箇条書き）。
 

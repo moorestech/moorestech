@@ -14,7 +14,7 @@ masterのキャッシュは存在しない。加えて `active_caches_size_in_by
 
 Windowsジョブの失敗率は12〜14%だが、直近の失敗4件は4件とも
 `failed to connect to the docker API at npipe:////./pipe/docker_engine` で、実体のあるビルド失敗はゼロ。
-`game-ci/unity-builder` はWindowsのみDockerコンテナ（`unityci/editor:windows-6000.3.8f1-windows-il2cpp-3`）で動くため、
+`game-ci/unity-builder` はWindowsのみDockerコンテナ（`unityci/editor:windows-6000.6.10f1-windows-il2cpp-4`）で動くため、
 runnerのDockerデーモン起動前に叩いて開始2秒で落ちている。macOSはネイティブ実行のため失敗0件。
 失敗のたびに `ci-auto-rerun` が2時間コースをもう1周している。
 

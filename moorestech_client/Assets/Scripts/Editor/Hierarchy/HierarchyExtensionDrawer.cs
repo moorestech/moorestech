@@ -20,15 +20,15 @@ namespace Abelia.Editor
         [InitializeOnLoadMethod]
         private static void RegisterCallback()
         {
-            EditorApplication.hierarchyWindowItemOnGUI -= OnDrawHierarchy;
-            EditorApplication.hierarchyWindowItemOnGUI += OnDrawHierarchy;
+            EditorApplication.hierarchyWindowItemByEntityIdOnGUI -= OnDrawHierarchy;
+            EditorApplication.hierarchyWindowItemByEntityIdOnGUI += OnDrawHierarchy;
         }
 
-        private static void OnDrawHierarchy(int instanceID, Rect selectionRect)
+        private static void OnDrawHierarchy(EntityId entityId, Rect selectionRect)
         {
             _appearanceTable.Clear();
 
-            var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
+            var gameObject = EditorUtility.EntityIdToObject(entityId) as GameObject;
 
             if (gameObject == null)
             {
@@ -186,7 +186,7 @@ namespace Abelia.Editor
                 {
                     if (iter.propertyType == SerializedPropertyType.ObjectReference)
                     {
-                        if (iter.objectReferenceValue == null && iter.objectReferenceInstanceIDValue != 0)
+                        if (iter.objectReferenceValue == null && iter.objectReferenceEntityIdValue != EntityId.None)
                         {
                             return true;
                         }
