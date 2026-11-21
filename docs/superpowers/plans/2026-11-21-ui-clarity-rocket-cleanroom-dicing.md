@@ -7191,7 +7191,7 @@ Presenter は今の汎用 Presenter `SpecialSectionPresenter<T>` と同じ「同
   - `RocketLaunchPadBodyView(SpecialViewKit kit, bool fillsPanelHeight)`・`SpaceElevatorBodyView(SpecialViewKit kit, bool fillsPanelHeight)`。どちらも `IOrbitalCargoBodyView` を実装し、`ISpecialSectionRenderer<SpecialBlockDetailViewModel>` は外す（モードの引数が要るため）。
   - testid は既存（`rocket-launch-pad-loading`・`-view`・`-material-slots`・`-payload-slots`・`-output-slots`・`-status`・`-progress`、`space-elevator-view`・`-input-grid`・`-output-grid`・`-section`・`-status`・`-pool`・`-progress`・`-connect`・`-loading`）に B5 の `{prefix}-cargo-*` が加わる。持ち主の変更で testid は変わらない（B7・B8 はそのまま使える）。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `OrbitalCargoBodyPresenterTest.cs`（新規。局所状態の進み方は Presenter と本物の発射台の本文を組んで見る。前例 `BeltThroughputSectionViewTest` の `Presenters.Belt(view)`・`Model.Set`・`presenter.Attach(OpenPanel(...))`）:
 
@@ -7450,14 +7450,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(Unconnected(SpaceElevatorBaseStatus.ReadyToConnect)), false);
 ```
 
-- [ ] **Step 2: 赤を確かめる**
+- [x] **Step 2: 赤を確かめる**
 
 ```
 uloop compile --project-path ./moorestech_client
 ```
 期待: `OrbitalCargoBodyPresenter`・`SpecialPresenters.OrbitalCargoBody`・本文の ctor と `Render` の引数が無いのでコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `OrbitalCargoDetailSelector.cs`（新規。`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Selectors/`）:
 
@@ -7900,7 +7900,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
 
 （前例は `builder.RegisterEntryPoint<RecipeMachineLargePanelRule>()`。こちらは `IInitializable` を持たないので `Register…As` にする。規則の一覧を `IReadOnlyList<IBlockInventoryLargePanelRule>` で受ける側〈`BlockInventoryPanelLayoutModel`〉は ctor で一覧を受ける。同じファイル 35–45 行の `Register<…>(Lifetime.Singleton).As<IBlockInventoryBodyFactory>()` を複数並べて一覧で受ける形が既に動いているので、同じ集め方で入る。）
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -7911,7 +7911,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 ```
 期待: 全部緑。最後の正規表現は特殊族の L1 全部（`SpecialSectionPresenter` の流れを `SpecialPanelDetailStream` へ移したので、汎用の Presenter を使う `BeltThroughputSectionViewTest` 以外の区画・本文の L1〈`NetworkSectionViewTest`・`GearSectionViewTest`・`FilterSplitterBodyViewTest`・`SpecialSectionStack*`・`SpecialFactoriesTest` 等〉も流す）と大型パネルの規則。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Selectors moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventorySpecialGameUiRegistration.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special
