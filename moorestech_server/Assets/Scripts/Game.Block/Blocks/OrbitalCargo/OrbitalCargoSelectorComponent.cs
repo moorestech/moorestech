@@ -52,7 +52,6 @@ namespace Game.Block.Blocks.OrbitalCargo
             // Read an old save without the item as unselected and leave one line for developers (ADR 0106 6, 7)
             if (!BlockComponentStateReader.TryRead<OrbitalCargoSelectionSaveJsonObject>(componentStates, SaveKey, out var save))
             {
-                Debug.LogWarning("積荷の選択がセーブに無いため、未選択として読み込みます");
                 return;
             }
             // silent-ok: 未選択で保存された台 / プレイヤーは状態表示の「積荷を選んでいない」で気づく

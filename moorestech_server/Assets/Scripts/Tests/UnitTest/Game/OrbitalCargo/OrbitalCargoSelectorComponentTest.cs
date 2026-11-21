@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using Tests.Util.OrbitalCargo;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -31,7 +32,10 @@ namespace Tests.UnitTest.Game.OrbitalCargo
         public void 運べる解放済みの種類だけを選び同じ種類の選び直しは何もしない()
         {
             var inlet = new FakeInletSlots();
-            var selector = Create(inlet);
+            var state = new OrbitalCargoSelectionState();
+            var selector = new OrbitalCargoSelectorComponent(state, inlet, ServerContext.GetService<IGameUnlockStateDataController>());
+            var notifications = 0;
+            using var subscription = state.OnChanged.Subscribe(_ => notifications++);
             Assert.IsInstanceOf<UnselectedOrbitalCargo>(selector.Selection);
 
             // 運べない種類は拒否し、運べる種類は選んで返却を1回呼ぶ
@@ -40,12 +44,14 @@ namespace Tests.UnitTest.Game.OrbitalCargo
             Assert.AreEqual(OrbitalCargoSelectionResult.NotCarriedHere, selector.SelectCargo(ForUnitTestItemId.ItemId1, OrbitalCargoTestUtil.NoRefundInventory()));
             Assert.AreEqual(OrbitalCargoSelectionResult.Success, selector.SelectCargo(ForUnitTestItemId.TestElevatorSatellite, OrbitalCargoTestUtil.NoRefundInventory()));
             Assert.AreEqual(ForUnitTestItemId.TestElevatorSatellite, ((SelectedOrbitalCargo)selector.Selection).PayloadItemId);
+            Assert.AreEqual(1, notifications);
             CollectionAssert.AreEqual(new[] { ForUnitTestItemId.TestElevatorSatellite }, inlet.RefundedFor);
 
             // 同じ種類の選び直しは返却も通知もしない
             // Reselecting the same kind neither refunds nor notifies
             Assert.AreEqual(OrbitalCargoSelectionResult.Success, selector.SelectCargo(ForUnitTestItemId.TestElevatorSatellite, OrbitalCargoTestUtil.NoRefundInventory()));
             Assert.AreEqual(1, inlet.RefundedFor.Count);
+            Assert.AreEqual(1, notifications);
         }
 
         [Test]
@@ -84,7 +90,29 @@ namespace Tests.UnitTest.Game.OrbitalCargo
             LogAssert.NoUnexpectedReceived();
         }
 
-        [TestCase("missing", "積荷の選択がセーブに無い")]
+        [Test]
+        public void 項目の無い旧セーブは欠損ログを一件だけ出し未選択で読み込む()
+        {
+            var messages = new List<string>();
+            var inlet = new FakeInletSlots();
+            Application.logMessageReceived += Record;
+            try
+            {
+                Assert.IsInstanceOf<UnselectedOrbitalCargo>(Load(new Dictionary<string, object>(), inlet).Selection);
+            }
+            finally
+            {
+                Application.logMessageReceived -= Record;
+            }
+            CollectionAssert.AreEqual(new[] { $"Log: ブロックのセーブ状態にキー {OrbitalCargoSelectorComponent.SaveKeyName} がないため、このコンポーネントの復元を見送ります" }, messages);
+
+            #region Internal
+
+            void Record(string message, string stackTrace, LogType type) => messages.Add($"{type}: {message}");
+
+            #endregion
+        }
+
         [TestCase("unknown", "この台が運ぶ積荷ではない")]
         [TestCase("notCarried", "この台が運ぶ積荷ではない")]
         public void 読めない選択は警告して未選択で読み込む(string scenario, string message)
@@ -92,7 +120,7 @@ namespace Tests.UnitTest.Game.OrbitalCargo
             var inlet = new FakeInletSlots();
             var states = new Dictionary<string, object>();
             var guid = scenario == "unknown" ? Guid.NewGuid() : MasterHolder.ItemMaster.GetItemGuid(ForUnitTestItemId.ItemId1);
-            if (scenario != "missing") states[OrbitalCargoSelectorComponent.SaveKeyName] = JObject.FromObject(new OrbitalCargoSelectionSaveJsonObject { SelectedCargoItemGuid = guid.ToString() });
+            states[OrbitalCargoSelectorComponent.SaveKeyName] = JObject.FromObject(new OrbitalCargoSelectionSaveJsonObject { SelectedCargoItemGuid = guid.ToString() });
             LogAssert.Expect(LogType.Warning, new Regex(message));
             Assert.IsInstanceOf<UnselectedOrbitalCargo>(Load(states, inlet).Selection);
         }

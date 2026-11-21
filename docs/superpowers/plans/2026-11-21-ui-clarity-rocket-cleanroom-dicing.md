@@ -614,7 +614,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 - 部品: 発射台・拠点とも `IOrbitalCargoSelectorComponent`（`Game.Block.Interface.Component`）を載せる。`OrbitalCargoSelection Selection { get; }`（`UnselectedOrbitalCargo` か `SelectedOrbitalCargo(ItemId PayloadItemId)`）・`OrbitalCargoSelectionResult SelectCargo(ItemId, IOpenableInventory refundInventory)`（`Success`/`NotCarriedHere`/`Locked`。拒否は `積荷の選択を拒否しました 理由:… 積荷:…` を警告ログ）。
 - 選択の型の判定・変換（サーバー内。B は使わなくても成り立つ）: `OrbitalCargoSelection.IsSelected(ItemId)`・`ToNullablePayloadItemId()`・`ToItemGuidTextOrNull()`。`Selection`・`SelectedOrbitalCargo.PayloadItemId`・`UnselectedOrbitalCargo` の形は変えていない。共有セルの読む口 `IOrbitalCargoSelectionReader`（`Game.Block.Blocks.OrbitalCargo`）はサーバーのブロック内部の型で、ほかの領域は使わない。
-- セーブ: ブロック状態のキー `"orbitalCargoSelection"`、`{"selectedCargoItemGuid": "<GUID>" | null}`。発射台の `nextPayloadIndex` は書かず読まない。版は上げない。項目が無ければ未選択＋警告 `積荷の選択がセーブに無いため、未選択として読み込みます`。
+- セーブ: ブロック状態のキー `"orbitalCargoSelection"`、`{"selectedCargoItemGuid": "<GUID>" | null}`。発射台の `nextPayloadIndex` は書かず読まない。版は上げない。項目が無ければ未選択で復元し、BlockComponentStateReader がキー名を含む欠損ログを1行出す。
 - ブループリント: 設定キー `"OrbitalCargoSelection"`、JSON はセーブと同じ形。
 - ケーブルプールへ足す積荷か: `Game.Block.Interface.Component.SpaceElevatorCableItems.Contains(ItemId itemId)`（`public static bool`、`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorCableItems.cs`。A8）。全拠点の `CableItemGuid` のどれかなら true。サーバーの `SpaceElevatorCablePool` も同じ口を読む（持ち主は1つ）。クライアントの下書き B2 の `OrbitalCargoCatalog` はこの名前で読む。
 - 接続: `SpaceElevatorConnectionService.Connect` は未選択の拠点に `CargoNotSelected` を返す（判定順は 追跡外 → `AlreadyConnected` → `CargoNotSelected` → ケーブル）。
@@ -915,6 +915,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using Tests.Util.OrbitalCargo;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -934,7 +935,10 @@ namespace Tests.UnitTest.Game.OrbitalCargo
         public void 運べる解放済みの種類だけを選び同じ種類の選び直しは何もしない()
         {
             var inlet = new FakeInletSlots();
-            var selector = Create(inlet);
+            var state = new OrbitalCargoSelectionState();
+            var selector = new OrbitalCargoSelectorComponent(state, inlet, ServerContext.GetService<IGameUnlockStateDataController>());
+            var notifications = 0;
+            using var subscription = state.OnChanged.Subscribe(_ => notifications++);
             Assert.IsInstanceOf<UnselectedOrbitalCargo>(selector.Selection);
 
             // 運べない種類は拒否し、運べる種類は選んで返却を1回呼ぶ
@@ -943,12 +947,14 @@ namespace Tests.UnitTest.Game.OrbitalCargo
             Assert.AreEqual(OrbitalCargoSelectionResult.NotCarriedHere, selector.SelectCargo(ForUnitTestItemId.ItemId1, OrbitalCargoTestUtil.NoRefundInventory()));
             Assert.AreEqual(OrbitalCargoSelectionResult.Success, selector.SelectCargo(ForUnitTestItemId.TestElevatorSatellite, OrbitalCargoTestUtil.NoRefundInventory()));
             Assert.AreEqual(ForUnitTestItemId.TestElevatorSatellite, ((SelectedOrbitalCargo)selector.Selection).PayloadItemId);
+            Assert.AreEqual(1, notifications);
             CollectionAssert.AreEqual(new[] { ForUnitTestItemId.TestElevatorSatellite }, inlet.RefundedFor);
 
             // 同じ種類の選び直しは返却も通知もしない
             // Reselecting the same kind neither refunds nor notifies
             Assert.AreEqual(OrbitalCargoSelectionResult.Success, selector.SelectCargo(ForUnitTestItemId.TestElevatorSatellite, OrbitalCargoTestUtil.NoRefundInventory()));
             Assert.AreEqual(1, inlet.RefundedFor.Count);
+            Assert.AreEqual(1, notifications);
         }
 
         [Test]
@@ -987,7 +993,29 @@ namespace Tests.UnitTest.Game.OrbitalCargo
             LogAssert.NoUnexpectedReceived();
         }
 
-        [TestCase("missing", "積荷の選択がセーブに無い")]
+        [Test]
+        public void 項目の無い旧セーブは欠損ログを一件だけ出し未選択で読み込む()
+        {
+            var messages = new List<string>();
+            var inlet = new FakeInletSlots();
+            Application.logMessageReceived += Record;
+            try
+            {
+                Assert.IsInstanceOf<UnselectedOrbitalCargo>(Load(new Dictionary<string, object>(), inlet).Selection);
+            }
+            finally
+            {
+                Application.logMessageReceived -= Record;
+            }
+            CollectionAssert.AreEqual(new[] { $"Log: ブロックのセーブ状態にキー {OrbitalCargoSelectorComponent.SaveKeyName} がないため、このコンポーネントの復元を見送ります" }, messages);
+
+            #region Internal
+
+            void Record(string message, string stackTrace, LogType type) => messages.Add($"{type}: {message}");
+
+            #endregion
+        }
+
         [TestCase("unknown", "この台が運ぶ積荷ではない")]
         [TestCase("notCarried", "この台が運ぶ積荷ではない")]
         public void 読めない選択は警告して未選択で読み込む(string scenario, string message)
@@ -995,7 +1023,7 @@ namespace Tests.UnitTest.Game.OrbitalCargo
             var inlet = new FakeInletSlots();
             var states = new Dictionary<string, object>();
             var guid = scenario == "unknown" ? Guid.NewGuid() : MasterHolder.ItemMaster.GetItemGuid(ForUnitTestItemId.ItemId1);
-            if (scenario != "missing") states[OrbitalCargoSelectorComponent.SaveKeyName] = JObject.FromObject(new OrbitalCargoSelectionSaveJsonObject { SelectedCargoItemGuid = guid.ToString() });
+            states[OrbitalCargoSelectorComponent.SaveKeyName] = JObject.FromObject(new OrbitalCargoSelectionSaveJsonObject { SelectedCargoItemGuid = guid.ToString() });
             LogAssert.Expect(LogType.Warning, new Regex(message));
             Assert.IsInstanceOf<UnselectedOrbitalCargo>(Load(states, inlet).Selection);
         }
@@ -1288,7 +1316,6 @@ namespace Game.Block.Blocks.OrbitalCargo
             // Read an old save without the item as unselected and leave one line for developers (ADR 0106 6, 7)
             if (!BlockComponentStateReader.TryRead<OrbitalCargoSelectionSaveJsonObject>(componentStates, SaveKey, out var save))
             {
-                Debug.LogWarning("積荷の選択がセーブに無いため、未選択として読み込みます");
                 return;
             }
             // silent-ok: 未選択で保存された台 / プレイヤーは状態表示の「積荷を選んでいない」で気づく
@@ -4307,7 +4334,7 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
             Assert.IsTrue(PadBlockState(save).Remove(OrbitalCargoSelectorComponent.SaveKeyName));
             RocketLaunchPadSaveTestUtil.State(save)["nextPayloadIndex"] = 1;
 
-            LogAssert.Expect(LogType.Warning, new Regex("積荷の選択がセーブに無いため、未選択として読み込みます"));
+            LogAssert.Expect(LogType.Log, new Regex($"ブロックのセーブ状態にキー {OrbitalCargoSelectorComponent.SaveKeyName} がないため"));
             var pad = RocketLaunchPadSaveTestUtil.Load(save);
             Assert.IsInstanceOf<UnselectedOrbitalCargo>(pad.GetComponent<IOrbitalCargoSelectorComponent>().Selection);
 
@@ -4350,7 +4377,7 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
             var baseState = (JObject)save["world"].OfType<JObject>().Single(block => block["state"]?["spaceElevatorClimber"] != null)["state"];
             Assert.IsTrue(baseState.Remove(OrbitalCargoSelectorComponent.SaveKeyName));
 
-            LogAssert.Expect(LogType.Warning, new Regex("積荷の選択がセーブに無いため、未選択として読み込みます"));
+            LogAssert.Expect(LogType.Log, new Regex($"ブロックのセーブ状態にキー {OrbitalCargoSelectorComponent.SaveKeyName} がないため"));
             var (_, loadedProvider) = CreateServer();
             SaveLoadJsonTestHelper.LoadFromJson(loadedProvider, save.ToString());
             var loaded = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
@@ -18903,7 +18930,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップ・シ
    - 状態詳細で「無い」を表す形は統一されていない（GUID 文字列の番兵・空配列）。「種別＋TryGet」の形の前例は状態詳細に無い。
    - `ItemId?` にした理由: 番兵（`Guid.Empty`・`EmptyItemId`）は「無い」を値の約束に頼り、受け手が約束を知らないと「空の品」として読める。`ItemId?` は有無が型に出る。要求の `int?` と同じ「欠けを nullable で表す」形で、クライアントは既に `ItemId` で品を扱う。
    - 別案: 機械と同じ GUID 文字列の番兵（文字列の解析と番兵の約束が増えるので取らない）、採掘機と同じ生の int（往復テストが落ちたときの代替。A7）。
-4. **セーブの未選択は `null`**（項目そのものが無い旧セーブとは別。どちらも未選択で読み、項目なしだけ警告）。
+4. **セーブの未選択は `null`**（項目そのものが無い旧セーブとは別。どちらも未選択で読み、項目なしだけ BlockComponentStateReader が欠損ログを1行出す）。
 5. **拠点の選び直しの残りは新しい入口状態 `NotSelectedKind` で、表示は既存の `InletBlocked` を流用**。新しい Status を足すとクライアントの文言が増えるため。ADR の「詰まりの表示」はこれで満たす（食い違い 3）。
 6. **ロード時の戻し先（入口・出口・消す）は運べる全種類で決め、選択では絞らない**。昇降中の便をロードで取り消さないため（ADR 0106 の 4「今の便はそのまま」）。
 7. **拠点の `CargoNotSelected` は昇っていない間、接続の有無より先に出す**。接続も受け取りも選ぶまでできないので、最初にすべきことを出す。
