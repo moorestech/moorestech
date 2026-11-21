@@ -3792,7 +3792,7 @@ ADR 0106 の 5（通信は1つ・発射台と拠点で共通）。前例は `Roc
   - クライアント `BlockRequestApi.SendOrbitalCargoSelection(Vector3Int position, ItemId payloadItemId, BlockInstanceId expectedInstanceId, CancellationToken ct)` → `UniTask<(OrbitalCargoSelectionResponse response, PacketWaitCompletionReason reason)>`
   - 前の種類の返却先は要求したプレイヤーの `MainOpenableInventory`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/OrbitalCargo/OrbitalCargoSelectionProtocolTest.cs`:
 
@@ -3927,11 +3927,11 @@ namespace Tests.CombinedTest.Server.PacketTest.OrbitalCargo
 }
 ```
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `OrbitalCargoSelectionProtocol` が無くてコンパイルエラー。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/OrbitalCargo/OrbitalCargoSelectionProtocol.cs`（116 行。`Server.Protocol.asmdef` は `Game.PlayerInventory.Interface` を既に参照＝`MachineRecipeSelectionProtocol` が使っている）:
 
@@ -4074,13 +4074,13 @@ namespace Server.Protocol.PacketResponse
         }
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Server.PacketTest.OrbitalCargo.OrbitalCargoSelectionProtocolTest"`
 期待: 4 件成功。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 `git commit -m "発射台と宇宙エレベーター拠点の積荷を選ぶ通信 va:orbitalCargoSelection を足す"`
 
