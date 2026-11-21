@@ -8573,7 +8573,7 @@ git commit -m "録画シナリオを積荷の選択に合わせて直し、選�
   - `public static CleanRoomClassYield CleanRoomClassYield.FromThresholdIndex(int thresholdIndex)`
   - `public static bool CleanRoomClassYield.TryGetPromotionTargetIndex(int currentIndex, out int targetIndex)`（今の行の1つ上の行の添字。Out〈行数〉からはいちばん下の行。いちばん良い行〈添字0〉だけ false。「いちばん良いクラスか」と「1つ上の行」はここ1か所で、改善の計算〈C3〉・台数の数え上げ〈C5〉・見通し〈C6〉が呼ぶ。`Game.Block` と `Game.CleanRoom` の両方が参照する `Game.Block.Interface` に置く）
 
-- [ ] **Step 1: テストを書く** — `Tests/UnitTest/Game/CleanRoomYield/CleanRoomClassYieldTest.cs`
+- [x] **Step 1: テストを書く** — `Tests/UnitTest/Game/CleanRoomYield/CleanRoomClassYieldTest.cs`
 
 ```csharp
 using Game.Block.Interface.Component;
@@ -8617,9 +8617,9 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `FromThresholdIndex`・`TryGetPromotionTargetIndex` の未定義で失敗する。
+- [x] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `FromThresholdIndex`・`TryGetPromotionTargetIndex` の未定義で失敗する。
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `CleanRoomClassYield.cs` 直す前（全体）:
 
@@ -8739,7 +8739,7 @@ namespace Game.Block.Interface.Component
             var rates = DicingRatesOf(new CleanRoomClassYield(0, 1f, 0f, 0f), TestQualityFractionalModuleItemGuid, 2, out var qualityTier);
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 ```
 uloop compile --project-path ./moorestech_client
@@ -8748,7 +8748,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type class --filter-
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Core\.CleanRoom\.Machine\."
 ```
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/CleanRoomClassYield.cs moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/
