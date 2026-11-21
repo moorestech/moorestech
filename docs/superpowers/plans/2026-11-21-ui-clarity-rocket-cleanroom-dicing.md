@@ -15,7 +15,7 @@
 ### R-A 発射台の積荷の選択（ADR 0106 §1〜6）
 
 - R-A1: 発射台は、積荷表のどの種類を運ぶかをプレイヤーが選ぶ。届いた積荷から自動で選ぶ動き（巡回）は無くなる。受け入れ基準: 2種類の積荷を届けても、選んだ種類の便だけが建造される（裁定）
-- R-A2: 積荷を選んでいない発射台は、資材も積荷も受け取らず、建造もしない。開くと積荷を選ぶ画面になる。受け入れ基準: 未選択の発射台へベルトで資材・積荷を届けても枠に入らない／開いた画面が選ぶ一覧である（裁定）
+- R-A2: 積荷を選んでいない発射台は、資材も積荷も受け取らず、建造もしない。開くと積荷を選ぶ画面になる。未選択の間の画面は積荷の一覧だけで、出力の枠・状態・電力の状態は選ぶまで出さない（選ぶまでは出力を手で取り出せない）。受け入れ基準: 未選択の発射台へベルトで資材・積荷を届けても枠に入らない／開いた画面が選ぶ一覧だけである（裁定）
 - R-A3: 選んだ後は、資材と選んだ種類の積荷だけを受け取る。ほかの種類は受け取らない（前提）
 - R-A4: 選ぶ一覧の1行は、積むものと返るものの対（「ICチップLv2 ×20 → 計算データ ×40」）。グラフェンケーブルは「グラフェンケーブル ×1000 → ケーブルプール +1000」。ケーブルプールの今の数は発射台に出さない（裁定）
 - R-A5: 一覧には、アイテムを解放した種類だけを出す。サーバーも未解放の種類の選択を拒否する（一覧＝裁定、サーバーの拒否＝前提）
@@ -31,7 +31,7 @@
 - R-B1: 拠点も、運ぶ積荷（ICチップLv1〜5 のどれか）をプレイヤーが選ぶ。運ぶのは選んだ1種類だけ（裁定。2026-11-18 の「入口の混在詰まりは何もしない」を覆す）
 - R-B2: 未選択は何も受け取らない／一覧は解放した種類だけ／昇降中の1便はそのまま運び次の便から切り替える／ブループリントで複製する／一覧の行は積むものと返るものの対（前提。「発射台にそろえる」の細部）
 - R-B3: 選び直したとき、前の種類は選んだ人のインベントリへ返し、入りきらないぶんは入口に残る。選び直しは成立する。残りを取り出すまで新しい種類は入らず、入口の詰まりの表示が出る（裁定）
-- R-B4: まだ接続していない拠点は、積荷を選んでから接続する。未選択の拠点を開くと積荷を選ぶ画面になる（裁定）
+- R-B4: まだ接続していない拠点は、積荷を選んでから接続する。未選択の拠点を開くと積荷を選ぶ画面になる。未選択の間は、接続済みの拠点でも一覧だけを出し、出力の枠・状態・電力の状態・ケーブルプールの行は選ぶまで出さない（裁定）
 - R-B5: 拠点のセーブに「選んだ積荷」の項目が増える。セーブの版は上げない。項目の無い拠点は未選択として読み込み、入口の中身はそのまま残って取り出せる（裁定）
 - R-B6: ロード時に戻せない積荷を出口へ退避し、無理なら消す決まりは変えない。接続した後の画面の「ケーブルのプール」の行は変えない（裁定 2026-11-18／前提）
 
@@ -43,24 +43,26 @@
 - R-C4: 確率はいつも同じ1組だけ出す。出力の空き待ちの間の2組目と見出しは出さず、空き待ちのことは画面に書かない（裁定）
 - R-C5: 部屋が成立していない間とレシピ未選択の間は、確率の欄を出さない（今のまま）（裁定）
 - R-C6: 確率の欄の下にボタン「失敗率の改善方法」。押すとモーダルが重なり、今の値と、改善ごとの差分（部屋クラスを1つ上げる／今刺さっている中で一番高い Lv の品質モジュールを1個増やす／それより1レベル上の品質モジュールを1個刺す）を出す。EUV も同じで、差分は失敗だけ（裁定）
-- R-C7: やっても数字が変わらない行は出さない。出す行が1つも無いときはボタンを出さない。品質モジュールが1個も無いときは「品質モジュールLv1 を追加」の1行（前提）
+- R-C7: やっても数字が変わらない行は出さない。出す行が1つも無いときはボタンを出さない。品質モジュールが1個も無いときは「品質モジュールLv1 を追加」の1行（前提）。まだ作れない品質モジュールの行も、作れる行と同じ見た目で出す（「まだ作れない」の印は付けない）（裁定）
 - R-C8: 最終の内訳と差分はサーバーが抽選と同じ式から計算して運ぶ。クライアントは式を持たない。保存される抽選記録の項目は増やさない（前提）
 
 ### R-D 清浄機の画面（ADR 0105 §5）
 
 - R-D1: 部屋の行は「クラスC（クラスBまであと5台）」の形。クラスA のときは「クラスA」だけ（裁定）
 - R-D2: 台数は今の稼働状態のまま数える（止まっている清浄機の除去量は 0 のまま）。新しく置く清浄機は電力 100%・フィルターありで数える。書いた台数を置けば実際に上がる（裁定）
-- R-D3: 清浄機1台ずつの行は、台数のまとめ1行（「清浄機 6台（うち1台が止まっています）」）に替える。フィルターの個数は書かない（フィルターの個数＝裁定、まとめ1行＝前提）
+- R-D3: 清浄機の画面の部屋の欄は「部屋クラス（あと何台）／台数のまとめ（「清浄機 6台（うち1台が止まっています）」）／この清浄機の電力・フィルターの残量」の3行。換気回数の行と、清浄機1台ずつの行は消す。フィルターの個数は書かない（裁定）
 - R-D4: 台数はサーバーが部屋クラスの判定と同じ式から計算して運ぶ（前提）
 
 ### R-E フィルター分岐器の文言
 
 - R-E1: 画面の見出し「出力 1／出力 2／出力 3」を「左／正面／右」にする。並び順は今のまま（裁定）
 - R-E2: モード名を「その他すべて／指定した物だけ／指定した物以外」にする（裁定）
+- R-E3: 見出しを左・正面・右に決められない分岐器のマスタは読込時に止める。止めるのは、入口が1つでない／出口が入口から見て左・正面・右のどれにも当たらない（入口と同じ面・斜め・上下）／同じ側に出口が2つある、のとき。出口が2つだけの分岐器は止めない（裁定）
 
 ### R-F 研究マスタ
 
-- R-F1: ICチップLv2〜5 のアイテム解放を、研究「品質モジュールLv1〜4」にも付ける。研究「速度モジュールLv1〜4」の今の解放は外さない。マスタ repo の PR を作り、本 repo のピンをその PR の push 済みコミットへ進める（裁定）
+- R-F1: 研究「品質モジュールLvN」（N は 1〜4）に、ICチップLv(N+1)・シリコンダイLv(N+1)・品質モジュールLvN のアイテム解放を付ける。研究「品質モジュールLv5」に品質モジュールLv5 のアイテム解放を付ける。研究「速度モジュールLv1〜5」の今の解放は外さない。マスタ repo の PR を作り、本 repo のピンをその PR の push 済みコミットへ進める（裁定）
+- R-F2: 既に解放済みのアイテムをもう一度解放しても「解放されました」の通知を出さない（前提）
 
 ### やらないこと
 
@@ -99,8 +101,8 @@ Mac mini の Unity Editor は同時に1本まで。**最初に `moores-wt status
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反3件・修正3件 / Core.Master の ItemMaster へのメソッド追加・Validator/Block の11本目・積荷一覧の局所状態を View が持つ形の3件を直し、直した範囲の再検査は違反0件
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱8・第3バケツ3 / ADR との矛盾は0件。強と弱は確認シート05 でユーザーへ確認中（回答は判断記録の末尾へ書く）。第3バケツは PR 本文の「本PR外のリファクタ提案」へ。直した範囲の再検査で新しい発火は無し
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反3件・修正3件 / Core.Master の ItemMaster へのメソッド追加・Validator/Block の11本目・積荷一覧の局所状態を View が持つ形の3件を直し、直した範囲の再検査と、確認シート05 の回答の反映後の再検査は違反0件
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱8・第3バケツ3 / ADR との矛盾は0件。強と弱は確認シート05 でユーザーへ出し、2026-11-21 の回答を判断記録の末尾に書いた。第3バケツは PR 本文の「本PR外のリファクタ提案」へ。直した範囲の再検査で新しい発火は無し。回答の反映後の再検査（4体）で出た弱3・設計判断1は直した
 
 ---
 
@@ -126,16 +128,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 - 領域をまたいで同じファイルを直す所がある（`Localization/localization.csv` は B・D・E、`SpecialBlockDetailReader.cs` と `SpecialDetailSamples.cs` は B3・E2、`CONTEXT.md` は E）。後の Task の「直す前」は、前の Task が直した後の形。順に実施すれば衝突しないが、行番号は前の Task でずれるので、文字列で場所を探す（Global Constraints）。
 - 各領域の Task の本文は、その領域の下書きを書いた時点の名前で書いてある。領域 A の名前を B が、領域 C の名前を D が使う。使う名前は「Interfaces 一覧」の節にまとめてある。
 - パスの書き方: Task の本文は repo 相対のフルパスで書いてある。
-- 本文の言い回しの読み替え: 「下書き A〜E」「サーバー側の下書き」「クライアントの下書き」「画面側の下書き」は、この plan の領域 A〜E のこと。「サーバー側の下書きへの注文」は付録の「領域の間の取り決め」にある（どれも領域 A・C の Task に反映済み）。「要裁定」は下の「未決（ユーザーの回答待ち）」のこと。「調整役」「コーディネーター」は、この plan をまとめたセッションのこと。
-
-### 未決（ユーザーの回答待ち）
-
-次の2件はユーザーへ確認中。**回答が来るまで、Task の本文は下の「今の本文」の案で書いてある。** 回答で別の案に決まったら、付録の差分で本文を差し替えてから実装を始める（この節と判断記録も書き換える）。
-
-| # | 決めること | 今の本文 | 別の案に決まったとき |
-|---|---|---|---|
-| 未決1 | 研究「品質モジュールLv1〜4」で早く解放する範囲 | (a) ICチップLv2〜5 だけ（裁定 2026-11-21 のとおり。Task E7・E8） | (b) シリコンダイLv(n+1) と品質モジュールLvn のアイテムも足す → 付録「領域 E: 付録: 要裁定 2 で (b) のとき」で E7・E8 の Step を差し替える |
-| 未決2 | 「失敗率の改善方法」に、まだ作れない品質モジュールの行も出すか | A. 解放に関係なく出す（Task C2・C3） | B. 今作れるものだけ出す → 付録「領域 C: 付録: 要裁定3 で B のとき」の差分を C3 に足す（サーバーの部品だけ。プロトコルとクライアントは変わらない） |
+- 本文の言い回しの読み替え: 「下書き A〜E」「サーバー側の下書き」「クライアントの下書き」「画面側の下書き」は、この plan の領域 A〜E のこと。「サーバー側の下書きへの注文」は付録の「領域の間の取り決め」にある（どれも領域 A・C の Task に反映済み）。「要裁定」と書いてあった項目は、確認シート05（2026-11-21 回答）で全部決まっている（判断記録の末尾）。「調整役」「コーディネーター」は、この plan をまとめたセッションのこと。
 
 ### 要件と Task の対応
 
@@ -156,7 +149,8 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | R-C6・R-C7（失敗率の改善方法） | C1・C2・C3・C4（差分）、D1・D2・D5・D6（ボタンとモーダル）、D7（録画） |
 | R-D1〜R-D4（清浄機の画面） | C5・C6（台数）、D4（画面）、D7（録画） |
 | R-E1・R-E2（分岐器の文言） | E1〜E5 |
-| R-F1（研究マスタ） | E6・E7・E8 |
+| R-E3（決められない分岐器を読込時に止める） | E1 |
+| R-F1・R-F2（研究マスタ・再解放の通知） | E6・E7・E8 |
 
 ## File Structure
 
@@ -172,13 +166,15 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 | パス | 役割 | 行数 |
 |---|---|---|
-| `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/OrbitalCargo/OrbitalCargoSelection.cs` | 選択の型（未選択／選択済みの判別 union） | 32 |
+| `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/OrbitalCargo/OrbitalCargoSelection.cs` | 選択の型（未選択／選択済みの判別 union）。「選んだ種類か」・`ItemId?`・GUID 文字列への変換を持つ1か所 | 50 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/OrbitalCargo/IOrbitalCargoSelectorComponent.cs` | 選択口の interface と結果 enum | 27 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionState.cs` | 1ブロック内で選択を共有するセル（書くのは選択部品だけ） | 33 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoInletSlots.cs` | 打ち上げ口ごとの「運べる種類」「選び直しの返却」 | 20 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoSelectionReader.cs` | 1ブロック内で共有する選択を読む口（`Current`・`OnChanged`。書く口は持たない） | 18 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionState.cs` | 1ブロック内で選択を共有するセル。読む口を実装し、書く口 `SetCurrent` を持つ実体は選択部品だけが受け取る | 22 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoInletSlots.cs` | 打ち上げ口ごとの「運べる種類」「選び直しの返却」 | 18 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionSaveJsonObject.cs` | セーブ項目 `selectedCargoItemGuid` | 13 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectorComponent.cs` | 選択部品（拒否判定・返却・セーブ） | 112 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoBlueprintSettingsComponent.cs` | ブループリントの選択の複製 | 63 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoItemGuid.cs` | GUID 文字列 → 今のマスタにある `ItemId` の変換（セーブの読込とブループリントの適用が共有する1か所） | 20 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectorComponent.cs` | 選択部品（拒否判定・返却・セーブ） | 124 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoBlueprintSettingsComponent.cs` | ブループリントの選択の複製 | 60 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadCargoInletSlots.cs` | 発射台の積荷入れ口（返却） | 41 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInlet.cs` | 拠点の入口（受け入れ・塞がり・返却）。在庫部品から分離 | 101 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorCableItems.cs` | ケーブルプールへ足す積荷か（サーバーとクライアントが読む1か所。A8） | 21 |
@@ -195,7 +191,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/OrbitalCargo/OrbitalCargoStateWireTest.cs` | 状態詳細の `ItemId?` の MessagePack 往復 | 43 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/OrbitalCargo/OrbitalCargoSelectionProtocolTest.cs` | プロトコル | 129 |
 
-ディレクトリごとの .cs 数（変更後）: `Game.Block.Interface/Component/OrbitalCargo/` 2・`Game.Block/Blocks/OrbitalCargo/` 5・`Game.Block/Blocks/RocketLaunchPad/` 7→8・`Game.Block/Blocks/SpaceElevator/` 7→8・`Server.Protocol/PacketResponse/OrbitalCargo/` 1・`Tests/Util/OrbitalCargo/` 1・`Tests/UnitTest/Game/OrbitalCargo/` 2・`Tests/CombinedTest/Game/OrbitalCargo/` 6・`Game.Block.Interface/Component/SpaceElevator/` 2→3・`Game.SpaceElevator/` は1本減・`Tests/UnitTest/Core/Block/SpaceElevator/` 1→2・`Tests/CombinedTest/Server/PacketTest/OrbitalCargo/` 1。既存の `Tests/CombinedTest/Game/SpaceElevator/`（直下 10 本）には足さない。
+ディレクトリごとの .cs 数（変更後）: `Game.Block.Interface/Component/OrbitalCargo/` 2・`Game.Block/Blocks/OrbitalCargo/` 7・`Game.Block/Blocks/RocketLaunchPad/` 7→8・`Game.Block/Blocks/SpaceElevator/` 7→8・`Server.Protocol/PacketResponse/OrbitalCargo/` 1・`Tests/Util/OrbitalCargo/` 1・`Tests/UnitTest/Game/OrbitalCargo/` 2・`Tests/CombinedTest/Game/OrbitalCargo/` 6・`Game.Block.Interface/Component/SpaceElevator/` 2→3・`Game.SpaceElevator/` は1本減・`Tests/UnitTest/Core/Block/SpaceElevator/` 1→2・`Tests/CombinedTest/Server/PacketTest/OrbitalCargo/` 1。既存の `Tests/CombinedTest/Game/SpaceElevator/`（直下 10 本）には足さない。
 
 #### 変更（主なもの。テストの一括変更は各 Task の表）
 
@@ -207,12 +203,12 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Save/RocketLaunchPadSaveJsonObject.cs` | `nextPayloadIndex` 削除 | 18 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Save/RocketLaunchPadSaveConverter.cs` | `Capture` の引数から巡回位置を削除 | 122 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Stage/AwaitingBuildCommandStage.cs` | 合図の結果へ未選択を写す | 46 |
-| `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs` | 選択部品・ブループリント部品を組む | 90 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent.cs` | 入口を `SpaceElevatorBaseInlet` へ分離 | 164 |
+| `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs` | 選択部品・ブループリント部品を組む | 92 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent.cs` | 入口を `SpaceElevatorBaseInlet` へ分離・昇降機が読む口（`CheckDestroy` を踏む） | 171 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorTestUtil.cs` | 積荷を選んだ拠点を置く補助・未選択の補助 | 108 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs` | 状態・購読・塞がりのログ | 197 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs` | 状態・購読・塞がりのログ・入口の状態を1回だけ読む | 198 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorSatelliteInletState.cs` | `NotSelectedKind`・写像とログ | 58 |
-| `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs` | 選択部品・ブループリント部品を組む | 58 |
+| `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs` | 選択部品・ブループリント部品を組む | 60 |
 | `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorConnectionService.cs` | 未選択の接続を拒否 | 119 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadStateDetail.cs` | Key3 選んだ積荷・Key4 今の便の積荷 | 46 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadWaitReason.cs` | `CargoNotSelected = 5` | 15 |
@@ -240,11 +236,11 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 | ファイル | 責務 | 予定行数 |
 |---|---|---|
-| `OrbitalCargoChoice.cs` | 1 種類の積荷の 1 便（積む数・打ち上げ成果・ケーブルプールへ足すか） | 45 |
+| `OrbitalCargoChoice.cs` | 1 種類の積荷の 1 便（積む数・打ち上げ成果・ケーブルプールへ足すか。成果とプールは両方持てる） | 28 |
 | `OrbitalCargoCatalog.cs` | ブロックが運ぶ種類から選択肢を積荷表（マスタ）で組む | 50 |
 | `OrbitalCargoDetail.cs` | 選んだ積荷・今の便の積荷・選べる一覧・見出しと「次の便から」の判定 | 95 |
 | `RequiredItemSlot.cs` | 1 枠に入るべき品と必要な数（サーバーの絶対添字） | 25 |
-| `OrbitalCargoSlotBinding.cs` | 透かしつきの枠の並びと Shift の束縛を選択から組む | 95 |
+| `OrbitalCargoSlotBinding.cs` | 透かしつきの枠の並びと Shift の束縛を選択から組む（「選んだ種類か」は `OrbitalCargoDetail.IsSelectedChoice` を呼ぶ） | 78 |
 | `IUnlockedOrbitalCargoSource.cs` | 解放済みの積荷の集合の口（詳細の Model とテストが使う） | 15 |
 | `UnlockedOrbitalCargoSource.cs` | 解放イベントで解放済みの積荷の集合を作り直す | 60 |
 | `OrbitalCargoSelectionModeState.cs` | 一覧を出すかの局所状態（機械の `MachineSelectionModeState` と同じ形。持ち主は B6 の `OrbitalCargoBodyPresenter`） | 50 |
@@ -262,8 +258,8 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 | ファイル | 責務 | 予定行数 |
 |---|---|---|
-| `OrbitalCargoNames.cs` | 行・見出しの文（「ICチップLv2 ×20 → 計算データ ×40」）と「次の便から」の文 | 70 |
-| `OrbitalCargoSelectionRowView.cs` | 一覧の 1 行（文・RecipeRow・選択中の外周） | 75 |
+| `OrbitalCargoNames.cs` | 行・見出しの文（「ICチップLv2 ×20 → 計算データ ×40」。プールと出力を両方持つ積荷は両方を書く）と「次の便から」の文 | 54 |
+| `OrbitalCargoSelectionRowView.cs` | 一覧の 1 行（文・RecipeRow・選択中の外周） | 78 |
 | `OrbitalCargoSelectionList.cs` | 一覧（`RecipeListScrollView`。先頭に状態文） | 75 |
 | `OrbitalCargoHeader.cs` | 選んだ積荷の見出し（押すと一覧へ）と「次の便から」の 1 行 | 90 |
 | `OrbitalCargoPane.cs` | View。Presenter が決めたモードで一覧と「選んだ後の中身」を出し分け、行の押下をコマンドへ送り、行・見出しの押下を Subject で出す | 90 |
@@ -315,8 +311,8 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSlotBindingTest.cs` | 新規 L0 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSelectionModeStateTest.cs` | 新規 L0 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Cargo/OrbitalCargoSamples.cs` | 新規 見本 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoPaneViewTest.cs` | 新規 L1（View 単体。112 行） |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoBodyPresenterTest.cs` | 新規 L1（Presenter＋本文の View。108 行） |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoPaneViewTest.cs` | 新規 L1（View 単体。127 行） |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Cargo/OrbitalCargoBodyPresenterTest.cs` | 新規 L1（Presenter＋本文の View。109 行） |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockCommandsTest.cs` | 追加 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/SpecialBlockResponseCodesTest.cs` | 追加 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Commands/RecordingSpecialRequestSender.cs` | 口の追加 |
@@ -346,37 +342,38 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 | パス | 作る/変える | 責務 | 行数 |
 |---|---|---|---|
-| `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/CleanRoomClassYield.cs` | 変える（C1） | 部屋クラスの歩留まり値に閾値行の添字を持たせ、添字からマスタの行を読む口を足す | 20 → 36 |
+| `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/CleanRoomClassYield.cs` | 変える（C1） | 部屋クラスの歩留まり値に閾値行の添字を持たせ、添字からマスタの行を読む口と、昇格の目標の行（いちばん良いクラスかの判定）の純関数を足す | 20 → 42 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs` | 変える（C1） | 稼働許可と一緒に渡す値を `FromThresholdIndex` で作る | 54 → 54 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs` | 変える（C2） | そのモジュールをあと1個効く形で入れられるか | 90 → 106 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs` | 変える（C2） | 効いているモジュールの一覧を出す口と、あと1個刺せるかの口 | 56 → 70 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomFinalOdds.cs` | 作る（C3） | 画面に出す最終の内訳（ダイシング: 出力個数・Lv別・失敗／EUV: 失敗） | 新 ~95 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldImprovement.cs` | 作る（C3） | 改善1行（部屋クラスを上げる／品質モジュールを1個足す）と今との差分 | 新 ~60 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldImprovementCalculator.cs` | 作る（C3） | 抽選と同じ式に仮の条件を入れて差分を出し、変わらない行を外す | 新 ~100 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomQualityModuleCandidates.cs` | 作る（C3） | 差分に並べる品質モジュール（刺さっている最高 tier・その1つ上）を選ぶ | 新 ~60 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldImprovementCalculator.cs` | 作る（C3） | 抽選と同じ式に仮の条件を入れて、部品から受けた今の最終の内訳との差分を1回だけ出し、見せるかの判定と行の組み立ての両方に使い、変わらない行を外す | 新 79 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomQualityModuleCandidates.cs` | 作る（C3） | 差分に並べる品質モジュール（刺さっている最高 tier・その1つ上）を、部品から受けた最高 tier で選ぶ | 新 49 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreview.cs` | 変える（C3） | 使われなくなる `Compute` を消し、`Evaluate` だけにする | 54 → 36 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewReport.cs` | 変える（C3・C7） | 報告に最終の内訳と改善の一覧を足す（C7 で確定済み抽選を外す） | 21 → 70 → 55 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewComponent.cs` | 変える（C3・C7） | 役割と部屋の値を1回だけ引き、内訳と差分を同じ装着から出す（C7 で確定済み抽選の読み口を外す） | 57 → 80 → 62 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewReport.cs` | 変える（C3・C7） | 報告を種別ごとの型（役割なし／稼働できない／数字あり）に分け、数字ありの型だけが最終の内訳と改善の一覧を必ず持つ（C7 で次の抽選・確定済み抽選の率を外す） | 21 → 60 → 53 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewComponent.cs` | 変える（C3・C7） | 役割と部屋の値を1回だけ引き、装着の集計・今の最終の内訳を1回だけ出して候補選びと差分へ渡す（C7 で確定済み抽選の読み口を外す） | 57 → 71 → 55 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewResult.cs` | 変える（C3） | 報告の型へ移った `NoRolePreview`・`NotOperablePreview` を消す | 114 → 88 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/` の .cs 本数 | — | — | 4 → 8 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldOddsMessagePack.cs` | 作る（C4） | 最終の内訳の wire（EUV・ダイシング） | 新 ~50 |
-| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldImprovementMessagePack.cs` | 作る（C4） | 改善1行の wire・種別・読めるかの検査 | 新 ~110 |
-| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldResponseFactory.cs` | 作る（C4・C7） | サーバーの報告を応答へ写す（プロトコル本体から移す） | 新 ~95 → ~60 |
-| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs` | 変える（C4・C7） | 応答に Key 7〜9 を足し factory の引数を増やす（C7 で Key 3〜6 を外す） | 159 → 140 → 105 |
+| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldImprovementMessagePack.cs` | 作る（C4） | 改善1行の wire・種別・読めるかの検査 | 新 81 |
+| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldResponseFactory.cs` | 作る（C4・C7） | サーバーの報告を応答へ写す（プロトコル本体から移す。報告の型と最終の内訳の型を1つの switch で読む） | 新 67 → 51 |
+| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs` | 変える（C3・C4・C7） | C3 で報告の型の分け方に写しを合わせ、C4 で応答に Key 7〜9 を足し写しを factory へ移す（C7 で Key 3〜6 を外す） | 159 → 158 → 133 → 121 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldResponseReader.cs` | 変える（C4・C7） | 新しい項目の欠け・壊れを読めない扱いにする | 70 → 90 → 72 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldView.cs` | 変える（C4・C7） | ビューに最終の内訳と改善の一覧を足す | 63 → 85 → 66 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldMessagePack.cs` | 変える（C7） | 古い `LayerExposureYieldMessagePack`・`DicingYieldMessagePack` を消し、判別子の enum だけ残す | 55 → 18 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/RoomSummary/CleanRoomNextClassMessagePack.cs` | 作る（C6） | 次のクラスまでの台数の wire・種別・読めるかの検査 | 新 ~95 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/RoomSummary/CleanRoomQueriedAirFilterMessagePack.cs` | 作る（C6） | 照会した清浄機自身の状態の wire（清浄機／清浄機ではない の種別＋TryGetStatus） | 新 ~65 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomSummaryMessagePack.cs` | 変える（C6・C7） | 部屋の要約に清浄機の台数・止まっている台数・次のクラス・照会した清浄機の状態を足す（C7 で換気回数・体積・清浄機の一覧と `CleanRoomAirFilterMessagePack` を外す） | 87 → 116 → 85 |
-| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoMessagePackFactory.cs` | 変える（C6・C7） | 次のクラスの見通しを wire へ写す | 63 → 82 |
-| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomInfoProtocol.cs` | 変える（C6） | 次のクラスの欠け・壊れを読めない扱いにする | 149 → 150 |
+| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoMessagePackFactory.cs` | 変える（C6・C7） | 照会の出どころを1つの switch で次のクラスと照会した清浄機の状態の2つの欄へ写す（C7 で清浄機の一覧の詰め替えと using 3行を外す） | 63 → 89 → 81 |
+| `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomInfoProtocol.cs` | 変える（C6・C7） | 次のクラス・照会した清浄機の状態の欠け・壊れと、2つの種別の食い違い（NotCounted と NotAirFilter の片方だけ）を読めない扱いにする（C7 で清浄機の一覧の検査を外す） | 149 → 160 → 156 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/` 直下の .cs 本数 | — | 今 10 本で上限。新しい型は `Yield/`・`RoomSummary/` に置く | 10 → 10（＋Yield 3・RoomSummary 2） |
-| `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomNextClassOutlook.cs` | 作る（C6） | 次のクラスまでの見通し（クラスA／あと N 台／届かない／清浄機以外からの照会） | 新 ~105 |
-| `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomRoomSummary.cs` | 変える（C6・C7） | 台数・止まっている台数・見通し・照会した清浄機の状態を足す（C7 で換気回数・体積・清浄機の一覧を外す） | 42 → 82 → 66 |
+| `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomNextClassOutlook.cs` | 作る（C6） | 次のクラスまでの見通し（クラスA／あと N 台／届かない）。清浄機から引いた照会のときだけ作る | 新 75 |
+| `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomRoomSummary.cs` | 変える（C6・C7） | 台数・止まっている台数と照会の出どころ `CleanRoomQueriedFrom`（清浄機以外／清浄機〈自身の状態と見通しを必ず持つ〉。同じファイルに置く）を足す（C7 で換気回数・体積・清浄機の一覧を外す） | 42 → 106 → 95 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomInfoQuery.cs` | 変える（C6） | 照会したブロックとしきい値を要約へ渡す | 36 → 38 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomAirFilterSummary.cs` | 消す（C7） | 清浄機の一覧の1行。一覧を外すので要らない | 21 → 0 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/` の .cs 本数 | — | — | 6 → 7 → 6 |
-| `moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomPurityLogic.cs` | 変える（C5） | 昇格に要る追加台数の純関数 | 38 → 66 |
+| `moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomPurityLogic.cs` | 変える（C5） | 昇格に要る追加台数の純関数（目標の行は C1 の `CleanRoomClassYield.TryGetPromotionTargetIndex` を呼ぶ） | 38 → 63 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomAirFilterCollector.cs` | 変える（C6） | 除去量の合計を公開する | 55 → 55 |
 | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs` | 変える（C5） | 必要換気回数の列を読み口として出す | 176 → 180 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/ICleanRoomAirFilter.cs` | 変える（C5） | 電力100%・フィルターありの除去量 | 25 → 29 |
@@ -390,21 +387,22 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 | パス | 作る/変える | Task |
 |---|---|---|
-| `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomClassYieldTest.cs` | 作る | C1 |
+| `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomClassYieldTest.cs` | 作る（39 行） | C1 |
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomRoleRatesTest.cs` | 変える（呼び出し2か所） | C1 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/MachineModuleEquipOneMoreTest.cs` | 作る（Upgrade/ 8 → 9 本） | C2 |
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomFinalOddsTest.cs` | 作る | C3 |
 | `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomYieldImprovementCalculatorTest.cs` | 作る（CleanRoomYield/ 5 → 8 本） | C3 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs` | 作る（Machine/ 7 → 8 本） | C3 |
+| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/Save/CleanRoomJobSaveRoundTripTest.cs` | 変える（消した2つの型の保存拒否の確認を外し、テスト名を直す。131 → 129） | C3 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomYieldOddsProtocolTest.cs` | 作る（PacketTest/CleanRoom/ 3 → 4 本） | C4 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs` | 変える（C4 呼び出し、C7 書き直し） | C4・C7 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomPendingDrawYieldInfoTest.cs` | 変える（C4 呼び出し、C7 書き直し） | C4・C7 |
 | `moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs` | 変える（呼び出し1か所） | C4・C7 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs` | 変える（呼び出し。C4・C6 の時点で緑にするだけ。D3・D4 が全面的に書き換える） | C4・C6 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs` | 変える（D3 が作る。C7 で4メソッドの中だけ） | C7 |
-| `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs` | 変える（53 → ~100） | C5 |
+| `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs` | 変える（53 → 89） | C5 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomNextClassQueryTest.cs` | 作る（Usability/ 6 → 7 本） | C6 |
-| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs` | 変える（127 → ~145） | C6・C7 |
+| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs` | 変える（127 → 189 → 180。C6 で2つの種別の食い違いのテストを足す） | C6・C7 |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomInfoQueryTest.cs` | 変える（体積・清浄機の一覧の確認を、台数と照会した清浄機の状態の確認へ替える） | C7 |
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/` 直下は今 56 本で既に上限超え。今回は直下に足さず、既存の `CleanRoomPurityLogicTest.cs` を直すだけにする。
@@ -414,7 +412,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 - 正: `docs/adr/0105-clean-room-screens-show-final-odds-and-units-to-next-class.md`（以下 ADR §n）と `.decisions/2026-11-19-*`・`2026-11-20-*`・`2026-11-21-*` のクリーンルームの裁定。
 - 前提の順番: サーバーの下書き C の C1〜C6（新しい項目を**足す**）が入った後に D1〜D7 を実施し、D の後に C7（古い項目を**外す**）を実施する。D の終わりで、クライアントの本番コードは C7 で消える項目（`CleanRoomYield*View.LayerExposure`・`.Dicing`・`.PendingDraw`、`LayerExposureYieldMessagePack`、`DicingYieldMessagePack`、`CleanRoomSummaryMessagePack.AirChangeRate`・`.Volume`・`.AirFilters`、`CleanRoomAirFilterMessagePack`）を1つも読まない（読み口の移り先は「Interfaces 一覧」の末尾の表）。D が持つテストで旧項目に触れる行は `CleanRoomWireSamples.cs` の1ファイルに寄せ、C7 はそこと C 自身が書き換える `BlockInfoPollerTest.cs` だけを直す（「サーバー側の下書きへの注文」）。
 - 名前は C の下書きの Interfaces 一覧のとおりに使う（`DicingOddsMessagePack`・`LayerExposureOddsMessagePack`・`CleanRoomYieldImprovementMessagePack`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`CleanRoomSummaryMessagePack.AirFilterCount`/`StoppedAirFilterCount`/`NextClass`/`QueriedAirFilter`）。C が変わった前提は置かない。
-- C の要裁定3（研究していない品質モジュールの行を出すか）は未決。クライアントはサーバーが返した改善の行をそのまま並べるだけで、どちらに決まっても D は変わらない。
+- 「失敗率の改善方法」にまだ作れない品質モジュールの行も出すことは決定（出所: ユーザー裁定 2026-11-21 問い「「失敗率の改善方法」に、まだ作れない品質モジュールの行も出しますか」→ 選択「A. 作れなくても出す (上げるとどうなるかを先に見せる。まだ作れない品質モジュールの行が、印なしで混ざる)」。`.decisions/2026-11-21-失敗率の改善方法にはまだ作れない品質モジュールの行も出す.md`）。クライアントはサーバーが返した改善の行をそのまま並べるだけなので、D のコードは変わらない（判断 D-30）。
 - 行番号は前の Task が行を足し引きするとずれる（例: D1 が `localization.csv` の463行目の後に13行足すので、D3・D4 の csv の行番号は +13）。編集の場所は、行番号でなく各 Step に引いた「直す前」の文で探す。
 - 略記: `S/` = `moorestech_client/Assets/Scripts/`。行番号はこの worktree（`feat/ui-clarity-rocket-cleanroom-dicing`）の今の版。C1〜C6 が書き換える行（`ContextViewConversionTest.cs`・`BlockInfoPollerTest.cs`）は C の後の形を前提にし、行番号でなくメソッド名・ファイル単位で指す。
 
@@ -431,29 +429,29 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `.agents/skills/ref-uitk-design/references/visual-vocabulary.md` | Modify（D1） | §3 にモーダルの「項目名と値の行」を足す（ADR 0105 §4 の裁定を引用） | 74 → 75 |
 | `Localization/localization.csv` | Modify（D1・D3・D4） | 新しいキー13行を足す（D1）。確率の2行の文言を替え、使わなくなる5行を消す（D3）。部屋クラスの日本語を替え、使わなくなる3行を消す（D4） | 528 → 533 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldRates.cs` | Delete（D3。`.meta` も消す） | 旧: 損失率・品質 Tier・出力待ちの2組 | 96 → 0 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldOdds.cs` | Create（D3） | 役割ごとの最終の確率と改善の行（サーバーの値を運ぶだけ） | 0 → 78 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomOddsImprovement.cs` | Create（D3） | 改善1行（部屋クラスを上げる／品質モジュールを足す）と差分 | 0 → 66 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldLogic.cs` | Modify（D3） | 確率の欄の行（出力・Lv・失敗） | 91 → 88 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldImprovementLogic.cs` | Create（D3） | モーダルの「今」の値と改善ごとの符号つき差分 | 0 → 118 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldOdds.cs` | Create（D3） | 役割ごとの最終の確率と改善の行（サーバーの値を運ぶだけ） | 0 → 60 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomOddsImprovement.cs` | Create（D3） | 改善1行（部屋クラスを上げる／品質モジュールを足す）と差分 | 0 → 56 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldLogic.cs` | Modify（D3） | 確率の欄の行（出力・Lv・失敗）と、0.0% の Lv を飛ばす判定 `ShownLevels` の1か所 | 91 → 102 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldImprovementLogic.cs` | Create（D3） | モーダルの「今」の値と改善ごとの符号つき差分 | 0 → 106 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomYieldImprovementModalContent.cs` | Create（D5） | モーダルへ渡す解いた本文と行。中身の比較 | 0 → 66 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomDetail.cs` | Modify（D4） | `CleanRoomAirFilter`・換気回数を外し、`CleanRoomSummary` を機械用／清浄機用に分ける | 157 → 160 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomAirFilterRoomStatus.cs` | Create（D4） | 清浄機から見た部屋（台数・止まった台数・次のクラスまでの台数・自分の電力と残量） | 0 → 66 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomDisplay.cs` | Modify（D4） | `EnclosedCleanRoomDisplay` を `AirFilterCleanRoomDisplay`（台数・この清浄機の2行）に替える | 65 → 62 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomLogic.cs` | Modify（D4） | 機械は部屋クラス1行、清浄機は台数つきの見出し・台数・この清浄機 | 82 → 126 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/ContextViewConversion.cs` | Modify（D3） | 確率の照会を `Odds`・`Improvements` から写す | 68 → 104 |
-| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/CleanRoomViewConversion.cs` | Modify（D4） | 部屋の照会を照会元（機械／清浄機）ごとに写す。旧項目を読まない | 116 → 134 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomDetail.cs` | Modify（D4） | `CleanRoomAirFilter`・換気回数を外し、`CleanRoomSummary` を抽象にして `MachineCleanRoomSummary`／`AirFilterCleanRoomSummary` の型に分ける | 157 → 168 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomAirFilterRoomStatus.cs` | Create（D4） | 清浄機から見た部屋（台数・止まった台数・次のクラスまでの台数・自分の電力と残量）と、次のクラスまでの台数の internal の種別 | 0 → 80 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomDisplay.cs` | Modify（D4） | `EnclosedCleanRoomDisplay` を `AirFilterCleanRoomDisplay`（台数・この清浄機の2行）に替える | 65 → 61 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomLogic.cs` | Modify（D4） | 機械は部屋クラス1行、清浄機は台数つきの見出し・台数・この清浄機（部屋の要約の型で分ける） | 82 → 123 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/ContextViewConversion.cs` | Modify（D3） | 確率の照会を `Odds`・`Improvements` から写す（改善の行の wire の検査は C の `AreReadable` に任せ、写しは写せない種別だけを異常にする） | 68 → 89 |
+| `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/CleanRoomViewConversion.cs` | Modify（D4） | 部屋の照会を照会元（機械／清浄機）ごとに写す。旧項目を読まない | 116 → 129 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/BlockContextViewModel.cs` | Modify（D3） | 確率の欄の型を `CleanRoomYieldOdds` に | 30 → 30 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/BlockContextModel.cs` | Modify（D3） | 同上（`Yield()` の型） | 105 → 105 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/ICleanRoomYieldImprovementCommands.cs` | Create（D5） | 「失敗率の改善方法」を開く口 | 0 → 13 |
 | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Context/CleanRoomYieldImprovementModalBridge.cs` | Create（D5） | 開く・取り直しで中身が変われば出し直す・閉じる | 0 → 118 |
 | `moorestech_client/Assets/Scripts/Client.Starter/Registration/GameUi/Screens/BlockInventoryMachineGameUiRegistration.cs` | Modify（D5） | 橋を入口として登録 | 50 → 54 |
-| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomSectionView.cs` | Modify（D4） | 換気・清浄機ごと・清浄機なしの行を外し、台数とこの清浄機の行を足す | 106 → 98 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomSectionView.cs` | Modify（D4） | 換気・清浄機ごと・清浄機なしの行を外し、台数とこの清浄機の行を足す | 106 → 85 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionView.cs` | Modify（D3・D6） | 新しい行（D3）と「失敗率の改善方法」のボタン（D6） | 69 → 82 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/BlockContextSectionsView.cs` | Modify（D6） | ボタン用に OS カーソルと開く口を受ける | 41 → 46 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Context/ContextSectionFactory.cs` | Modify（D6） | 同上を受けて渡す | 32 → 39 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/MachineSectionView.cs` | Modify（D6） | 同上 | 138 → 139 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Machine/MachineSectionFactory.cs` | Modify（D6） | 同上 | 41 → 44 |
-| `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ui/CleanRoom/PlaytestCleanRoomUiOps.cs` | Create（D7。新しいサブディレクトリ） | 開いている機械の画面で改善のモーダルを開いて記録し閉じる DSL | 0 → 58 |
+| `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ui/CleanRoom/PlaytestCleanRoomUiOps.cs` | Create（D7。新しいサブディレクトリ） | 開いている機械の画面で改善のモーダルを開いて記録し閉じる DSL | 0 → 46 |
 
 ディレクトリの .cs 本数:
 - `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/`: 5 → 9（Rates を消し、Odds・OddsImprovement・ImprovementLogic・ModalContent・AirFilterRoomStatus を足す）
@@ -470,18 +468,18 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Modal/ModalTableRequestTest.cs` | Create（D2） | 0 → 52 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Modal/ModalTableViewTest.cs` | Create（D2） | 0 → 68 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Modal/ModalRequestSamples.cs` | Modify（D2） | 26 → 39 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomYieldLogicTest.cs` | 全面書き換え（D3） | 80 → 52 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomYieldImprovementLogicTest.cs` | Create（D3） | 0 → 88 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomLogicTest.cs` | 全面書き換え（D4） | 67 → 118 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs` | Create（D3。部屋の2つは D4 のテストが使う） | 0 → 52 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/SectionContentAssert.cs` | Create（D3） | 0 → 27 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextYieldConversionTest.cs` | Create（D3） | 0 → 92 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs` | 全面書き換え（D3 で確率のテストを外し、D4 で部屋を新しい形に） | 150 → 146 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomYieldLogicTest.cs` | 全面書き換え（D3） | 80 → 46 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomYieldImprovementLogicTest.cs` | Create（D3） | 0 → 95 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/CleanRoom/CleanRoomLogicTest.cs` | 全面書き換え（D4） | 67 → 104 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs` | Create（D3。部屋の2つは D4 のテストが使う） | 0 → 36 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/SectionContentAssert.cs` | Create（D3） | 0 → 25 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextYieldConversionTest.cs` | Create（D3） | 0 → 89 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs` | 全面書き換え（D3 で確率のテストを外し、D4 で部屋を新しい形に） | 150 → 152 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/RecordingCleanRoomYieldImprovementCommands.cs` | Create（D5） | 0 → 20 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomYieldImprovementModalBridgeTest.cs` | Create（D5） | 0 → 128 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionTest.cs` | 全面書き換え（D3）＋ボタンのテスト（D6） | 60 → 104 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomSectionTest.cs` | 全面書き換え（D4） | 75 → 92 |
-| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomLayoutTest.cs` | 全面書き換え（D4） | 176 → 155 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomSectionTest.cs` | 全面書き換え（D4） | 75 → 88 |
+| `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomLayoutTest.cs` | 全面書き換え（D4） | 176 → 153（D4 の全文 131 に D6 が using 4行と1本〈空行込み18行〉を足す） |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomLayoutTestHost.cs` | Modify（D3・D4・D6） | 171 → 178 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomWideProcessRowTest.cs` | Modify（D4。25 行目） | 67 → 67 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/ContextSectionOrderTest.cs` | Modify（D3・D4・D6） | 136 → 138 |
@@ -500,10 +498,11 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | パス | 種別 | 行数 |
 |---|---|---|
 | `tier9/tier9-3-yield-ui.cs` | Modify（D7。1-2・49・82-83・139-149 行目） | 199 → 199 |
-| `misc/cleanroom-purifier-filter-consumption.cs` | Modify（D7。1-2・106-118・135・206 行目。清浄機の画面の確認は新しいシナリオへ移す） | 207 → 192 |
-| `uitk/integrator/uitk-typography-compare.cs` | Modify（D7。84・138-140 行目） | 156 → 156 |
+| `misc/cleanroom-purifier-filter-consumption.cs` | Modify（D7。1-2・106-118・135・206 行目。清浄機の画面の確認は新しいシナリオへ移す） | 207 → 193 |
+| `uitk/integrator/uitk-typography-compare.cs` | Modify（D7。1-4・84・138-144 行目） | 156 → 156 |
 | `uitk/stage4/block/uitk-cleanroom-airfilter-heights.cs` | Modify（D7。71・111 行目） | 123 → 123 |
-| `cleanroom/cleanroom-purifier-units-to-next-class.cs` | Create（D7。新しいサブディレクトリ。`misc/` は既に 32 本） | 0 → 178 |
+| `uitk/post-visual/pv-cleanroom.cs` | Modify（D7。1-2 行目の見出しのコメントだけ。testid・文言には頼っていないので止まらない） | 154 → 154 |
+| `cleanroom/cleanroom-purifier-units-to-next-class.cs` | Create（D7。新しいサブディレクトリ。`misc/` は既に 32 本） | 0 → 154 |
 
 ### 領域 E: フィルター分岐器の文言と研究マスタ
 
@@ -515,18 +514,18 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 
 | 種別 | パス | 役割 | 行数（今→後）/ ディレクトリの .cs 本数 |
 |---|---|---|---|
-| Create | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs` | 出口の側（左・正面・右）の列挙 | 新 12 / 新ディレクトリ 2 本 |
-| Create | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs` | マスタの入口・出口の向きから側を決める純関数 | 新 約 60 |
-| Create | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | 側が決まらない分岐器マスタを読込時に止める | 新 約 45 / 新サブディレクトリ 1 本（`Validator/Block` 直下は今 10 本で上限なので足さない。直下は 10 本のまま） |
+| Create | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSide.cs` | 出口の側（左・正面・右）の列挙（サーバー側の正） | 新 11 / 新ディレクトリ 2 本（`Component/` 直下は今 18 本で触らない） |
+| Create | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSideResolver.cs` | マスタの入口・出口の向きから側を決める純関数 | 新 62 |
+| Create | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | 側が決まらない分岐器マスタを読込時に止める（計算は呼ばず、止める条件を自分で書く） | 新 66 / 新サブディレクトリ 1 本（`Validator/Block` 直下は今 10 本で上限なので足さない。直下は 10 本のまま） |
 | Modify | `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:5,27-28` | 上の検証の using と呼び出し | 70→72 |
-| Create | `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs` | 側の解決と読込時の検証 | 新 約 125 / 新ディレクトリ 1 本 |
-| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs:1-19` | 方向の詳細に `Side` | 34→37 |
-| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:1-9,33-40` | 応答の方向に、渡された側を並びのまま添える | 77→83 |
-| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（B3 の後の using・`Read` の戻り値の組み立て・`ReadRocketLaunchPad` の直前） | 開いた分岐器のマスタから側を決めて読み手へ渡す（B3 も直すファイル。行番号は B3 の後でずれるので文字列で探す） | 今 115 → B3 の後 約122 → 約132 |
-| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:1-2,22-46` | 側→文言キー `OutputSideKey` | 47→61 |
+| Create | `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs` | 側の計算と読込時の検証を同じ入力の表に当て、食い違わないこと | 新 124 / 新ディレクトリ 1 本 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs:1-19` | 方向の詳細に `Side`（クライアントの列挙） | 34→36 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:1-9,33-40,64` | 応答の方向に、渡されたサーバーの側をクライアントの側へ写して並びのまま添える | 77→95 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（`Read` の戻り値の組み立て・`ReadRocketLaunchPad` の直前。using は足さない） | 開いた分岐器のマスタから側を決めて読み手へ渡す（B3 も直すファイル。行番号は B3 の後でずれるので文字列で探す） | 今 115 → B3 の後 約122 → 約131 |
+| Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:20-25,45` | クライアントの列挙 `FilterSplitterOutputSide` と、側→文言キー `OutputSideKey` | 47→70 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Text/SpecialDetailTexts.cs:8-10,53-58` | 使われなくなる `OutputNumber` を消す（Task E3） | 75→69 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/FilterSplitter/FilterDirectionView.cs` | 見出しに testid、文を Render で側から決める | 91→93 |
-| Modify | `Localization/localization.csv`（今の 72〜75 行。B1 が 59〜62 行の後に 1 行足すので B1 の後は 73〜76 行。文字列で探す） | モード名3行の値を変えて出口3行を足し（Task E2）、`outputNumber` を消す（Task E3） | 行 +2 |
+| Modify | `Localization/localization.csv`（キー `ui.blockInventory.filterDefault`・`filterWhitelist`・`filterBlacklist`・`outputNumber` の行。行番号は B1 などの追加でずれるので、キーで探す。参考: 今は 72〜75 行） | モード名3行の値を変えて出口3行を足し（Task E2）、`outputNumber` を消す（Task E3） | 行 +2 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs` | 側のキーの対応 | 44→55 |
 | Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs:1-10,20-26,67-76` | 側を並びのまま添えること・数が違えば止まること | 79→92 |
 | Create | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs` | 開いた分岐器のマスタの側が詳細に載る | 新 約 70 / ディレクトリは 5→6 本 |
@@ -534,21 +533,21 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 | Modify | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/FilterSplitterBodyViewTest.cs` | 見出し・モード名の実際の文、側に従うこと、1 行に収まること | 93→約 170 |
 | Modify | `CONTEXT.md`（「### 機械UI」節の末尾） | 用語「フィルター分岐器の出口」「フィルター分岐器のモード」 | — |
 | Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/filter-splitter-side-labels.cs` | 出荷マスタで見出しが左・正面・右に並び、向きが合うことを録画で確かめる | 新 67 / 新ディレクトリ |
-| Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs` | 出荷マスタで品質モジュール研究が ICチップLv2〜5 を解放し、後から速度モジュールLv1〜4 を済ませても解放の状態が変わらず例外も出ないことを確かめる | 新 88 |
+| Create | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-items.cs` | 出荷マスタで品質モジュール研究が ICチップLv2〜5・シリコンダイLv2〜5・品質モジュールLv1〜5 を解放し、後から速度モジュールLv1〜5 を済ませても解放の状態が変わらず例外も出ないことを確かめる | 新 91 |
 | Modify | `moorestech_server/Assets/Scripts/Game.UnlockState/Holders/ItemUnlockStateHolder.cs:28-32`（Task E6） | 解放済みのアイテムの再解放で通知しない | 52→55 |
 | Create | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/UnlockState/ItemUnlockDuplicateTest.cs`（Task E6） | 重複解放の通知が1回 | 新 約 35 / 新ディレクトリ 1 本（`CombinedTest/Game/` 直下は既に 43 本） |
 | Modify | `.moorestech-external-revisions.json` | `moorestech_master` のピンをマスタ PR の先頭コミットへ | — |
 
-`.meta` は手で作らない（新しい .cs と新しいディレクトリ〈`Core.Master/FilterSplitter/`・`Core.Master/Validator/Block/FilterSplitter/`・`Tests/UnitTest/Core/Master/FilterSplitter/`・`Tests/CombinedTest/Game/UnlockState/`〉の .meta は Unity が作る）。
+`.meta` は手で作らない（新しい .cs と新しいディレクトリ〈`Game.Block.Interface/Component/FilterSplitter/`・`Core.Master/Validator/Block/FilterSplitter/`・`Tests/UnitTest/Core/Master/FilterSplitter/`・`Tests/CombinedTest/Game/UnlockState/`〉の .meta は Unity が作る）。
 
-**先に入る領域と同じファイルを直す所（実行の順は A・B → C・D → E）:** `SpecialBlockDetailReader.cs`・`SpecialDetailSamples.cs` は B3 も直す（E2 の「直す前」は B3 の後の形）。`Localization/localization.csv` は B1・D1・D3・D4 も直す（E2・E3 が直す行は B1 で 1 行下へずれる。D の行は 453 行より後で、E の行より下なのでずれに関わらない）。ほかの E の対象ファイル（`FilterSplitterDetail.cs`・`SpecialNetworkReader.cs`・`FilterSplitterLogic.cs`・`FilterDirectionView.cs`・`SpecialDetailTexts.cs`・`FilterSplitterLogicTest.cs`・`SpecialNetworkReaderTest.cs`・`FilterSplitterBodyViewTest.cs`・`BlockMasterUtil.cs`・`Validator/Block/`・`ItemUnlockStateHolder.cs`・`CONTEXT.md`・`.moorestech-external-revisions.json`）は、下書き A〜D の Files 節・`git add` に出てこない（Grep で確認）。シナリオ（`.agents/skills/...`）は Unity の Assets の外なので .meta は無い。
+**先に入る領域と同じファイルを直す所（実行の順は A・B → C・D → E）:** `SpecialBlockDetailReader.cs`・`SpecialDetailSamples.cs` は B3 も直す（E2 の「直す前」は B3 の後の形）。`Localization/localization.csv` は B1・D1・D3・D4 も直す（E2・E3 が直す行は B1 で 1 行下へずれ、B がほかに行を足せばさらにずれうる。E2・E3 の差し替えは 1 行ずつキー〈`ui.blockInventory.filterDefault` など〉で場所を決めるので、行番号には頼らない）。ほかの E の対象ファイル（`FilterSplitterDetail.cs`・`SpecialNetworkReader.cs`・`FilterSplitterLogic.cs`・`FilterDirectionView.cs`・`SpecialDetailTexts.cs`・`FilterSplitterLogicTest.cs`・`SpecialNetworkReaderTest.cs`・`FilterSplitterBodyViewTest.cs`・`BlockMasterUtil.cs`・`Validator/Block/`・`ItemUnlockStateHolder.cs`・`CONTEXT.md`・`.moorestech-external-revisions.json`）は、下書き A〜D の Files 節・`git add` に出てこない（Grep で確認）。シナリオ（`.agents/skills/...`）は Unity の Assets の外なので .meta は無い。
 
 #### マスタ repo（moorestech_master。別の PR）
 
 | 種別 | パス | 役割 |
 |---|---|---|
-| Modify | `server_v8/mods/moorestechAlphaMod_8/master/research.json`（研究「品質モジュールLv1〜4」の `clearedActions`） | `unlockItemRecipeView` で ICチップLv2〜5 を1つずつ足す |
-| Modify | `server_v8/mods/moorestechAlphaMod_8/master/items.json` | master-refine 操作 A の再計算で sortPriority と並びが動く（30 行） |
+| Modify | `server_v8/mods/moorestechAlphaMod_8/master/research.json`（研究「品質モジュールLv1〜5」の `clearedActions`） | `unlockItemRecipeView` を1つずつ足す。Lv1〜4 は シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN、Lv5 は品質モジュールLv5（今の速度モジュールLvN の研究と同じ組み合わせ・同じ並び） |
+| Modify | `server_v8/mods/moorestechAlphaMod_8/master/items.json` | master-refine 操作 A の再計算で sortPriority と並びが動く（34 品目） |
 
 ## Interfaces 一覧
 
@@ -614,6 +613,7 @@ Task の記号は領域の記号（A〜E）＋番号。**上から順に実施�
 #### 5. ブロックの部品・セーブ・ブループリント
 
 - 部品: 発射台・拠点とも `IOrbitalCargoSelectorComponent`（`Game.Block.Interface.Component`）を載せる。`OrbitalCargoSelection Selection { get; }`（`UnselectedOrbitalCargo` か `SelectedOrbitalCargo(ItemId PayloadItemId)`）・`OrbitalCargoSelectionResult SelectCargo(ItemId, IOpenableInventory refundInventory)`（`Success`/`NotCarriedHere`/`Locked`。拒否は `積荷の選択を拒否しました 理由:… 積荷:…` を警告ログ）。
+- 選択の型の判定・変換（サーバー内。B は使わなくても成り立つ）: `OrbitalCargoSelection.IsSelected(ItemId)`・`ToNullablePayloadItemId()`・`ToItemGuidTextOrNull()`。`Selection`・`SelectedOrbitalCargo.PayloadItemId`・`UnselectedOrbitalCargo` の形は変えていない。共有セルの読む口 `IOrbitalCargoSelectionReader`（`Game.Block.Blocks.OrbitalCargo`）はサーバーのブロック内部の型で、ほかの領域は使わない。
 - セーブ: ブロック状態のキー `"orbitalCargoSelection"`、`{"selectedCargoItemGuid": "<GUID>" | null}`。発射台の `nextPayloadIndex` は書かず読まない。版は上げない。項目が無ければ未選択＋警告 `積荷の選択がセーブに無いため、未選択として読み込みます`。
 - ブループリント: 設定キー `"OrbitalCargoSelection"`、JSON はセーブと同じ形。
 - ケーブルプールへ足す積荷か: `Game.Block.Interface.Component.SpaceElevatorCableItems.Contains(ItemId itemId)`（`public static bool`、`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorCableItems.cs`。A8）。全拠点の `CableItemGuid` のどれかなら true。サーバーの `SpaceElevatorCablePool` も同じ口を読む（持ち主は1つ）。クライアントの下書き B2 の `OrbitalCargoCatalog` はこの名前で読む。
@@ -645,7 +645,7 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 
 | 名前 | 形 | 使う所 |
 |---|---|---|
-| `OrbitalCargoChoice` | `(ItemId PayloadItemId, int CountPerLaunch, IReadOnlyList<ItemAmount> ArrivalOutputs, bool AddsToCablePool)` | 行・見出しの文、透かしの数 |
+| `OrbitalCargoChoice` | `(ItemId PayloadItemId, int CountPerLaunch, IReadOnlyList<ItemAmount> ArrivalOutputs, bool AddsToCablePool)`。成果とプールは独立に持ち、両方あれば行の文も両方を書く（判断 21） | 行・見出しの文、透かしの数 |
 | `OrbitalCargoCatalog.ForCarried` | `IReadOnlyList<OrbitalCargoChoice> ForCarried(IReadOnlyList<ItemId> carriedPayloadItemIds)` | `SpecialBlockDetailReader` |
 | `OrbitalCargoDetail` | ctor `(ItemId? selectedCargoItemId, ItemId? currentFlightCargoItemId, IReadOnlyList<OrbitalCargoChoice> carriedChoices, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, double flightSeconds)`。`SelectedCargoItemId`・`CurrentFlightCargoItemId`・`SelectableChoices`・`FlightSeconds`・`IsSelected`・`TryGetHeadline`・`TryGetNextFlight`・`TryGetSelected`・`IsSelectedChoice` | 詳細・画面 |
 | `RequiredItemSlot` | `(int Slot, ItemId ItemId, int Count)` | 発射台の詳細 |
@@ -709,6 +709,7 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 | **`CleanRoomYieldLayerExposureView.Odds`** | **`LayerExposureOddsMessagePack`**: **`FailedRate`**（double。「失敗：30.8%」。今の「層の失敗率」と同じ値） |
 | **`...View.Improvements`** | **`IReadOnlyList<CleanRoomYieldImprovementMessagePack>`**。並べる順のまま（部屋クラス → 最高 tier を増やす → 1つ上を刺す）。数字が変わらない行は入っていない。**空ならボタン「失敗率の改善方法」を出さない** |
 | **`CleanRoomYieldImprovementMessagePack`** | **`TryGetRoomClassUp(out string targetClassName)`**（「部屋クラスを B に」）・**`TryGetAddQualityModule(out int moduleTier)`**（「品質モジュールLv{tier} を追加」）・**`LevelRateDeltas`**（double[]。今との差分。ダイシングは `Odds.LevelRates` と同じ長さ、EUV は空）・**`FailedRateDelta`**（double。負なら失敗が減る） |
+| **`CleanRoomYieldImprovementMessagePack.AreReadable(IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements, int levelCount)`** | static bool。改善の行の検査（null の行・Lv別差分の長さ≠`levelCount`・未知の種別・クラス名の無い RoomClassUp で false）はここ1か所。`CleanRoomYieldResponseReader.Read`（`TryReadView`）が呼び、false の応答は警告つきで Unreadable にするので、ビューの `Improvements` は検査済み。クライアントは同じ検査を書かない（要るときはこれを呼ぶ）。`levelCount` はダイシングなら `Odds.LevelRates.Length`、EUV は 0。置き場 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldImprovementMessagePack.cs`（asmdef `Server.Protocol`。`Client.Ui.State.asmdef` が参照済み） |
 | **`CleanRoomYieldImprovementKind`** | `RoomClassUp`・`AddQualityModule` |
 | `CleanRoomYieldNoRoleView`・`CleanRoomYieldNotOperableView` | 今のまま（欄を出さない） |
 | C7 で消える | `CleanRoomYieldLayerExposureView.LayerExposure`・`.PendingDraw`、`CleanRoomYieldDicingView.Dicing`・`.PendingDraw`、`LayerExposureYieldMessagePack`、`DicingYieldMessagePack`（`DieLossRate`・`QualityTier`・`LevelRates`・`FailedRate`） |
@@ -732,12 +733,12 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 
 #### サーバー内（ほかの Task が使う）
 
-- `CleanRoomClassYield.ThresholdIndex`・`CleanRoomClassYield.FromThresholdIndex(int)`（C1）
+- `CleanRoomClassYield.ThresholdIndex`・`CleanRoomClassYield.FromThresholdIndex(int)`・`CleanRoomClassYield.TryGetPromotionTargetIndex(int currentIndex, out int targetIndex)`（C1。改善の計算・台数の数え上げ・見通しの3か所が呼ぶ）
 - `MachineModuleEffectComponent.CollectEffectiveModules()`・`CanEquipOneMore(ModuleMasterElement)`、`VanillaMachineModuleInventory.CanAcceptOneMore(ModuleMasterElement)`（C2）
-- `CleanRoomFinalOdds.Of(CleanRoomRecipeRole, CleanRoomYieldPreviewResult)`・`LayerExposureFinalOdds`・`DicingFinalOdds.OutputCount`、`CleanRoomYieldImprovement`・`CleanRoomRoomClassUpImprovement`・`CleanRoomAddQualityModuleImprovement`、`CleanRoomYieldImprovementCalculator.Compute(...)`・`VisibleDeltaThreshold = 0.0005`、`CleanRoomQualityModuleCandidates.Select(...)`、`CleanRoomYieldPreviewReport.TryGetNumbers(...)`（C3）
+- `CleanRoomFinalOdds.Of(CleanRoomRecipeRole, CleanRoomYieldPreviewResult)`・`LayerExposureFinalOdds`・`DicingFinalOdds.OutputCount`、`CleanRoomYieldImprovement`・`CleanRoomRoomClassUpImprovement`・`CleanRoomAddQualityModuleImprovement`、`CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, CleanRoomFinalOdds current, addableQualityModules)`・`VisibleDeltaThreshold = 0.0005`、`CleanRoomQualityModuleCandidates.Select(MachineModuleEffectComponent, int highestTier)`、報告の種別 `CleanRoomYieldPreviewReport`（抽象）・`CleanRoomNoRoleYieldReport.Instance`・`CleanRoomNotOperableYieldReport.Instance`・`CleanRoomOddsYieldReport { Odds; Improvements }`（C3。C3〜C6 は `Next`・`PendingDraw` も持つ）。`NoRolePreview`・`NotOperablePreview` は C3 で消える
 - `CleanRoomYieldResponseFactory.Create(CleanRoomYieldPreviewReport)`（C4）
 - `CleanRoomPurityLogic.TryCountUnitsToPromote(...)`・`ICleanRoomAirFilter.RatedRemovalVolumePerSecond`・`CleanRoomDatastore.RequiredAirChangeRates`（C5）
-- `CleanRoomNextClassOutlook.Of(...)` と4つの種別、`CleanRoomRoomSummary.AirFilterCount/StoppedAirFilterCount/NextClass/TryGetQueriedAirFilterStatus`、`CleanRoomAirFilterCollector.SumRemovalVolume`（C6）
+- `CleanRoomNextClassOutlook.Of(room, entries, queriedBlock, ICleanRoomAirFilter queriedFilter, rates)` と3つの種別、`CleanRoomQueriedFrom.Of(...)`・`CleanRoomQueriedFromNonAirFilter.Instance`・`CleanRoomQueriedFromAirFilter { Status; NextClass }`、`CleanRoomRoomSummary.AirFilterCount/StoppedAirFilterCount/QueriedFrom`、`CleanRoomAirFilterCollector.SumRemovalVolume`（C6）
 
 ### 領域 D: クリーンルームの機械と清浄機の画面（クライアント）
 
@@ -751,11 +752,11 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 | testid `modal-table`・`modal-table-row-{i}`・`-label`・`-values` | testid | `ModalView` | D7 のシナリオ・DSL |
 | `CleanRoomYieldOdds`（`LayerExposure(double, IReadOnlyList<CleanRoomOddsImprovement>)`・`Dicing(int, IReadOnlyList<double>, double, IReadOnlyList<CleanRoomOddsImprovement>)`・`Improvements`・`HasImprovements`）／`LayerExposureYieldOdds.FailedRate`／`DicingYieldOdds.OutputCount`・`LevelRates`・`FailedRate` | 型 | `Client.Ui.State.BlockInventory.Logic.CleanRoom` | D3・D5・D6 |
 | `CleanRoomOddsImprovement`（`RoomClassUp(string, IReadOnlyList<double>, double)`・`AddQualityModule(int, IReadOnlyList<double>, double)`・`LevelRateDeltas`・`FailedRateDelta`）／`RoomClassUpOddsImprovement.TargetClassName`／`AddQualityModuleOddsImprovement.ModuleTier` | 型 | 同上 | D3・D5 |
-| `CleanRoomYieldLogic.Lines(CleanRoomYieldOdds) : List<CleanRoomYieldLine>`・`ZeroPercent`・`Percent(double)`（internal） | メソッド | 同上 | `CleanRoomYieldSectionView`・`CleanRoomYieldImprovementLogic` |
+| `CleanRoomYieldLogic.Lines(CleanRoomYieldOdds) : List<CleanRoomYieldLine>`・`ZeroPercent`・`Percent(double)`・`ShowsZero(double) : bool`・`ShownLevels(IReadOnlyList<double>) : List<int>`（internal） | メソッド | 同上 | `CleanRoomYieldSectionView`・`CleanRoomYieldImprovementLogic` |
 | `CleanRoomYieldImprovementLogic.CurrentValues(CleanRoomYieldOdds) : IReadOnlyList<UiText>`・`Rows(CleanRoomYieldOdds) : IReadOnlyList<CleanRoomYieldImprovementRow>`、`CleanRoomYieldImprovementRow(UiText Label, IReadOnlyList<UiText> Values)` | メソッド・型 | 同上 | D5 |
 | `CleanRoomYieldImprovementModalContent.TryBuild(SectionContent<CleanRoomYieldOdds>, out …)`・`Message`・`Rows`・`SameAs(…)` | 型 | 同上 | D5 |
-| `CleanRoomAirFilterRoomStatus`（`WithUnitsToNextClass(int, int, double, double, string, int)`・`WithoutUnitsToNextClass(int, int, double, double)`・`AirFilterCount`・`StoppedAirFilterCount`・`PowerRatio`・`FilterRemainingRatio`・`TryGetUnitsToNextClass(out string, out int)`） | 型 | 同上 | D4・D7（typography シナリオ） |
-| `CleanRoomSummary.ForMachine(CleanRoomHeadline)`・`ForAirFilter(CleanRoomHeadline, CleanRoomAirFilterRoomStatus)`・`TryGetAirFilter(out CleanRoomAirFilterRoomStatus)` | メソッド | 同上 | D4・D7 |
+| `CleanRoomAirFilterRoomStatus`（`WithUnitsToNextClass(int, int, double, double, string, int)`・`WithoutUnitsToNextClass(int, int, double, double)`・`AirFilterCount`・`StoppedAirFilterCount`・`PowerRatio`・`FilterRemainingRatio`・`TryGetUnitsToNextClass(out string, out int)`）。内部の種別 `CleanRoomUnitsToNextClass`・`ReachableUnitsToNextClass`・`NoUnitsToNextClass`（internal） | 型 | 同上 | D4・D7（typography シナリオ） |
+| `CleanRoomSummary`（抽象。`Headline`・`ForMachine(CleanRoomHeadline)`・`ForAirFilter(CleanRoomHeadline, CleanRoomAirFilterRoomStatus)`）／`MachineCleanRoomSummary`／`AirFilterCleanRoomSummary.AirFilter` | 型 | 同上 | D4・D7 |
 | `AirFilterCleanRoomDisplay.AirFilterCount`・`.QueriedAirFilter` | 型 | 同上 | `CleanRoomSectionView` |
 | `ContextViewConversion.Yield(BlockInfoFetchState, CleanRoomYieldView, out string) : SectionContent<CleanRoomYieldOdds>` | メソッド | `Client.Ui.State.BlockInventory.Context` | `BlockContextModel` |
 | `BlockContextViewModel.CleanRoomYield : SectionContent<CleanRoomYieldOdds>` | 項目 | 同上 | D5・D6 |
@@ -771,7 +772,7 @@ B が録画の中でサーバー側から選ぶときの入口: `p.RunOnServer(l
 
 #### D が使う C の名前（C の下書きの Interfaces 一覧のとおり）
 
-`CleanRoomYieldLayerExposureView.Odds`（`LayerExposureOddsMessagePack.FailedRate`）・`CleanRoomYieldDicingView.Odds`（`DicingOddsMessagePack.OutputCount`・`LevelRates`・`FailedRate`）・`…View.Improvements`（`CleanRoomYieldImprovementMessagePack.TryGetRoomClassUp(out string)`・`TryGetAddQualityModule(out int)`・`LevelRateDeltas`・`FailedRateDelta`）・`CleanRoomSummaryMessagePack.AirFilterCount`・`StoppedAirFilterCount`・`NextClass.TryGetUnitsToNextClass(out string, out int)`・`QueriedAirFilter.TryGetStatus(out double, out double)`。テストだけ: 各 `Create*` と C4〜C6 の4引数のビューの ctor（`CleanRoomWireSamples` の中だけ）。
+`CleanRoomYieldLayerExposureView.Odds`（`LayerExposureOddsMessagePack.FailedRate`）・`CleanRoomYieldDicingView.Odds`（`DicingOddsMessagePack.OutputCount`・`LevelRates`・`FailedRate`）・`…View.Improvements`（`IReadOnlyList<CleanRoomYieldImprovementMessagePack>`。`CleanRoomYieldImprovementMessagePack.TryGetRoomClassUp(out string)`・`TryGetAddQualityModule(out int)`・`LevelRateDeltas`・`FailedRateDelta`・`Kind`〈写せない種別の異常の文面の値だけ〉。検査済みなので D は `AreReadable` を呼ばない）・`CleanRoomSummaryMessagePack.AirFilterCount`・`StoppedAirFilterCount`・`NextClass.TryGetUnitsToNextClass(out string, out int)`・`QueriedAirFilter.TryGetStatus(out double, out double)`。テストだけ: 各 `Create*` と C4〜C6 の4引数のビューの ctor（`CleanRoomWireSamples` の中だけ）。
 
 #### C7 で消える項目の読み口の移り先
 
@@ -795,20 +796,22 @@ Expected: 出力なし（今の版で同じ grep を前置きなしで回し、�
 
 | 名前 | 置き場 | 使う側 |
 |---|---|---|
-| `enum Core.Master.FilterSplitter.FilterSplitterOutputSide { Left = 0, Front = 1, Right = 2 }` | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs` | クライアントの詳細・画面 |
-| `static bool FilterSplitterOutputSideResolver.TryResolve(IBlockConnector input, IBlockConnector output, out FilterSplitterOutputSide side)` | 同 `FilterSplitterOutputSideResolver.cs` | 読込時の検証 |
-| `static IReadOnlyList<FilterSplitterOutputSide> FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects connectors)` | 同 | `SpecialBlockDetailReader.Read`（クライアント） |
-| `internal static string Core.Master.Validator.Block.FilterSplitter.FilterSplitterParamValidator.Validate(Blocks blocks)` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | `BlockMasterUtil.Validate`（`using Core.Master.Validator.Block.FilterSplitter;`） |
+| `enum Game.Block.Interface.Component.FilterSplitterOutputSide { Left = 0, Front = 1, Right = 2 }`（サーバー側の正） | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSide.cs` | 側の計算の戻り値。クライアントでは `SpecialNetworkReader`（別名 `ServerFilterSplitterOutputSide`）と `SpecialNetworkReaderTest` だけが名指しする |
+| `static bool Game.Block.Interface.Component.FilterSplitterOutputSideResolver.TryResolve(IBlockConnector input, IBlockConnector output, out FilterSplitterOutputSide side)` | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSideResolver.cs` | `ResolveAll` |
+| `static IReadOnlyList<FilterSplitterOutputSide> FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects connectors)`（入口コネクタが 1 つでない・出口が 0 個・側の決まらない出口があれば `InvalidOperationException`。同じ側の重なりはそのまま返す） | 同 | `SpecialBlockDetailReader.Read`（クライアント）・`FilterSplitterOutputSideTest` |
+| `internal static string Core.Master.Validator.Block.FilterSplitter.FilterSplitterParamValidator.Validate(Blocks blocks)`（計算を呼ばず、止める条件を自分で書く） | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | `BlockMasterUtil.Validate`（`using Core.Master.Validator.Block.FilterSplitter;`）。テストは `BlockMasterUtil.Validate` を通して当てる |
+| `enum Client.Ui.State.BlockInventory.Logic.Special.FilterSplitterOutputSide { Left, Front, Right }`（クライアントの列挙） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs` | 詳細・画面・クライアントのテスト |
+| `internal static FilterSplitterOutputSide SpecialNetworkReader.ToClientSide(ServerFilterSplitterOutputSide side)` | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs` | `SpecialNetworkReader.FilterSplitter` |
 | `SpecialBlockDetailReader.Read(BlockGameObject, BlockNetworkInfoCache, BeltTransportClientCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)`（Task B3 が作る形。E は引数を変えない） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs` | E2 の `SpecialBlockDetailReaderFilterSplitterTest`（`Array.Empty<ItemId>()` を渡す） |
 | プロトコル `va:filterSplitterState` | 変えない | — |
-| `static FilterSplitterDetail SpecialNetworkReader.FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<FilterSplitterOutputSide> sides)`（旧 1 引数版を置き換え。数が違えば `InvalidOperationException`） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs` | `SpecialBlockDetailReader.Read` |
-| `FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)`・`.Side { get; }` | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs` | 画面・テストの見本 |
-| `static LocalizationKey FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide side)` | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs` | `FilterDirectionView` |
+| `static FilterSplitterDetail SpecialNetworkReader.FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<ServerFilterSplitterOutputSide> sides)`（旧 1 引数版を置き換え。数が違えば `InvalidOperationException`。側はクライアントの列挙へ写して詳細に載せる） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs` | `SpecialBlockDetailReader.Read` |
+| `FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)`・`.Side { get; }`（クライアントの列挙） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs` | 画面・テストの見本 |
+| `static LocalizationKey FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide side)`（クライアントの列挙） | `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs` | `FilterDirectionView` |
 | 文言キー `ui.blockInventory.filterOutputLeft`・`filterOutputFront`・`filterOutputRight`（新）、`filterDefault`・`filterWhitelist`・`filterBlacklist`（値だけ変更）、`outputNumber`（削除） | `Localization/localization.csv` | 画面 |
 | testid `filter-direction-label-{d}`（新）。既存 `filter-direction-{d}`・`filter-mode-{d}`・`filter-mode-{d}-{Default\|Whitelist\|Blacklist}`・`filter-slot-{d}-{s}` は不変 | `FilterDirectionView` | L1 テスト・シナリオ |
 | 消える: `SpecialDetailTexts.OutputNumber(int)` | — | （呼び手は FilterDirectionView だけだった） |
 | `ItemUnlockStateHolder.Unlock(ItemId)` は解放済みなら何もしない（`OnUnlockItem` を流さない） | `moorestech_server/Assets/Scripts/Game.UnlockState/Holders/ItemUnlockStateHolder.cs` | `OnUnlockItem` の購読者（達成通知・解放イベント） |
-| マスタ: 研究「品質モジュールLv1〜4」の `clearedActions` に `unlockItemRecipeView`（ICチップLv2〜5） | moorestech_master `research.json` | 研究完了時・ロード時の再実行 |
+| マスタ: 研究「品質モジュールLvN」（N は 1〜4）の `clearedActions` に `unlockItemRecipeView`（シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN）、研究「品質モジュールLv5」に `unlockItemRecipeView`（品質モジュールLv5） | moorestech_master `research.json` | 研究完了時・ロード時の再実行 |
 
 ## Tasks
 
@@ -819,9 +822,11 @@ ADR 0106 の 3（解放の拒否・ロードは解放を見ない）・5（`Game
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/OrbitalCargo/OrbitalCargoSelection.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/OrbitalCargo/IOrbitalCargoSelectorComponent.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoSelectionReader.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionState.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoInletSlots.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionSaveJsonObject.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoItemGuid.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectorComponent.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/Util/OrbitalCargo/OrbitalCargoTestUtil.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/OrbitalCargo/OrbitalCargoSelectorComponentTest.cs`
@@ -829,15 +834,17 @@ ADR 0106 の 3（解放の拒否・ロードは解放を見ない）・5（`Game
 **Interfaces:**
 - Consumes: `IGameUnlockStateData.ItemUnlockStateInfos`（`moorestech_server/Assets/Scripts/Game.UnlockState/IGameUnlockStateDatastoreController.cs:19`）、`BlockComponentStateReader.TryRead`（欠損で `Debug.Log` 済み・false）、`MasterHolder.ItemMaster.ExistItemId(Guid)` / `GetItemId(Guid)` / `GetItemGuid(ItemId)`、`IOpenableInventory.InsertItem(IItemStack)`（余りを返す）
 - Produces:
-  - `public abstract class OrbitalCargoSelection`（`Game.Block.Interface.Component`）: `static readonly UnselectedOrbitalCargo Unselected`
+  - `public abstract class OrbitalCargoSelection`（`Game.Block.Interface.Component`）: `static readonly UnselectedOrbitalCargo Unselected`・`abstract bool IsSelected(ItemId payloadItemId)`（選んだ種類か。未選択は常に false）・`abstract ItemId? ToNullablePayloadItemId()`（状態詳細の欄へ載せる形。未選択は null）・`abstract string ToItemGuidTextOrNull()`（セーブとブループリントへ書く形。未選択は null）。この3つが「選んだ種類か」と選択からの変換の唯一の持ち主（判断 23）
   - `public sealed class UnselectedOrbitalCargo : OrbitalCargoSelection`（ctor は internal。値は `OrbitalCargoSelection.Unselected` の1つだけ）
   - `public sealed class SelectedOrbitalCargo : OrbitalCargoSelection { public readonly ItemId PayloadItemId; public SelectedOrbitalCargo(ItemId) }`
   - `public interface IOrbitalCargoSelectorComponent : IBlockComponent { OrbitalCargoSelection Selection { get; } OrbitalCargoSelectionResult SelectCargo(ItemId payloadItemId, IOpenableInventory refundInventory); }`
   - `public enum OrbitalCargoSelectionResult { Success, NotCarriedHere, Locked }`
-  - `internal class OrbitalCargoSelectionState { OrbitalCargoSelection Current {get; private set;} IObservable<Unit> OnChanged; void SetCurrent(OrbitalCargoSelection); bool IsSelected(ItemId) }`
-  - `internal interface IOrbitalCargoInletSlots { IReadOnlyCollection<ItemId> CarriedPayloadItemIds { get; } void RefundUnselectedPayloads(ItemId selectedPayloadItemId, IOpenableInventory refundInventory); }`
+  - `public interface IOrbitalCargoSelectionReader { OrbitalCargoSelection Current { get; } IObservable<Unit> OnChanged { get; } }`（`Game.Block.Blocks.OrbitalCargo`。読むだけの部品＝発射台の在庫・積載・processor、拠点の在庫・入口が受け取る型。判断 22）
+  - `internal class OrbitalCargoSelectionState : IOrbitalCargoSelectionReader { OrbitalCargoSelection Current {get; private set;} IObservable<Unit> OnChanged; void SetCurrent(OrbitalCargoSelection); }`（実体を受け取るのは選択部品 `OrbitalCargoSelectorComponent` だけ。テンプレートが作って、選択部品へは実体、ほかへは読む口として渡す）
+  - `internal interface IOrbitalCargoInletSlots { IReadOnlyCollection<ItemId> CarriedPayloadItemIds { get; } void RefundUnselectedPayloads(SelectedOrbitalCargo selection, IOpenableInventory refundInventory); }`（返す・残すの判定は `selection.IsSelected` で行う）
   - `public class OrbitalCargoSelectorComponent : IOrbitalCargoSelectorComponent, IBlockSaveState`（`const string SaveKeyName = "orbitalCargoSelection"`、internal ctor 2本: 新規 / ロード）
   - `public class OrbitalCargoSelectionSaveJsonObject { [JsonProperty("selectedCargoItemGuid")] public string SelectedCargoItemGuid; }`
+  - `internal static class OrbitalCargoItemGuid { public static bool TryParseExistingItemGuid(string guidText, out ItemId itemId); }`（`Game.Block.Blocks.OrbitalCargo`。読めない文字列・今のマスタに無い GUID はどちらも false。呼ぶのは選択部品のロードと、A6 のブループリント部品。ログは呼び手が出す。判断 23）
   - テスト補助 `Tests.Util.OrbitalCargo.OrbitalCargoTestUtil`: `NoRefundInventory()`・`SelectCargo(IBlock, ItemId)`・`LockItem(ItemId)`
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -1011,7 +1018,7 @@ namespace Tests.UnitTest.Game.OrbitalCargo
         {
             public IReadOnlyCollection<ItemId> CarriedPayloadItemIds { get; } = new[] { ForUnitTestItemId.TestElevatorSatellite, ForUnitTestItemId.TestElevatorBulkPayload };
             public readonly List<ItemId> RefundedFor = new();
-            public void RefundUnselectedPayloads(ItemId selectedPayloadItemId, IOpenableInventory refundInventory) => RefundedFor.Add(selectedPayloadItemId);
+            public void RefundUnselectedPayloads(SelectedOrbitalCargo selection, IOpenableInventory refundInventory) => RefundedFor.Add(selection.PayloadItemId);
         }
 
         #endregion
@@ -1041,11 +1048,27 @@ namespace Game.Block.Interface.Component
         // 派生をこのアセンブリの2型に閉じる
         // Close derivation to the two types in this assembly
         private protected OrbitalCargoSelection() { }
+
+        // 選んだ種類か。未選択はどの種類とも一致しない。受け入れ・入口・返却の判定はすべてここを呼ぶ
+        // Whether the kind is the selected one; unselected matches none, and every accept, inlet and refund check calls this
+        public abstract bool IsSelected(ItemId payloadItemId);
+
+        // 状態詳細の積荷の欄へ載せる形。未選択は null（通信の型は欄＋null のまま）
+        // The form for the state detail cargo field; null while unselected (the wire type keeps its nullable field)
+        public abstract ItemId? ToNullablePayloadItemId();
+
+        // セーブとブループリントへ書くアイテム GUID の文字列。未選択は null
+        // The item GUID text written to saves and blueprints; null while unselected
+        public abstract string ToItemGuidTextOrNull();
     }
 
     public sealed class UnselectedOrbitalCargo : OrbitalCargoSelection
     {
         internal UnselectedOrbitalCargo() { }
+
+        public override bool IsSelected(ItemId payloadItemId) => false;
+        public override ItemId? ToNullablePayloadItemId() => null;
+        public override string ToItemGuidTextOrNull() => null;
     }
 
     public sealed class SelectedOrbitalCargo : OrbitalCargoSelection
@@ -1056,6 +1079,10 @@ namespace Game.Block.Interface.Component
         {
             PayloadItemId = payloadItemId;
         }
+
+        public override bool IsSelected(ItemId payloadItemId) => PayloadItemId == payloadItemId;
+        public override ItemId? ToNullablePayloadItemId() => PayloadItemId;
+        public override string ToItemGuidTextOrNull() => MasterHolder.ItemMaster.GetItemGuid(PayloadItemId).ToString();
     }
 }
 ```
@@ -1090,19 +1117,41 @@ namespace Game.Block.Interface.Component
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionState.cs`:
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoSelectionReader.cs`（前例 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs:7`。読むだけの部品の ctor が public なので interface も public にする）:
 
 ```csharp
 using System;
-using Core.Master;
 using Game.Block.Interface.Component;
 using UniRx;
 
 namespace Game.Block.Blocks.OrbitalCargo
 {
-    // 1ブロック内で選択を共有するセル。書くのは選択部品だけで、在庫・積載・昇降機は読んで購読する
-    // A per-block cell sharing the selection; only the selector writes, inventory, loader and climber read and subscribe
-    internal class OrbitalCargoSelectionState
+    /// <summary>
+    ///     1ブロック内で共有する積荷の選択を読む口。発射台の在庫・積載・processor と拠点の在庫・入口が受け取る
+    ///     書く口 SetCurrent は持たない。書けるのは実体 OrbitalCargoSelectionState を受け取る選択部品だけ
+    ///     Read port for the cargo selection shared within a block, received by the pad's inventory, loader and processor and the base's inventory and inlet
+    ///     It has no SetCurrent; only the selector, which receives the concrete OrbitalCargoSelectionState, can write
+    /// </summary>
+    public interface IOrbitalCargoSelectionReader
+    {
+        OrbitalCargoSelection Current { get; }
+        IObservable<Unit> OnChanged { get; }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectionState.cs`:
+
+```csharp
+using System;
+using Game.Block.Interface.Component;
+using UniRx;
+
+namespace Game.Block.Blocks.OrbitalCargo
+{
+    // 1ブロック内で選択を共有するセル。実体は選択部品だけが受け取り、ほかの部品には読む口として渡す
+    // A per-block cell sharing the selection; only the selector receives the concrete type, other components get the read port
+    internal class OrbitalCargoSelectionState : IOrbitalCargoSelectionReader
     {
         public OrbitalCargoSelection Current { get; private set; } = OrbitalCargoSelection.Unselected;
         public IObservable<Unit> OnChanged => _changed;
@@ -1114,13 +1163,6 @@ namespace Game.Block.Blocks.OrbitalCargo
             Current = selection;
             _changed.OnNext(Unit.Default);
         }
-
-        // 選んだ種類か。未選択はどの種類とも一致しない
-        // Whether the kind is the selected one; unselected matches no kind
-        public bool IsSelected(ItemId payloadItemId)
-        {
-            return Current is SelectedOrbitalCargo selected && selected.PayloadItemId == payloadItemId;
-        }
     }
 }
 ```
@@ -1131,6 +1173,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Master;
+using Game.Block.Interface.Component;
 
 namespace Game.Block.Blocks.OrbitalCargo
 {
@@ -1142,7 +1185,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 
         // 選んだ種類以外の入れ口の中身を返却先へ移し、入らない分はスロットに残す
         // Move inlet contents of kinds other than the selected one to the refund target; leftovers stay in the slot
-        void RefundUnselectedPayloads(ItemId selectedPayloadItemId, IOpenableInventory refundInventory);
+        void RefundUnselectedPayloads(SelectedOrbitalCargo selection, IOpenableInventory refundInventory);
     }
 }
 ```
@@ -1163,10 +1206,34 @@ namespace Game.Block.Blocks.OrbitalCargo
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectorComponent.cs`:
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoItemGuid.cs`（セーブの読込とブループリントの適用が共有する。repo に「GUID 文字列 → 今のマスタにある ItemId」の共通関数は無く、各所が `Guid.TryParse` と `ItemMaster.ExistItemId`/`GetItemIdOrNull` をその場で書いている＝前例の照合）:
 
 ```csharp
 using System;
+using Core.Master;
+
+namespace Game.Block.Blocks.OrbitalCargo
+{
+    // 積荷の GUID 文字列を今のマスタの ItemId へ戻す。セーブの読込とブループリントの適用が同じ範囲の GUID を受け入れるよう1か所にする
+    // Resolve a cargo GUID text to an ItemId in the current master; kept in one place so save loading and blueprint application accept the same GUIDs
+    internal static class OrbitalCargoItemGuid
+    {
+        // 読めない文字列と今のマスタに無い GUID はどちらも false。理由のログは呼び手が出す
+        // Both unparsable text and a GUID missing from the current master return false; callers log the reason
+        public static bool TryParseExistingItemGuid(string guidText, out ItemId itemId)
+        {
+            itemId = ItemMaster.EmptyItemId;
+            if (!Guid.TryParse(guidText, out var guid) || !MasterHolder.ItemMaster.ExistItemId(guid)) return false;
+            itemId = MasterHolder.ItemMaster.GetItemId(guid);
+            return true;
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoSelectorComponent.cs`:
+
+```csharp
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
@@ -1240,10 +1307,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 
             bool TryResolveCarried(string guidText, out ItemId itemId)
             {
-                itemId = ItemMaster.EmptyItemId;
-                if (!Guid.TryParse(guidText, out var guid) || !MasterHolder.ItemMaster.ExistItemId(guid)) return false;
-                itemId = MasterHolder.ItemMaster.GetItemId(guid);
-                return _inletSlots.CarriedPayloadItemIds.Contains(itemId);
+                return OrbitalCargoItemGuid.TryParseExistingItemGuid(guidText, out itemId) && _inletSlots.CarriedPayloadItemIds.Contains(itemId);
             }
 
             #endregion
@@ -1257,12 +1321,13 @@ namespace Game.Block.Blocks.OrbitalCargo
             if (!_inletSlots.CarriedPayloadItemIds.Contains(payloadItemId)) return Reject(OrbitalCargoSelectionResult.NotCarriedHere);
             if (!IsUnlocked()) return Reject(OrbitalCargoSelectionResult.Locked);
             // silent-ok: 同じ種類の選び直しは何も変えない / 状態詳細の選択は既に同じ値
-            if (_state.IsSelected(payloadItemId)) return OrbitalCargoSelectionResult.Success;
+            if (_state.Current.IsSelected(payloadItemId)) return OrbitalCargoSelectionResult.Success;
 
             // 先に選択を切り替えてから外れた種類を返す。返却中の在庫通知は新しい選択で評価される
             // Switch first, then refund the dropped kinds; inventory events during the refund see the new selection
-            _state.SetCurrent(new SelectedOrbitalCargo(payloadItemId));
-            _inletSlots.RefundUnselectedPayloads(payloadItemId, refundInventory);
+            var selection = new SelectedOrbitalCargo(payloadItemId);
+            _state.SetCurrent(selection);
+            _inletSlots.RefundUnselectedPayloads(selection, refundInventory);
             return OrbitalCargoSelectionResult.Success;
 
             #region Internal
@@ -1284,8 +1349,7 @@ namespace Game.Block.Blocks.OrbitalCargo
         public object GetSaveState()
         {
             CheckDestroy(this);
-            var guid = _state.Current is SelectedOrbitalCargo selected ? MasterHolder.ItemMaster.GetItemGuid(selected.PayloadItemId).ToString() : null;
-            return new OrbitalCargoSelectionSaveJsonObject { SelectedCargoItemGuid = guid };
+            return new OrbitalCargoSelectionSaveJsonObject { SelectedCargoItemGuid = _state.Current.ToItemGuidTextOrNull() };
         }
 
         public void Destroy()
@@ -1300,11 +1364,11 @@ namespace Game.Block.Blocks.OrbitalCargo
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Game.OrbitalCargo.OrbitalCargoSelectorComponentTest"`
-期待: 6 件すべて成功。
+期待: 7 件すべて成功（`[Test]` 4 本＋`[TestCase]` 3 本）。
 
 - [ ] **Step 5: コミット**
 
-`git add` で上の 8 ファイル（Unity が作った `.meta` を含む）を入れ、`git commit -m "積荷の選択の型と、発射台・拠点が共有する選択部品を足す"`。
+`git add` で上の 10 ファイル（Unity が作った `.meta` を含む）を入れ、`git commit -m "積荷の選択の型と、発射台・拠点が共有する選択部品を足す"`。
 
 ### Task A2: 発射台を選ぶ方式にする（受け入れ・積載・巡回の廃止・状態詳細・セーブから巡回位置を外す）
 
@@ -1330,14 +1394,15 @@ ADR 0106 の 1（巡回の廃止）・2（未選択は何も受け取らず建�
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoPadSelectionTest.cs`
 
 **Interfaces:**
-- Consumes: A1 の `OrbitalCargoSelectionState`・`OrbitalCargoSelectorComponent`・`IOrbitalCargoInletSlots`・`OrbitalCargoTestUtil`
+- Consumes: A1 の `OrbitalCargoSelectionState`（テンプレートが作り、選択部品へ実体で渡す）・`IOrbitalCargoSelectionReader`（在庫・積載・processor が受け取る）・`OrbitalCargoSelection.IsSelected`・`ToNullablePayloadItemId`・`OrbitalCargoSelectorComponent`・`IOrbitalCargoInletSlots`・`OrbitalCargoTestUtil`
 - Produces:
   - `RocketLaunchPadWaitReason.CargoNotSelected = 5`（未選択は他の待ち理由より先に返る）
   - `RocketLaunchPadCommandResult.CargoNotSelected`、`RocketLaunchPadCommandFailureReason.CargoNotSelected = 11`
   - `RocketLaunchPadStateDetail`: `[Key(3)] ItemId? SelectedCargoItemId`・`[Key(4)] ItemId? LoadedCargoItemId`、ctor と `CreateState` は5引数 `(phase, waitReason, progress, selectedCargoItemId, loadedCargoItemId)`
   - 発射台ブロックに `IOrbitalCargoSelectorComponent` が載る
-  - `RocketLaunchPadInventoryComponent` の internal ctor に `OrbitalCargoSelectionState cargoSelection` を追加（末尾）
-  - `RocketLaunchPadProcessorComponent` の 2 つの ctor に `OrbitalCargoSelectionState cargoSelection` を追加（`subscriptions` の直前）
+  - `RocketLaunchPadInventoryComponent` の internal ctor に `IOrbitalCargoSelectionReader cargoSelection` を追加（末尾）
+  - `RocketLaunchPadCargoLoader` の ctor に `IOrbitalCargoSelectionReader cargoSelection` を追加（末尾）
+  - `RocketLaunchPadProcessorComponent` の 2 つの public ctor に `IOrbitalCargoSelectionReader cargoSelection` を追加（`subscriptions` の直前）
   - `RocketLaunchPadSaveConverter.Capture(stage, layout, slots)`（巡回位置の引数を削除）
   - テスト補助: `RocketLaunchPadTestUtil.FillOneLaunch` を `SelectCargoAndFillOneLaunch` に改名（選んでから入れる）
 
@@ -1716,14 +1781,14 @@ namespace Game.Block.Blocks.RocketLaunchPad
             CarriedPayloadItemIds = layout.Payloads.Select(payload => payload.ItemId).ToList();
         }
 
-        public void RefundUnselectedPayloads(ItemId selectedPayloadItemId, IOpenableInventory refundInventory)
+        public void RefundUnselectedPayloads(SelectedOrbitalCargo selection, IOpenableInventory refundInventory)
         {
             for (var i = 0; i < _layout.Payloads.Count; i++)
             {
                 var slot = _layout.PayloadSlot(i);
                 var stack = _slots.GetItem(slot);
                 // silent-ok: 空の入れ口と選んだ種類の入れ口は返さない / 返却なしが正しい結果
-                if (stack.Count == 0 || _layout.Payloads[i].ItemId == selectedPayloadItemId) continue;
+                if (stack.Count == 0 || selection.IsSelected(_layout.Payloads[i].ItemId)) continue;
                 // 入らない分は元の入れ口に残る。積載は選んだ種類だけを取るので詰まらない
                 // What does not fit stays in its own inlet; loading takes only the selected kind, so nothing jams
                 _slots.SetItem(slot, refundInventory.InsertItem(stack));
@@ -1757,9 +1822,9 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly RocketLaunchPadOutputSlots _outputSlots;
-        private readonly OrbitalCargoSelectionState _cargoSelection;
+        private readonly IOrbitalCargoSelectionReader _cargoSelection;
 
-        public RocketLaunchPadCargoLoader(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, RocketLaunchPadOutputSlots outputSlots, OrbitalCargoSelectionState cargoSelection)
+        public RocketLaunchPadCargoLoader(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, RocketLaunchPadOutputSlots outputSlots, IOrbitalCargoSelectionReader cargoSelection)
         {
             _layout = layout;
             _slots = slots;
@@ -1862,13 +1927,13 @@ namespace Game.Block.Blocks.RocketLaunchPad
     {
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
-        private readonly OrbitalCargoSelectionState _cargoSelection;
+        private readonly IOrbitalCargoSelectionReader _cargoSelection;
 
         private readonly Subject<Unit> _inventoryChanged = new();
         internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
         internal OpenableInventoryItemDataStoreService ItemDataStoreService => _slots;
 
-        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent, int slotCount, OrbitalCargoSelectionState cargoSelection)
+        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent, int slotCount, IOrbitalCargoSelectionReader cargoSelection)
         {
             _layout = layout;
             _cargoSelection = cargoSelection;
@@ -1947,7 +2012,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         // 選んでいる間だけ資材と選んだ積荷の入れ口を開ける（ADR 0106 2）
         // Open the material inlets and the selected payload inlet only while a cargo is selected (ADR 0106 2)
-        private bool IsOpenInput(int slot) => _cargoSelection.Current is SelectedOrbitalCargo selected && (slot < _layout.Materials.Count || _layout.RequirementAt(slot).ItemId == selected.PayloadItemId);
+        private bool IsOpenInput(int slot) => _cargoSelection.Current is SelectedOrbitalCargo selected && (slot < _layout.Materials.Count || selected.IsSelected(_layout.RequirementAt(slot).ItemId));
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -2084,10 +2149,10 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadOutputSlots _outputSlots;
         private readonly RocketLaunchPadLaunchSequence _sequence;
         private readonly CompositeDisposable _subscriptions;
-        private readonly OrbitalCargoSelectionState _cargoSelection;
+        private readonly IOrbitalCargoSelectionReader _cargoSelection;
         private float _suppliedPower;
 
-        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, OrbitalCargoSelectionState cargoSelection, CompositeDisposable subscriptions)
+        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, IOrbitalCargoSelectionReader cargoSelection, CompositeDisposable subscriptions)
         {
             _subscriptions = subscriptions;
             _cargoSelection = cargoSelection;
@@ -2121,7 +2186,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             #endregion
         }
 
-        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, OrbitalCargoSelectionState cargoSelection, CompositeDisposable subscriptions)
+        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, IOrbitalCargoSelectionReader cargoSelection, CompositeDisposable subscriptions)
             : this(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, cargoSelection, subscriptions)
         {
             // 実在品を保全してから段階を復元
@@ -2178,7 +2243,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             CheckDestroy(this);
             // 選択は次の便から、積んだ積荷は今の便の値（ADR 0106 4）
             // The selection applies from the next flight; the loaded payload is the current flight's (ADR 0106 4)
-            var selected = _cargoSelection.Current is SelectedOrbitalCargo selection ? selection.PayloadItemId : (ItemId?)null;
+            var selected = _cargoSelection.Current.ToNullablePayloadItemId();
             var loaded = _sequence.Stage is LoadedRocketStage loadedStage ? loadedStage.Cargo.Payload.Id : (ItemId?)null;
             return new[] { RocketLaunchPadStateDetail.CreateState(Phase, WaitReason, _sequence.CalculateProgress(), selected, loaded) };
         }
@@ -2305,6 +2370,8 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
         {
             var param = (RocketLaunchPadBlockParam)blockMasterElement.BlockParam;
             var layout = new RocketLaunchPadSlotLayout(param);
+            // 選択の実体は選択部品だけへ渡し、在庫・進行部品には読む口として渡す
+            // Hand the concrete selection only to the selector; inventory and processor receive it as the read port
             var cargoSelection = new OrbitalCargoSelectionState();
 
             // 全スロットを1つの保管に持ち、入れ口と出力口の制限はインベントリ側で掛ける
@@ -2471,7 +2538,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
 ADR 0106 の 7（未選択は何も受け取らない・昇降中の便はそのまま・返しきれない分は入口に残り塞がる・項目なしは未選択）。
 今の入口の塞がり表示（`SpaceElevatorBaseStatus.InletBlocked`）は「今のマスタで運ばない品」（`SatelliteInletState.NotCarried`）にしか出ない。選び直しで残る前の種類は「運ぶ品」なので、そのままでは1便ぶんあれば昇ってしまう。入口の状態に `NotSelectedKind` を足し、同じ `InletBlocked` を出す（クライアントの表示 `SpaceElevatorStatusInletBlocked`＝`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/SpaceElevatorLogic.cs:34` を流用）。ロード時の戻し先（入口・出口・消す）は運べる全種類で決めたままにし、選択では絞らない（昇降中の便をロードで取り消さないため）。
 
-`SpaceElevatorBaseInventoryComponent.cs` は 194 行あり、ここに足すと 200 行を超えるので、入口（スロット0）の受け入れ・中身の判定・返却を `SpaceElevatorBaseInlet` へ移す。`SpaceElevatorClimberComponent.cs` は 197 行（下の全文を数えた値）。
+`SpaceElevatorBaseInventoryComponent.cs` は 194 行あり、ここに足すと 200 行を超えるので、入口（スロット0）の受け入れ・中身の判定・返却を `SpaceElevatorBaseInlet` へ移す。`SpaceElevatorClimberComponent.cs` は 198 行（下の全文を数えた値）。
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInlet.cs`
@@ -2489,12 +2556,12 @@ ADR 0106 の 7（未選択は何も受け取らない・昇降中の便はその
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoBaseSelectionTest.cs`
 
 **Interfaces:**
-- Consumes: A1 の `OrbitalCargoSelectionState`・`OrbitalCargoSelectorComponent`・`IOrbitalCargoInletSlots`・`OrbitalCargoTestUtil`
+- Consumes: A1 の `OrbitalCargoSelectionState`（テンプレートが作り、選択部品へ実体で渡す）・`IOrbitalCargoSelectionReader`（在庫・入口が受け取る）・`OrbitalCargoSelection.IsSelected`・`ToNullablePayloadItemId`・`OrbitalCargoSelectorComponent`・`IOrbitalCargoInletSlots`・`OrbitalCargoTestUtil`
 - Produces:
   - `SpaceElevatorBaseStatus.CargoNotSelected`（末尾に追加。昇っていない拠点では接続の有無より先に出る）
   - `SpaceElevatorBaseStateDetail`: `[Key(4)] ItemId? SelectedCargoItemId`・`[Key(5)] ItemId? ClimbingCargoItemId`、ctor は6引数
   - 拠点ブロックに `IOrbitalCargoSelectorComponent` が載る
-  - `SpaceElevatorBaseInventoryComponent` の ctor 2本に `OrbitalCargoSelectionState cargoSelection`（末尾）、`internal SpaceElevatorBaseInlet Inlet { get; }`
+  - `SpaceElevatorBaseInventoryComponent` の public ctor 2本に `IOrbitalCargoSelectionReader cargoSelection`（末尾）、`internal SpaceElevatorBaseInlet Inlet { get; }`（テンプレートだけが使う）。昇降機が読む口 `internal IObservable<Unit> OnInletConditionChanged`（既存の `OnInventoryChanged` を置き換える）・`internal SatelliteInletState PeekSatellite(out ItemId)`（既存）・`internal SpaceElevatorBaseStatus InletWaitStatus()`・`internal ItemId? SelectedCargoItemId()`。読み取りの3つは `CheckDestroy(this)` を踏む
   - `internal class SpaceElevatorBaseInlet : IOrbitalCargoInletSlots`: `Accepts(ItemId)`・`Peek(out ItemId)`・`WaitStatus()`・`SelectedCargoItemId()`・`Insert`・`InsertionCheck`・`OnConditionChanged`
   - `SatelliteInletState.NotSelectedKind`・`SatelliteTakeResult.NotSelectedKind`・`static class SatelliteInletWait`
   - テスト補助: `SpaceElevatorTestUtil.PlaceBase(Vector3Int, ItemId selectedCargo)`・`PlaceUnselectedBase(Vector3Int)`・`PlaceConnectedBase(float, ItemId)`・`SetupConnected(float, ItemId)`
@@ -2884,10 +2951,10 @@ namespace Game.Block.Blocks.SpaceElevator
 
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly Dictionary<ItemId, int> _countPerLaunchByCarriedPayload;
-        private readonly OrbitalCargoSelectionState _selection;
+        private readonly IOrbitalCargoSelectionReader _selection;
         private readonly IObservable<Unit> _inventoryChanged;
 
-        public SpaceElevatorBaseInlet(OpenableInventoryItemDataStoreService slots, Dictionary<ItemId, int> countPerLaunchByCarriedPayload, OrbitalCargoSelectionState selection, IObservable<Unit> inventoryChanged)
+        public SpaceElevatorBaseInlet(OpenableInventoryItemDataStoreService slots, Dictionary<ItemId, int> countPerLaunchByCarriedPayload, IOrbitalCargoSelectionReader selection, IObservable<Unit> inventoryChanged)
         {
             _slots = slots;
             _countPerLaunchByCarriedPayload = countPerLaunchByCarriedPayload;
@@ -2895,7 +2962,7 @@ namespace Game.Block.Blocks.SpaceElevator
             _inventoryChanged = inventoryChanged;
         }
 
-        public bool Accepts(ItemId itemId) => _selection.IsSelected(itemId);
+        public bool Accepts(ItemId itemId) => _selection.Current.IsSelected(itemId);
 
         // 入口の中身を見る。運べない品はマスタ変更後のロードで、選んでいない種類は返しきれなかった選び直しで残る
         // Peek at the inlet; a non-carried item remains after a master change, a non-selected kind after an incomplete reselection refund
@@ -2905,7 +2972,7 @@ namespace Game.Block.Blocks.SpaceElevator
             satelliteId = stack.Id;
             if (stack.Count == 0) return SatelliteInletState.MissingPayload;
             if (!_countPerLaunchByCarriedPayload.TryGetValue(stack.Id, out var countPerLaunch)) return SatelliteInletState.NotCarried;
-            if (!_selection.IsSelected(stack.Id)) return SatelliteInletState.NotSelectedKind;
+            if (!Accepts(stack.Id)) return SatelliteInletState.NotSelectedKind;
             // silent-ok: 1便に満たない積荷は通常の待機 / プレイヤーは拠点UIの積荷待ちと入口の個数で気づく
             return stack.Count < countPerLaunch ? SatelliteInletState.MissingPayload : SatelliteInletState.Carriable;
         }
@@ -2918,7 +2985,7 @@ namespace Game.Block.Blocks.SpaceElevator
             return SatelliteInletWait.BlocksInlet(Peek(out _)) ? SpaceElevatorBaseStatus.InletBlocked : SpaceElevatorBaseStatus.WaitingSatellite;
         }
 
-        public ItemId? SelectedCargoItemId() => _selection.Current is SelectedOrbitalCargo selected ? selected.PayloadItemId : null;
+        public ItemId? SelectedCargoItemId() => _selection.Current.ToNullablePayloadItemId();
 
         public IItemStack Insert(IItemStack itemStack)
         {
@@ -2944,11 +3011,11 @@ namespace Game.Block.Blocks.SpaceElevator
             return true;
         }
 
-        public void RefundUnselectedPayloads(ItemId selectedPayloadItemId, IOpenableInventory refundInventory)
+        public void RefundUnselectedPayloads(SelectedOrbitalCargo selection, IOpenableInventory refundInventory)
         {
             var stack = _slots.GetItem(Slot);
             // silent-ok: 空か選んだ種類なら返すものは無い / 返却なしが正しい結果
-            if (stack.Count == 0 || stack.Id == selectedPayloadItemId) return;
+            if (stack.Count == 0 || selection.IsSelected(stack.Id)) return;
             // 入らない分は入口に残り、取り出すまで塞がりとして表示される（ADR 0106 7）
             // What does not fit stays in the inlet and shows as blocked until taken out (ADR 0106 7)
             _slots.SetItem(Slot, refundInventory.InsertItem(stack));
@@ -2957,7 +3024,7 @@ namespace Game.Block.Blocks.SpaceElevator
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent.cs` 全文（164 行。`IsCarriedPayload` を消し、`PeekSatellite`・搬入・可否判定を `Inlet` へ委ねる。`TakeLaunchableClimbingPayloadOnLoad` と `SpaceElevatorInventoryRestorer` は運べる全種類の表のまま）:
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent.cs` 全文（171 行。`IsCarriedPayload` を消し、`PeekSatellite`・搬入・可否判定を `Inlet` へ委ねる。昇降機が読む口は `OnInletConditionChanged`・`PeekSatellite`・`InletWaitStatus()`・`SelectedCargoItemId()` で、読み取りの3つは `CheckDestroy` を踏む。使われなくなる `OnInventoryChanged` は `OnInletConditionChanged` に置き換える。`TakeLaunchableClimbingPayloadOnLoad` と `SpaceElevatorInventoryRestorer` は運べる全種類の表のまま）:
 
 ```csharp
 using System.Collections.Generic;
@@ -2976,6 +3043,7 @@ using System;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using static Game.Block.Interface.BlockException;
@@ -2991,9 +3059,11 @@ namespace Game.Block.Blocks.SpaceElevator
         public BlockInstanceId BlockInstanceId { get; }
         public IReadOnlyCollection<int> SortExcludedSlots => Enumerable.Range(0, _slotCount).ToArray();
         public string SaveKey { get; } = typeof(SpaceElevatorBaseInventoryComponent).FullName;
-        internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
-        // 入口の受け入れ・塞がり・選び直しの返却は入口が持つ
-        // The inlet owns acceptance, blocking and reselection refunds
+        // 入口の在庫か選択が変わったときの通知。昇降機は入口を直接触らず、在庫のこの口と下の読み取りを通す
+        // Fires when the inlet inventory or the selection changes; the climber never touches the inlet directly and goes through this and the reads below
+        internal IObservable<Unit> OnInletConditionChanged => Inlet.OnConditionChanged;
+        // 入口の受け入れ・塞がり・選び直しの返却は入口が持つ。外から触るのはテンプレート（選択部品へ渡す）だけ
+        // The inlet owns acceptance, blocking and reselection refunds; only the template touches it (to hand it to the selector)
         internal SpaceElevatorBaseInlet Inlet { get; }
         private readonly Subject<Unit> _inventoryChanged = new();
         private readonly IOrbitalArrivalService _arrivalService;
@@ -3004,7 +3074,7 @@ namespace Game.Block.Blocks.SpaceElevator
         // 積荷と1便の個数（マスタ積荷表）
         // Payloads and per-launch counts from the master table
         private readonly Dictionary<ItemId, int> _countPerLaunchByCarriedPayload;
-        public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService, OrbitalCargoSelectionState cargoSelection)
+        public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService, IOrbitalCargoSelectionReader cargoSelection)
         {
             BlockInstanceId = blockInstanceId;
             _blockInventoryInserter = blockInventoryInserter;
@@ -3025,7 +3095,7 @@ namespace Game.Block.Blocks.SpaceElevator
             }
             #endregion
         }
-        public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService, OrbitalCargoSelectionState cargoSelection) :
+        public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService, IOrbitalCargoSelectionReader cargoSelection) :
             this(blockInstanceId, param, blockInventoryInserter, arrivalService, cargoSelection)
         {
             // ロード時はまだワールドに登録されていないのでイベントを出さない。戻し先は運べる全種類で決め、選択では絞らない
@@ -3036,7 +3106,11 @@ namespace Game.Block.Blocks.SpaceElevator
         // 入口の受入定義を配信側と共有する
         // Share the inlet acceptance definition with the publisher
         public static IReadOnlyList<ItemId> GetCarriedPayloadItemIds(SpaceElevatorBaseBlockParam param) => param.CarriedPayloadItemGuids.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToList();
+        // 昇降機からの入口の読み取りは、ここを通して壊れた後の読み取りを止める（今のコードの PeekSatellite と同じ流儀）
+        // The climber reads the inlet only through these, so reads after destruction are stopped (same style as the existing PeekSatellite)
         internal SatelliteInletState PeekSatellite(out ItemId satelliteId) { CheckDestroy(this); return Inlet.Peek(out satelliteId); }
+        internal SpaceElevatorBaseStatus InletWaitStatus() { CheckDestroy(this); return Inlet.WaitStatus(); }
+        internal ItemId? SelectedCargoItemId() { CheckDestroy(this); return Inlet.SelectedCargoItemId(); }
         // ロード時に昇降中の積荷を1便ぶんへ正規化し、昇らせない分は入口・出口へ戻す（入らなければ消す）
         // Normalize a climbing payload to one launch on load, returning the rest to the inlet or outlets (discarding what does not fit)
         internal IItemStack TakeLaunchableClimbingPayloadOnLoad(IItemStack savedPayload) { return SpaceElevatorInventoryRestorer.TakeLaunchableClimbingPayloadOnLoad(savedPayload, _countPerLaunchByCarriedPayload, _itemDataStoreService, _outputSlots, BlockInstanceId); }
@@ -3126,7 +3200,7 @@ namespace Game.Block.Blocks.SpaceElevator
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs` 全文（197 行。購読先を `Inlet.OnConditionChanged` へ、`_inletNotCarried` を `_inletBlocked` へ、未選択の状態と積荷2欄を追加。空行を3つ詰めて 200 行未満に収めた）:
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs` 全文（198 行。購読先を在庫の `OnInletConditionChanged` へ、`_inletNotCarried` を `_inletBlocked` へ、未選択の状態と積荷2欄を追加。`ResolveStatus` は入口の状態を在庫の `InletWaitStatus()` で1回だけ読む。入口は在庫のメソッド（`PeekSatellite`・`InletWaitStatus`・`SelectedCargoItemId`）を通して読み、どれも在庫側の `CheckDestroy` を踏む。空行を3つ詰めて 200 行未満に収めた）:
 
 ```csharp
 using System;
@@ -3187,7 +3261,7 @@ namespace Game.Block.Blocks.SpaceElevator
             _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
             // 入口の在庫か積荷の選択が変わったら待機条件を再評価する
             // Reevaluate waiting conditions when the inlet inventory or the cargo selection changes
-            _inventorySubscription = inventory.Inlet.OnConditionChanged.Subscribe(_ => _inventoryChanged = true);
+            _inventorySubscription = inventory.OnInletConditionChanged.Subscribe(_ => _inventoryChanged = true);
             _stackLevelSubscription = ServerContext.GetService<IItemStackLevelLookup>().OnStackLevelUnlocked
                 .Subscribe(_ => _inventoryChanged = true);
         }
@@ -3251,7 +3325,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 ItemId satelliteId;
                 var result = IsConnected
                     ? _inventory.TryTakeSatelliteForClimb(out satellite, out satelliteId)
-                    : SatelliteInletWait.ToWaitResult(_inventory.Inlet.Peek(out satelliteId));
+                    : SatelliteInletWait.ToWaitResult(_inventory.PeekSatellite(out satelliteId));
                 _inletBlocked = SatelliteInletWait.BlocksInlet(result);
                 // 入口が塞がった tick に1回だけ理由を開発者ログへ出す
                 // Log the reason once on the tick the inlet becomes blocked
@@ -3294,17 +3368,18 @@ namespace Game.Block.Blocks.SpaceElevator
             BlockException.CheckDestroy(this);
             var progress = IsCarrying ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
             var status = ResolveStatus();
-            var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, progress, status, _inventory.Inlet.SelectedCargoItemId(), IsCarrying ? _climbingSatellite.Id : null);
+            var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, progress, status, _inventory.SelectedCargoItemId(), IsCarrying ? _climbingSatellite.Id : null);
             return new[] { new BlockStateDetail(SpaceElevatorBaseStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
             #region Internal
             SpaceElevatorBaseStatus ResolveStatus()
             {
-                // 未選択は接続より先に伝える。選ぶまで何も受け取らず、接続もできないため（ADR 0106 7）
-                // Report the missing selection before connection; nothing is accepted nor connectable until selected (ADR 0106 7)
-                if (!IsCarrying && _inventory.Inlet.WaitStatus() == SpaceElevatorBaseStatus.CargoNotSelected) return SpaceElevatorBaseStatus.CargoNotSelected;
+                // 未選択は接続より先に伝える。選ぶまで何も受け取らず、接続もできないため（ADR 0106 7）。入口の状態は1回だけ読む
+                // Report the missing selection before connection; nothing is accepted nor connectable until selected (ADR 0106 7). Read the inlet status once
+                var inletStatus = _inventory.InletWaitStatus();
+                if (!IsCarrying && inletStatus == SpaceElevatorBaseStatus.CargoNotSelected) return SpaceElevatorBaseStatus.CargoNotSelected;
                 if (!IsConnected) return _hasEnoughCable ? SpaceElevatorBaseStatus.ReadyToConnect : SpaceElevatorBaseStatus.InsufficientCable;
                 if (_outputBlocked) return SpaceElevatorBaseStatus.OutputBlocked;
-                if (!IsCarrying) return _inventory.Inlet.WaitStatus();
+                if (!IsCarrying) return inletStatus;
                 return _latchedPower < _param.RequiredPower ? SpaceElevatorBaseStatus.LowPower : SpaceElevatorBaseStatus.Climbing;
             }
             #endregion
@@ -3355,6 +3430,8 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
         {
             var param = (SpaceElevatorBaseBlockParam)blockMasterElement.BlockParam;
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
+            // 選択の実体は選択部品だけへ渡し、在庫（入口）には読む口として渡す
+            // Hand the concrete selection only to the selector; the inventory (inlet) receives it as the read port
             var cargoSelection = new OrbitalCargoSelectionState();
             var inventory = new SpaceElevatorBaseInventoryComponent(blockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector), ServerContext.GetService<IOrbitalArrivalService>(), cargoSelection);
             var selector = new OrbitalCargoSelectorComponent(cargoSelection, inventory.Inlet, ServerContext.GetService<IGameUnlockStateDataController>());
@@ -3396,7 +3473,7 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
 | ファイル | 行 | 扱い | 理由 |
 |---|---|---|---|
 | Step 1 の perl の対象 15 ファイル＋Tier9 | — | 選ぶ積荷の引数を足すだけ | 入口へ入れて昇らせる種類を選んでおけば、従来の意味（運べる種類は入る）と同じ |
-| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Robustness/SpaceElevatorMultipleOutputTest.cs` | 154–160 `CreateInventory` | `new SpaceElevatorBaseInventoryComponent(…, arrival, new OrbitalCargoSelectionState())`（`using Game.Block.Blocks.OrbitalCargo;`） | ctor の引数追加。到着の配置だけを見るテストで選択は使わない |
+| `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Robustness/SpaceElevatorMultipleOutputTest.cs` | 154–160 `CreateInventory` | `new SpaceElevatorBaseInventoryComponent(…, arrival, new OrbitalCargoSelectionState())`（`using Game.Block.Blocks.OrbitalCargo;`。引数の型は読む口 `IOrbitalCargoSelectionReader` で、実体をそのまま渡す。`Server.Tests` は `Game.Block/AssemblyInfo.cs:5` の `InternalsVisibleTo` で internal の実体を作れる） | ctor の引数追加。到着の配置だけを見るテストで選択は使わない |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Robustness/SpaceElevatorSaveBoundaryTest.cs` | 75–77 | 同上（`IOrbitalArrivalService` の後ろに `new OrbitalCargoSelectionState()`） | 同上。ロード失敗を見るテスト |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Recovery/SpaceElevatorInletEventRecoveryTest.cs`・`SpaceElevatorInventoryRecoveryTest.cs` | `ItemId1` を入口へ置く箇所 | 変更なし | 運ばない品は選択より先に `NotCarried` と判定し、警告文も同じ |
 | `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Recovery/SpaceElevatorLoadFailureSaveLoadTest.cs` | 115・137（大口の積荷を昇降中として読む） | 衛星を選ぶ（perl のまま） | ロード時の戻し先は選択で絞らないので、衛星を選んでいても大口の昇降は残る |
@@ -3984,12 +4061,12 @@ ADR 0106 の 3（未解放の種類を持つブループリントは未選択で
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoBlueprintSettingsComponent.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`（A2 の版の 77–85 行の部品一覧）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`（A2 の版の 79–87 行の部品一覧）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`（A3 の版の部品一覧）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/OrbitalCargo/OrbitalCargoBlueprintTest.cs`
 
 **Interfaces:**
-- Consumes: A1 `IOrbitalCargoSelectorComponent`・`SelectedOrbitalCargo`・`OrbitalCargoTestUtil.LockItem`
+- Consumes: A1 `IOrbitalCargoSelectorComponent`・`SelectedOrbitalCargo`・`OrbitalCargoSelection.ToItemGuidTextOrNull`・`OrbitalCargoItemGuid.TryParseExistingItemGuid`・`OrbitalCargoTestUtil.LockItem`
 - Produces: ブループリント設定キー `"OrbitalCargoSelection"`、JSON `{"selectedCargoItemGuid": "<GUID>" | null}`（セーブの項目と同じ形）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -4087,12 +4164,10 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 
 - [ ] **Step 3: 実装を書く**
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoBlueprintSettingsComponent.cs`（63 行）:
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoBlueprintSettingsComponent.cs`（60 行）:
 
 ```csharp
-using System;
 using Core.Inventory;
-using Core.Master;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
@@ -4118,8 +4193,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 
         public string GetBlueprintSettingsJson()
         {
-            var guid = _selector.Selection is SelectedOrbitalCargo selected ? MasterHolder.ItemMaster.GetItemGuid(selected.PayloadItemId).ToString() : null;
-            return JsonConvert.SerializeObject(new SettingsJsonObject { SelectedCargoItemGuid = guid });
+            return JsonConvert.SerializeObject(new SettingsJsonObject { SelectedCargoItemGuid = _selector.Selection.ToItemGuidTextOrNull() });
         }
 
         public void ApplyBlueprintSettingsJson(string json)
@@ -4127,7 +4201,7 @@ namespace Game.Block.Blocks.OrbitalCargo
             var settings = JsonConvert.DeserializeObject<SettingsJsonObject>(json);
             // silent-ok: 未選択でコピーした台は未選択のまま置く / プレイヤーは台の「積荷を選んでいない」表示で気づく
             if (settings?.SelectedCargoItemGuid == null) return;
-            if (!Guid.TryParse(settings.SelectedCargoItemGuid, out var guid) || !MasterHolder.ItemMaster.ExistItemId(guid))
+            if (!OrbitalCargoItemGuid.TryParseExistingItemGuid(settings.SelectedCargoItemGuid, out var payloadItemId))
             {
                 Debug.LogWarning($"ブループリントの積荷 {settings.SelectedCargoItemGuid} が今のマスタに無いため、未選択のまま設置します");
                 return;
@@ -4138,7 +4212,7 @@ namespace Game.Block.Blocks.OrbitalCargo
             // 適用は設置直後で入口が空のため返却は起きない。返却先は空きの無いダミーでよい
             // Applied right after creation with an empty inlet, so nothing is refunded; a zero-slot dummy suffices
             var noRefund = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 0);
-            _selector.SelectCargo(MasterHolder.ItemMaster.GetItemId(guid), noRefund);
+            _selector.SelectCargo(payloadItemId, noRefund);
         }
 
         public bool IsDestroy { get; private set; }
@@ -4155,7 +4229,7 @@ namespace Game.Block.Blocks.OrbitalCargo
 }
 ```
 
-両テンプレートの部品一覧で `selector,` の次の行に足す（発射台は 89 → 90 行、拠点は 58 → 58 行＝同じ行に並べる）:
+両テンプレートの部品一覧で `selector,` の次の行に足す（発射台は 91 → 92 行、拠点は 60 → 60 行＝同じ行に並べる）:
 
 ```csharp
                 selector,
@@ -4836,7 +4910,7 @@ git commit -m "積荷を選んでいない状態と拒否をクライアント�
   - `public static IReadOnlyList<OrbitalCargoChoice> OrbitalCargoCatalog.ForCarried(IReadOnlyList<ItemId> carriedPayloadItemIds)`
   - `public sealed class OrbitalCargoDetail(ItemId? selectedCargoItemId, ItemId? currentFlightCargoItemId, IReadOnlyList<OrbitalCargoChoice> carriedChoices, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, double flightSeconds)`。`SelectedCargoItemId`・`CurrentFlightCargoItemId`・`SelectableChoices`・`FlightSeconds`・`IsSelected`・`TryGetHeadline(out OrbitalCargoChoice)`・`TryGetNextFlight(out OrbitalCargoChoice)`・`TryGetSelected(out OrbitalCargoChoice)`・`IsSelectedChoice(ItemId)`
   - `public readonly struct RequiredItemSlot(int slot, ItemId itemId, int count)`
-  - `OrbitalCargoSlotBinding.Materials(IReadOnlyList<RequiredItemSlot>)`・`Payloads(IReadOnlyList<RequiredItemSlot>, ItemId?, IReadOnlyList<SlotItem>)`・`Inlet(int, OrbitalCargoDetail)` → `IReadOnlyList<BoundItemSlot>`。`PadShiftBindings(IReadOnlyList<RequiredItemSlot>, IReadOnlyList<RequiredItemSlot>, ItemId?)`・`ElevatorShiftBindings(int, ItemId?)` → `IReadOnlyList<InletSlotBinding>`
+  - `OrbitalCargoSlotBinding.Materials(IReadOnlyList<RequiredItemSlot>)`・`Payloads(IReadOnlyList<RequiredItemSlot>, OrbitalCargoDetail, IReadOnlyList<SlotItem>)`・`Inlet(int, OrbitalCargoDetail)` → `IReadOnlyList<BoundItemSlot>`。`PadShiftBindings(IReadOnlyList<RequiredItemSlot>, IReadOnlyList<RequiredItemSlot>, OrbitalCargoDetail)`・`ElevatorShiftBindings(int, ItemId?)` → `IReadOnlyList<InletSlotBinding>`（「選んだ種類か」は `OrbitalCargoDetail.IsSelectedChoice` だけが判定する。判断 22）
   - `public interface IUnlockedOrbitalCargoSource { IReadOnlyReactiveProperty<IReadOnlyCollection<ItemId>> UnlockedPayloadItemIds { get; } }`。実装 `UnlockedOrbitalCargoSource : IUnlockedOrbitalCargoSource, IInitializable`
   - `OrbitalCargoSelectionModeState.OpenSelection()`・`RememberRequest(ItemId)`・`ResolveShowsSelection(OrbitalCargoDetail) → bool`（持ち主は B6 の `OrbitalCargoBodyPresenter`。View は持たない。前例 `MachineSectionPresenter` が `MachineSelectionModeState` を持つ形）
   - `OrbitalCargoLargePanelRule : IBlockInventoryLargePanelRule`
@@ -4963,14 +5037,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Cargo
         [Test]
         public void 未選択の発射台はShiftで何も受けない()
         {
-            CollectionAssert.IsEmpty(OrbitalCargoSlotBinding.PadShiftBindings(Materials, Payloads, null));
+            CollectionAssert.IsEmpty(OrbitalCargoSlotBinding.PadShiftBindings(Materials, Payloads, Pad(null, null)));
             CollectionAssert.IsEmpty(OrbitalCargoSlotBinding.ElevatorShiftBindings(0, null));
         }
 
         [Test]
         public void 選んだ発射台は資材と選んだ積荷の枠だけをShiftで受ける()
         {
-            var bindings = OrbitalCargoSlotBinding.PadShiftBindings(Materials, Payloads, ChipLv2);
+            var bindings = OrbitalCargoSlotBinding.PadShiftBindings(Materials, Payloads, Pad(ChipLv2, null));
             CollectionAssert.AreEqual(new[] { 0, 1, 3 }, bindings.Select(b => b.Slot).ToArray());
             CollectionAssert.AreEqual(new[] { ChipLv2 }, bindings[2].AcceptedItemIds.ToArray());
             var elevator = OrbitalCargoSlotBinding.ElevatorShiftBindings(0, ChipLv1).Single();
@@ -4981,7 +5055,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Cargo
         public void 積荷の枠は選んだ枠を透かしつきで先に並べ前の種類の残りを後ろに並べる()
         {
             var slots = new[] { Empty(), Empty(), Empty(), new SlotItem(ChipLv2, 0), new SlotItem(Cable, 300) };
-            var bound = OrbitalCargoSlotBinding.Payloads(Payloads, ChipLv1, slots);
+            var bound = OrbitalCargoSlotBinding.Payloads(Payloads, Pad(ChipLv1, null), slots);
             CollectionAssert.AreEqual(new[] { 2, 4 }, bound.Select(b => b.Index).ToArray(), "空の Lv2 の枠は出さず、ケーブルの残りは出す");
             var ghost = ((GhostedItemSlot)bound[0]).Ghost;
             Assert.AreEqual(ChipLv1, ghost.ItemId);
@@ -5080,16 +5154,16 @@ using Core.Master;
 namespace Client.Ui.State.BlockInventory.Special.Cargo
 {
     /// <summary>
-    /// 1 種類の積荷の 1 便。成果は出力のアイテムか、ケーブルプールへ足す本数のどちらか（積荷表と同じ）
-    /// One flight of one cargo kind; the outcome is either output items or cables added to the pool (same as the payload table)
+    /// 1 種類の積荷の 1 便。成果は出力のアイテムとケーブルプールへ足す本数で、サーバーは両者を別々に処理するので両方を持つこともある
+    /// One flight of one cargo kind; the outcome is output items and cables added to the pool, which the server applies independently, so a kind may have both
     /// </summary>
     public sealed class OrbitalCargoChoice
     {
         public ItemId PayloadItemId { get; }
         public int CountPerLaunch { get; }
         public IReadOnlyList<ItemAmount> ArrivalOutputs { get; }
-        // ケーブルは 1 便の数だけケーブルプールが増え、出力口へは何も出ない
-        // A cable flight adds its count to the cable pool and puts nothing in the output slots
+        // ケーブルプールへ足す種類なら 1 便の数だけ増える（ArrivalOutputs とは独立）
+        // A pool-adding kind raises the cable pool by its per-flight count (independent of ArrivalOutputs)
         public bool AddsToCablePool { get; }
 
         public OrbitalCargoChoice(ItemId payloadItemId, int countPerLaunch, IReadOnlyList<ItemAmount> arrivalOutputs, bool addsToCablePool)
@@ -5197,8 +5271,8 @@ namespace Client.Ui.State.BlockInventory.Special.Cargo
         public bool TryGetNextFlight(out OrbitalCargoChoice choice)
         {
             choice = null;
-            if (!CurrentFlightCargoItemId.HasValue || !SelectedCargoItemId.HasValue) return false;
-            if (CurrentFlightCargoItemId.Value == SelectedCargoItemId.Value) return false;
+            if (!CurrentFlightCargoItemId.HasValue || !IsSelected) return false;
+            if (IsSelectedChoice(CurrentFlightCargoItemId.Value)) return false;
             return TryGetCarried(SelectedCargoItemId, out choice);
         }
 
@@ -5288,27 +5362,20 @@ namespace Client.Ui.State.BlockInventory.Special.Cargo
 
         // 選んだ積荷の枠を透かしつきで先に、続けて中身の残る他の積荷の枠（選び直しで返しきれなかった前の種類）を並べる
         // The selected payload slot with its ghost first, then other payload slots still holding items (leftovers a reselection could not refund)
-        public static IReadOnlyList<BoundItemSlot> Payloads(IReadOnlyList<RequiredItemSlot> payloadSlots, ItemId? selected, IReadOnlyList<SlotItem> itemSlots)
+        public static IReadOnlyList<BoundItemSlot> Payloads(IReadOnlyList<RequiredItemSlot> payloadSlots, OrbitalCargoDetail cargo, IReadOnlyList<SlotItem> itemSlots)
         {
+            // 「選んだ種類か」の判定は OrbitalCargoDetail の 1 か所に寄せる
+            // The "is it the selected kind" check lives only in OrbitalCargoDetail
             var slots = new List<BoundItemSlot>();
             foreach (var required in payloadSlots)
             {
-                if (IsSelected(required)) slots.Add(Ghosted(required));
+                if (cargo.IsSelectedChoice(required.ItemId)) slots.Add(Ghosted(required));
             }
             foreach (var required in payloadSlots)
             {
-                if (!IsSelected(required) && OwnedItemCounts.IsOwnedSlot(itemSlots[required.Slot])) slots.Add(BoundItemSlot.WithoutGhost(required.Slot));
+                if (!cargo.IsSelectedChoice(required.ItemId) && OwnedItemCounts.IsOwnedSlot(itemSlots[required.Slot])) slots.Add(BoundItemSlot.WithoutGhost(required.Slot));
             }
             return slots;
-
-            #region Internal
-
-            bool IsSelected(RequiredItemSlot required)
-            {
-                return selected.HasValue && required.ItemId == selected.Value;
-            }
-
-            #endregion
         }
 
         // 拠点の入口は選んでいれば 1 便ぶんの透かし、未選択なら透かし無し（入口は 1 枠で、残りもこの枠に出る）
@@ -5321,14 +5388,14 @@ namespace Client.Ui.State.BlockInventory.Special.Cargo
 
         // 発射台の Shift: 未選択は空（拒否が確定）、選べば資材の枠と選んだ積荷の枠だけ
         // Launch pad Shift: empty when unselected (a confirmed refusal); after selecting, only material slots and the selected payload slot
-        public static IReadOnlyList<InletSlotBinding> PadShiftBindings(IReadOnlyList<RequiredItemSlot> materialSlots, IReadOnlyList<RequiredItemSlot> payloadSlots, ItemId? selected)
+        public static IReadOnlyList<InletSlotBinding> PadShiftBindings(IReadOnlyList<RequiredItemSlot> materialSlots, IReadOnlyList<RequiredItemSlot> payloadSlots, OrbitalCargoDetail cargo)
         {
             var bindings = new List<InletSlotBinding>();
-            if (!selected.HasValue) return bindings;
+            if (!cargo.IsSelected) return bindings;
             foreach (var required in materialSlots) bindings.Add(new InletSlotBinding(required.Slot, new[] { required.ItemId }));
             foreach (var required in payloadSlots)
             {
-                if (required.ItemId == selected.Value) bindings.Add(new InletSlotBinding(required.Slot, new[] { required.ItemId }));
+                if (cargo.IsSelectedChoice(required.ItemId)) bindings.Add(new InletSlotBinding(required.Slot, new[] { required.ItemId }));
             }
             return bindings;
         }
@@ -5837,7 +5904,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 
         public IReadOnlyList<BoundItemSlot> PayloadBoundSlots(IReadOnlyList<SlotItem> itemSlots)
         {
-            return OrbitalCargoSlotBinding.Payloads(PayloadSlots, Cargo.SelectedCargoItemId, itemSlots);
+            return OrbitalCargoSlotBinding.Payloads(PayloadSlots, Cargo, itemSlots);
         }
 
         public bool TryGetCommandButton(out RocketCommandButton button)
@@ -5979,7 +6046,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
                 // The list comes from the payload slots' kinds (the whole payload table); the current flight is the loaded rocket's cargo
                 var carried = OrbitalCargoCatalog.ForCarried(payloads.Select(payload => payload.ItemId).ToList());
                 var cargo = new OrbitalCargoDetail(state.SelectedCargoItemId, state.LoadedCargoItemId, carried, unlockedPayloadItemIds, rocketParam.BuildSeconds);
-                var inletBindings = OrbitalCargoSlotBinding.PadShiftBindings(materials, payloads, state.SelectedCargoItemId);
+                var inletBindings = OrbitalCargoSlotBinding.PadShiftBindings(materials, payloads, cargo);
                 return SpecialStateDetailReader.RocketLaunchPad(state, materials, payloads, inletBindings, layout.OutputSlotStart, cargo);
             }
 
@@ -6307,6 +6374,7 @@ using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.Screens.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Cargo;
+using Client.Ui.State.Items;
 using Client.Ui.State.Text;
 using Core.Master;
 using NUnit.Framework;
@@ -6343,6 +6411,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             Assert.IsNotNull(pane.Q<VisualElement>($"{Prefix}-cargo-row-2-output-0"));
             StringAssert.Contains("+1000", TextOf(pane, $"{Prefix}-cargo-row-3-name"));
             Assert.IsNull(pane.Q<VisualElement>($"{Prefix}-cargo-row-3-output-0"));
+        }
+
+        [Test]
+        public void プールへ足し出力も出す積荷の行は文に両方を書き成果の枠も並べる()
+        {
+            // サーバーはプールへの加算と出力を別々に処理するので、両方を持つ積荷もマスタに書ける（判断 21）
+            // The server applies the pool and the outputs independently, so the master may give a kind both (decision 21)
+            var both = new OrbitalCargoChoice(Cable, 1000, new[] { new ItemAmount(ComputeData, 7) }, true);
+            var (pane, _) = Render(new OrbitalCargoDetail(null, null, new[] { both }, new[] { Cable }, 120), true);
+            var text = TextOf(pane, $"{Prefix}-cargo-row-3-name");
+            StringAssert.Contains("+1000", text);
+            StringAssert.Contains(LoadContent().ItemName(ComputeData).Resolve(), text);
+            StringAssert.Contains("×7", text);
+            Assert.IsNotNull(pane.Q<VisualElement>($"{Prefix}-cargo-row-3-output-0"));
         }
 
         [Test]
@@ -6567,12 +6649,12 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
             return new UiText(LocalizationKeys.Ui.BlockInventory.OrbitalCargoNextFlight, new[] { new LocalizationTextParam("cargo", Row(choice, content).Resolve()) });
         }
 
-        // ケーブルは 1 便の効果だけ（プールの今の数は拠点の画面で見る。ADR 0106 の 1）。ほかは出力の品と数
-        // A cable shows only one flight's effect (the current pool is on the base screen; ADR 0106 §1); others list output items and counts
+        // プールへ足す種類は 1 便の効果を先に書き（今の数は拠点の画面で見る。ADR 0106 の 1）、続けて出力の品と数を書く。サーバーは両者を別々に処理するので両方あれば両方
+        // Pool-adding kinds state one flight's effect first (the current pool is on the base screen; ADR 0106 §1), then output items and counts; both when both, as the server applies them independently
         private static UiText Outcome(OrbitalCargoChoice choice, GameContentPresentation content)
         {
-            if (choice.AddsToCablePool) return new UiText(LocalizationKeys.Ui.BlockInventory.OrbitalCargoOutcomeCablePool, new[] { new LocalizationTextParam("count", Count(choice.CountPerLaunch)) });
-            var parts = new List<UiText>(choice.ArrivalOutputs.Count);
+            var parts = new List<UiText>(choice.ArrivalOutputs.Count + 1);
+            if (choice.AddsToCablePool) parts.Add(new UiText(LocalizationKeys.Ui.BlockInventory.OrbitalCargoOutcomeCablePool, new[] { new LocalizationTextParam("count", Count(choice.CountPerLaunch)) }));
             foreach (var output in choice.ArrivalOutputs)
             {
                 parts.Add(new UiText(LocalizationKeys.Ui.BlockInventory.OrbitalCargoOutcomeItem, new[]
@@ -6650,8 +6732,8 @@ namespace Client.Ui.Screens.BlockInventory.Special.Cargo
 
             #region Internal
 
-            // ケーブルは成果の品が無いので右は空（文が「ケーブルプール +1000」を語る）
-            // A cable has no output items, so the right side stays empty (the text says "Cable pool +1000")
+            // 右は出力の品を全部並べる。プールへ足すだけの種類は右が空で、文が「ケーブルプール +1000」を語る
+            // The right lists every output item; a pool-only kind leaves it empty and the text says "Cable pool +1000"
             IReadOnlyList<VisualElement> Outputs()
             {
                 var slots = new List<VisualElement>(choice.ArrivalOutputs.Count);
@@ -7112,6 +7194,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-row-1"));
             Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-material-slots"));
             Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-payload-slots"));
+            Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-output-slots"), "出力の枠も選ぶまで出さない（ユーザー裁定 2026-11-21・判断 23）");
         }
 
         [Test]
@@ -7307,6 +7390,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             Assert.IsNotNull(view.Q<VisualElement>("space-elevator-cargo-row-1"));
             Assert.IsNull(view.Q<VisualElement>("space-elevator-cargo-row-2"), "未解放の Lv2 は出さない");
             Assert.IsNull(view.Q<VisualElement>("space-elevator-connect"));
+            Assert.IsNull(view.Q<VisualElement>("space-elevator-output-grid"), "出口の枠も選ぶまで出さない（ユーザー裁定 2026-11-21・判断 23）");
+            Assert.IsNull(view.Q<VisualElement>("space-elevator-pool"), "接続済みでもケーブルプールの行は選ぶまで出さない（同上）");
             Assert.AreEqual(new UiText(SpaceElevatorLogic.StatusDisplay(SpaceElevatorBaseStatus.CargoNotSelected).LabelKey).Resolve(), TextOf(view, "space-elevator-cargo-status"));
         }
 
@@ -8453,6 +8538,7 @@ git commit -m "録画シナリオを積荷の選択に合わせて直し、選�
   - `public readonly int CleanRoomClassYield.ThresholdIndex`
   - `public CleanRoomClassYield(int thresholdIndex, float qualityMultiplier, float layerFailRate, float dieLossRate)`
   - `public static CleanRoomClassYield CleanRoomClassYield.FromThresholdIndex(int thresholdIndex)`
+  - `public static bool CleanRoomClassYield.TryGetPromotionTargetIndex(int currentIndex, out int targetIndex)`（今の行の1つ上の行の添字。Out〈行数〉からはいちばん下の行。いちばん良い行〈添字0〉だけ false。「いちばん良いクラスか」と「1つ上の行」はここ1か所で、改善の計算〈C3〉・台数の数え上げ〈C5〉・見通し〈C6〉が呼ぶ。`Game.Block` と `Game.CleanRoom` の両方が参照する `Game.Block.Interface` に置く）
 
 - [ ] **Step 1: テストを書く** — `Tests/UnitTest/Game/CleanRoomYield/CleanRoomClassYieldTest.cs`
 
@@ -8479,11 +8565,26 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             Assert.AreEqual(0.2f, classC.LayerFailRate, 1e-6f);
             Assert.AreEqual(0.3f, classC.DieLossRate, 1e-6f);
         }
+
+        [Test]
+        public void PromotionTargetIsTheRowAboveExceptAtTheBestRowTest()
+        {
+            // いちばん良い行（添字0）には昇格の目標が無い
+            // The best row (index 0) has no promotion target
+            Assert.IsFalse(CleanRoomClassYield.TryGetPromotionTargetIndex(0, out _));
+
+            // Out（行数4）の目標はいちばん下の D(3)、B(1) の目標は A(0)
+            // From Out (row count 4) the target is the lowest row D(3); from B(1) it is A(0)
+            Assert.IsTrue(CleanRoomClassYield.TryGetPromotionTargetIndex(4, out var fromOut));
+            Assert.AreEqual(3, fromOut);
+            Assert.IsTrue(CleanRoomClassYield.TryGetPromotionTargetIndex(1, out var fromB));
+            Assert.AreEqual(0, fromB);
+        }
     }
 }
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `FromThresholdIndex` の未定義で失敗する。
+- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `FromThresholdIndex`・`TryGetPromotionTargetIndex` の未定義で失敗する。
 
 - [ ] **Step 3: 実装を書く**
 
@@ -8546,6 +8647,14 @@ namespace Game.Block.Interface.Component
         {
             var row = MasterHolder.CleanRoomMaster.Thresholds[thresholdIndex];
             return new CleanRoomClassYield(thresholdIndex, row.QualityMultiplier, row.LayerFailRate, row.DieLossRate);
+        }
+
+        // 昇格の目標の行（今の行の1つ上。Out〈行数〉からはいちばん下の行）。いちばん良い行（添字0）には無い。「いちばん良いクラスか」の判定はここ1か所で、改善の計算・台数の数え上げ・見通しが呼ぶ
+        // The promotion target row (one above the current row; the lowest row from Out, the row count); none at the best row (index 0). The only best-class check, called by the improvement deltas, the unit count and the outlook
+        public static bool TryGetPromotionTargetIndex(int currentIndex, out int targetIndex)
+        {
+            targetIndex = currentIndex - 1;
+            return 0 < currentIndex;
         }
     }
 }
@@ -8845,12 +8954,15 @@ ADR 0105 §2（最終の内訳）と §4（改善の差分）の計算。式は�
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreview.cs`（全体 1-54。`Compute` を消す）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewReport.cs`（全体 1-21）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewComponent.cs`（1-48）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewResult.cs`（50-75 を消す）
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs`（43-65 の `CreateResponse`。報告の型を分けたのでこの Task でも写しを合わせる）
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/Save/CleanRoomJobSaveRoundTripTest.cs`（116・127-128）
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomFinalOddsTest.cs`（新）
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/CleanRoomYieldImprovementCalculatorTest.cs`（新）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs`（新）
 
 **Interfaces:**
-- Consumes: C1 `CleanRoomClassYield.ThresholdIndex`・`FromThresholdIndex`／C2 `CollectEffectiveModules`・`CanEquipOneMore`／既存 `MachineModuleEffect.HighestQualityModuleTier`／既存 `CleanRoomYieldPreview.Evaluate(CleanRoomRecipeRole, CleanRoomClassYield, MachineModuleEffect, CleanRoomYieldRollContext?, out List<IItemStack>)`・`MachineModuleEffect.Aggregate`・`DicingRecipeRole.Dicing.DiesPerWafer`
+- Consumes: C1 `CleanRoomClassYield.ThresholdIndex`・`FromThresholdIndex`・`TryGetPromotionTargetIndex`／C2 `CollectEffectiveModules`・`CanEquipOneMore`／既存 `MachineModuleEffect.HighestQualityModuleTier`／既存 `CleanRoomYieldPreview.Evaluate(CleanRoomRecipeRole, CleanRoomClassYield, MachineModuleEffect, CleanRoomYieldRollContext?, out List<IItemStack>)`・`MachineModuleEffect.Aggregate`・`DicingRecipeRole.Dicing.DiesPerWafer`
 - Produces（すべて namespace `Game.Block.Blocks.CleanRoom.Machine.YieldPreview`）:
   - `public abstract class CleanRoomFinalOdds { IReadOnlyList<double> LevelRates; double FailedRate; static CleanRoomFinalOdds Of(CleanRoomRecipeRole role, CleanRoomYieldPreviewResult rates) }`
   - `public sealed class LayerExposureFinalOdds : CleanRoomFinalOdds`（`LevelRates` は空）
@@ -8858,9 +8970,12 @@ ADR 0105 §2（最終の内訳）と §4（改善の差分）の計算。式は�
   - `public abstract class CleanRoomYieldImprovement { IReadOnlyList<double> LevelRateDeltas; double FailedRateDelta }`
   - `public sealed class CleanRoomRoomClassUpImprovement : CleanRoomYieldImprovement { string TargetClassName }`
   - `public sealed class CleanRoomAddQualityModuleImprovement : CleanRoomYieldImprovement { int ModuleTier }`
-  - `internal static class CleanRoomYieldImprovementCalculator { const double VisibleDeltaThreshold = 0.0005; static List<CleanRoomYieldImprovement> Compute(CleanRoomRecipeRole role, CleanRoomClassYield classYield, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped, IReadOnlyList<ModuleMasterElement> addableQualityModules) }`
-  - `internal static class CleanRoomQualityModuleCandidates { static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped) }`
-  - `CleanRoomYieldPreviewReport`: `static readonly NoRole`・`static readonly NotOperable`・`static WithNumbers(next, pendingDraw, odds, improvements)`・`bool TryGetNumbers(out CleanRoomFinalOdds odds, out IReadOnlyList<CleanRoomYieldImprovement> improvements)`・`Next`・`PendingDraw`（C7 で消す）
+  - `internal static class CleanRoomYieldImprovementCalculator { const double VisibleDeltaThreshold = 0.0005; static List<CleanRoomYieldImprovement> Compute(CleanRoomRecipeRole role, CleanRoomClassYield classYield, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped, CleanRoomFinalOdds current, IReadOnlyList<ModuleMasterElement> addableQualityModules) }`（`current` は部品が同じ装着から1回だけ出した今の最終の内訳）
+  - `internal static class CleanRoomQualityModuleCandidates { static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, int highestTier) }`（`highestTier` は部品が1回だけ集計した `MachineModuleEffect.HighestQualityModuleTier`）
+  - `public abstract class CleanRoomYieldPreviewReport`（ctor は `private protected`。種別は同じファイルの3つに閉じる）
+  - `public sealed class CleanRoomNoRoleYieldReport : CleanRoomYieldPreviewReport { static readonly Instance }`・`public sealed class CleanRoomNotOperableYieldReport : CleanRoomYieldPreviewReport { static readonly Instance }`
+  - `public sealed class CleanRoomOddsYieldReport : CleanRoomYieldPreviewReport { CleanRoomFinalOdds Odds; IReadOnlyList<CleanRoomYieldImprovement> Improvements; CleanRoomYieldPreviewResult Next; CleanRoomYieldPreviewResult PendingDraw }`・ctor `(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements, CleanRoomYieldPreviewResult next, CleanRoomYieldPreviewResult pendingDraw)`（`Next`・`PendingDraw` は C7 で消す）
+  - 消すもの: `NoRolePreview`・`NotOperablePreview`（`CleanRoomYieldPreviewResult.cs`）
 
 テストで使う値（テストマスタ。手計算は ADR 0104 の式 `ChipYieldFormula` を Python で写して出した。`CleanRoomRoleRatesTest` の既存値 0.531130/0.066226/0.402644 と一致することを確かめてから使った）:
 
@@ -8888,6 +9003,7 @@ ADR 0105 §2（最終の内訳）と §4（改善の差分）の計算。式は�
 ```csharp
 using System;
 using Core.Master;
+using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using NUnit.Framework;
 using Server.Boot;
@@ -8924,17 +9040,17 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         }
 
         [Test]
-        public void KindsWithoutNumbersOrMismatchedPairsThrowTest()
+        public void MismatchedRoleAndRatePairsThrowTest()
         {
             var (dicing, layer) = LoadRoles();
 
-            // 数字を持たない種別や、役割と率の組の食い違いは呼び出し側の約束違反
-            // Kinds without numbers and mismatched role/rate pairs break the caller's contract
-            Assert.Throws<ArgumentOutOfRangeException>(() => CleanRoomFinalOdds.Of(dicing, NotOperablePreview.Instance));
+            // 役割と率の組の食い違いは呼び出し側の約束違反
+            // Mismatched role/rate pairs break the caller's contract
+            Assert.Throws<ArgumentOutOfRangeException>(() => CleanRoomFinalOdds.Of(dicing, new LayerExposurePreview(0.308)));
             Assert.Throws<ArgumentOutOfRangeException>(() => CleanRoomFinalOdds.Of(layer, new DicingPreview(0.2, 1, new[] { 0.5, 0.3, 0d }, 0.2)));
         }
 
-        private static (Core.Master.CleanRoomRoles.CleanRoomRecipeRole dicing, Core.Master.CleanRoomRoles.CleanRoomRecipeRole layer) LoadRoles()
+        private static (CleanRoomRecipeRole dicing, CleanRoomRecipeRole layer) LoadRoles()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             Assert.IsTrue(MasterHolder.CleanRoomMaster.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, out var dicing));
@@ -9030,9 +9146,13 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             AssertDeltas(improvements[1], Array.Empty<double>(), -0.16);
         }
 
+        // 部品と同じく、今の最終の内訳を1回だけ出して計算へ渡す
+        // As the component does, derive the current final odds once and hand them to the calculator
         private static List<CleanRoomYieldImprovement> Compute(CleanRoomRecipeRole role, int thresholdIndex, List<MachineModuleEffect.EquippedModule> equipped, params ModuleMasterElement[] candidates)
         {
-            return CleanRoomYieldImprovementCalculator.Compute(role, CleanRoomClassYield.FromThresholdIndex(thresholdIndex), equipped, candidates);
+            var classYield = CleanRoomClassYield.FromThresholdIndex(thresholdIndex);
+            var current = CleanRoomFinalOdds.Of(role, CleanRoomYieldPreview.Evaluate(role, classYield, MachineModuleEffect.Aggregate(equipped), null, out _));
+            return CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, current, candidates);
         }
 
         private static List<MachineModuleEffect.EquippedModule> Loadout(ModuleMasterElement module, int count)
@@ -9080,6 +9200,7 @@ using Core.Master;
 using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Mooresmaster.Model.ItemsModule;
 using NUnit.Framework;
@@ -9133,7 +9254,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
         private static int[] CandidateTiers(IBlock machine)
         {
             var effectComponent = machine.GetComponent<MachineModuleEffectComponent>();
-            return CleanRoomQualityModuleCandidates.Select(effectComponent, effectComponent.CollectEffectiveModules()).Select(module => module.Tier).ToArray();
+            var highestTier = MachineModuleEffect.Aggregate(effectComponent.CollectEffectiveModules()).HighestQualityModuleTier;
+            return CleanRoomQualityModuleCandidates.Select(effectComponent, highestTier).Select(module => module.Tier).ToArray();
         }
 
         private static void SetModule(IBlock machine, int slot, ModuleMasterElement module, int count)
@@ -9310,11 +9432,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         // Half of the display step (0.1%); a row whose every delta is below this "changes nothing"
         public const double VisibleDeltaThreshold = 0.0005;
 
-        // 並びは 部屋クラスを1つ上げる → 候補の品質モジュールを1個ずつ足す（候補の順）
-        // Order: one class up, then one more of each candidate quality module in candidate order
-        public static List<CleanRoomYieldImprovement> Compute(CleanRoomRecipeRole role, CleanRoomClassYield classYield, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped, IReadOnlyList<ModuleMasterElement> addableQualityModules)
+        // 並びは 部屋クラスを1つ上げる → 候補の品質モジュールを1個ずつ足す（候補の順）。current は部品が同じ装着から1回だけ出した今の最終の内訳
+        // Order: one class up, then one more of each candidate quality module in candidate order; current is the final odds the component derived once from the same loadout
+        public static List<CleanRoomYieldImprovement> Compute(CleanRoomRecipeRole role, CleanRoomClassYield classYield, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped, CleanRoomFinalOdds current, IReadOnlyList<ModuleMasterElement> addableQualityModules)
         {
-            var current = OddsOf(classYield, equipped);
             var improvements = new List<CleanRoomYieldImprovement>();
             AddRoomClassUp();
             foreach (var module in addableQualityModules) AddQualityModule(module);
@@ -9324,14 +9445,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 
             void AddRoomClassUp()
             {
-                // いちばん良いクラス（添字0）より上は無い
-                // Nothing is above the best class (index 0)
-                if (classYield.ThresholdIndex == 0) return;
-                var targetIndex = classYield.ThresholdIndex - 1;
+                // いちばん良いクラス（添字0）より上は無い。判定は C1 の1か所に任せる
+                // Nothing is above the best class (index 0); the check is left to the single one from C1
+                if (!CleanRoomClassYield.TryGetPromotionTargetIndex(classYield.ThresholdIndex, out var targetIndex)) return;
                 var odds = OddsOf(CleanRoomClassYield.FromThresholdIndex(targetIndex), equipped);
-                if (!IsVisibleChange(odds)) return;
+                if (!TryGetVisibleDeltas(odds, out var levelDeltas, out var failedDelta)) return;
                 var className = MasterHolder.CleanRoomMaster.Thresholds[targetIndex].ClassName;
-                improvements.Add(new CleanRoomRoomClassUpImprovement(className, LevelDeltas(odds), odds.FailedRate - current.FailedRate));
+                improvements.Add(new CleanRoomRoomClassUpImprovement(className, levelDeltas, failedDelta));
             }
 
             void AddQualityModule(ModuleMasterElement module)
@@ -9340,35 +9460,31 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
                 // Run the same formula on a hypothetical loadout with exactly one more of the module
                 var withOneMore = new List<MachineModuleEffect.EquippedModule>(equipped) { new(module, 1) };
                 var odds = OddsOf(classYield, withOneMore);
-                if (!IsVisibleChange(odds)) return;
-                improvements.Add(new CleanRoomAddQualityModuleImprovement(module.Tier, LevelDeltas(odds), odds.FailedRate - current.FailedRate));
+                if (!TryGetVisibleDeltas(odds, out var levelDeltas, out var failedDelta)) return;
+                improvements.Add(new CleanRoomAddQualityModuleImprovement(module.Tier, levelDeltas, failedDelta));
             }
 
-            // 抽選と同じ役割分岐（Evaluate）を、抽選なしで回す
-            // Run the draw's own role dispatch (Evaluate) without rolling
+            // 仮の条件で、抽選と同じ役割分岐（Evaluate）を抽選なしで回す
+            // Run the draw's own role dispatch (Evaluate) without rolling, under the hypothetical condition
             CleanRoomFinalOdds OddsOf(CleanRoomClassYield yieldOfClass, IReadOnlyList<MachineModuleEffect.EquippedModule> modules)
             {
                 var rates = CleanRoomYieldPreview.Evaluate(role, yieldOfClass, MachineModuleEffect.Aggregate(modules), null, out _);
                 return CleanRoomFinalOdds.Of(role, rates);
             }
 
-            double[] LevelDeltas(CleanRoomFinalOdds odds)
+            // 今との差（Lv別と失敗）をここで1回だけ出し、見せるかの判定と行の組み立ての両方に同じ値を使う。失敗かLvのどれか1つでも表示で見える差があれば true
+            // Derive the deltas from now (per level and failure) once here and use the same values for both the visibility check and the row; true when the failure or any level differs by a visible amount
+            bool TryGetVisibleDeltas(CleanRoomFinalOdds odds, out double[] levelDeltas, out double failedDelta)
             {
-                var deltas = new double[odds.LevelRates.Count];
-                for (var i = 0; i < deltas.Length; i++) deltas[i] = odds.LevelRates[i] - current.LevelRates[i];
-                return deltas;
-            }
-
-            // 失敗かLvのどれか1つでも表示で見える差があれば並べる
-            // List the row when the failure or any level differs by a visible amount
-            bool IsVisibleChange(CleanRoomFinalOdds odds)
-            {
-                if (VisibleDeltaThreshold <= Math.Abs(odds.FailedRate - current.FailedRate)) return true;
-                for (var i = 0; i < odds.LevelRates.Count; i++)
+                failedDelta = odds.FailedRate - current.FailedRate;
+                levelDeltas = new double[odds.LevelRates.Count];
+                var isVisible = VisibleDeltaThreshold <= Math.Abs(failedDelta);
+                for (var i = 0; i < levelDeltas.Length; i++)
                 {
-                    if (VisibleDeltaThreshold <= Math.Abs(odds.LevelRates[i] - current.LevelRates[i])) return true;
+                    levelDeltas[i] = odds.LevelRates[i] - current.LevelRates[i];
+                    if (VisibleDeltaThreshold <= Math.Abs(levelDeltas[i])) isVisible = true;
                 }
-                return false;
+                return isVisible;
             }
 
             #endregion
@@ -9393,13 +9509,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
     /// </summary>
     internal static class CleanRoomQualityModuleCandidates
     {
-        public static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped)
+        // highestTier は部品が抽選と同じ集計（MachineModuleEffect.Aggregate）で1回だけ出した HighestQualityModuleTier。品質モジュールが無ければ0
+        // highestTier is the HighestQualityModuleTier the component took once from the draw's own aggregate (MachineModuleEffect.Aggregate); zero without quality modules
+        public static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, int highestTier)
         {
             var candidates = new List<ModuleMasterElement>();
-
-            // 刺さっている最高 tier は、抽選と同じ集計（MachineModuleEffect.Aggregate）が出す値を読む。品質モジュールが無ければ0
-            // The highest equipped tier is read from the draw's own aggregate (MachineModuleEffect.Aggregate); zero without quality modules
-            var highestTier = MachineModuleEffect.Aggregate(equipped).HighestQualityModuleTier;
 
             // 刺さっている最高 tier のものを1個増やす。上限か空きで入らなければ並べない
             // One more of the highest equipped tier, unless the limit or free space keeps it out
@@ -9475,7 +9589,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 }
 ```
 
-`YieldPreview/CleanRoomYieldPreviewReport.cs` 直す前: 1-21（`Next`・`PendingDraw` と2引数の ctor）。直した後（全体）:
+`YieldPreview/CleanRoomYieldPreviewReport.cs` 直す前: 1-21（`Next`・`PendingDraw` と2引数の ctor）。直した後（全体。種別ごとの型に分け、数字は `CleanRoomOddsYieldReport` だけが必ず持つ。「数字ありの種別なのに数字が null」の値は組み立てられない）:
 
 ```csharp
 using System.Collections.Generic;
@@ -9483,49 +9597,166 @@ using System.Collections.Generic;
 namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 {
     /// <summary>
-    ///     抽選の中身の照会結果。数字を持つ種別（EUV・ダイシング）だけが最終の内訳と改善の一覧を持つ
-    ///     Draw-detail query result; only kinds with numbers (EUV, dicing) carry final odds and the improvement list
+    ///     抽選の中身の照会結果。役割なし・部屋が稼働を許さない・数字あり の種別ごとの型のどれか1つだけになり、数字は「数字あり」の型だけが必ず持つ
+    ///     Draw-detail query result; always exactly one of the per-kind types (no role, room not operable, with odds), and only the with-odds type carries numbers, always
     /// </summary>
-    public sealed class CleanRoomYieldPreviewReport
+    public abstract class CleanRoomYieldPreviewReport
     {
-        // 数字を持たない種別（役割なし・部屋が稼働を許さない）の報告
-        // Reports for kinds without numbers (no role, room not operable)
-        public static readonly CleanRoomYieldPreviewReport NoRole = new(NoRolePreview.Instance, null, null, null);
-        public static readonly CleanRoomYieldPreviewReport NotOperable = new(NotOperablePreview.Instance, null, null, null);
+        // 種別はこのファイルの3つの型に閉じる
+        // The kinds are closed to the three types in this file
+        private protected CleanRoomYieldPreviewReport()
+        {
+        }
+    }
 
+    // 未選択か、役割表に無いレシピ
+    // No recipe selected, or a recipe outside the role tables
+    public sealed class CleanRoomNoRoleYieldReport : CleanRoomYieldPreviewReport
+    {
+        public static readonly CleanRoomNoRoleYieldReport Instance = new();
+
+        private CleanRoomNoRoleYieldReport()
+        {
+        }
+    }
+
+    // 部屋が稼働を許さない（未密閉・クラス不足）。停止理由は部屋の欄が出す
+    // The room does not allow operation (not enclosed or class out); the room section shows the halt reason
+    public sealed class CleanRoomNotOperableYieldReport : CleanRoomYieldPreviewReport
+    {
+        public static readonly CleanRoomNotOperableYieldReport Instance = new();
+
+        private CleanRoomNotOperableYieldReport()
+        {
+        }
+    }
+
+    // 数字あり（EUV・ダイシング）。今の条件での最終の内訳と、改善の一覧（並べる順）を必ず持つ
+    // With odds (EUV, dicing): always carries the final odds under current conditions and the improvement list in display order
+    public sealed class CleanRoomOddsYieldReport : CleanRoomYieldPreviewReport
+    {
+        public CleanRoomFinalOdds Odds { get; }
+        public IReadOnlyList<CleanRoomYieldImprovement> Improvements { get; }
+
+        // 古い wire 項目（Key 3〜6）のためだけに持つ次の抽選の率と、出力の空きを待つ確定済み抽選の率（無ければ null）。クライアントが移り終えたら C7 で外す
+        // The next draw's rates and a fixed draw's rates waiting for output space (null when none), kept only for the old wire keys 3-6 and removed in C7
         public CleanRoomYieldPreviewResult Next { get; }
-
-        // 出力の空きを待つ確定済み抽選が無ければ null（クライアントが移り終えたら C7 で外す）
-        // null when no fixed draw waits for output space (removed in C7 once the client has moved off it)
         public CleanRoomYieldPreviewResult PendingDraw { get; }
 
-        private readonly CleanRoomFinalOdds _odds;
-        private readonly IReadOnlyList<CleanRoomYieldImprovement> _improvements;
-
-        private CleanRoomYieldPreviewReport(CleanRoomYieldPreviewResult next, CleanRoomYieldPreviewResult pendingDraw, CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)
+        public CleanRoomOddsYieldReport(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements, CleanRoomYieldPreviewResult next, CleanRoomYieldPreviewResult pendingDraw)
         {
+            Odds = odds;
+            Improvements = improvements;
             Next = next;
             PendingDraw = pendingDraw;
-            _odds = odds;
-            _improvements = improvements;
-        }
-
-        public static CleanRoomYieldPreviewReport WithNumbers(CleanRoomYieldPreviewResult next, CleanRoomYieldPreviewResult pendingDraw, CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)
-        {
-            return new CleanRoomYieldPreviewReport(next, pendingDraw, odds, improvements);
-        }
-
-        // 数字を持つ種別だけ true。改善は並べる順
-        // True only for kinds with numbers; improvements come in display order
-        public bool TryGetNumbers(out CleanRoomFinalOdds odds, out IReadOnlyList<CleanRoomYieldImprovement> improvements)
-        {
-            odds = _odds;
-            improvements = _improvements;
-            return _odds != null;
         }
     }
 }
 ```
+
+`YieldPreview/CleanRoomYieldPreviewResult.cs` 50-75 を消す（`NoRolePreview`・`NotOperablePreview` と、その後の空行。役割なし・稼働できないの種別は上の報告の型が持つので、抽選の率の型には数字を持つ役割〈`LayerExposurePreview`・`DicingPreview`〉だけが残る。今の使い手は `CleanRoomYieldPreview.Compute`・`CleanRoomYieldPreviewComponent.cs:33`・`GetCleanRoomYieldInfoProtocol.cs:50,53`・`CleanRoomJobSaveRoundTripTest.cs:127-128` だけで、どれもこの Task で消すか上の型へ移す。クライアントと他の下書きには当たり無し。grep 済み）。直す前（50-75）:
+
+```csharp
+    // 未選択か、役割表に無いレシピ
+    // No recipe selected, or a recipe outside the role tables
+    public sealed class NoRolePreview : CleanRoomYieldPreviewResult
+    {
+        public static readonly NoRolePreview Instance = new();
+
+        private NoRolePreview()
+        {
+        }
+
+        internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NoRolePreview");
+    }
+
+    // 部屋が稼働を許さない（未密閉・クラス不足）。停止理由は A7 の状態が配る
+    // The room does not allow operation (not enclosed or class out); A7's state carries the halt reason
+    public sealed class NotOperablePreview : CleanRoomYieldPreviewResult
+    {
+        public static readonly NotOperablePreview Instance = new();
+
+        private NotOperablePreview()
+        {
+        }
+
+        internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NotOperablePreview");
+    }
+
+```
+
+直した後: 上の 26 行が無くなり、49 行目の空行の次が `public sealed class LayerExposurePreview : CleanRoomYieldPreviewResult` になる（`using System;` は `RestoreDrawRecord` の `InvalidOperationException` が使うので残す）。
+
+`Tests/CombinedTest/Core/CleanRoom/Machine/Save/CleanRoomJobSaveRoundTripTest.cs` 116 行のテスト名と 127-128 行（消した2つの型の保存拒否の確認。型ごと無くなるので確かめる相手が無い）:
+
+```csharp
+        // 116 直す前
+        public void DrawRecordRejectsUnknownKindsMissingRatesAndNonDrawStates()
+        // 116 直した後
+        public void DrawRecordRejectsUnknownKindsAndMissingRates()
+
+            // 127-128 直す前
+            Assert.Throws<InvalidOperationException>(() => NoRolePreview.Instance.CaptureDrawRecord());
+            Assert.Throws<InvalidOperationException>(() => NotOperablePreview.Instance.CaptureDrawRecord());
+            // 127-128 直した後: 2行とも消す
+```
+
+`Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs` の `GetResponse` の `#region Internal` の `CreateResponse`（43-65）を、報告の種別の型で1回だけ分岐する形に替える（この Task の終わりでもコンパイルが通るようにするため。応答の形は変えない。C4 でこのローカル関数ごと `CleanRoomYieldResponseFactory` へ移す）。直す前（43-65）:
+
+```csharp
+            // サーバーの役割ごとの結果を役割ごとの factory へ写す（クライアントは Game.Block の型を持たない）。出力待ちの確定済み抽選は同じ役割の値として添える
+            // Map each per-role server result onto its per-role factory, so the client never holds Game.Block types; a fixed draw waiting for output rides along as the same role's values
+            static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewReport report)
+            {
+                var pending = report.PendingDraw;
+                return report.Next switch
+                {
+                    NoRolePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
+                    // 稼働できない間は率の欄を出さない（停止理由は部屋欄が出す）ので、確定済みの率も載せない
+                    // While the machine cannot operate no rate section is shown (the room section shows the halt reason), so fixed rates are not carried either
+                    NotOperablePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
+                    LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, pending == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(pending).LayerFailRate)),
+                    DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(ToDicingMessagePack(dicing), pending == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(pending))),
+                    _ => throw new ArgumentOutOfRangeException(nameof(report.Next), report.Next.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
+                };
+
+                // 確定済み抽選は選択レシピのものだけが届くので役割は次の抽選と同じ。違えば部品の約束の破れなので止める
+                // Only the selected recipe's fixed draw arrives, so its role matches the next draw; a mismatch breaks the component's contract, so stop
+                T RequireSameRole<T>(CleanRoomYieldPreviewResult pendingDraw) where T : CleanRoomYieldPreviewResult
+                {
+                    return pendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={report.Next.GetType().Name} pending={pendingDraw.GetType().Name}");
+                }
+            }
+```
+
+直した後（43-64。役割の分岐は数字ありの報告の `Next` の型を property pattern で読む。前例 `Game.SaveLoad/Migration/Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs:87` の `is JValue { Type: ... } value`）:
+
+```csharp
+            // サーバーの報告の種別ごとの型を種別ごとの factory へ写す（クライアントは Game.Block の型を持たない）。出力待ちの確定済み抽選は同じ役割の値として添える
+            // Map each per-kind server report onto its per-kind factory, so the client never holds Game.Block types; a fixed draw waiting for output rides along as the same role's values
+            static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewReport report)
+            {
+                return report switch
+                {
+                    CleanRoomNoRoleYieldReport _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
+                    // 稼働できない間は率の欄を出さない（停止理由は部屋欄が出す）ので、確定済みの率も載せない
+                    // While the machine cannot operate no rate section is shown (the room section shows the halt reason), so fixed rates are not carried either
+                    CleanRoomNotOperableYieldReport _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
+                    CleanRoomOddsYieldReport { Next: LayerExposurePreview layerExposure } withOdds => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, withOdds.PendingDraw == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(withOdds).LayerFailRate)),
+                    CleanRoomOddsYieldReport { Next: DicingPreview dicing } withOdds => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(ToDicingMessagePack(dicing), withOdds.PendingDraw == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(withOdds))),
+                    _ => throw new ArgumentOutOfRangeException(nameof(report), report.GetType().Name, "未対応の抽選の中身の報告 / Unsupported draw-detail report"),
+                };
+
+                // 確定済み抽選は選択レシピのものだけが届くので役割は次の抽選と同じ。違えば部品の約束の破れなので止める
+                // Only the selected recipe's fixed draw arrives, so its role matches the next draw; a mismatch breaks the component's contract, so stop
+                static T RequireSameRole<T>(CleanRoomOddsYieldReport withOdds) where T : CleanRoomYieldPreviewResult
+                {
+                    return withOdds.PendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={withOdds.Next.GetType().Name} pending={withOdds.PendingDraw.GetType().Name}");
+                }
+            }
+```
+
+（ファイルは 159 → 158 行。`ToDicingMessagePack`〈67-72〉と using は今のまま。）
 
 `YieldPreview/CleanRoomYieldPreviewComponent.cs` 直す前: 1-48（上の「直す前」は今のファイルのとおり。`GetPreview` が `CleanRoomYieldPreview.Compute` を呼び、`new CleanRoomYieldPreviewReport(next, FindPendingDraw())` を返す）。直した後（全体）:
 
@@ -9563,20 +9794,22 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 
             // 未選択と役割表に無いレシピは数字を持たない
             // Unselected recipes and recipes outside the role tables carry no numbers
-            if (!_recipeSelector.TryGetSelectedRecipe(out var recipe)) return CleanRoomYieldPreviewReport.NoRole;
-            if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(recipe.MachineRecipeGuid, out var role)) return CleanRoomYieldPreviewReport.NoRole;
+            if (!_recipeSelector.TryGetSelectedRecipe(out var recipe)) return CleanRoomNoRoleYieldReport.Instance;
+            if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(recipe.MachineRecipeGuid, out var role)) return CleanRoomNoRoleYieldReport.Instance;
 
             // 部屋の効果は抽選と同じ持ち主（デコレータ）の読み口から読む。止まっている効果はクラス値を持たないので数字も改善も作らない
             // Read the room effect through the draw owner's (decorator's) read view; a halted effect has no class values, so neither numbers nor improvements are built
-            if (!_effectLookup.CurrentEffect.TryGetClassYield(out var classYield)) return CleanRoomYieldPreviewReport.NotOperable;
+            if (!_effectLookup.CurrentEffect.TryGetClassYield(out var classYield)) return CleanRoomNotOperableYieldReport.Instance;
 
-            // 次の抽選の率・最終の内訳・改善の差分を、同じ装着（上限で切った個数）から出す
-            // Derive the next draw's rates, final odds and improvement deltas from one loadout (counts clipped to the limit)
+            // 装着（上限で切った個数）の集計・次の抽選の率・今の最終の内訳はここで1回だけ出し、候補選びと改善の計算へ渡す
+            // Aggregate the loadout (counts clipped to the limit), the next draw's rates and the current final odds once here, and hand them to candidate selection and the improvement calculation
             var equipped = _moduleEffectComponent.CollectEffectiveModules();
-            var next = CleanRoomYieldPreview.Evaluate(role, classYield, MachineModuleEffect.Aggregate(equipped), null, out _);
-            var candidates = CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, equipped);
-            var improvements = CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, candidates);
-            return CleanRoomYieldPreviewReport.WithNumbers(next, FindPendingDraw(), CleanRoomFinalOdds.Of(role, next), improvements);
+            var moduleEffect = MachineModuleEffect.Aggregate(equipped);
+            var next = CleanRoomYieldPreview.Evaluate(role, classYield, moduleEffect, null, out _);
+            var current = CleanRoomFinalOdds.Of(role, next);
+            var candidates = CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, moduleEffect.HighestQualityModuleTier);
+            var improvements = CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, current, candidates);
+            return new CleanRoomOddsYieldReport(current, improvements, next, FindPendingDraw());
 
             #region Internal
 
@@ -9608,6 +9841,7 @@ uloop compile --project-path ./moorestech_client
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Game.CleanRoomYield.CleanRoomFinalOddsTest"
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Game.CleanRoomYield.CleanRoomYieldImprovementCalculatorTest"
 uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Core.CleanRoom.Machine.CleanRoomQualityModuleCandidatesTest"
+uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Core.CleanRoom.Machine.Save.CleanRoomJobSaveRoundTripTest"
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Server\.PacketTest\.CleanRoom\."
 ```
 
@@ -9616,7 +9850,7 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 - [ ] **Step 5: コミット**
 
 ```
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/ moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs.meta
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/ moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomYield/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomQualityModuleCandidatesTest.cs.meta moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/Save/CleanRoomJobSaveRoundTripTest.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs
 git commit -m "最終の内訳と失敗率の改善方法の差分をサーバーで計算する"
 ```
 
@@ -9628,10 +9862,10 @@ git commit -m "最終の内訳と失敗率の改善方法の差分をサーバ�
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldOddsMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldImprovementMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldResponseFactory.cs`
-- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs`（1-75 の GetResponse、94-155 の応答クラス）
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs`（C3 の後の 1-74 の GetResponse、93-154 の応答クラス）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldResponseReader.cs`（12-68）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldView.cs`（34-62）
-- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs`（1・129・137・144・148）
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs`（1・131・138・146・149。`MalformedResponsesAreUnreadableWithWarningTest` の中の4つの factory 呼び出し）
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/CleanRoomPendingDrawYieldInfoTest.cs`（1・114）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs`（1-14 の using・105）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs`（103・106・109-113）
@@ -9640,11 +9874,11 @@ git commit -m "最終の内訳と失敗率の改善方法の差分をサーバ�
 壊れる呼び出しは grep で全部挙げた（`CreateDicing(`・`CreateLayerExposure(`・`new CleanRoomYieldDicingView(`・`new CleanRoomYieldLayerExposureView(` を `moorestech_server/Assets/Scripts` と `moorestech_client/Assets/Scripts` で検索）。上の Modify の行がその全部。`moorestech_web/` は master で消えた未追跡の残りなので見ない。
 
 **Interfaces:**
-- Consumes: C3 `CleanRoomYieldPreviewReport.TryGetNumbers`・`LayerExposureFinalOdds`・`DicingFinalOdds.OutputCount`・`CleanRoomRoomClassUpImprovement.TargetClassName`・`CleanRoomAddQualityModuleImprovement.ModuleTier`
+- Consumes: C3 `CleanRoomNoRoleYieldReport`・`CleanRoomNotOperableYieldReport`・`CleanRoomOddsYieldReport.Odds`・`.Improvements`・`.Next`・`.PendingDraw`・`LayerExposureFinalOdds`・`DicingFinalOdds.OutputCount`・`CleanRoomRoomClassUpImprovement.TargetClassName`・`CleanRoomAddQualityModuleImprovement.ModuleTier`
 - Produces（クライアントが読む。namespace `Server.Protocol.PacketResponse`）:
   - `LayerExposureOddsMessagePack { [Key(0)] double FailedRate }`・ctor `(double failedRate)`
   - `DicingOddsMessagePack { [Key(0)] int OutputCount; [Key(1)] double[] LevelRates; [Key(2)] double FailedRate }`・ctor `(int outputCount, double[] levelRates, double failedRate)`
-  - `CleanRoomYieldImprovementMessagePack { [Key(0)] CleanRoomYieldImprovementKind Kind; [Key(1)] string TargetClassName; [Key(2)] int ModuleTier; [Key(3)] double[] LevelRateDeltas; [Key(4)] double FailedRateDelta }`、`static CreateRoomClassUp(string targetClassName, double[] levelRateDeltas, double failedRateDelta)`・`static CreateAddQualityModule(int moduleTier, double[] levelRateDeltas, double failedRateDelta)`・`bool TryGetRoomClassUp(out string targetClassName)`・`bool TryGetAddQualityModule(out int moduleTier)`・`static bool AreReadable(List<CleanRoomYieldImprovementMessagePack> improvements, int levelCount)`
+  - `CleanRoomYieldImprovementMessagePack { [Key(0)] CleanRoomYieldImprovementKind Kind; [Key(1)] string TargetClassName; [Key(2)] int ModuleTier; [Key(3)] double[] LevelRateDeltas; [Key(4)] double FailedRateDelta }`、`static CreateRoomClassUp(string targetClassName, double[] levelRateDeltas, double failedRateDelta)`・`static CreateAddQualityModule(int moduleTier, double[] levelRateDeltas, double failedRateDelta)`・`bool TryGetRoomClassUp(out string targetClassName)`・`bool TryGetAddQualityModule(out int moduleTier)`・`static bool AreReadable(IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements, int levelCount)`（改善の行の長さ・種別・クラス名の検査はここ1か所。`CleanRoomYieldResponseReader.Read` が呼ぶ。クライアントも同じものを呼べるように、ビューの `Improvements` と同じ `IReadOnlyList` を受ける）
   - `enum CleanRoomYieldImprovementKind { RoomClassUp, AddQualityModule }`
   - 応答 `ResponseCleanRoomYieldInfoMessagePack` に `[Key(7)] LayerExposureOddsMessagePack LayerExposureOdds`・`[Key(8)] DicingOddsMessagePack DicingOdds`・`[Key(9)] List<CleanRoomYieldImprovementMessagePack> Improvements`
   - `CreateLayerExposure(double layerFailRate, LayerExposureYieldMessagePack pendingDraw, LayerExposureOddsMessagePack odds, List<CleanRoomYieldImprovementMessagePack> improvements)`（C7 で `(odds, improvements)` になる）
@@ -9662,6 +9896,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.CleanRoom;
 using MessagePack;
@@ -9922,9 +10157,9 @@ namespace Server.Protocol.PacketResponse
             return Kind == CleanRoomYieldImprovementKind.AddQualityModule;
         }
 
-        // 外から届いた一覧が読めるか。各行の判別子・RoomClassUp のクラス名・Lv別差分の長さ（最終の内訳のLv数）を確かめる
-        // Whether a list from outside is readable: each row's discriminator, the RoomClassUp class name and the per-level delta length (the final odds' level count)
-        public static bool AreReadable(List<CleanRoomYieldImprovementMessagePack> improvements, int levelCount)
+        // 外から届いた一覧が読めるか。各行の判別子・RoomClassUp のクラス名・Lv別差分の長さ（最終の内訳のLv数）を確かめる。検査はここ1か所で、読み口が呼び、クライアントで要るときもこれを呼ぶ
+        // Whether a list from outside is readable: each row's discriminator, the RoomClassUp class name and the per-level delta length (the final odds' level count); the only copy of this check, called by the reader and by the client whenever it needs one
+        public static bool AreReadable(IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements, int levelCount)
         {
             if (improvements == null) return false;
             foreach (var improvement in improvements)
@@ -9948,10 +10183,11 @@ namespace Server.Protocol.PacketResponse
 }
 ```
 
-`CleanRoom/Yield/CleanRoomYieldResponseFactory.cs`（新。今の `GetCleanRoomYieldInfoProtocol.GetResponse` の `#region Internal` 43-73 をここへ移し、内訳と改善を足す）:
+`CleanRoom/Yield/CleanRoomYieldResponseFactory.cs`（新。C3 で直した `GetCleanRoomYieldInfoProtocol.GetResponse` の `#region Internal`〈43-71〉をここへ移し、内訳と改善を足す。分岐は報告の種別の型と最終の内訳の型を1つの switch で読む）:
 
 ```csharp
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Response = Server.Protocol.PacketResponse.GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack;
@@ -9966,40 +10202,35 @@ namespace Server.Protocol.PacketResponse
     {
         public static Response Create(CleanRoomYieldPreviewReport report)
         {
-            // 数字を持たない種別は判別子だけ。稼働できない間は率も改善も載せない（停止理由は部屋欄が出す）
-            // Kinds without numbers carry only the discriminator; while not operable neither rates nor improvements ride along (the room section shows the halt reason)
-            if (!report.TryGetNumbers(out var odds, out var improvements))
+            // 報告の種別と最終の内訳の型ごとに factory へ写す。数字を持たない種別は判別子だけ（停止理由は部屋欄が出す）
+            // Map each report kind and final-odds type onto its factory; kinds without numbers carry only the discriminator (the room section shows the halt reason)
+            return report switch
             {
-                return report.Next switch
-                {
-                    NoRolePreview _ => Response.CreateNoRole(),
-                    NotOperablePreview _ => Response.CreateNotOperable(),
-                    _ => throw new ArgumentOutOfRangeException(nameof(report.Next), report.Next.GetType().Name, "数字の無い報告の未対応の種別 / Unsupported kind of a report without numbers"),
-                };
-            }
-
-            // 最終の内訳の型ごとに factory へ写す。改善は並びのまま載せる
-            // Map each final-odds type onto its factory; improvements keep their order
-            var improvementPacks = improvements.Select(ToImprovementMessagePack).ToList();
-            var pending = report.PendingDraw;
-            return odds switch
-            {
-                LayerExposureFinalOdds layer => Response.CreateLayerExposure(RequireSameRole<LayerExposurePreview>(report.Next).LayerFailRate,
-                    pending == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(pending).LayerFailRate),
-                    new LayerExposureOddsMessagePack(layer.FailedRate), improvementPacks),
-                DicingFinalOdds dicing => Response.CreateDicing(ToDicingMessagePack(RequireSameRole<DicingPreview>(report.Next)),
-                    pending == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(pending)),
-                    new DicingOddsMessagePack(dicing.OutputCount, dicing.LevelRates.ToArray(), dicing.FailedRate), improvementPacks),
-                _ => throw new ArgumentOutOfRangeException(nameof(odds), odds.GetType().Name, "未対応の最終の内訳 / Unsupported final odds"),
+                CleanRoomNoRoleYieldReport _ => Response.CreateNoRole(),
+                CleanRoomNotOperableYieldReport _ => Response.CreateNotOperable(),
+                CleanRoomOddsYieldReport { Odds: LayerExposureFinalOdds layer } withOdds => Response.CreateLayerExposure(RequireSameRole<LayerExposurePreview>(withOdds, withOdds.Next).LayerFailRate,
+                    withOdds.PendingDraw == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(withOdds, withOdds.PendingDraw).LayerFailRate),
+                    new LayerExposureOddsMessagePack(layer.FailedRate), ToImprovementMessagePacks(withOdds.Improvements)),
+                CleanRoomOddsYieldReport { Odds: DicingFinalOdds dicing } withOdds => Response.CreateDicing(ToDicingMessagePack(RequireSameRole<DicingPreview>(withOdds, withOdds.Next)),
+                    withOdds.PendingDraw == null ? null : ToDicingMessagePack(RequireSameRole<DicingPreview>(withOdds, withOdds.PendingDraw)),
+                    new DicingOddsMessagePack(dicing.OutputCount, dicing.LevelRates.ToArray(), dicing.FailedRate), ToImprovementMessagePacks(withOdds.Improvements)),
+                _ => throw new ArgumentOutOfRangeException(nameof(report), report.GetType().Name, "未対応の抽選の中身の報告 / Unsupported draw-detail report"),
             };
 
             #region Internal
 
-            // 次の抽選と確定済み抽選は最終の内訳と同じ役割のはず。違えば部品の約束の破れなので止める
-            // The next and the fixed draw share the final odds' role; a mismatch breaks the component's contract, so stop
-            T RequireSameRole<T>(CleanRoomYieldPreviewResult result) where T : CleanRoomYieldPreviewResult
+            // 次の抽選と確定済み抽選は最終の内訳と同じ役割のはず（C7 で外す古い項目のためだけの確認）。違えば部品の約束の破れなので止める
+            // The next and the fixed draw share the final odds' role (checked only for the old fields removed in C7); a mismatch breaks the component's contract, so stop
+            static T RequireSameRole<T>(CleanRoomOddsYieldReport withOdds, CleanRoomYieldPreviewResult result) where T : CleanRoomYieldPreviewResult
             {
-                return result as T ?? throw new InvalidOperationException($"抽選の中身の役割が最終の内訳と違います odds={odds.GetType().Name} result={result.GetType().Name}");
+                return result as T ?? throw new InvalidOperationException($"抽選の中身の役割が最終の内訳と違います odds={withOdds.Odds.GetType().Name} result={result.GetType().Name}");
+            }
+
+            // 改善は並びのまま載せる
+            // Improvements keep their order
+            static List<CleanRoomYieldImprovementMessagePack> ToImprovementMessagePacks(IReadOnlyList<CleanRoomYieldImprovement> improvements)
+            {
+                return improvements.Select(ToImprovementMessagePack).ToList();
             }
 
             static DicingYieldMessagePack ToDicingMessagePack(DicingPreview dicing)
@@ -10024,7 +10255,7 @@ namespace Server.Protocol.PacketResponse
 }
 ```
 
-`GetCleanRoomYieldInfoProtocol.cs` の `GetResponse`（23-75）直した後（`#region Internal` は factory へ移したので消す。using から `System.Linq` を外す）:
+`GetCleanRoomYieldInfoProtocol.cs` の `GetResponse`（C3 の後の 23-74）直した後（`#region Internal` は factory へ移したので消す。using から `System.Linq` を外す）:
 
 ```csharp
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -10047,7 +10278,7 @@ namespace Server.Protocol.PacketResponse
         }
 ```
 
-同じファイルの応答クラス（94-155）直した後（Key 2〜6 と BlockNotFound〜NotOperable の factory・TryReadView は今のまま。足すのは Key 7〜9 と2つの factory の引数）:
+同じファイルの応答クラス（C3 の後の 93-154）直した後（Key 2〜6 と BlockNotFound〜NotOperable の factory・TryReadView は今のまま。足すのは Key 7〜9 と2つの factory の引数）:
 
 ```csharp
         [MessagePackObject]
@@ -10246,27 +10477,27 @@ namespace Server.Protocol.PacketResponse
 
 壊れる呼び出しの直し（値は意味の通る組にする。最終の内訳は「損失＋良品内訳」から手で出した値）:
 
-`GetCleanRoomYieldInfoProtocolTest.cs`（先頭に `using System.Collections.Generic;` を足す）:
+`GetCleanRoomYieldInfoProtocolTest.cs`（先頭に `using System.Collections.Generic;` を足す。下の行番号は足す前の今のファイルの行）:
 
 ```csharp
-            // 129 直す前
+            // 131 直す前
             var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1, null);
-            // 129 直した後
+            // 131 直した後
             var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1, null, new LayerExposureOddsMessagePack(0.1), new List<CleanRoomYieldImprovementMessagePack>());
 
-            // 137 直す前
+            // 138 直す前
             var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2), null);
-            // 137 直した後
+            // 138 直した後
             var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2), null, new DicingOddsMessagePack(300, new[] { 0.63, 0.09, 0d }, 0.28), new List<CleanRoomYieldImprovementMessagePack>());
 
-            // 144 直す前
+            // 146 直す前
             var noLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, null, 0.2), null);
-            // 144 直した後
+            // 146 直した後
             var noLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, null, 0.2), null, new DicingOddsMessagePack(300, new[] { 0.63, 0.09, 0d }, 0.28), new List<CleanRoomYieldImprovementMessagePack>());
 
-            // 148 直す前
+            // 149 直す前
             var pendingNoLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2), new DicingYieldMessagePack(0.1, 1, null, 0.2));
-            // 148 直した後
+            // 149 直した後
             var pendingNoLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2), new DicingYieldMessagePack(0.1, 1, null, 0.2), new DicingOddsMessagePack(300, new[] { 0.63, 0.09, 0d }, 0.28), new List<CleanRoomYieldImprovementMessagePack>());
 ```
 
@@ -10344,7 +10575,7 @@ ADR 0105 §5: 台数はクラス判定と同じ式（`CleanRoomPurityLogic`）�
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs`（51 の後に足す）
 
 **Interfaces:**
-- Consumes: 既存 `CleanRoomPurityLogic.AirChangeRate(double, int)`・`DecideThresholdIndex(int, double, IReadOnlyList<double>)`
+- Consumes: 既存 `CleanRoomPurityLogic.AirChangeRate(double, int)`・`DecideThresholdIndex(int, double, IReadOnlyList<double>)`、C1 `CleanRoomClassYield.TryGetPromotionTargetIndex(int, out int)`
 - Produces:
   - `public static bool CleanRoomPurityLogic.TryCountUnitsToPromote(int currentIndex, double removalVolumePerSecond, int volume, double unitRemovalVolumePerSecond, int unitCellCount, IReadOnlyList<double> requiredAirChangeRates, out int units)`
   - `double ICleanRoomAirFilter.RatedRemovalVolumePerSecond { get; }`
@@ -10393,7 +10624,7 @@ ADR 0105 §5: 台数はクラス判定と同じ式（`CleanRoomPurityLogic`）�
 
 - [ ] **Step 3: 実装を書く**
 
-`CleanRoomPurityLogic.cs` の `DecideThresholdIndex`（22-36）の後に足す（ファイル先頭に `using System;` を足す）:
+`CleanRoomPurityLogic.cs` の `DecideThresholdIndex`（22-36）の後に足す（ファイル先頭に `using System;` と `using Game.Block.Interface.Component;` を足す。`Game.CleanRoom.asmdef` は `Game.Block.Interface` を参照済み。38 → 63 行）:
 
 ```csharp
         // 今の除去量に「新しく置く1台」を1台ずつ足し、一つ上の行へ昇格する最小台数を数える。置いた台の分だけ空きセルが減り、空きが尽きても届かなければ false
@@ -10405,8 +10636,7 @@ ADR 0105 §5: 台数はクラス判定と同じ式（`CleanRoomPurityLogic`）�
             if (unitCellCount <= 0) throw new ArgumentOutOfRangeException(nameof(unitCellCount), unitCellCount, "清浄機は1セル以上を占める / A purifier occupies at least one cell");
 
             units = 0;
-            if (currentIndex <= 0) return false;
-            var targetIndex = currentIndex - 1;
+            if (!CleanRoomClassYield.TryGetPromotionTargetIndex(currentIndex, out var targetIndex)) return false;
 
             // 昇格の判定はクラス判定と同じ関数（昇格倍率込み）に任せる
             // Leave the promotion decision to the class decision's own function, margin included
@@ -10464,7 +10694,7 @@ git commit -m "次のクラスまでに足す清浄機の台数を数える純�
 
 ### Task C6: 部屋の要約に清浄機の台数のまとめと次のクラスまでの台数を載せる（`va:getCleanRoomInfo`）
 
-ADR 0105 §5。経路は今の部屋の取得（`GetCleanRoomInfoProtocol` → `CleanRoomInfoQuery`）のまま、部屋の要約に4項目（台数・止まっている台数・次のクラス・照会した清浄機自身の状態）を**足す**。台数は「照会した清浄機と同じ種類を1台ずつ置く」として数える。清浄機の画面の「この清浄機: 電力 100% / 残量 50%」の行（判断 22）は、部屋の全清浄機の一覧（`AirFilters`）から探さず、照会した清浄機自身の状態1つで運ぶ。機械から引いた照会では「清浄機ではない」種別になる。一覧は C7 で外す。機械から引いた照会は台数を数えない（機械の画面は部屋クラスの1行だけ。裁定 `2026-11-20-機械の画面の部屋の情報は1行にし清浄機の一覧は機械から外す`）。
+ADR 0105 §5。経路は今の部屋の取得（`GetCleanRoomInfoProtocol` → `CleanRoomInfoQuery`）のまま、部屋の要約に4項目（台数・止まっている台数・次のクラス・照会した清浄機自身の状態）を**足す**。台数は「照会した清浄機と同じ種類を1台ずつ置く」として数える。清浄機の画面の「この清浄機: 電力 100% / 残量 50%」の行（判断 22）は、部屋の全清浄機の一覧（`AirFilters`）から探さず、照会した清浄機自身の状態1つで運ぶ。機械から引いた照会では「清浄機ではない」種別になる。一覧は C7 で外す。機械から引いた照会は台数を数えない（機械の画面は部屋クラスの1行だけ。裁定 `2026-11-20-機械の画面の部屋の情報は1行にし清浄機の一覧は機械から外す`）。サーバーの中では「機械から聞いたか・清浄機から聞いたか」を照会の出どころ `CleanRoomQueriedFrom` の1つの区別で持ち、清浄機から聞いたときだけ自身の状態と見通しを必ず持つ（判断 25）。wire の形は判断 26 のとおり「種別＋欄」のまま。
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomNextClassOutlook.cs`
@@ -10476,18 +10706,19 @@ ADR 0105 §5。経路は今の部屋の取得（`GetCleanRoomInfoProtocol` → `
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomSummaryMessagePack.cs`（13-64）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoMessagePackFactory.cs`（29-43）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomInfoProtocol.cs`（126-141）
-- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs`（34-41・97-105）
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs`（37 の後・97・105 の後・112 の後に `MismatchedQuerySourceKindsAreUnreadableWithWarningTest` を足す）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/ContextViewConversionTest.cs`（29）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomNextClassQueryTest.cs`（新）
 
 壊れる呼び出し（`CleanRoomSummaryMessagePack.CreateClassified(`・`CreateOut(` を両 Scripts で grep）: `CleanRoomInfoMessagePackFactory.cs:39-40`・`GetCleanRoomInfoProtocolTest.cs:97`・`ContextViewConversionTest.cs:29`。上の Modify が全部。
 
 **Interfaces:**
-- Consumes: C5 `TryCountUnitsToPromote`・`ICleanRoomAirFilter.RatedRemovalVolumePerSecond`・`CleanRoomDatastore.RequiredAirChangeRates`
+- Consumes: C1 `CleanRoomClassYield.TryGetPromotionTargetIndex`、C5 `TryCountUnitsToPromote`・`ICleanRoomAirFilter.RatedRemovalVolumePerSecond`・`CleanRoomDatastore.RequiredAirChangeRates`
 - Produces（サーバー。namespace `Game.CleanRoom.Info`）:
-  - `public abstract class CleanRoomNextClassOutlook { static CleanRoomNextClassOutlook Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates) }`
-  - `CleanRoomAtBestClassOutlook.Instance`・`CleanRoomUnitsToNextClassOutlook { string NextClassName; int Units }`・`CleanRoomNextClassUnreachableOutlook { string NextClassName }`・`CleanRoomNextClassNotCountedOutlook.Instance`
-  - `CleanRoomRoomSummary.AirFilterCount`・`.StoppedAirFilterCount`・`.NextClass`・`bool TryGetQueriedAirFilterStatus(out CleanRoomAirFilterStatus status)`（清浄機から引いた照会のときだけ true）、`static Create(CleanRoom room, IWorldBlockDatastore world, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)`
+  - `public abstract class CleanRoomNextClassOutlook { static CleanRoomNextClassOutlook Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, ICleanRoomAirFilter queriedFilter, IReadOnlyList<double> requiredAirChangeRates) }`（清浄機から引いた照会のときだけ呼ばれる。清浄機かどうかは調べない）
+  - `CleanRoomAtBestClassOutlook.Instance`・`CleanRoomUnitsToNextClassOutlook { string NextClassName; int Units }`・`CleanRoomNextClassUnreachableOutlook { string NextClassName }`（種別は3つ。機械からの照会は見通しを持たないので種別に入れない）
+  - `public abstract class CleanRoomQueriedFrom { static CleanRoomQueriedFrom Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates) }`（照会の出どころ。`TryGetComponent<ICleanRoomAirFilter>` はここ1か所）・`CleanRoomQueriedFromNonAirFilter.Instance`・`CleanRoomQueriedFromAirFilter { CleanRoomAirFilterStatus Status; CleanRoomNextClassOutlook NextClass }`（清浄機から引いたときだけの型で、自身の状態と見通しを必ず持つ）。置き場は `CleanRoomRoomSummary.cs` の中
+  - `CleanRoomRoomSummary.AirFilterCount`・`.StoppedAirFilterCount`・`.QueriedFrom`、`static Create(CleanRoom room, IWorldBlockDatastore world, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)`
   - `public static double CleanRoomAirFilterCollector.SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)`
 - Produces（クライアントが読む。namespace `Server.Protocol.PacketResponse`）:
   - `CleanRoomNextClassMessagePack { [Key(0)] CleanRoomNextClassResponseKind Kind; [Key(1)] string NextClassName; [Key(2)] int Units }`、`static CreateAtBestClass()`・`CreateUnitsToNextClass(string nextClassName, int units)`・`CreateUnreachable(string nextClassName)`・`CreateNotCounted()`、`bool TryGetUnitsToNextClass(out string nextClassName, out int units)`（台数を出せるときだけ true）・`bool IsReadable()`
@@ -10536,16 +10767,16 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             var room = AsEnclosed(new CleanRoomInfoQuery(datastore, ServerContext.WorldBlockDatastore).Query(filter)).Room;
             Assert.AreEqual(1, room.AirFilterCount);
             Assert.AreEqual(1, room.StoppedAirFilterCount);
-            Assert.IsInstanceOf<CleanRoomUnitsToNextClassOutlook>(room.NextClass);
-            var units = (CleanRoomUnitsToNextClassOutlook)room.NextClass;
+            var queried = AsQueriedFromAirFilter(room);
+            Assert.IsInstanceOf<CleanRoomUnitsToNextClassOutlook>(queried.NextClass);
+            var units = (CleanRoomUnitsToNextClassOutlook)queried.NextClass;
             Assert.AreEqual("D", units.NextClassName);
             Assert.AreEqual(1, units.Units);
 
-            // 照会した清浄機自身の状態（電力0・フィルター満タン）も要約に載る
-            // The queried purifier's own state (zero power, fresh filter) rides in the summary too
-            Assert.IsTrue(room.TryGetQueriedAirFilterStatus(out var ownStatus));
-            Assert.AreEqual(0d, ownStatus.PowerRatio);
-            Assert.AreEqual(1d, ownStatus.CurrentFilterRemainingRatio, 1e-9);
+            // 照会した清浄機自身の状態（電力0・フィルター満タン）は、清浄機から引いた照会の型が必ず持つ
+            // The queried purifier's own state (zero power, fresh filter) is always carried by the from-a-purifier type
+            Assert.AreEqual(0d, queried.Status.PowerRatio);
+            Assert.AreEqual(1d, queried.Status.CurrentFilterRemainingRatio, 1e-9);
         }
 
         [Test]
@@ -10559,8 +10790,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // 機械の画面は部屋クラスの1行だけなので、機械から引いた照会は台数を数えない（台数のまとめは同じ部屋の値）
             // The machine screen shows only the class line, so a query from a machine does not count units (the purifier totals are the same room's)
             var room = AsEnclosed(new CleanRoomInfoQuery(datastore, ServerContext.WorldBlockDatastore).Query(machine)).Room;
-            Assert.IsInstanceOf<CleanRoomNextClassNotCountedOutlook>(room.NextClass);
-            Assert.IsFalse(room.TryGetQueriedAirFilterStatus(out _));
+            Assert.IsInstanceOf<CleanRoomQueriedFromNonAirFilter>(room.QueriedFrom);
             Assert.AreEqual(1, room.AirFilterCount);
         }
 
@@ -10585,7 +10815,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // クラスAには次のクラスが無く、満電の清浄機は止まっていない
             // Class A has no next class, and the fully powered purifier is not stopped
             Assert.IsInstanceOf<CleanRoomClassifiedStanding>(room.Class, "room never reached class A within 3000 ticks");
-            Assert.IsInstanceOf<CleanRoomAtBestClassOutlook>(room.NextClass);
+            Assert.IsInstanceOf<CleanRoomAtBestClassOutlook>(AsQueriedFromAirFilter(room).NextClass);
             Assert.AreEqual(0, room.StoppedAirFilterCount);
         }
 
@@ -10593,6 +10823,12 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
         {
             Assert.IsInstanceOf<CleanRoomEnclosedInfo>(info, $"expected an enclosed room but got {info.GetType().Name}");
             return (CleanRoomEnclosedInfo)info;
+        }
+
+        private static CleanRoomQueriedFromAirFilter AsQueriedFromAirFilter(CleanRoomRoomSummary room)
+        {
+            Assert.IsInstanceOf<CleanRoomQueriedFromAirFilter>(room.QueriedFrom, $"expected a query from a purifier but got {room.QueriedFrom.GetType().Name}");
+            return (CleanRoomQueriedFromAirFilter)room.QueriedFrom;
         }
     }
 }
@@ -10643,11 +10879,47 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             Assert.AreEqual(BlockInfoReadResult.Unreadable, response.TryReadView(out _));
 ```
 
-- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `AirFilterCount`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`TryGetQueriedAirFilterStatus` の未定義で失敗する。
+同じファイルの `UnknownKindsAndMissingNestedElementsAreRejectedTest` の閉じ括弧（今のファイルの 112 行。上の2つの足しの後は 142 行）の後に、空行と次のテストを足す（ファイルは 127 → 189 行）:
+
+```csharp
+        [Test]
+        public void MismatchedQuerySourceKindsAreUnreadableWithWarningTest()
+        {
+            // 次のクラスが NotCounted なのに自身の状態がある応答と、台数があるのに NotAirFilter の応答は、2つの種別が食い違った壊れた wire なので警告して読めない
+            // A response with NotCounted but its own state, or with units but NotAirFilter, is broken wire whose two kinds disagree, so it warns and is unreadable
+            var uncountedWithStatus = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            ExpectDisagreementWarnings();
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(uncountedWithStatus).TryReadView(out _));
+            var countedWithoutStatus = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            ExpectDisagreementWarnings();
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(countedWithoutStatus).TryReadView(out _));
+
+            // そろった組（機械からの照会・清浄機からの照会）はどちらも読める
+            // Agreeing pairs (queried from a machine, queried from a purifier) are both readable
+            var fromMachine = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            Assert.AreEqual(BlockInfoReadResult.Success, GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(fromMachine).TryReadView(out _));
+            var fromPurifier = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            Assert.AreEqual(BlockInfoReadResult.Success, GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(fromPurifier).TryReadView(out _));
+
+            #region Internal
+
+            // 食い違いの警告と、部屋が読めない警告の2つが開発者向けのログに出る
+            // Both the disagreement warning and the unreadable-room warning reach the developer log
+            static void ExpectDisagreementWarnings()
+            {
+                LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Room query-source kinds disagree"));
+                LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Enclosed response has a missing or broken room"));
+            }
+
+            #endregion
+        }
+```
+
+- [ ] **Step 2: 赤を確かめる** — `uloop compile --project-path ./moorestech_client` が `AirFilterCount`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`CleanRoomQueriedFromAirFilter`・`QueriedFrom` の未定義で失敗する。
 
 - [ ] **Step 3: 実装を書く**
 
-`Game.CleanRoom/Info/CleanRoomNextClassOutlook.cs`（新）:
+`Game.CleanRoom/Info/CleanRoomNextClassOutlook.cs`（新。清浄機から引いた照会のときだけ作る。清浄機かどうかは `CleanRoomQueriedFrom.Of` が1か所で調べ、ここでは調べない）:
 
 ```csharp
 using System.Collections.Generic;
@@ -10661,8 +10933,8 @@ using Game.CleanRoom.Util;
 namespace Game.CleanRoom.Info
 {
     /// <summary>
-    ///     清浄機の画面に出す次のクラスまでの見通し。いちばん良いクラス／あと N 台／空きを埋めても届かない／清浄機以外からの照会 のどれか1つ
-    ///     Outlook to the next class for the purifier screen: exactly one of best class, N more units, unreachable even when filled, or queried from a non-purifier
+    ///     清浄機の画面に出す次のクラスまでの見通し。いちばん良いクラス／あと N 台／空きを埋めても届かない のどれか1つ
+    ///     Outlook to the next class for the purifier screen: exactly one of best class, N more units, or unreachable even when filled
     /// </summary>
     public abstract class CleanRoomNextClassOutlook
     {
@@ -10674,16 +10946,12 @@ namespace Game.CleanRoom.Info
 
         // 今の稼働状態のまま（止まっている台は除去0）、照会した清浄機と同じ種類を電力100%・フィルターありで1台ずつ足して数える
         // Count from the current operating state (stopped units remove nothing), adding units of the queried purifier's kind at full power with a filter
-        public static CleanRoomNextClassOutlook Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)
+        public static CleanRoomNextClassOutlook Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, ICleanRoomAirFilter queriedFilter, IReadOnlyList<double> requiredAirChangeRates)
         {
-            // 台数は清浄機の画面だけが出す。機械から引いた照会では数えない
-            // Only the purifier screen shows units; a query from a machine does not count them
-            if (!queriedBlock.TryGetComponent<ICleanRoomAirFilter>(out var queriedFilter)) return CleanRoomNextClassNotCountedOutlook.Instance;
-            if (room.ThresholdIndex == 0) return CleanRoomAtBestClassOutlook.Instance;
-
-            // 次のクラスは今の行の1つ上。Out（行数）のときはいちばん下の行
-            // The next class is the row above the current one; from Out (the row count) it is the lowest row
-            var nextClassName = MasterHolder.CleanRoomMaster.Thresholds[room.ThresholdIndex - 1].ClassName;
+            // いちばん良いクラスかと次のクラスの行は、台数の数え上げと同じ口で決める（Out〈行数〉のときはいちばん下の行）
+            // The best-class check and the next class row come from the same entry point as the unit count (the lowest row from Out, the row count)
+            if (!CleanRoomClassYield.TryGetPromotionTargetIndex(room.ThresholdIndex, out var nextClassIndex)) return CleanRoomAtBestClassOutlook.Instance;
+            var nextClassName = MasterHolder.CleanRoomMaster.Thresholds[nextClassIndex].ClassName;
             var removal = CleanRoomAirFilterCollector.SumRemovalVolume(entries);
             var unitCellCount = queriedBlock.BlockPositionInfo.EnumeratePositions().Count();
             if (!CleanRoomPurityLogic.TryCountUnitsToPromote(room.ThresholdIndex, removal, room.Volume, queriedFilter.RatedRemovalVolumePerSecond, unitCellCount, requiredAirChangeRates, out var units))
@@ -10728,17 +10996,6 @@ namespace Game.CleanRoom.Info
             NextClassName = nextClassName;
         }
     }
-
-    // 清浄機以外（室内の機械）から引いた照会。台数を数えない
-    // Queried from something other than a purifier (an interior machine); units are not counted
-    public sealed class CleanRoomNextClassNotCountedOutlook : CleanRoomNextClassOutlook
-    {
-        public static readonly CleanRoomNextClassNotCountedOutlook Instance = new();
-
-        private CleanRoomNextClassNotCountedOutlook()
-        {
-        }
-    }
 }
 ```
 
@@ -10753,7 +11010,7 @@ namespace Game.CleanRoom.Info
         public static double SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)
 ```
 
-`CleanRoomRoomSummary.cs` 直した後（全体）:
+`CleanRoomRoomSummary.cs` 直した後（全体。照会の出どころ `CleanRoomQueriedFrom` とその2つの種別も同じファイルに置く。`Info/` の本数を増やさないため。前例 `CleanRoomInfo.cs` が密閉・未密閉の2種別を1ファイルに閉じる形）:
 
 ```csharp
 using System.Collections.Generic;
@@ -10767,8 +11024,8 @@ using Game.World.Interface.DataStore;
 namespace Game.CleanRoom.Info
 {
     /// <summary>
-    ///     部屋1つのクラス・清浄機の台数のまとめ・次のクラスまでの見通し・照会した清浄機自身の状態
-    ///     Class, purifier totals, outlook to the next class, and the queried purifier's own state of one room
+    ///     部屋1つのクラス・清浄機の台数のまとめ・照会の出どころ（清浄機から引いたときだけ、その清浄機の状態と次のクラスまでの見通し）
+    ///     Class, purifier totals and query source of one room (only from a purifier: that purifier's state and the outlook to the next class)
     /// </summary>
     public class CleanRoomRoomSummary
     {
@@ -10783,14 +11040,9 @@ namespace Game.CleanRoom.Info
         // Purifiers in the room and how many of them are stopped (no power or no filter, removing nothing)
         public int AirFilterCount { get; }
         public int StoppedAirFilterCount { get; }
-        public CleanRoomNextClassOutlook NextClass { get; }
+        public CleanRoomQueriedFrom QueriedFrom { get; }
 
-        // 照会した清浄機自身の状態。機械から引いた照会では持たない（TryGetQueriedAirFilterStatus が false）
-        // The queried purifier's own state; absent for a query from a machine (TryGetQueriedAirFilterStatus returns false)
-        private readonly bool _hasQueriedAirFilterStatus;
-        private readonly CleanRoomAirFilterStatus _queriedAirFilterStatus;
-
-        private CleanRoomRoomSummary(CleanRoomClassStanding standing, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterSummary> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassOutlook nextClass, bool hasQueriedAirFilterStatus, CleanRoomAirFilterStatus queriedAirFilterStatus)
+        private CleanRoomRoomSummary(CleanRoomClassStanding standing, double airChangeRate, int volume, IReadOnlyList<CleanRoomAirFilterSummary> airFilters, int airFilterCount, int stoppedAirFilterCount, CleanRoomQueriedFrom queriedFrom)
         {
             Class = standing;
             AirChangeRate = airChangeRate;
@@ -10798,15 +11050,7 @@ namespace Game.CleanRoom.Info
             AirFilters = airFilters;
             AirFilterCount = airFilterCount;
             StoppedAirFilterCount = stoppedAirFilterCount;
-            NextClass = nextClass;
-            _hasQueriedAirFilterStatus = hasQueriedAirFilterStatus;
-            _queriedAirFilterStatus = queriedAirFilterStatus;
-        }
-
-        public bool TryGetQueriedAirFilterStatus(out CleanRoomAirFilterStatus status)
-        {
-            status = _queriedAirFilterStatus;
-            return _hasQueriedAirFilterStatus;
+            QueriedFrom = queriedFrom;
         }
 
         public static CleanRoomRoomSummary Create(CleanRoom room, IWorldBlockDatastore world, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)
@@ -10823,13 +11067,55 @@ namespace Game.CleanRoom.Info
             // 止まっている台は、クラス判定で除去0として数えられる台
             // A stopped unit is one the class decision counts as removing nothing
             var stoppedCount = entries.Count(entry => entry.Filter.RemovalVolumePerSecond <= 0);
-            var nextClass = CleanRoomNextClassOutlook.Of(room, entries, queriedBlock, requiredAirChangeRates);
+            var queriedFrom = CleanRoomQueriedFrom.Of(room, entries, queriedBlock, requiredAirChangeRates);
+            return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), airChangeRate, room.Volume, airFilters, entries.Count, stoppedCount, queriedFrom);
+        }
+    }
 
-            // 清浄機の画面の「この清浄機」の行は、照会したブロックが清浄機のときだけ持つ
-            // The purifier screen's "this purifier" line exists only when the queried block is a purifier
-            var isAirFilter = queriedBlock.TryGetComponent<ICleanRoomAirFilter>(out var queriedFilter);
-            var queriedStatus = isAirFilter ? queriedFilter.GetStatus() : default;
-            return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), airChangeRate, room.Volume, airFilters, entries.Count, stoppedCount, nextClass, isAirFilter, queriedStatus);
+    /// <summary>
+    ///     部屋の照会をどのブロックから引いたか。清浄機以外・清浄機 のどちらか1つだけで、清浄機から引いたときだけ自身の状態と次のクラスまでの見通しを必ず持つ
+    ///     Which block the room query came from: exactly one of non-purifier or purifier, and only the purifier kind always carries its own state and the outlook to the next class
+    /// </summary>
+    public abstract class CleanRoomQueriedFrom
+    {
+        // 種別はこのファイルの2つの型に閉じる
+        // The kinds are closed to the two types in this file
+        private protected CleanRoomQueriedFrom()
+        {
+        }
+
+        public static CleanRoomQueriedFrom Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)
+        {
+            // 清浄機かどうかはここ1か所で調べる。機械の画面は部屋クラスの1行だけなので、清浄機以外からの照会は自身の状態も台数も持たない
+            // The purifier check lives only here; the machine screen shows only the class line, so a non-purifier query carries neither its own state nor units
+            if (!queriedBlock.TryGetComponent<ICleanRoomAirFilter>(out var queriedFilter)) return CleanRoomQueriedFromNonAirFilter.Instance;
+            var nextClass = CleanRoomNextClassOutlook.Of(room, entries, queriedBlock, queriedFilter, requiredAirChangeRates);
+            return new CleanRoomQueriedFromAirFilter(queriedFilter.GetStatus(), nextClass);
+        }
+    }
+
+    // 清浄機以外（室内の機械）から引いた照会
+    // Queried from something other than a purifier (an interior machine)
+    public sealed class CleanRoomQueriedFromNonAirFilter : CleanRoomQueriedFrom
+    {
+        public static readonly CleanRoomQueriedFromNonAirFilter Instance = new();
+
+        private CleanRoomQueriedFromNonAirFilter()
+        {
+        }
+    }
+
+    // 清浄機から引いた照会。清浄機の画面の「この清浄機」の行と「あと何台」
+    // Queried from a purifier: the purifier screen's "this purifier" line and its units to the next class
+    public sealed class CleanRoomQueriedFromAirFilter : CleanRoomQueriedFrom
+    {
+        public CleanRoomAirFilterStatus Status { get; }
+        public CleanRoomNextClassOutlook NextClass { get; }
+
+        public CleanRoomQueriedFromAirFilter(CleanRoomAirFilterStatus status, CleanRoomNextClassOutlook nextClass)
+        {
+            Status = status;
+            NextClass = nextClass;
         }
     }
 }
@@ -11082,13 +11368,24 @@ namespace Server.Protocol.PacketResponse
                     filter.Status.RemovalVolumePerSecond,
                     filter.Status.FilterItemCount,
                     filter.Status.CurrentFilterRemainingRatio)).ToList();
-                var nextClass = CreateNextClass(room.NextClass);
-                var queriedAirFilter = CreateQueriedAirFilter(room);
+                var (nextClass, queriedAirFilter) = CreateQueriedFrom(room.QueriedFrom);
                 return room.Class switch
                 {
                     CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirChangeRate, room.Volume, filters, room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
                     CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.AirChangeRate, room.Volume, filters, room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
                     _ => throw new ArgumentOutOfRangeException(nameof(room.Class), room.Class.GetType().Name, "未対応のクラス種別 / Unsupported class standing"),
+                };
+            }
+
+            // 照会の出どころを、次のクラスと照会した清浄機の状態の2つの欄へ1回の分岐で写す。清浄機以外からの照会は wire の NotCounted と NotAirFilter になる
+            // Map the query source onto both the next-class and queried-purifier fields in one branch; a non-purifier query becomes NotCounted and NotAirFilter on the wire
+            static (CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter) CreateQueriedFrom(CleanRoomQueriedFrom queriedFrom)
+            {
+                return queriedFrom switch
+                {
+                    CleanRoomQueriedFromAirFilter airFilter => (CreateNextClass(airFilter.NextClass), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(airFilter.Status.PowerRatio, airFilter.Status.CurrentFilterRemainingRatio)),
+                    CleanRoomQueriedFromNonAirFilter _ => (CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter()),
+                    _ => throw new ArgumentOutOfRangeException(nameof(queriedFrom), queriedFrom.GetType().Name, "未対応の照会の出どころ / Unsupported query source"),
                 };
             }
 
@@ -11101,17 +11398,8 @@ namespace Server.Protocol.PacketResponse
                     CleanRoomAtBestClassOutlook _ => CleanRoomNextClassMessagePack.CreateAtBestClass(),
                     CleanRoomUnitsToNextClassOutlook units => CleanRoomNextClassMessagePack.CreateUnitsToNextClass(units.NextClassName, units.Units),
                     CleanRoomNextClassUnreachableOutlook unreachable => CleanRoomNextClassMessagePack.CreateUnreachable(unreachable.NextClassName),
-                    CleanRoomNextClassNotCountedOutlook _ => CleanRoomNextClassMessagePack.CreateNotCounted(),
                     _ => throw new ArgumentOutOfRangeException(nameof(outlook), outlook.GetType().Name, "未対応の次のクラスの見通し / Unsupported next-class outlook"),
                 };
-            }
-
-            // 照会した清浄機自身の状態。機械から引いた照会は「清浄機ではない」種別にする
-            // The queried purifier's own state; a query from a machine becomes the not-a-purifier kind
-            static CleanRoomQueriedAirFilterMessagePack CreateQueriedAirFilter(CleanRoomRoomSummary room)
-            {
-                if (!room.TryGetQueriedAirFilterStatus(out var status)) return CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter();
-                return CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(status.PowerRatio, status.CurrentFilterRemainingRatio);
             }
 ```
 
@@ -11135,7 +11423,15 @@ namespace Server.Protocol.PacketResponse
                     // 次のクラス・照会した清浄機の状態の欠けや未知の種別も壊れた部屋として読めない（呼び出し元が警告を出す）
                     // A missing or unknown-kind next class or queried-purifier state is a broken room too (the caller warns)
                     if (Room.NextClass == null || !Room.NextClass.IsReadable()) return false;
-                    return Room.QueriedAirFilter != null && Room.QueriedAirFilter.IsReadable();
+                    if (Room.QueriedAirFilter == null || !Room.QueriedAirFilter.IsReadable()) return false;
+
+                    // 「清浄機以外から照会した」は NotCounted と NotAirFilter の組でだけ表す。片方だけの応答は2つの種別が食い違った壊れた wire
+                    // "Queried from a non-purifier" is only the NotCounted + NotAirFilter pair; a response with just one of them is broken wire whose two kinds disagree
+                    var isUncountedNextClass = Room.NextClass.Kind == CleanRoomNextClassResponseKind.NotCounted;
+                    var isNonAirFilterQuery = Room.QueriedAirFilter.Kind == CleanRoomQueriedAirFilterResponseKind.NotAirFilter;
+                    if (isUncountedNextClass == isNonAirFilterQuery) return true;
+                    Debug.LogWarning($"[GetCleanRoomInfo] Room query-source kinds disagree: nextClass={Room.NextClass.Kind} queriedAirFilter={Room.QueriedAirFilter.Kind}");
+                    return false;
                 }
 ```
 
@@ -11827,12 +12123,12 @@ git commit -m "モーダルの要求に項目名と値の行を載せられる�
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Context/CleanRoomYieldSectionTest.cs`（全面書き換え）
 
 **Interfaces:**
-- Consumes（C4）: `CleanRoomYieldLayerExposureView.Odds`（`LayerExposureOddsMessagePack.FailedRate`）・`CleanRoomYieldDicingView.Odds`（`DicingOddsMessagePack.OutputCount`・`LevelRates`〈double[]〉・`FailedRate`）・`…View.Improvements`（`IReadOnlyList<CleanRoomYieldImprovementMessagePack>`）・`CleanRoomYieldImprovementMessagePack.TryGetRoomClassUp(out string)`・`TryGetAddQualityModule(out int)`・`LevelRateDeltas`（double[]）・`FailedRateDelta`。テストだけ: `new LayerExposureOddsMessagePack(double)`・`new DicingOddsMessagePack(int, double[], double)`・`CleanRoomYieldImprovementMessagePack.CreateRoomClassUp(string, double[], double)`・`CreateAddQualityModule(int, double[], double)`・C4〜C6 の4引数のビューの ctor（`CleanRoomWireSamples` の中だけ）
+- Consumes（C4）: `CleanRoomYieldLayerExposureView.Odds`（`LayerExposureOddsMessagePack.FailedRate`）・`CleanRoomYieldDicingView.Odds`（`DicingOddsMessagePack.OutputCount`・`LevelRates`〈double[]〉・`FailedRate`）・`…View.Improvements`（`IReadOnlyList<CleanRoomYieldImprovementMessagePack>`）・`CleanRoomYieldImprovementMessagePack.TryGetRoomClassUp(out string)`・`TryGetAddQualityModule(out int)`・`LevelRateDeltas`（double[]）・`FailedRateDelta`・`Kind`（`CleanRoomYieldImprovementKind`。写せない種別の異常の文面に入れる値だけ。テストは写しに無い値を入れるために書く）。`CleanRoomYieldImprovementMessagePack.AreReadable(IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements, int levelCount)` は D から呼ばない（読み口 `CleanRoomYieldResponseReader.Read` が呼び、ビューの `Improvements` は検査済み。判断 D-14）。テストだけ: `new LayerExposureOddsMessagePack(double)`・`new DicingOddsMessagePack(int, double[], double)`・`CleanRoomYieldImprovementMessagePack.CreateRoomClassUp(string, double[], double)`・`CreateAddQualityModule(int, double[], double)`・C4〜C6 の4引数のビューの ctor（`CleanRoomWireSamples` の中だけ）
 - Consumes（C6。テストの `CleanRoomWireSamples` だけ）: `CleanRoomSummaryMessagePack.CreateClassified(9引数)`・`CreateOut(7引数)`
 - Produces:
   - `public abstract class CleanRoomYieldOdds { IReadOnlyList<CleanRoomOddsImprovement> Improvements; bool HasImprovements; static CleanRoomYieldOdds LayerExposure(double failedRate, IReadOnlyList<CleanRoomOddsImprovement> improvements); static CleanRoomYieldOdds Dicing(int outputCount, IReadOnlyList<double> levelRates, double failedRate, IReadOnlyList<CleanRoomOddsImprovement> improvements) }`、派生 `LayerExposureYieldOdds { double FailedRate }`・`DicingYieldOdds { int OutputCount; IReadOnlyList<double> LevelRates; double FailedRate }`
   - `public abstract class CleanRoomOddsImprovement { IReadOnlyList<double> LevelRateDeltas; double FailedRateDelta; static RoomClassUp(string targetClassName, IReadOnlyList<double>, double); static AddQualityModule(int moduleTier, IReadOnlyList<double>, double) }`、派生 `RoomClassUpOddsImprovement { string TargetClassName }`・`AddQualityModuleOddsImprovement { int ModuleTier }`
-  - `CleanRoomYieldLogic.Lines(CleanRoomYieldOdds)`・`internal const string ZeroPercent`・`internal static string Percent(double rate)`
+  - `CleanRoomYieldLogic.Lines(CleanRoomYieldOdds)`・`internal const string ZeroPercent`・`internal static string Percent(double rate)`・`internal static bool ShowsZero(double value)`（表示〈絶対値の小数1桁〉が 0.0 になるかの判定の1か所。`ShownLevels` と改善の差分の符号〈`Signed`〉が呼ぶ）・`internal static List<int> ShownLevels(IReadOnlyList<double> levelValues)`（表示が 0.0 にならない Lv の番号。欄の行・「今」・差分の3か所が使う。判断 D-8・D-28）
   - `CleanRoomYieldImprovementLogic.CurrentValues(CleanRoomYieldOdds) : IReadOnlyList<UiText>`・`Rows(CleanRoomYieldOdds) : IReadOnlyList<CleanRoomYieldImprovementRow>`、`CleanRoomYieldImprovementRow { UiText Label; IReadOnlyList<UiText> Values }`
   - `ContextViewConversion.Yield(BlockInfoFetchState, CleanRoomYieldView, out string) : SectionContent<CleanRoomYieldOdds>`、`BlockContextViewModel.CleanRoomYield : SectionContent<CleanRoomYieldOdds>`
   - 行の testid: `clean-room-yield-output-count`・`clean-room-yield-level-rate-{n}`・`clean-room-yield-failed-rate`（EUV も失敗の行はこの id）。消える: `clean-room-yield-layer-fail-rate`・`-quality-tier`・`-die-loss-rate`・`-pending-*`・`-pending-label`・`-next-label`
@@ -11985,13 +12281,16 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         }
 
         [Test]
-        public void 改善の行の差分の数がLvの数と合わなければ欄を出さず異常を返す()
+        public void 写せない種別の改善の行は欄を出さず異常を返す()
         {
-            var broken = new List<CleanRoomYieldImprovementMessagePack> { CleanRoomYieldImprovementMessagePack.CreateAddQualityModule(2, new[] { 0.1 }, -0.1) };
-            var entry = ContextViewConversion.Yield(Fetched, CleanRoomWireSamples.Dicing(300, new[] { 0.4, 0.1 }, 0.5, broken), out var anomaly);
+            // 種別を足して写しを直し忘れたときの代わりに、写しに無い値を入れる
+            // Stand in for a kind added without updating the mapping by setting a value the mapping lacks
+            var unmapped = CleanRoomYieldImprovementMessagePack.CreateAddQualityModule(1, new double[0], -0.1);
+            unmapped.Kind = (CleanRoomYieldImprovementKind)99;
+            var entry = ContextViewConversion.Yield(Fetched, CleanRoomWireSamples.LayerExposure(0.2, new List<CleanRoomYieldImprovementMessagePack> { unmapped }), out var anomaly);
 
             Assert.IsTrue(entry.IsAbsent);
-            Assert.AreEqual("[ContextViewConversion] improvement 0 has 1 level deltas for 2 levels", anomaly, "ログは出さず異常の文面を返す");
+            Assert.AreEqual("[ContextViewConversion] unmapped improvement kind: 99", anomaly, "ログは出さず異常の文面を返す");
         }
 
         private static CleanRoomYieldOdds Converted(CleanRoomYieldView view)
@@ -12003,6 +12302,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
     }
 }
 ```
+
+改善の行の差分の長さ・未定義の種別・クラス名が壊れた応答のテストは D に置かない（`写せない種別の…` は写しの直し忘れの検査で、wire の検査ではない）。検査は C の `CleanRoomYieldImprovementMessagePack.AreReadable` の1か所にあり、読み口が警告つきで読めない応答にすることは C4 の `CleanRoomYieldOddsProtocolTest.BrokenImprovementsAreUnreadableWithWarningTest` が見る。読めない応答の間の欄は `CleanRoomYieldSectionTest.読めない応答の間は取得状態の1行だけを描き率を出さない` が見る（判断 D-14）。
 
 - [ ] **Step 3: 失敗するテストを書く（欄の行とモーダルの文）**
 
@@ -12419,12 +12720,11 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                 {
                     new("clean-room-yield-output-count", new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldOutputCount, new[] { new LocalizationTextParam("count", UiNumberFormat.Integer(dicing.OutputCount)) })),
                 };
-                for (var i = 0; i < dicing.LevelRates.Count; i++)
+                foreach (var level in ShownLevels(dicing.LevelRates))
                 {
-                    var percent = Percent(dicing.LevelRates[i]);
-                    if (percent == ZeroPercent) continue;
-                    var level = UiNumberFormat.Integer(i + 1);
-                    lines.Add(new CleanRoomYieldLine($"clean-room-yield-level-rate-{level}", new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { new LocalizationTextParam("level", level), new LocalizationTextParam("percent", percent) })));
+                    var levelText = UiNumberFormat.Integer(level);
+                    var percent = Percent(dicing.LevelRates[level - 1]);
+                    lines.Add(new CleanRoomYieldLine($"clean-room-yield-level-rate-{levelText}", new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { new LocalizationTextParam("level", levelText), new LocalizationTextParam("percent", percent) })));
                 }
                 lines.Add(FailedLine(dicing.FailedRate));
                 return lines;
@@ -12443,6 +12743,26 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
         internal static string Percent(double rate)
         {
             return UiNumberFormat.Fixed(rate * 100, 1);
+        }
+
+        // 表示（絶対値の小数1桁）が 0.0 になるか。0.0 の判定はここ1か所（行を出すか・符号を付けるかの両方。D-8）
+        // Whether the one-decimal magnitude shows 0.0; the only zero check (both row visibility and sign; D-8)
+        internal static bool ShowsZero(double value)
+        {
+            return Percent(Math.Abs(value)) == ZeroPercent;
+        }
+
+        // 表示が 0.0 にならない Lv の番号（1 から）。欄の行・「今」の値・改善の差分はどれもこの Lv だけを出す（D-8）
+        // Level numbers (from 1) whose value does not show 0.0; section rows, current values and improvement deltas all show only these (D-8)
+        internal static List<int> ShownLevels(IReadOnlyList<double> levelValues)
+        {
+            var levels = new List<int>();
+            for (var i = 0; i < levelValues.Count; i++)
+            {
+                if (ShowsZero(levelValues[i])) continue;
+                levels.Add(i + 1);
+            }
+            return levels;
         }
     }
 }
@@ -12494,12 +12814,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                     values.Add(FailedValue(CleanRoomYieldLogic.Percent(layer.FailedRate)));
                     return values;
                 case DicingYieldOdds dicing:
-                    for (var i = 0; i < dicing.LevelRates.Count; i++)
-                    {
-                        var percent = CleanRoomYieldLogic.Percent(dicing.LevelRates[i]);
-                        if (percent == CleanRoomYieldLogic.ZeroPercent) continue;
-                        values.Add(LevelValue(i + 1, percent));
-                    }
+                    foreach (var level in CleanRoomYieldLogic.ShownLevels(dicing.LevelRates)) values.Add(LevelValue(level, CleanRoomYieldLogic.Percent(dicing.LevelRates[level - 1])));
                     values.Add(FailedValue(CleanRoomYieldLogic.Percent(dicing.FailedRate)));
                     return values;
                 default:
@@ -12535,12 +12850,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
             IReadOnlyList<UiText> Deltas(CleanRoomOddsImprovement improvement)
             {
                 var values = new List<UiText>();
-                for (var i = 0; i < improvement.LevelRateDeltas.Count; i++)
-                {
-                    var delta = Signed(improvement.LevelRateDeltas[i]);
-                    if (delta == CleanRoomYieldLogic.ZeroPercent) continue;
-                    values.Add(LevelValue(i + 1, delta));
-                }
+                foreach (var level in CleanRoomYieldLogic.ShownLevels(improvement.LevelRateDeltas)) values.Add(LevelValue(level, Signed(improvement.LevelRateDeltas[level - 1])));
                 values.Add(FailedValue(Signed(improvement.FailedRateDelta)));
                 return values;
             }
@@ -12549,9 +12859,8 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
             // One-decimal magnitude with + or − unless it shows 0.0
             string Signed(double delta)
             {
-                var magnitude = CleanRoomYieldLogic.Percent(Math.Abs(delta));
-                if (magnitude == CleanRoomYieldLogic.ZeroPercent) return magnitude;
-                return (0 < delta ? "+" : MinusSign) + magnitude;
+                if (CleanRoomYieldLogic.ShowsZero(delta)) return CleanRoomYieldLogic.ZeroPercent;
+                return (0 < delta ? "+" : MinusSign) + CleanRoomYieldLogic.Percent(Math.Abs(delta));
             }
 
             #endregion
@@ -12585,8 +12894,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 確率と搬入停止の照会を欄へ写す。未知の型・壊れた改善の行は異常の文面を返し、ログは呼び手の AnomalyReportGate が継続中 1 回だけ出す
-    /// Maps the odds and stall queries onto entries; unknown views or broken improvement rows return the anomaly text, logged once while it persists by the caller's AnomalyReportGate
+    /// 確率と搬入停止の照会を欄へ写す。未知のビュー・写せない改善の種別は異常の文面を返し、ログは呼び手の AnomalyReportGate が継続中 1 回だけ出す。壊れた改善の行は読み口が読めない応答にする
+    /// Maps the odds and stall queries onto entries; unknown views or unmapped improvement kinds return the anomaly text, logged once while it persists by the caller's AnomalyReportGate; the reader turns broken improvement rows into an unreadable response
     /// </summary>
     public static class ContextViewConversion
     {
@@ -12599,13 +12908,11 @@ namespace Client.Ui.State.BlockInventory.Context
             switch (view)
             {
                 case CleanRoomYieldLayerExposureView layer:
-                    // 露光の改善の行は Lv の差分を持たない
-                    // Exposure improvement rows carry no level deltas
-                    if (!TryConvertImprovements(layer.Improvements, 0, out var layerImprovements, out anomaly)) return SectionContent<CleanRoomYieldOdds>.Absent;
+                    if (!TryConvertImprovements(layer.Improvements, out var layerImprovements, out anomaly)) return SectionContent<CleanRoomYieldOdds>.Absent;
                     return SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.LayerExposure(layer.Odds.FailedRate, layerImprovements));
                 case CleanRoomYieldDicingView dicing:
                     var odds = dicing.Odds;
-                    if (!TryConvertImprovements(dicing.Improvements, odds.LevelRates.Length, out var dicingImprovements, out anomaly)) return SectionContent<CleanRoomYieldOdds>.Absent;
+                    if (!TryConvertImprovements(dicing.Improvements, out var dicingImprovements, out anomaly)) return SectionContent<CleanRoomYieldOdds>.Absent;
                     return SectionContent<CleanRoomYieldOdds>.Present(CleanRoomYieldOdds.Dicing(odds.OutputCount, odds.LevelRates, odds.FailedRate, dicingImprovements));
                 // 役割の無いレシピ等は欄を出さない
                 // Role-less recipes and machines that cannot operate show no entry; the room entry shows the halt reason
@@ -12620,20 +12927,14 @@ namespace Client.Ui.State.BlockInventory.Context
             return SectionContent<CleanRoomYieldOdds>.Absent;
         }
 
-        // 改善の行をサーバーの並びのまま写す。差分の数が Lv の数と合わない・種類が読めない行があれば偽（欄を出さず異常の文面を返す）
-        // Copies improvement rows in server order; false when a row's delta count differs from the level count or its kind is unreadable (no entry, anomaly text)
-        private static bool TryConvertImprovements(IReadOnlyList<CleanRoomYieldImprovementMessagePack> packs, int levelCount, out List<CleanRoomOddsImprovement> improvements, out string anomaly)
+        // 改善の行をサーバーの並びのまま写す。差分の長さ・未定義の種別・クラス名は読み口（CleanRoomYieldImprovementMessagePack.AreReadable）が検査済みなので、ここでは検査しない（D-14）
+        // Copies improvement rows in server order; delta length, undefined kinds and class names were checked by the reader (AreReadable), so nothing is re-checked here (D-14)
+        private static bool TryConvertImprovements(IReadOnlyList<CleanRoomYieldImprovementMessagePack> packs, out List<CleanRoomOddsImprovement> improvements, out string anomaly)
         {
             improvements = new List<CleanRoomOddsImprovement>();
             anomaly = null;
-            for (var i = 0; i < packs.Count; i++)
+            foreach (var pack in packs)
             {
-                var pack = packs[i];
-                if (pack.LevelRateDeltas.Length != levelCount)
-                {
-                    anomaly = $"[ContextViewConversion] improvement {i} has {pack.LevelRateDeltas.Length} level deltas for {levelCount} levels";
-                    return false;
-                }
                 if (pack.TryGetRoomClassUp(out var targetClassName))
                 {
                     improvements.Add(CleanRoomOddsImprovement.RoomClassUp(targetClassName, pack.LevelRateDeltas, pack.FailedRateDelta));
@@ -12644,7 +12945,10 @@ namespace Client.Ui.State.BlockInventory.Context
                     improvements.Add(CleanRoomOddsImprovement.AddQualityModule(moduleTier, pack.LevelRateDeltas, pack.FailedRateDelta));
                     continue;
                 }
-                anomaly = $"[ContextViewConversion] unsupported improvement kind at {i}";
+
+                // 写せない種別は、種別を足してこの写しを直し忘れたとき（定義済みの種別は AreReadable を通る）。欄を出さず開発者へ知らせる（購読の中で投げると購読ごと止まる。D-6）
+                // An unmapped kind means one was added without updating this mapping (defined kinds pass AreReadable); hide the entry and tell developers (throwing inside the subscription would kill it; D-6)
+                anomaly = $"[ContextViewConversion] unmapped improvement kind: {pack.Kind}";
                 return false;
             }
             return true;
@@ -12854,8 +13158,8 @@ git commit -m "確率の欄を最終の内訳の1組と改善の行に替え、�
 **Interfaces:**
 - Consumes（C6）: `CleanRoomSummaryMessagePack.TryGetClass(out string, out int)`（既存）・`.AirFilterCount`・`.StoppedAirFilterCount`・`.NextClass.TryGetUnitsToNextClass(out string nextClassName, out int units)`・`.QueriedAirFilter.TryGetStatus(out double powerRatio, out double filterRemainingRatio)`。テストだけ: `CleanRoomNextClassMessagePack.CreateUnitsToNextClass(string, int)`・`CreateAtBestClass()`・`CreateUnreachable(string)`・`CreateNotCounted()`、`CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(double, double)`・`CreateNotAirFilter()`（`CleanRoomWireSamples` 経由で部屋を組む）
 - Produces:
-  - `public sealed class CleanRoomAirFilterRoomStatus { int AirFilterCount; int StoppedAirFilterCount; double PowerRatio; double FilterRemainingRatio; static WithUnitsToNextClass(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio, string nextClassName, int units); static WithoutUnitsToNextClass(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio); bool TryGetUnitsToNextClass(out string nextClassName, out int units) }`（サーバーの `CleanRoomAirFilterStatus`・`CleanRoomAirFilterSummary` と名前を分ける）
-  - `CleanRoomSummary.ForMachine(CleanRoomHeadline)`・`CleanRoomSummary.ForAirFilter(CleanRoomHeadline, CleanRoomAirFilterRoomStatus)`・`bool CleanRoomSummary.TryGetAirFilter(out CleanRoomAirFilterRoomStatus)`。消える: `CleanRoomAirFilter`（struct）・`CleanRoomSummary.AirChangeRate`・`.AirFilters`・公開 ctor
+  - `public sealed class CleanRoomAirFilterRoomStatus { int AirFilterCount; int StoppedAirFilterCount; double PowerRatio; double FilterRemainingRatio; static WithUnitsToNextClass(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio, string nextClassName, int units); static WithoutUnitsToNextClass(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio); bool TryGetUnitsToNextClass(out string nextClassName, out int units) }`（サーバーの `CleanRoomAirFilterStatus`・`CleanRoomAirFilterSummary` と名前を分ける）。次のクラスまでの台数は同じファイルの internal の種別 `CleanRoomUnitsToNextClass`（`ReachableUnitsToNextClass { string NextClassName; int Units }`・`NoUnitsToNextClass.Instance`）で持つ（bool と null の併用をやめる。判断 D-27）
+  - `public abstract class CleanRoomSummary { CleanRoomHeadline Headline; static ForMachine(CleanRoomHeadline headline); static ForAirFilter(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter) }`、派生 `MachineCleanRoomSummary`・`AirFilterCleanRoomSummary { CleanRoomAirFilterRoomStatus AirFilter }`（照会元を型1つで表す。判断 D-27）。消える: `CleanRoomAirFilter`（struct）・`CleanRoomSummary.AirChangeRate`・`.AirFilters`・公開 ctor
   - `public sealed class AirFilterCleanRoomDisplay : CleanRoomDisplay { UiText AirFilterCount; UiText QueriedAirFilter }`。消える: `EnclosedCleanRoomDisplay`
   - 行の testid: `clean-room-headline`（既存）・`clean-room-air-filter-count`・`clean-room-queried-air-filter`・`clean-room-halt-reason`（既存）。消える: `clean-room-air`・`clean-room-air-filter-{i}`・`clean-room-no-filter`
   - テスト用: `CleanRoomLayoutTestHost.MachineRoom()`・`AirFilterRoom()`・`OpenAirFilterPanel()`・`OpenCleanRoomMachine(bool inRoom)`・`OpenCleanRoomMachine(bool inRoom, MachineSlotLayout layout, bool withRecipes)`
@@ -13018,8 +13322,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         {
             var detail = (EnclosedCleanRoomDetail)SectionContentAssert.Present(CleanRoomViewConversion.Build(AirFilter, Fetched, view, null, out var anomaly));
             Assert.IsNull(anomaly);
-            Assert.IsTrue(detail.Room.TryGetAirFilter(out var status), "清浄機の照会は清浄機から見た部屋を持つ");
-            return status;
+            Assert.IsInstanceOf<AirFilterCleanRoomSummary>(detail.Room, "清浄機の照会は清浄機から見た部屋を持つ");
+            return ((AirFilterCleanRoomSummary)detail.Room).AirFilter;
         }
 
         [Test]
@@ -13030,7 +13334,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 
             var enclosed = (EnclosedCleanRoomDetail)Machined(ClassC(), CleanRoomOperability.Operable);
             Assert.AreEqual("C", ((ClassCleanRoomHeadline)enclosed.Room.Headline).ClassName);
-            Assert.IsFalse(enclosed.Room.TryGetAirFilter(out _), "室内機械は清浄機の行を持たない");
+            Assert.IsInstanceOf<MachineCleanRoomSummary>(enclosed.Room, "室内機械は清浄機の行を持たない");
 
             var outRoom = new CleanRoomEnclosedView(CleanRoomWireSamples.OutRoom(1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter()));
             Assert.IsInstanceOf<ClassOutCleanRoomHeadline>(((EnclosedCleanRoomDetail)Machined(outRoom, CleanRoomOperability.ClassOut)).Room.Headline);
@@ -13051,12 +13355,11 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         }
 
         [Test]
-        public void 最上位_届かない_数えていないときは次のクラスまでの台数を持たない()
+        public void 最上位_届かないときは次のクラスまでの台数を持たない()
         {
             var queried = CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1);
             Assert.IsFalse(AirFiltered(ClassC(CleanRoomNextClassMessagePack.CreateAtBestClass(), queried)).TryGetUnitsToNextClass(out _, out _));
             Assert.IsFalse(AirFiltered(ClassC(CleanRoomNextClassMessagePack.CreateUnreachable("A"), queried)).TryGetUnitsToNextClass(out _, out _));
-            Assert.IsFalse(AirFiltered(ClassC(CleanRoomNextClassMessagePack.CreateNotCounted(), queried)).TryGetUnitsToNextClass(out _, out _));
         }
 
         [Test]
@@ -13483,38 +13786,70 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
         public double PowerRatio { get; }
         public double FilterRemainingRatio { get; }
 
-        // 台数で次のクラスへ届くときだけ持つ（最上位・届かない・数えていないは持たない）
-        // Present only when units reach the next class (not at best, unreachable or not counted)
-        private readonly bool _hasUnitsToNextClass;
-        private readonly string _nextClassName;
-        private readonly int _unitsToNextClass;
+        // 次のクラスまでの台数。台数で届くときだけ台数を持つ型（最上位・届かない・数えていないは持たない型）
+        // Units to the next class; only the reachable type carries numbers (not at best, unreachable or not counted)
+        private readonly CleanRoomUnitsToNextClass _unitsToNextClass;
 
-        private CleanRoomAirFilterRoomStatus(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio, bool hasUnitsToNextClass, string nextClassName, int unitsToNextClass)
+        private CleanRoomAirFilterRoomStatus(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio, CleanRoomUnitsToNextClass unitsToNextClass)
         {
             AirFilterCount = airFilterCount;
             StoppedAirFilterCount = stoppedAirFilterCount;
             PowerRatio = powerRatio;
             FilterRemainingRatio = filterRemainingRatio;
-            _hasUnitsToNextClass = hasUnitsToNextClass;
-            _nextClassName = nextClassName;
             _unitsToNextClass = unitsToNextClass;
         }
 
         public static CleanRoomAirFilterRoomStatus WithUnitsToNextClass(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio, string nextClassName, int units)
         {
-            return new CleanRoomAirFilterRoomStatus(airFilterCount, stoppedAirFilterCount, powerRatio, filterRemainingRatio, true, nextClassName, units);
+            return new CleanRoomAirFilterRoomStatus(airFilterCount, stoppedAirFilterCount, powerRatio, filterRemainingRatio, new ReachableUnitsToNextClass(nextClassName, units));
         }
 
         public static CleanRoomAirFilterRoomStatus WithoutUnitsToNextClass(int airFilterCount, int stoppedAirFilterCount, double powerRatio, double filterRemainingRatio)
         {
-            return new CleanRoomAirFilterRoomStatus(airFilterCount, stoppedAirFilterCount, powerRatio, filterRemainingRatio, false, null, 0);
+            return new CleanRoomAirFilterRoomStatus(airFilterCount, stoppedAirFilterCount, powerRatio, filterRemainingRatio, NoUnitsToNextClass.Instance);
         }
 
         public bool TryGetUnitsToNextClass(out string nextClassName, out int units)
         {
-            nextClassName = _nextClassName;
-            units = _unitsToNextClass;
-            return _hasUnitsToNextClass;
+            if (_unitsToNextClass is ReachableUnitsToNextClass reachable)
+            {
+                nextClassName = reachable.NextClassName;
+                units = reachable.Units;
+                return true;
+            }
+            nextClassName = default;
+            units = default;
+            return false;
+        }
+    }
+
+    // 次のクラスまでの台数の種別。台数と次のクラス名は届く型だけが持つ
+    // Kinds of units-to-next-class; only the reachable kind holds the count and next class name
+    internal abstract class CleanRoomUnitsToNextClass
+    {
+        private protected CleanRoomUnitsToNextClass()
+        {
+        }
+    }
+
+    internal sealed class ReachableUnitsToNextClass : CleanRoomUnitsToNextClass
+    {
+        public string NextClassName { get; }
+        public int Units { get; }
+
+        internal ReachableUnitsToNextClass(string nextClassName, int units)
+        {
+            NextClassName = nextClassName;
+            Units = units;
+        }
+    }
+
+    internal sealed class NoUnitsToNextClass : CleanRoomUnitsToNextClass
+    {
+        public static readonly NoUnitsToNextClass Instance = new();
+
+        private NoUnitsToNextClass()
+        {
         }
     }
 }
@@ -13557,35 +13892,46 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 直した後:
 
 ```csharp
-    // 密閉された部屋の要約。清浄機から照会したときだけ清浄機から見た部屋を持つ（ADR 0105 §1・§5）
-    // Summary of an enclosed room; carries the purifier's view only when a purifier queried it (ADR 0105 §1, §5)
-    public sealed class CleanRoomSummary
+    // 密閉された部屋の要約。照会元（室内機械／清浄機）ごとの型で、清浄機から見た部屋は清浄機の型だけが必ず持つ（ADR 0105 §1・§5）
+    // Summary of an enclosed room typed per query source; only the purifier type carries the purifier's view, always (ADR 0105 §1, §5)
+    public abstract class CleanRoomSummary
     {
         public CleanRoomHeadline Headline { get; }
-        private readonly CleanRoomAirFilterRoomStatus _airFilter;
 
-        private CleanRoomSummary(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter)
+        private protected CleanRoomSummary(CleanRoomHeadline headline)
         {
             Headline = headline;
-            _airFilter = airFilter;
         }
 
         // 室内機械から見た部屋（部屋クラスだけ）
         // The room as an interior machine sees it (class only)
         public static CleanRoomSummary ForMachine(CleanRoomHeadline headline)
         {
-            return new CleanRoomSummary(headline, null);
+            return new MachineCleanRoomSummary(headline);
         }
 
         public static CleanRoomSummary ForAirFilter(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter)
         {
-            return new CleanRoomSummary(headline, airFilter);
+            return new AirFilterCleanRoomSummary(headline, airFilter);
         }
+    }
 
-        public bool TryGetAirFilter(out CleanRoomAirFilterRoomStatus airFilter)
+    public sealed class MachineCleanRoomSummary : CleanRoomSummary
+    {
+        internal MachineCleanRoomSummary(CleanRoomHeadline headline) : base(headline)
         {
-            airFilter = _airFilter;
-            return _airFilter != null;
+        }
+    }
+
+    // 台数・止まっている台数・あと何台・この清浄機の状態
+    // Counts, stopped count, units to the next class and this purifier's status
+    public sealed class AirFilterCleanRoomSummary : CleanRoomSummary
+    {
+        public CleanRoomAirFilterRoomStatus AirFilter { get; }
+
+        internal AirFilterCleanRoomSummary(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter) : base(headline)
+        {
+            AirFilter = airFilter;
         }
     }
 ```
@@ -13703,13 +14049,21 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                 // Out is read only from the server-decided headline kind
                 var isOut = room.Headline is ClassOutCleanRoomHeadline;
 
-                // 室内機械は部屋クラスの1行だけ（ADR 0105 §1）
-                // An interior machine shows only the room-class line (ADR 0105 §1)
-                if (!room.TryGetAirFilter(out var airFilter)) return new HeadlineOnlyCleanRoomDisplay(MachineHeadline(room.Headline), isOut, haltReason);
+                switch (room)
+                {
+                    // 室内機械は部屋クラスの1行だけ（ADR 0105 §1）
+                    // An interior machine shows only the room-class line (ADR 0105 §1)
+                    case MachineCleanRoomSummary _:
+                        return new HeadlineOnlyCleanRoomDisplay(MachineHeadline(room.Headline), isOut, haltReason);
 
-                // 清浄機は台数つきの見出し・台数・この清浄機の3行（ADR 0105 §5）
-                // A purifier shows the headline with units, the count and its own status (ADR 0105 §5)
-                return new AirFilterCleanRoomDisplay(PurifierHeadline(room.Headline, airFilter), isOut, CountLine(airFilter), QueriedLine(airFilter), haltReason);
+                    // 清浄機は台数つきの見出し・台数・この清浄機の3行（ADR 0105 §5）
+                    // A purifier shows the headline with units, the count and its own status (ADR 0105 §5)
+                    case AirFilterCleanRoomSummary airFilterRoom:
+                        var airFilter = airFilterRoom.AirFilter;
+                        return new AirFilterCleanRoomDisplay(PurifierHeadline(room.Headline, airFilter), isOut, CountLine(airFilter), QueriedLine(airFilter), haltReason);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(room), room.GetType().Name, null);
+                }
             }
 
             UiText MachineHeadline(CleanRoomHeadline headline)
@@ -14024,8 +14378,8 @@ ui.blockInventory.cleanRoomClass,Room class {className},Room class {className},�
 
 旧い名前の残りが無いことを見る（録画シナリオの残りは D7 で直す）:
 
-Run: `grep -rn "CleanRoomAirFilter(\|EnclosedCleanRoomDisplay\|CleanRoomSummary(CleanRoomHeadline\|new(CleanRoomHeadline\|\.AirChangeRate\|\.AirFilters\b\|CleanRoomNoFilter\|LocalizationKeys.Ui.BlockInventory.CleanRoomAir\b\|LocalizationKeys.Ui.BlockInventory.CleanRoomFilter\b\|clean-room-air\"\|clean-room-air-filter-{\|clean-room-no-filter\|LayoutTestHost.Room(" --include='*.cs' moorestech_client/Assets/Scripts`
-Expected: 出力なし（`CleanRoomAirFilterRoomStatus(`・`CleanRoomAirFilterCount`・新しい `CleanRoomDetail.cs` の `new CleanRoomSummary(headline, …)` は当たらない形にしてある）
+Run: `grep -rn "CleanRoomAirFilter(\|EnclosedCleanRoomDisplay\|new CleanRoomSummary(\|new(CleanRoomHeadline\|\.AirChangeRate\|\.AirFilters\b\|CleanRoomNoFilter\|LocalizationKeys.Ui.BlockInventory.CleanRoomAir\b\|LocalizationKeys.Ui.BlockInventory.CleanRoomFilter\b\|clean-room-air\"\|clean-room-air-filter-{\|clean-room-no-filter\|LayoutTestHost.Room(" --include='*.cs' moorestech_client/Assets/Scripts`
+Expected: 出力なし（`CleanRoomAirFilterRoomStatus(`・`CleanRoomAirFilterCount`・新しい `CleanRoomDetail.cs` の `private protected CleanRoomSummary(CleanRoomHeadline headline)`・`MachineCleanRoomSummary(CleanRoomHeadline`・`AirFilterCleanRoomSummary(CleanRoomHeadline` は当たらない形にしてある。`CleanRoomSummary` は抽象なので `new CleanRoomSummary(` は新しいコードに無い）
 
 - [ ] **Step 11: キーを作り直してコンパイルとテスト**
 
@@ -14997,7 +15351,7 @@ git commit -m "確率の欄に「失敗率の改善方法」ボタンを置き�
 
 ### Task D7: unity プレイ録画テストを新しい画面に合わせ、「あと何台」が本当に当たることを録画で確かめる
 
-D3・D4 で testid と文言が変わり、今の録画シナリオ4本が壊れる（grep の結果は Step 1）。直したうえで、「失敗率の改善方法」のモーダルを実プレイで開き（tier9-3）、清浄機の画面の「あと N 台」どおりに N 台を足すと本当に次のクラスへ上がることを新しいシナリオで確かめる（ADR 0105 §5 の数字がプレイヤーの手元で当たることは、L1 のテストでは見られない）。
+D3・D4 で testid と文言が変わり、今の録画シナリオ4本が壊れる（grep の結果は Step 1）。壊れない `uitk/post-visual/pv-cleanroom.cs` は、Web との差が意図どおりであることを見出しのコメントに書く（判断 D-31）。直したうえで、「失敗率の改善方法」のモーダルを実プレイで開き（tier9-3）、清浄機の画面の「あと N 台」どおりに N 台を足すと本当に次のクラスへ上がることを新しいシナリオで確かめる（ADR 0105 §5 の数字がプレイヤーの手元で当たることは、L1 のテストでは見られない）。
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ui/CleanRoom/PlaytestCleanRoomUiOps.cs`（`Operations/Ui/` は .cs 10本で上限なのでサブディレクトリ）
@@ -15006,7 +15360,8 @@ D3・D4 で testid と文言が変わり、今の録画シナリオ4本が壊れ
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-purifier-filter-consumption.cs:1-2,106-118,135,206`
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/uitk-typography-compare.cs:1-4,84,138-144`
 - Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-cleanroom-airfilter-heights.cs:71,111`
-テストは上の5本のシナリオそのもの（`run-scenario.sh` で回す）。
+- Modify: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/post-visual/pv-cleanroom.cs:1-2`（見出しのコメントだけ）
+テストは上の5本のシナリオそのもの（`run-scenario.sh` で回す）。`pv-cleanroom.cs` はコメントだけの変更なので回さない（Step 5）。
 
 **Interfaces:**
 - Consumes: testid `clean-room-yield-improvement-open`・`clean-room-yield-output-count`・`clean-room-yield-level-rate-{n}`・`clean-room-yield-failed-rate`（D3・D6）、`clean-room-air-filter-count`・`clean-room-queried-air-filter`・`clean-room-headline`（D4）、`modal`・`modal-message`・`modal-table`・`modal-table-row-0`・`modal-button`（D2・既存）、`PlaytestDriver.UntilUiElement`・`ClickUi`・`Screenshot`・`Note`・`Assert`、`PlaytestUiElementOps.FindUi`、`PlaytestCleanRoomSnapshots.WaitForCleanRoom`/`WaitForCleanRoomClass`、`CleanRoomDatastore.TryGetCleanRoom(IBlock, out room)`・`room.ThresholdIndex`
@@ -15017,11 +15372,13 @@ D3・D4 で testid と文言が変わり、今の録画シナリオ4本が壊れ
 Run: `grep -rnE "clean-room-(air\"|air-filter-|no-filter|yield-(layer|quality|die|pending|next))|部屋のクラス|CleanRoomAirFilter\(|new CleanRoomSummary|CleanRoomYieldFetched|EnclosedCleanRoomDisplay" .agents/skills moorestech_client/Assets/Scripts/Client.Playtest`
 Expected: 次の4ファイルだけが当たる（D3・D4 の後の今の版で確かめた結果）
 - `scenarios/tier9/tier9-3-yield-ui.cs:82-83`（旧い確率の行の testid）
-- `scenarios/misc/cleanroom-purifier-filter-consumption.cs:109-112,135`（換気・清浄機ごとの行・「部屋のクラス」）
+- `scenarios/misc/cleanroom-purifier-filter-consumption.cs:81,88,109-112,135`（109-112・135 は換気・清浄機ごとの行・「部屋のクラス」で直す。81・88 はサーバーの値を読む `RunOnServer` の題と `Assert` の文に「部屋のクラス」が入っているだけで、UI を読まないので直さない）
 - `scenarios/uitk/integrator/uitk-typography-compare.cs:84,142-143`（清浄機ごとの行・旧い ctor）
 - `scenarios/uitk/stage4/block/uitk-cleanroom-airfilter-heights.cs:71,111`（清浄機ごとの行）
 
 `scenarios/misc/cleanroom-room-usability.cs:107,113-114`（`clean-room-section`・`clean-room-headline`）と `cleanroom-filter-auto-insert-cap.cs`・`cleanroom-v2.cs`・`tier9-1a-chip-line.cs` は変わる testid を使っていないので直さない。
+
+`scenarios/uitk/post-visual/pv-cleanroom.cs` は上の grep に当たらない（testid・文言・部屋の型を読まず、UI 状態と部屋の検出〈`WaitForCleanRoom`〉を待って撮るだけ）ので止まらない。ただし見出しのコメントが「清浄機を 0→30 台と増やしながら Web と UITK を同じ状態で撮る」と言うだけで、今回の後は清浄機1台以上で UITK の画面が Web の参照（`moorestech_web/webui/e2e/mock-host/fixtures/blocks/cleanRoomFixtures.ts` の `cleanRoomAirFilter*Filters`。清浄機1台ずつの行・換気回数）と意図して違う。差を後退と読み違えないよう、Step 5 で見出しのコメントにそれを書く（判断 D-31）。
 
 - [ ] **Step 2: 改善方法のモーダルを開いて記録する DSL を作る**
 
@@ -15180,7 +15537,7 @@ Expected: `ErrorCount 0`
 
 206行目 `    bool ContainsConcentration(string text) => …;` を消す（使い手の (4) が無くなる）。
 
-- [ ] **Step 5: UITK の2本を新しい部屋欄に合わせる**
+- [ ] **Step 5: UITK の3本を新しい部屋欄に合わせる**（2本は止まる所を直す。`pv-cleanroom.cs` は見出しのコメントだけ）
 
 `scenarios/uitk/integrator/uitk-typography-compare.cs`。1-4行目。直す前:
 
@@ -15227,6 +15584,20 @@ Expected: `ErrorCount 0`
 ```
 
 （`using System.Linq;` は `Labels()` が使うので残す。）
+
+`scenarios/uitk/post-visual/pv-cleanroom.cs`。1-2行目。直す前:
+
+```csharp
+// post-visual の並べ比べ（クリーンルーム）: 部屋を作り清浄機を 0→2→8→14→16→20→30 台と増やしながら、清浄機と室内の精密切断機の画面を Web と UITK で同じ状態にして 1280×720 で撮る
+// post-visual comparison (clean room): build a room and grow purifiers 0->2->8->14->16->20->30, shooting the purifier and the in-room cutter panels in the same state on Web and UITK at 1280x720
+```
+
+直した後（3-4行目以降・撮る順・スクショの名前〈Web の参照の fixture 名と対〉は変えない。行数は 154 → 154）:
+
+```csharp
+// post-visual の並べ比べ（クリーンルーム）: 部屋を作り清浄機を 0→2→8→14→16→20→30 台と増やしながら、清浄機と室内の精密切断機の画面を Web と UITK で同じ状態にして 1280×720 で撮る。ADR 0105 の後の UITK は台数に関係なく清浄機の部屋の欄が3行（クラスとあと何台・台数・この清浄機）、切断機が部屋クラスの1行なので、清浄機1台以上で Web（清浄機1台ずつの行・換気回数）と違うのは意図どおり
+// post-visual comparison (clean room): build a room and grow purifiers 0->2->8->14->16->20->30, shooting the purifier and the in-room cutter panels in the same state on Web and UITK at 1280x720; after ADR 0105 UITK shows three room lines on the purifier (class with units to next, count, this purifier) and one room-class line on the cutter whatever the count, so differing from Web (per-purifier rows, air changes) with one or more purifiers is intended
+```
 
 `scenarios/uitk/stage4/block/uitk-cleanroom-airfilter-heights.cs`。71行目。直す前:
 
@@ -15416,7 +15787,7 @@ Expected: 終了コード 0。`04-dicing-yield-improvement-modal.png` に「失�
 Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-purifier-filter-consumption.cs`
 Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/stage4/block/uitk-cleanroom-airfilter-heights.cs`
 Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/integrator/uitk-typography-compare.cs`
-Expected: 3本とも終了コード 0
+Expected: 3本とも終了コード 0（`uitk/post-visual/pv-cleanroom.cs` はコメントだけの変更で、撮るものも Web の参照も変わらないので回さない）
 
 （`Saves/` に作られたワールドは作業の終わりに `list-work-saves.sh` で探して消す。録画・ログは worktree の gitignore 下に置く。AGENTS.md「スキル配置と実行記録」。）
 
@@ -15478,7 +15849,8 @@ Expected: 出力なし。
   - `CleanRoomYieldLayerExposureView(LayerExposureOddsMessagePack odds, IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements)`・`CleanRoomYieldDicingView(DicingOddsMessagePack odds, IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements)`（プロパティは `Odds`・`Improvements` だけ）
   - `CleanRoomSummaryMessagePack.CreateClassified(string className, int thresholdIndex, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)`・`CreateOut(int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)`（Key 3・4・5 は欠番）
   - `CleanRoomRoomSummary` から `AirFilters` が消える。`CleanRoomAirFilterSummary`・`CleanRoomAirFilterMessagePack` は無くなる
-  - `CleanRoomYieldPreviewReport.WithNumbers(CleanRoomYieldPreviewResult next, CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)`
+  - `CleanRoomOddsYieldReport(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)`（`Next`・`PendingDraw` が消え、数字ありの報告は最終の内訳と改善の一覧だけを持つ。役割は `Odds` の型〈`LayerExposureFinalOdds`・`DicingFinalOdds`〉が表す）
+  - `CleanRoomRoomSummary` は `Class`・`AirFilterCount`・`StoppedAirFilterCount`・`QueriedFrom` だけになる
 
 - [ ] **Step 1: 前提を確かめる** — 上の grep が出力なしであること。
 
@@ -15619,10 +15991,10 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 }
 ```
 
-`GetCleanRoomYieldInfoProtocolTest.cs`:
-- `LayerExposureShowsLayerFailRateTest` の 51 行 `Assert.AreEqual(0.02, view.LayerExposure.LayerFailRate, Tolerance);` → `Assert.AreEqual(0.02, view.Odds.FailedRate, Tolerance);`
-- `DicingShowsQualityTierAndLevelRatesTest`（55-70）を消す（同じ条件の最終の内訳は `CleanRoomYieldOddsProtocolTest.DicingCarriesFinalOddsAndModuleImprovementsTest` が固定する。損失率・品質Tier は wire から消える）。
-- `MalformedResponsesAreUnreadableWithWarningTest`（125-150）を次へ置き換える:
+`GetCleanRoomYieldInfoProtocolTest.cs`（行番号は C4 で using を1行足した後のファイルの行。今のファイルより1つずつ大きい）:
+- `LayerExposureShowsLayerFailRateTest` の 54 行 `Assert.AreEqual(0.02, view.LayerExposure.LayerFailRate, Tolerance);` → `Assert.AreEqual(0.02, view.Odds.FailedRate, Tolerance);`
+- `DicingShowsQualityTierAndLevelRatesTest`（`[Test]` から閉じ括弧まで 57-73 と、その後の空行 74）を消す（同じ条件の最終の内訳は `CleanRoomYieldOddsProtocolTest.DicingCarriesFinalOddsAndModuleImprovementsTest` が固定する。損失率・品質Tier は wire から消える）。
+- `MalformedResponsesAreUnreadableWithWarningTest`（`[Test]` から閉じ括弧まで 127-153。C4 で中の4つの呼び出しを直した形）を次へ置き換える:
 
 ```csharp
         [Test]
@@ -15680,7 +16052,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 
 （`using UnityEngine;` は 50 行の `RemoveBlock(new Vector3Int(...))` が使うので残す。）
 
-同じファイルの `UnknownKindsAndMissingNestedElementsAreRejectedTest`（C6 で直した形）の 97-105 行と C6 で足した `room.AirFilters.Clear();` を次へ（一覧の null 要素・座標欠けの確認は一覧ごと無くなる）:
+同じファイルの `UnknownKindsAndMissingNestedElementsAreRejectedTest`（C6 で直した形。今のファイルの 97-105 行は、C6 で 37 行の後に13行足した後の 110-118 行）と C6 で足した `room.AirFilters.Clear();` を次へ（一覧の null 要素・座標欠けの確認は一覧ごと無くなる）:
 
 ```csharp
             // 直す前
@@ -15710,7 +16082,24 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             room.NextClass = null;
 ```
 
-（その後の `Assert`・`NextClass.Kind = 999`・`QueriedAirFilter` の確認は C6 のまま。`List` を使う行は 97 行だけなので、先頭の `using System.Collections.Generic;` を外す。）
+（その後の `Assert`・`NextClass.Kind = 999`・`QueriedAirFilter` の確認は C6 のまま。）
+
+同じファイルの `MismatchedQuerySourceKindsAreUnreadableWithWarningTest`（C6 で足した形）の4つの `CreateOut` 呼び出しから、C7 で消える先頭3引数（換気回数・体積・清浄機の一覧）を外す:
+
+```csharp
+            // 直す前
+            var uncountedWithStatus = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            var countedWithoutStatus = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var fromMachine = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var fromPurifier = CleanRoomSummaryMessagePack.CreateOut(0, 1, new List<CleanRoomAirFilterMessagePack>(), 1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            // 直した後
+            var uncountedWithStatus = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+            var countedWithoutStatus = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var fromMachine = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var fromPurifier = CleanRoomSummaryMessagePack.CreateOut(1, 0, CleanRoomNextClassMessagePack.CreateUnitsToNextClass("D", 1), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1));
+```
+
+（これで `List` を使う行が無くなるので、先頭の `using System.Collections.Generic;` を外す。）
 
 `Usability/CleanRoomInfoQueryTest.cs` 22-29 行:
 
@@ -15729,7 +16118,8 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             // Querying the purifier inside returns a one-purifier room and that purifier's own state (5 filters, full life)
             var room = AsEnclosed(query.Query(filter)).Room;
             Assert.AreEqual(1, room.AirFilterCount);
-            Assert.IsTrue(room.TryGetQueriedAirFilterStatus(out var ownStatus));
+            Assert.IsInstanceOf<CleanRoomQueriedFromAirFilter>(room.QueriedFrom);
+            var ownStatus = ((CleanRoomQueriedFromAirFilter)room.QueriedFrom).Status;
             Assert.AreEqual(5, ownStatus.FilterItemCount);
             Assert.AreEqual(1d, ownStatus.CurrentFilterRemainingRatio, 1e-9);
 ```
@@ -15794,7 +16184,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 
 - [ ] **Step 4: 実装を書く**
 
-`CleanRoomYieldPreviewReport.cs` 直した後（全体）:
+`CleanRoomYieldPreviewReport.cs` 直した後（全体。C3 の形から `CleanRoomOddsYieldReport` の `Next`・`PendingDraw` と ctor の2引数を外す）:
 
 ```csharp
 using System.Collections.Generic;
@@ -15802,46 +16192,57 @@ using System.Collections.Generic;
 namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 {
     /// <summary>
-    ///     抽選の中身の照会結果。数字を持つ種別（EUV・ダイシング）だけが、今の条件での最終の内訳と改善の一覧を持つ
-    ///     Draw-detail query result; only kinds with numbers (EUV, dicing) carry the final odds under current conditions and the improvement list
+    ///     抽選の中身の照会結果。役割なし・部屋が稼働を許さない・数字あり の種別ごとの型のどれか1つだけになり、数字は「数字あり」の型だけが必ず持つ
+    ///     Draw-detail query result; always exactly one of the per-kind types (no role, room not operable, with odds), and only the with-odds type carries numbers, always
     /// </summary>
-    public sealed class CleanRoomYieldPreviewReport
+    public abstract class CleanRoomYieldPreviewReport
     {
-        // 数字を持たない種別（役割なし・部屋が稼働を許さない）の報告
-        // Reports for kinds without numbers (no role, room not operable)
-        public static readonly CleanRoomYieldPreviewReport NoRole = new(NoRolePreview.Instance, null, null);
-        public static readonly CleanRoomYieldPreviewReport NotOperable = new(NotOperablePreview.Instance, null, null);
-
-        public CleanRoomYieldPreviewResult Next { get; }
-
-        private readonly CleanRoomFinalOdds _odds;
-        private readonly IReadOnlyList<CleanRoomYieldImprovement> _improvements;
-
-        private CleanRoomYieldPreviewReport(CleanRoomYieldPreviewResult next, CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)
+        // 種別はこのファイルの3つの型に閉じる
+        // The kinds are closed to the three types in this file
+        private protected CleanRoomYieldPreviewReport()
         {
-            Next = next;
-            _odds = odds;
-            _improvements = improvements;
         }
+    }
 
-        public static CleanRoomYieldPreviewReport WithNumbers(CleanRoomYieldPreviewResult next, CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)
+    // 未選択か、役割表に無いレシピ
+    // No recipe selected, or a recipe outside the role tables
+    public sealed class CleanRoomNoRoleYieldReport : CleanRoomYieldPreviewReport
+    {
+        public static readonly CleanRoomNoRoleYieldReport Instance = new();
+
+        private CleanRoomNoRoleYieldReport()
         {
-            return new CleanRoomYieldPreviewReport(next, odds, improvements);
         }
+    }
 
-        // 数字を持つ種別だけ true。改善は並べる順
-        // True only for kinds with numbers; improvements come in display order
-        public bool TryGetNumbers(out CleanRoomFinalOdds odds, out IReadOnlyList<CleanRoomYieldImprovement> improvements)
+    // 部屋が稼働を許さない（未密閉・クラス不足）。停止理由は部屋の欄が出す
+    // The room does not allow operation (not enclosed or class out); the room section shows the halt reason
+    public sealed class CleanRoomNotOperableYieldReport : CleanRoomYieldPreviewReport
+    {
+        public static readonly CleanRoomNotOperableYieldReport Instance = new();
+
+        private CleanRoomNotOperableYieldReport()
         {
-            odds = _odds;
-            improvements = _improvements;
-            return _odds != null;
+        }
+    }
+
+    // 数字あり（EUV・ダイシング）。今の条件での最終の内訳と、改善の一覧（並べる順）を必ず持つ
+    // With odds (EUV, dicing): always carries the final odds under current conditions and the improvement list in display order
+    public sealed class CleanRoomOddsYieldReport : CleanRoomYieldPreviewReport
+    {
+        public CleanRoomFinalOdds Odds { get; }
+        public IReadOnlyList<CleanRoomYieldImprovement> Improvements { get; }
+
+        public CleanRoomOddsYieldReport(CleanRoomFinalOdds odds, IReadOnlyList<CleanRoomYieldImprovement> improvements)
+        {
+            Odds = odds;
+            Improvements = improvements;
         }
     }
 }
 ```
 
-`CleanRoomYieldPreviewComponent.cs` 直した後（C3 の全体から、`IMachinePendingRealizationReader` のフィールド・ctor 引数・`using Game.Block.Blocks.Machine.State;` 以外の部分は同じ。`GetPreview` は全文を示す）:
+`CleanRoomYieldPreviewComponent.cs` 直した後（C3 の全体から、`IMachinePendingRealizationReader` のフィールド・ctor 引数・`using Game.Block.Blocks.Machine.State;`、`GetPreview` の `FindPendingDraw`〈`#region Internal` ごと〉と `next` の変数を外す。ほかは同じ。全文を示す）:
 
 ```csharp
 using Core.Master;
@@ -15874,20 +16275,21 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 
             // 未選択と役割表に無いレシピは数字を持たない
             // Unselected recipes and recipes outside the role tables carry no numbers
-            if (!_recipeSelector.TryGetSelectedRecipe(out var recipe)) return CleanRoomYieldPreviewReport.NoRole;
-            if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(recipe.MachineRecipeGuid, out var role)) return CleanRoomYieldPreviewReport.NoRole;
+            if (!_recipeSelector.TryGetSelectedRecipe(out var recipe)) return CleanRoomNoRoleYieldReport.Instance;
+            if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(recipe.MachineRecipeGuid, out var role)) return CleanRoomNoRoleYieldReport.Instance;
 
             // 部屋の効果は抽選と同じ持ち主（デコレータ）の読み口から読む。止まっている効果はクラス値を持たないので数字も改善も作らない
             // Read the room effect through the draw owner's (decorator's) read view; a halted effect has no class values, so neither numbers nor improvements are built
-            if (!_effectLookup.CurrentEffect.TryGetClassYield(out var classYield)) return CleanRoomYieldPreviewReport.NotOperable;
+            if (!_effectLookup.CurrentEffect.TryGetClassYield(out var classYield)) return CleanRoomNotOperableYieldReport.Instance;
 
-            // 次の抽選の率・最終の内訳・改善の差分を、同じ装着（上限で切った個数）から出す。出力待ちの確定済み抽選があっても今の条件の1組だけを答える
-            // Derive the next draw's rates, final odds and improvement deltas from one loadout; even with a fixed draw waiting, answer only the single current set
+            // 装着の集計と今の最終の内訳はここで1回だけ出し、候補選びと改善の計算へ渡す。出力待ちの確定済み抽選があっても今の条件の1組だけを答える
+            // Aggregate the loadout and derive the current final odds once here, handing them to candidate selection and the improvement calculation; even with a fixed draw waiting, answer only the single current set
             var equipped = _moduleEffectComponent.CollectEffectiveModules();
-            var next = CleanRoomYieldPreview.Evaluate(role, classYield, MachineModuleEffect.Aggregate(equipped), null, out _);
-            var candidates = CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, equipped);
-            var improvements = CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, candidates);
-            return CleanRoomYieldPreviewReport.WithNumbers(next, CleanRoomFinalOdds.Of(role, next), improvements);
+            var moduleEffect = MachineModuleEffect.Aggregate(equipped);
+            var current = CleanRoomFinalOdds.Of(role, CleanRoomYieldPreview.Evaluate(role, classYield, moduleEffect, null, out _));
+            var candidates = CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, moduleEffect.HighestQualityModuleTier);
+            var improvements = CleanRoomYieldImprovementCalculator.Compute(role, classYield, equipped, current, candidates);
+            return new CleanRoomOddsYieldReport(current, improvements);
         }
 
         public bool IsDestroy { get; private set; }
@@ -15938,10 +16340,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 
 （`TryGetPendingRealization` メソッドは `MachineRealizationSaveJsonObject.cs:28`・`CleanRoomMachineProcessorSaveState.cs:36` が使うので残す。）
 
-`CleanRoomYieldResponseFactory.cs` 直した後（全体）:
+`CleanRoomYieldResponseFactory.cs` 直した後（全体。C4 の形から古い項目の写し〈`RequireSameRole`・`ToDicingMessagePack`〉を外す）:
 
 ```csharp
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Response = Server.Protocol.PacketResponse.GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack;
@@ -15956,29 +16359,25 @@ namespace Server.Protocol.PacketResponse
     {
         public static Response Create(CleanRoomYieldPreviewReport report)
         {
-            // 数字を持たない種別は判別子だけ。稼働できない間は率も改善も載せない（停止理由は部屋欄が出す）
-            // Kinds without numbers carry only the discriminator; while not operable neither rates nor improvements ride along (the room section shows the halt reason)
-            if (!report.TryGetNumbers(out var odds, out var improvements))
+            // 報告の種別と最終の内訳の型ごとに factory へ写す。数字を持たない種別は判別子だけ（停止理由は部屋欄が出す）
+            // Map each report kind and final-odds type onto its factory; kinds without numbers carry only the discriminator (the room section shows the halt reason)
+            return report switch
             {
-                return report.Next switch
-                {
-                    NoRolePreview _ => Response.CreateNoRole(),
-                    NotOperablePreview _ => Response.CreateNotOperable(),
-                    _ => throw new ArgumentOutOfRangeException(nameof(report.Next), report.Next.GetType().Name, "数字の無い報告の未対応の種別 / Unsupported kind of a report without numbers"),
-                };
-            }
-
-            // 最終の内訳の型ごとに factory へ写す。改善は並びのまま載せる
-            // Map each final-odds type onto its factory; improvements keep their order
-            var improvementPacks = improvements.Select(ToImprovementMessagePack).ToList();
-            return odds switch
-            {
-                LayerExposureFinalOdds layer => Response.CreateLayerExposure(new LayerExposureOddsMessagePack(layer.FailedRate), improvementPacks),
-                DicingFinalOdds dicing => Response.CreateDicing(new DicingOddsMessagePack(dicing.OutputCount, dicing.LevelRates.ToArray(), dicing.FailedRate), improvementPacks),
-                _ => throw new ArgumentOutOfRangeException(nameof(odds), odds.GetType().Name, "未対応の最終の内訳 / Unsupported final odds"),
+                CleanRoomNoRoleYieldReport _ => Response.CreateNoRole(),
+                CleanRoomNotOperableYieldReport _ => Response.CreateNotOperable(),
+                CleanRoomOddsYieldReport { Odds: LayerExposureFinalOdds layer } withOdds => Response.CreateLayerExposure(new LayerExposureOddsMessagePack(layer.FailedRate), ToImprovementMessagePacks(withOdds.Improvements)),
+                CleanRoomOddsYieldReport { Odds: DicingFinalOdds dicing } withOdds => Response.CreateDicing(new DicingOddsMessagePack(dicing.OutputCount, dicing.LevelRates.ToArray(), dicing.FailedRate), ToImprovementMessagePacks(withOdds.Improvements)),
+                _ => throw new ArgumentOutOfRangeException(nameof(report), report.GetType().Name, "未対応の抽選の中身の報告 / Unsupported draw-detail report"),
             };
 
             #region Internal
+
+            // 改善は並びのまま載せる
+            // Improvements keep their order
+            static List<CleanRoomYieldImprovementMessagePack> ToImprovementMessagePacks(IReadOnlyList<CleanRoomYieldImprovement> improvements)
+            {
+                return improvements.Select(ToImprovementMessagePack).ToList();
+            }
 
             static CleanRoomYieldImprovementMessagePack ToImprovementMessagePack(CleanRoomYieldImprovement improvement)
             {
@@ -16166,7 +16565,7 @@ namespace Server.Protocol.PacketResponse
 }
 ```
 
-`CleanRoomRoomSummary.cs` 直した後（全体）:
+`CleanRoomRoomSummary.cs` 直した後（全体。C6 の形から換気回数・体積・清浄機の一覧を外す。`CleanRoomQueriedFrom` とその2つの種別は C6 のまま）:
 
 ```csharp
 using System.Collections.Generic;
@@ -16180,8 +16579,8 @@ using Game.World.Interface.DataStore;
 namespace Game.CleanRoom.Info
 {
     /// <summary>
-    ///     部屋1つのクラス・清浄機の台数のまとめ・次のクラスまでの見通し・照会した清浄機自身の状態
-    ///     Class, purifier totals, outlook to the next class, and the queried purifier's own state of one room
+    ///     部屋1つのクラス・清浄機の台数のまとめ・照会の出どころ（清浄機から引いたときだけ、その清浄機の状態と次のクラスまでの見通し）
+    ///     Class, purifier totals and query source of one room (only from a purifier: that purifier's state and the outlook to the next class)
     /// </summary>
     public class CleanRoomRoomSummary
     {
@@ -16193,27 +16592,14 @@ namespace Game.CleanRoom.Info
         // Purifiers in the room and how many of them are stopped (no power or no filter, removing nothing)
         public int AirFilterCount { get; }
         public int StoppedAirFilterCount { get; }
-        public CleanRoomNextClassOutlook NextClass { get; }
+        public CleanRoomQueriedFrom QueriedFrom { get; }
 
-        // 照会した清浄機自身の状態。機械から引いた照会では持たない（TryGetQueriedAirFilterStatus が false）
-        // The queried purifier's own state; absent for a query from a machine (TryGetQueriedAirFilterStatus returns false)
-        private readonly bool _hasQueriedAirFilterStatus;
-        private readonly CleanRoomAirFilterStatus _queriedAirFilterStatus;
-
-        private CleanRoomRoomSummary(CleanRoomClassStanding standing, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassOutlook nextClass, bool hasQueriedAirFilterStatus, CleanRoomAirFilterStatus queriedAirFilterStatus)
+        private CleanRoomRoomSummary(CleanRoomClassStanding standing, int airFilterCount, int stoppedAirFilterCount, CleanRoomQueriedFrom queriedFrom)
         {
             Class = standing;
             AirFilterCount = airFilterCount;
             StoppedAirFilterCount = stoppedAirFilterCount;
-            NextClass = nextClass;
-            _hasQueriedAirFilterStatus = hasQueriedAirFilterStatus;
-            _queriedAirFilterStatus = queriedAirFilterStatus;
-        }
-
-        public bool TryGetQueriedAirFilterStatus(out CleanRoomAirFilterStatus status)
-        {
-            status = _queriedAirFilterStatus;
-            return _hasQueriedAirFilterStatus;
+            QueriedFrom = queriedFrom;
         }
 
         public static CleanRoomRoomSummary Create(CleanRoom room, IWorldBlockDatastore world, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)
@@ -16225,13 +16611,55 @@ namespace Game.CleanRoom.Info
             // 止まっている台は、クラス判定で除去0として数えられる台
             // A stopped unit is one the class decision counts as removing nothing
             var stoppedCount = entries.Count(entry => entry.Filter.RemovalVolumePerSecond <= 0);
-            var nextClass = CleanRoomNextClassOutlook.Of(room, entries, queriedBlock, requiredAirChangeRates);
+            var queriedFrom = CleanRoomQueriedFrom.Of(room, entries, queriedBlock, requiredAirChangeRates);
+            return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), entries.Count, stoppedCount, queriedFrom);
+        }
+    }
 
-            // 清浄機の画面の「この清浄機」の行は、照会したブロックが清浄機のときだけ持つ
-            // The purifier screen's "this purifier" line exists only when the queried block is a purifier
-            var isAirFilter = queriedBlock.TryGetComponent<ICleanRoomAirFilter>(out var queriedFilter);
-            var queriedStatus = isAirFilter ? queriedFilter.GetStatus() : default;
-            return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), entries.Count, stoppedCount, nextClass, isAirFilter, queriedStatus);
+    /// <summary>
+    ///     部屋の照会をどのブロックから引いたか。清浄機以外・清浄機 のどちらか1つだけで、清浄機から引いたときだけ自身の状態と次のクラスまでの見通しを必ず持つ
+    ///     Which block the room query came from: exactly one of non-purifier or purifier, and only the purifier kind always carries its own state and the outlook to the next class
+    /// </summary>
+    public abstract class CleanRoomQueriedFrom
+    {
+        // 種別はこのファイルの2つの型に閉じる
+        // The kinds are closed to the two types in this file
+        private protected CleanRoomQueriedFrom()
+        {
+        }
+
+        public static CleanRoomQueriedFrom Of(CleanRoom room, IReadOnlyList<CleanRoomAirFilterEntry> entries, IBlock queriedBlock, IReadOnlyList<double> requiredAirChangeRates)
+        {
+            // 清浄機かどうかはここ1か所で調べる。機械の画面は部屋クラスの1行だけなので、清浄機以外からの照会は自身の状態も台数も持たない
+            // The purifier check lives only here; the machine screen shows only the class line, so a non-purifier query carries neither its own state nor units
+            if (!queriedBlock.TryGetComponent<ICleanRoomAirFilter>(out var queriedFilter)) return CleanRoomQueriedFromNonAirFilter.Instance;
+            var nextClass = CleanRoomNextClassOutlook.Of(room, entries, queriedBlock, queriedFilter, requiredAirChangeRates);
+            return new CleanRoomQueriedFromAirFilter(queriedFilter.GetStatus(), nextClass);
+        }
+    }
+
+    // 清浄機以外（室内の機械）から引いた照会
+    // Queried from something other than a purifier (an interior machine)
+    public sealed class CleanRoomQueriedFromNonAirFilter : CleanRoomQueriedFrom
+    {
+        public static readonly CleanRoomQueriedFromNonAirFilter Instance = new();
+
+        private CleanRoomQueriedFromNonAirFilter()
+        {
+        }
+    }
+
+    // 清浄機から引いた照会。清浄機の画面の「この清浄機」の行と「あと何台」
+    // Queried from a purifier: the purifier screen's "this purifier" line and its units to the next class
+    public sealed class CleanRoomQueriedFromAirFilter : CleanRoomQueriedFrom
+    {
+        public CleanRoomAirFilterStatus Status { get; }
+        public CleanRoomNextClassOutlook NextClass { get; }
+
+        public CleanRoomQueriedFromAirFilter(CleanRoomAirFilterStatus status, CleanRoomNextClassOutlook nextClass)
+        {
+            Status = status;
+            NextClass = nextClass;
         }
     }
 }
@@ -16315,13 +16743,12 @@ namespace Server.Protocol.PacketResponse
 }
 ```
 
-`CleanRoomInfoMessagePackFactory.cs` の `CreateSummary` 直した後（直す前は C6 で書いた形。一覧の詰め替えを消す。`Select`・`ToList`・`Vector3IntMessagePack` を使う行はこの一覧の詰め替えだけなので、ファイル先頭の `using System.Collections.Generic;`・`using System.Linq;`・`using Server.Util.MessagePack;` を外す）:
+`CleanRoomInfoMessagePackFactory.cs` の `CreateSummary` 直した後（直す前は C6 で書いた形。一覧の詰め替えを消す。`CreateQueriedFrom`・`CreateNextClass` は C6 のまま。`Select`・`ToList`・`Vector3IntMessagePack` を使う行はこの一覧の詰め替えだけなので、ファイル先頭の `using System.Collections.Generic;`・`using System.Linq;`・`using Server.Util.MessagePack;` を外す）:
 
 ```csharp
             static CleanRoomSummaryMessagePack CreateSummary(CleanRoomRoomSummary room)
             {
-                var nextClass = CreateNextClass(room.NextClass);
-                var queriedAirFilter = CreateQueriedAirFilter(room);
+                var (nextClass, queriedAirFilter) = CreateQueriedFrom(room.QueriedFrom);
                 return room.Class switch
                 {
                     CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirFilterCount, room.StoppedAirFilterCount, nextClass, queriedAirFilter),
@@ -16347,7 +16774,15 @@ namespace Server.Protocol.PacketResponse
                     // 次のクラス・照会した清浄機の状態の欠けや未知の種別も壊れた部屋として読めない（呼び出し元が警告を出す）
                     // A missing or unknown-kind next class or queried-purifier state is a broken room too (the caller warns)
                     if (Room.NextClass == null || !Room.NextClass.IsReadable()) return false;
-                    return Room.QueriedAirFilter != null && Room.QueriedAirFilter.IsReadable();
+                    if (Room.QueriedAirFilter == null || !Room.QueriedAirFilter.IsReadable()) return false;
+
+                    // 「清浄機以外から照会した」は NotCounted と NotAirFilter の組でだけ表す。片方だけの応答は2つの種別が食い違った壊れた wire
+                    // "Queried from a non-purifier" is only the NotCounted + NotAirFilter pair; a response with just one of them is broken wire whose two kinds disagree
+                    var isUncountedNextClass = Room.NextClass.Kind == CleanRoomNextClassResponseKind.NotCounted;
+                    var isNonAirFilterQuery = Room.QueriedAirFilter.Kind == CleanRoomQueriedAirFilterResponseKind.NotAirFilter;
+                    if (isUncountedNextClass == isNonAirFilterQuery) return true;
+                    Debug.LogWarning($"[GetCleanRoomInfo] Room query-source kinds disagree: nextClass={Room.NextClass.Kind} queriedAirFilter={Room.QueriedAirFilter.Kind}");
+                    return false;
                 }
 ```
 
@@ -16387,8 +16822,8 @@ git commit -m "確定済み抽選の組・損失率・品質Tier・換気回数�
 ### Task E1: 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs`
-- Create: `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSide.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSideResolver.cs`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs`
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:5,27-28`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs`
@@ -16396,21 +16831,27 @@ git commit -m "確定済み抽選の組・損失率・品質Tier・換気回数�
 **Interfaces:**
 - Consumes: `Mooresmaster.Model.BlocksModule.IBlockConnector`（`Directions : Vector3Int[]`、null あり）、`Mooresmaster.Model.InventoryConnectsModule.InventoryConnects`（`InputConnects`・`OutputConnects` は配列、どちらも null あり）、`Mooresmaster.Model.BlocksModule.FilterSplitterBlockParam.InventoryConnectors`
 - Produces:
-  - `namespace Core.Master.FilterSplitter { public enum FilterSplitterOutputSide { Left = 0, Front = 1, Right = 2 } }`
+  - `namespace Game.Block.Interface.Component { public enum FilterSplitterOutputSide { Left = 0, Front = 1, Right = 2 } }`
   - `public static bool FilterSplitterOutputSideResolver.TryResolve(IBlockConnector input, IBlockConnector output, out FilterSplitterOutputSide side)`
-  - `public static IReadOnlyList<FilterSplitterOutputSide> FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects connectors)`（並びは `OutputConnects` の並び＝方向の番号。決まらない出口は例外。読込時の検証が先に止めるので通常は来ない）
-  - `namespace Core.Master.Validator.Block.FilterSplitter { internal static class FilterSplitterParamValidator { internal static string Validate(Blocks blocks); } }`
+  - `public static IReadOnlyList<FilterSplitterOutputSide> FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects connectors)`（並びは `OutputConnects` の並び＝方向の番号。入口コネクタが 1 つでない・出口が 0 個・側の決まらない出口がある、のどれかなら `InvalidOperationException`。同じ側が 2 つあっても例外にせず、そのまま並べて返す。どれも読込時の検証が先に止めるので通常は来ない）
+  - `namespace Core.Master.Validator.Block.FilterSplitter { internal static class FilterSplitterParamValidator { internal static string Validate(Blocks blocks); } }`（上の計算を呼ばない。止める条件は同じ意味を自分で書く）
+
+置き場: 側の計算は、同じ役割（マスタの blockParam を読んでサーバーと表示が同じ並びを使う static の型）の前例 `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs` に合わせ、`Game.Block.Interface/Component/FilterSplitter/` に置く。名前空間も前例（`Component/RocketLaunchPad/` の 2 本・`Component/SpaceElevator/` の 2 本はどれも `Game.Block.Interface.Component`）に合わせて `Game.Block.Interface.Component` にする。新しいディレクトリの .cs は 2 本。`Component/` 直下（今 18 本）には足さない。`Game.Block.Interface.asmdef` は `Core.Master` を参照しているので、マスタの生成型（`Mooresmaster.Model.*`）を読める（前例も同じ参照で `RocketLaunchPadBlockParam` を読む）。
+
+検証は Core.Master に残す。Core.Master は `Game.Block.Interface` を参照できない（参照の向きが逆）ので、計算を呼ばずに止める条件を自分で書く（前例: 発射台の枠の配置は `Game.Block.Interface` の `RocketLaunchPadSlotLayout`、読込時の検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` で条件を別に書いている）。2 つが食い違わないことは、Step 1 のテストで同じ入力の表を両方に当てて押さえる。
 
 - [ ] **Step 1: テストを書く**
 
-`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs`:
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter/FilterSplitterOutputSideTest.cs`（サーバーのテストのアセンブリ `Server.Tests.asmdef` は `Core.Master` と `Game.Block.Interface` の両方を参照している。`FilterSplitterParamValidator` は internal なので、公開の `BlockMasterUtil.Validate` を通して当てる）:
 
 ```csharp
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Core.Master;
-using Core.Master.FilterSplitter;
 using Core.Master.Validator;
+using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -16420,12 +16861,14 @@ using Tests.Module.TestMod;
 namespace Tests.UnitTest.Core.Master.FilterSplitter
 {
     /// <summary>
-    /// フィルター分岐器の出口の側（左・正面・右）を入口の向きから決めることと、決まらないマスタを読込時に止めること
-    /// The filter splitter exit side (left, front, right) follows the entry direction, and a master where it cannot be decided stops at load
+    /// フィルター分岐器の出口の側（左・正面・右）を決める計算と、決まらないマスタを読込時に止める検証が、同じ接続の組で食い違わないこと
+    /// The exit side calculation (left, front, right) and the load-time validator that stops undecidable masters agree on the same connector sets
     /// </summary>
     public class FilterSplitterOutputSideTest
     {
         private const string SplitterName = "TestFilterSplitter";
+        private const string Throws = "Throws";
+        private const string DuplicateSide = "DuplicateSide";
 
         [Test]
         public void テストマスタの出口は右左正面の並び()
@@ -16440,69 +16883,75 @@ namespace Tests.UnitTest.Core.Master.FilterSplitter
             CollectionAssert.AreEqual(new[] { FilterSplitterOutputSide.Right, FilterSplitterOutputSide.Left, FilterSplitterOutputSide.Front }, sides.ToArray());
         }
 
-        [Test]
-        public void 入口が横向きでも入口から見た側で決まる()
+        // 列: 入口コネクタ（1要素=1コネクタ、向きは ; 区切り、空文字は向き0個）・出口の向き・検証の文（null は通る）・計算の結果（側の並び / Throws / DuplicateSide）
+        // Columns: input connectors (one element per connector, directions split by ;, empty means no direction), exit directions, validator text (null passes), calculation (sides / Throws / DuplicateSide)
+        private static IEnumerable<TestCaseData> ConnectorCases()
         {
-            // 入口を +X 面にすると流れる向きは -X。その右手は +Z、左手は -Z、正面は -X
-            // With the entry on the +X face the flow is -X; its right hand is +Z, left -Z and front -X
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "0,0,1" }, null, "Right,Left,Front").SetName("テストマスタの並びは通り右左正面");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "-1,0,0", "0,0,1", "1,0,0" }, null, "Left,Front,Right").SetName("出荷マスタの並びは通り左正面右");
+            yield return new TestCaseData(new[] { "1,0,0" }, new[] { "0,0,1", "0,0,-1", "-1,0,0" }, null, "Right,Left,Front").SetName("入口が横向きでも入口から見た側で決まる");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0" }, null, "Right,Left").SetName("出口が左と右の2つだけなら止めない");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "0,0,-1" }, "is not left, front or right of its input", Throws).SetName("入口と同じ面の出口を止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "1,0,1" }, "is not left, front or right of its input", Throws).SetName("斜めの出口を止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "0,1,0" }, "is not left, front or right of its input", Throws).SetName("上向きの出口を止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "0,-1,0" }, "is not left, front or right of its input", Throws).SetName("下向きの出口を止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "0,0,1;1,0,0" }, "is not left, front or right of its input", Throws).SetName("向きが2つの出口を止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "1,0,0", "-1,0,0", "" }, "is not left, front or right of its input", Throws).SetName("向きの無い出口を止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, new[] { "-1,0,0", "-1,0,0", "0,0,1" }, "has two outputs on the same side", DuplicateSide).SetName("同じ側の出口が2つあれば止める");
+            yield return new TestCaseData(new[] { "0,0,-1;1,0,0" }, new[] { "1,0,0", "-1,0,0", "0,0,1" }, "does not point to a single horizontal direction", Throws).SetName("入口の向きが2つあれば止める");
+            yield return new TestCaseData(new[] { "0,1,0" }, new[] { "1,0,0", "-1,0,0", "0,0,1" }, "does not point to a single horizontal direction", Throws).SetName("入口が上向きなら止める");
+            yield return new TestCaseData(new[] { "0,0,-1", "1,0,0" }, new[] { "1,0,0", "-1,0,0", "0,0,1" }, "does not have exactly one input connector", Throws).SetName("入口コネクタが2つあれば止める");
+            yield return new TestCaseData(Array.Empty<string>(), new[] { "1,0,0", "-1,0,0", "0,0,1" }, "does not have exactly one input connector", Throws).SetName("入口コネクタが無ければ止める");
+            yield return new TestCaseData(new[] { "0,0,-1" }, Array.Empty<string>(), "has no output connectors", Throws).SetName("出口が無ければ止める");
+        }
+
+        [TestCaseSource(nameof(ConnectorCases))]
+        public void 検証と側の計算は同じ接続の組で食い違わない(string[] inputConnectors, string[] exitDirections, string validatorText, string calculation)
+        {
+            // 表の約束: 検証を通る組は計算が全部の側を決め、止める組は計算が決められないか同じ側が重なる
+            // Table contract: a passing set gets every side decided; a stopped set throws or repeats a side
+            Assert.AreEqual(validatorText == null, calculation != Throws && calculation != DuplicateSide, "表の行が約束に反する");
+
             var blocks = PrepareBlocksJson();
             var connectors = FindBlockParam(blocks)["inventoryConnectors"];
-            connectors["inputConnects"][0]["directions"] = new JArray(new JArray(1, 0, 0));
-            connectors["outputConnects"][0]["directions"] = new JArray(new JArray(0, 0, 1));
-            connectors["outputConnects"][1]["directions"] = new JArray(new JArray(0, 0, -1));
-            connectors["outputConnects"][2]["directions"] = new JArray(new JArray(-1, 0, 0));
+            var inputTemplate = connectors["inputConnects"][0];
+            var outputTemplate = connectors["outputConnects"][0];
+            connectors["inputConnects"] = new JArray(inputConnectors.Select((directions, index) => Connector(inputTemplate, directions, $"f1110000-0000-0000-0000-0000000001{index:D2}")));
+            connectors["outputConnects"] = new JArray(exitDirections.Select((direction, index) => Connector(outputTemplate, direction, $"f1110000-0000-0000-0000-0000000002{index:D2}")));
+            var blockMaster = new BlockMaster(blocks);
 
-            var param = (FilterSplitterBlockParam)new BlockMaster(blocks).Blocks.Data.Single(block => block.Name == SplitterName).BlockParam;
+            // 検証の側
+            // Validator side
+            var passed = BlockMasterUtil.Validate(blockMaster.Blocks, out var errors);
+            Assert.AreEqual(validatorText == null, passed, errors);
+            if (validatorText != null) StringAssert.Contains(validatorText, errors);
 
-            CollectionAssert.AreEqual(new[] { FilterSplitterOutputSide.Right, FilterSplitterOutputSide.Left, FilterSplitterOutputSide.Front }, FilterSplitterOutputSideResolver.ResolveAll(param.InventoryConnectors).ToArray());
+            // 計算の側
+            // Calculation side
+            var param = (FilterSplitterBlockParam)blockMaster.Blocks.Data.Single(block => block.Name == SplitterName).BlockParam;
+            if (calculation == Throws)
+            {
+                Assert.Throws<InvalidOperationException>(() => FilterSplitterOutputSideResolver.ResolveAll(param.InventoryConnectors));
+                return;
+            }
+            var sides = FilterSplitterOutputSideResolver.ResolveAll(param.InventoryConnectors);
+            if (calculation == DuplicateSide)
+            {
+                Assert.Less(sides.Distinct().Count(), sides.Count);
+                return;
+            }
+            CollectionAssert.AreEqual(calculation.Split(',').Select(side => (FilterSplitterOutputSide)Enum.Parse(typeof(FilterSplitterOutputSide), side)).ToArray(), sides.ToArray());
         }
 
-        [Test]
-        public void テストマスタの分岐器は検証を通る()
+        private static JToken Connector(JToken template, string directions, string connectorGuid)
         {
-            var blocks = PrepareBlocksJson();
-
-            Assert.IsTrue(BlockMasterUtil.Validate(new BlockMaster(blocks).Blocks, out var errors), errors);
-        }
-
-        [Test]
-        public void 入口と同じ面の出口を止める()
-        {
-            var blocks = PrepareBlocksJson();
-            FindBlockParam(blocks)["inventoryConnectors"]["outputConnects"][2]["directions"] = new JArray(new JArray(0, 0, -1));
-
-            Assert.IsFalse(BlockMasterUtil.Validate(new BlockMaster(blocks).Blocks, out var errors));
-            StringAssert.Contains("is not left, front or right of its single horizontal input direction", errors);
-        }
-
-        [Test]
-        public void 同じ側の出口が2つあれば止める()
-        {
-            var blocks = PrepareBlocksJson();
-            FindBlockParam(blocks)["inventoryConnectors"]["outputConnects"][0]["directions"] = new JArray(new JArray(-1, 0, 0));
-
-            Assert.IsFalse(BlockMasterUtil.Validate(new BlockMaster(blocks).Blocks, out var errors));
-            StringAssert.Contains("has two outputs on the Left side", errors);
-        }
-
-        [Test]
-        public void 入口の向きが2つあれば止める()
-        {
-            var blocks = PrepareBlocksJson();
-            ((JArray)FindBlockParam(blocks)["inventoryConnectors"]["inputConnects"][0]["directions"]).Add(new JArray(1, 0, 0));
-
-            Assert.IsFalse(BlockMasterUtil.Validate(new BlockMaster(blocks).Blocks, out var errors));
-            StringAssert.Contains("is not left, front or right of its single horizontal input direction", errors);
-        }
-
-        [Test]
-        public void 入口が無ければ止める()
-        {
-            var blocks = PrepareBlocksJson();
-            FindBlockParam(blocks)["inventoryConnectors"]["inputConnects"] = new JArray();
-
-            Assert.IsFalse(BlockMasterUtil.Validate(new BlockMaster(blocks).Blocks, out var errors));
-            StringAssert.Contains("does not have exactly one input connector", errors);
+            // 空文字は向き0個（directions を空の配列にする）
+            // An empty string means no direction (an empty directions array)
+            var connector = template.DeepClone();
+            var parsed = directions == "" ? Array.Empty<string>() : directions.Split(';');
+            connector["directions"] = new JArray(parsed.Select(direction => new JArray(direction.Split(',').Select(value => int.Parse(value)))));
+            connector["connectorGuid"] = connectorGuid;
+            return connector;
         }
 
         private static JToken PrepareBlocksJson()
@@ -16522,6 +16971,8 @@ namespace Tests.UnitTest.Core.Master.FilterSplitter
 }
 ```
 
+表の行と裁定の止める 3 条件（`.decisions/2026-11-21-見出しを左正面右に決められない分岐器のマスタは読込時に止める.md`）の対応: 「入口が 1 つでない」＝`入口コネクタが2つあれば止める`・`入口コネクタが無ければ止める`（入口の向きが水平の 1 方向でない `入口の向きが2つあれば止める`・`入口が上向きなら止める` もここに当てる。この読み方は agent前提で「判断」3）／「出口が左・正面・右のどれにも当たらない（入口と同じ面・斜め・上下）」＝`入口と同じ面の出口を止める`・`斜めの出口を止める`・`上向きの出口を止める`・`下向きの出口を止める`（向きが水平の 1 方向でない `向きが2つの出口を止める`・`向きの無い出口を止める` もここに当てる。計算と検証が `Directions.Length` を別々に見ているので、片方だけ変えると落ちる）／「同じ側に出口が 2 つ」＝`同じ側の出口が2つあれば止める`。「出口が 2 つだけは止めない」＝`出口が左と右の2つだけなら止めない`。`出口が無ければ止める` は裁定の 3 条件の外で、agent前提（「判断」3）。
+
 - [ ] **Step 2: コンパイルして赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
@@ -16529,10 +16980,10 @@ Expected: `FilterSplitterOutputSide`・`FilterSplitterOutputSideResolver` が無
 
 - [ ] **Step 3: 列挙を書く**
 
-`moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs`:
+`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSide.cs`:
 
 ```csharp
-namespace Core.Master.FilterSplitter
+namespace Game.Block.Interface.Component
 {
     // 入口から入ってまっすぐ進んだ先が正面、その向きを向いて左手が左、右手が右（ユーザー裁定 2026-11-19）
     // Front is straight ahead from the entry; facing that way the left hand is left and the right hand is right (user decision 2026-11-19)
@@ -16547,7 +16998,7 @@ namespace Core.Master.FilterSplitter
 
 - [ ] **Step 4: 側を決める関数を書く**
 
-`moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs`:
+`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter/FilterSplitterOutputSideResolver.cs`:
 
 ```csharp
 using System;
@@ -16556,7 +17007,7 @@ using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using UnityEngine;
 
-namespace Core.Master.FilterSplitter
+namespace Game.Block.Interface.Component
 {
     /// <summary>
     /// フィルター分岐器の出口が入口から見て左・正面・右のどれかを、マスタの接続の向き（ブロックの座標系）から決める
@@ -16564,7 +17015,9 @@ namespace Core.Master.FilterSplitter
     /// </summary>
     /// <remarks>
     /// 設置の向きは入口と出口の向きを同じ回転で回すだけなので、ブロックの座標系で決めた側はどの向きに置いても変わらない（BlockDirectionExtension.ConvertLocalCell）。
+    /// 止める条件は Core.Master の FilterSplitterParamValidator が別に書く（Core.Master からこの層は呼べない）。食い違いは FilterSplitterOutputSideTest の表で押さえる。
     /// Placement rotates the entry and exit directions by the same rotation, so a side decided in block-local space holds for every facing (BlockDirectionExtension.ConvertLocalCell).
+    /// FilterSplitterParamValidator in Core.Master writes the stop conditions separately (Core.Master cannot call this layer); FilterSplitterOutputSideTest's table keeps them in agreement.
     /// </remarks>
     public static class FilterSplitterOutputSideResolver
     {
@@ -16587,8 +17040,10 @@ namespace Core.Master.FilterSplitter
         // Returns the sides in exit order (= the direction index, see VanillaFilterSplitterTemplate)
         public static IReadOnlyList<FilterSplitterOutputSide> ResolveAll(InventoryConnects connectors)
         {
-            // 入口1つ・側の決まる出口だけであることは FilterSplitterParamValidator が読込時に保証する。ここで外れたら契約違反なので止める
-            // FilterSplitterParamValidator guarantees one entry and resolvable exits at load; anything else here is a broken contract, so stop
+            // 入口1つ・出口1つ以上・どの出口も側が決まることは FilterSplitterParamValidator が読込時に保証する。ここで外れたら契約違反なので止める
+            // FilterSplitterParamValidator guarantees one entry, at least one exit and resolvable exits at load; anything else here is a broken contract, so stop
+            if (connectors.InputConnects == null || connectors.InputConnects.Length != 1) throw new InvalidOperationException("FilterSplitter does not have exactly one input connector; FilterSplitterParamValidator should have stopped the master load");
+            if (connectors.OutputConnects == null || connectors.OutputConnects.Length == 0) throw new InvalidOperationException("FilterSplitter has no output connectors; FilterSplitterParamValidator should have stopped the master load");
             var input = connectors.InputConnects[0];
             var sides = new List<FilterSplitterOutputSide>(connectors.OutputConnects.Length);
             foreach (var output in connectors.OutputConnects)
@@ -16609,22 +17064,32 @@ namespace Core.Master.FilterSplitter
     }
 }
 ```
+（null を調べているのは、マスタの配列が mod の JSON から来る外部データで、生成型が null を許すため。62 行。）
 
 - [ ] **Step 5: 読込時の検証を書く**
 
 `Validator/Block/` 直下は今 .cs が 10 本（BeltSpeedPerSecond・BlockConnector・BlockConstruction・BlockDestructionCategory・BlockGearConsumption・BlockParam・CleanRoomItemHatchThroughput・ExtractionSettings・RocketLaunchPadParam・SpaceElevatorBaseParam の各 Validator）で、1ディレクトリ10本の上限にある。そこで新しいサブディレクトリ `Validator/Block/FilterSplitter/` を切って置く。名前空間は `Validator/` の下の既存サブディレクトリの多数の付け方（`Item/` → `Core.Master.Validator.Item`、`MachineUpgrade/` → `Core.Master.Validator.MachineUpgrade`、`OrbitalPayload/` → `Core.Master.Validator.OrbitalPayload`、`Block/` → `Core.Master.Validator.Block`。`CleanRoom/` だけは `Core.Master.Validator` のまま）に合わせてフォルダの並びどおり `Core.Master.Validator.Block.FilterSplitter` にし、呼び手（`BlockMasterUtil`）は using を足して呼ぶ（前例: `ItemMasterUtil.cs:5` の `using Core.Master.Validator.OrbitalPayload;` で `OrbitalPayloadMasterValidator.Validate` を呼ぶ）。新しいディレクトリと .cs の `.meta` は手で作らず、Step 6 の compile で Unity が作る。
 
+止める条件の書き方: 計算（Step 4）が側を決めるのは「入口の向きが水平の 1 方向で、出口の向きも水平の 1 方向で、出口が入口と同じ向きでない」ときだけ（水平の 4 方向のうち、入口の向きを除いた 3 つが正面・右・左に 1 対 1 で当たる）。よって検証は回転の式を写さず、この条件と「同じ向きの出口が 2 つ（＝同じ側が 2 つ）」を直接見る。
+
 `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs`:
 
 ```csharp
 using System.Collections.Generic;
-using Core.Master.FilterSplitter;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.InventoryConnectsModule;
+using UnityEngine;
 
 namespace Core.Master.Validator.Block.FilterSplitter
 {
-    // 出口を左・正面・右で見せられないフィルター分岐器を読込時に止める（画面の見出しが番号に戻れないため）
-    // Stops at load any filter splitter whose exits cannot be shown as left, front and right (the screen has no numbered fallback)
+    /// <summary>
+    /// 出口を左・正面・右で見せられないフィルター分岐器を読込時に止める（画面の見出しが番号に戻れないため。ユーザー裁定 2026-11-21）
+    /// Stops at load any filter splitter whose exits cannot be shown as left, front and right (the screen has no numbered fallback; user decision 2026-11-21)
+    /// </summary>
+    /// <remarks>
+    /// 側の計算（Game.Block.Interface の FilterSplitterOutputSideResolver）は Core.Master から呼べないので、止める条件をここで別に書く。食い違いは FilterSplitterOutputSideTest の表で押さえる。
+    /// The side calculation (FilterSplitterOutputSideResolver in Game.Block.Interface) cannot be called from Core.Master, so the stop conditions are written here; FilterSplitterOutputSideTest's table keeps them in agreement.
+    /// </remarks>
     internal static class FilterSplitterParamValidator
     {
         internal static string Validate(Blocks blocks)
@@ -16633,32 +17098,43 @@ namespace Core.Master.Validator.Block.FilterSplitter
             foreach (var block in blocks.Data)
             {
                 if (block.BlockParam is not FilterSplitterBlockParam param) continue;
-                logs += ValidateSides(block.Name, param);
+                logs += ValidateConnectors(block.Name, param.InventoryConnectors);
             }
             return logs;
 
             #region Internal
 
-            string ValidateSides(string name, FilterSplitterBlockParam param)
+            string ValidateConnectors(string name, InventoryConnects connectors)
             {
-                // 入口は1口だけで、出口はどれも入口から見て左・正面・右のどれか。同じ側に2つは置けない
-                // Exactly one entry; every exit is left, front or right of it, and no side is used twice
-                var connectors = param.InventoryConnectors;
+                // 入口は1口で、その向きは水平の1方向（流れる向きが1つに決まる）
+                // Exactly one entry whose direction is a single horizontal one (so the flow is unique)
                 if (connectors.InputConnects == null || connectors.InputConnects.Length != 1) return $"[BlockMaster] {name} is a FilterSplitter but does not have exactly one input connector\n";
                 if (connectors.OutputConnects == null || connectors.OutputConnects.Length == 0) return $"[BlockMaster] {name} is a FilterSplitter but has no output connectors\n";
+                var input = connectors.InputConnects[0];
+                if (!IsSingleHorizontal(input.Directions)) return $"[BlockMaster] {name} input {input.ConnectorGuid} does not point to a single horizontal direction\n";
 
+                // 水平の出口は入口と同じ向きでなければ左・正面・右のどれか。側は向きと1対1なので、同じ向きが2つなら同じ側が2つ
+                // A horizontal exit not facing the entry's way is left, front or right; sides map one-to-one to directions, so a repeated direction is a repeated side
+                var entry = input.Directions[0];
                 var result = "";
-                var seen = new HashSet<FilterSplitterOutputSide>();
+                var seen = new HashSet<Vector3Int>();
                 foreach (var output in connectors.OutputConnects)
                 {
-                    if (!FilterSplitterOutputSideResolver.TryResolve(connectors.InputConnects[0], output, out var side))
+                    if (!IsSingleHorizontal(output.Directions) || output.Directions[0] == entry)
                     {
-                        result += $"[BlockMaster] {name} output {output.ConnectorGuid} is not left, front or right of its single horizontal input direction\n";
+                        result += $"[BlockMaster] {name} output {output.ConnectorGuid} is not left, front or right of its input\n";
                         continue;
                     }
-                    if (!seen.Add(side)) result += $"[BlockMaster] {name} has two outputs on the {side} side\n";
+                    if (!seen.Add(output.Directions[0])) result += $"[BlockMaster] {name} has two outputs on the same side (direction {output.Directions[0]})\n";
                 }
                 return result;
+            }
+
+            bool IsSingleHorizontal(Vector3Int[] directions)
+            {
+                if (directions == null || directions.Length != 1) return false;
+                var direction = directions[0];
+                return direction.y == 0 && Mathf.Abs(direction.x) + Mathf.Abs(direction.z) == 1;
             }
 
             #endregion
@@ -16666,6 +17142,7 @@ namespace Core.Master.Validator.Block.FilterSplitter
     }
 }
 ```
+（66 行。出口が 2 つだけの分岐器は、どの出口も上の条件を満たせば止めない。）
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs` の 5 行（using）:
 
@@ -16696,41 +17173,45 @@ using Core.Master.Validator.Block.FilterSplitter;
 - [ ] **Step 6: コンパイルしテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Core.Master.FilterSplitter.FilterSplitterOutputSideTest"`
-Expected: ErrorCount 0 / 7 件 PASS。続けて既存の分岐器とマスタ検証のテストが通り続けること: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "FilterSplitterTest|BlueprintFilterSplitterSettingsTest|RocketLaunchPadParamValidatorTest"` → 全 PASS（テストマスタの分岐器が新しい検証を通ることの確認）。
+Expected: ErrorCount 0 / 17 件 PASS（`テストマスタの出口は右左正面の並び` 1 件と表の 16 行）。表の `入口コネクタが無ければ止める`・`出口が無ければ止める`・`向きの無い出口を止める` の 3 行だけが、空の配列を入れた blocks.json を `new BlockMaster(blocks)` とほかの検証が例外なく読む前提に立つ（「未確認」6）。この 3 行が検証の文でなく読込の例外で落ちたら、その行を表から外し、外した理由と例外の文を報告に書く（ほかの行は外さない）。続けて既存の分岐器とマスタ検証のテストが通り続けること: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "FilterSplitterTest|BlueprintFilterSplitterSettingsTest|RocketLaunchPadParamValidatorTest"` → 全 PASS（テストマスタの分岐器が新しい検証を通ることの確認）。
 
 - [ ] **Step 7: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Core.Master/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter.meta moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs moorestech_server/Assets/Scripts/Core.Master/FilterSplitter.meta moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter.meta
-git commit -m "フィルター分岐器の出口を入口から見た左・正面・右で決める関数と、決まらないマスタを読込時に止める検証を足す"
+git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter moorestech_server/Assets/Scripts/Game.Block.Interface/Component/FilterSplitter.meta moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter.meta moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/FilterSplitter.meta
+git commit -m "フィルター分岐器の出口を入口から見た左・正面・右で決める関数と、決まらないマスタを読込時に止める検証を足し、両者が食い違わないことを同じ入力の表で確かめる"
 ```
 
 ### Task E2: クライアントが開いた分岐器のマスタから側を決めて詳細に載せ、文言の表を変える
 
-この Task は Task B3 の後に実施する。`SpecialBlockDetailReader.cs`・`SpecialDetailSamples.cs` は B3 も直すので、『直す前』は B3 の後の形（`localization.csv` も B1 の後の形）。
+この Task は Task B3 の後に実施する。`SpecialBlockDetailReader.cs`・`SpecialDetailSamples.cs` は B3 も直すので、『直す前』は B3 の後の形。`localization.csv` は B1 なども行を足すので、行番号ではなくキーで 1 行ずつ場所を決める。
+
+側の列挙は 2 つある。サーバー側の正は Task E1 の `Game.Block.Interface.Component.FilterSplitterOutputSide`。画面のアセンブリ `Client.Ui`（`FilterDirectionView`）は `Game.Block.Interface` を参照していない（`moorestech_client/Assets/Scripts/Client.Ui/Client.Ui.asmdef` の references に無く、`Client.Ui` の .cs に `using Game.` は 1 つも無い）ので、詳細が Game.Block.Interface の型を持つと `FilterDirectionView` が `direction.Side` を読んだ所で CS0012 になる。そこでモードと同じ形（クライアントの列挙 `Client.Ui.State.BlockInventory.Logic.Special.FilterSplitterMode` と、`SpecialNetworkReader.ToClientMode` で写す）に合わせ、クライアントの列挙 `Client.Ui.State.BlockInventory.Logic.Special.FilterSplitterOutputSide` を置き、`SpecialNetworkReader.ToClientSide` で写す。サーバーの列挙を名指しするのは `SpecialNetworkReader.cs` と `SpecialNetworkReaderTest.cs` だけで、どちらも別名 `ServerFilterSplitterOutputSide` で書く（モードの別名 `ServerFilterSplitterMode` と同じ）。`SpecialBlockDetailReader.cs` は既に `using Game.Block.Interface.Component;` を持ち、`ResolveAll` の戻り値をそのまま渡すだけで列挙の名前を書かないので、名前がぶつからない。
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs:1-19`
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:1-9,33-40`
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（B3 の後の using の並び・`Read` の戻り値の `SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),` の行・`RocketLaunchPadDetail ReadRocketLaunchPad()` の直前。行番号は B3 でずれるので文字列で探す）
-- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:1-2,22-46`
-- Modify: `Localization/localization.csv`（`ui.blockInventory.filterDefault`〜`filterBlacklist` の 3 行。今の 72〜74 行、B1 の後は 73〜75 行。`outputNumber` の行は Task E3 で消す）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:1-9,33-40,64`
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs`（`Read` の戻り値の `SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),` の行・`RocketLaunchPadDetail ReadRocketLaunchPad()` の直前。行番号は B3 でずれるので文字列で探す。using は足さない）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:20-25,45`
+- Modify: `Localization/localization.csv`（キー `ui.blockInventory.filterDefault`・`ui.blockInventory.filterWhitelist`・`ui.blockInventory.filterBlacklist` の 3 行の値と、キー `ui.blockInventory.outputNumber` の行の直後に足す 3 行。行番号は使わずキーで探す。参考: 今は 72〜75 行。`outputNumber` の行は Task E3 で消す）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs`（`FilterSplitter` の見本。今の 22〜27 行、B3 の後は 24〜29 行）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs:1-10,20-26,67-76`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs`（Create）
 
 **Interfaces:**
-- Consumes: Task E1 の `FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects)`・`Core.Master.FilterSplitter.FilterSplitterOutputSide`。Task B3 の後の `public static SpecialBlockDetailViewModel SpecialBlockDetailReader.Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)`（5 引数。E2 のテストはこの形で呼ぶ）。プロトコル（`va:filterSplitterState`）は変えない
+- Consumes: Task E1 の `Game.Block.Interface.Component.FilterSplitterOutputSideResolver.ResolveAll(InventoryConnects)`・`Game.Block.Interface.Component.FilterSplitterOutputSide`（クライアントでは `SpecialNetworkReader` だけが別名 `ServerFilterSplitterOutputSide` で読む）。Task B3 の後の `public static SpecialBlockDetailViewModel SpecialBlockDetailReader.Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)`（5 引数。E2 のテストはこの形で呼ぶ）。プロトコル（`va:filterSplitterState`）は変えない
 - Produces:
-  - `FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)` と `FilterSplitterOutputSide FilterSplitterDirectionDetail.Side { get; }`
-  - `public static LocalizationKey FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide side)`
-  - `public static FilterSplitterDetail SpecialNetworkReader.FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<FilterSplitterOutputSide> sides)`（旧 `FilterSplitter(response)` を置き換える。呼び手は `SpecialBlockDetailReader.Read` だけ）
+  - クライアントの列挙 `namespace Client.Ui.State.BlockInventory.Logic.Special { public enum FilterSplitterOutputSide { Left, Front, Right } }`（`FilterSplitterLogic.cs` の `FilterSplitterMode` の隣）
+  - `FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)` と `FilterSplitterOutputSide FilterSplitterDirectionDetail.Side { get; }`（どちらもクライアントの列挙）
+  - `public static LocalizationKey FilterSplitterLogic.OutputSideKey(FilterSplitterOutputSide side)`（クライアントの列挙）
+  - `public static FilterSplitterDetail SpecialNetworkReader.FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<ServerFilterSplitterOutputSide> sides)`（`ServerFilterSplitterOutputSide` は `Game.Block.Interface.Component.FilterSplitterOutputSide` の別名。旧 `FilterSplitter(response)` を置き換える。呼び手は `SpecialBlockDetailReader.Read` だけ）
+  - `internal static FilterSplitterOutputSide SpecialNetworkReader.ToClientSide(ServerFilterSplitterOutputSide side)`
   - 文言キー `ui.blockInventory.filterOutputLeft`・`filterOutputFront`・`filterOutputRight`（生成名 `LocalizationKeys.Ui.BlockInventory.FilterOutputLeft` ほか）。`ui.blockInventory.outputNumber` と `SpecialDetailTexts.OutputNumber` は Task E3 で消す（E2 の時点では View がまだ呼ぶ）
 
 - [ ] **Step 1: テストを書き直す**
 
-`FilterSplitterLogicTest.cs` の using に `using Core.Master.FilterSplitter;` を足し、`三つのモードを文言キーへ対応づける` の後に次を足す:
+`FilterSplitterLogicTest.cs` は既に `using Client.Ui.State.BlockInventory.Logic.Special;` を持つので using は足さず、`三つのモードを文言キーへ対応づける` の後に次を足す（列挙はクライアントのもの）:
 ```csharp
         [Test]
         public void 三つの出口の側を文言キーへ対応づける()
@@ -16741,7 +17222,7 @@ git commit -m "フィルター分岐器の出口を入口から見た左・正�
         }
 ```
 
-`SpecialNetworkReaderTest.cs` の using に `using Core.Master.FilterSplitter;` を足す。
+`SpecialNetworkReaderTest.cs` の 10 行（`using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;`）の次に `using ServerFilterSplitterOutputSide = Game.Block.Interface.Component.FilterSplitterOutputSide;` を足す（クライアントの列挙は既存の `using Client.Ui.State.BlockInventory.Logic.Special;` で読める）。
 
 25 行。直す前:
 ```csharp
@@ -16749,7 +17230,7 @@ git commit -m "フィルター分岐器の出口を入口から見た左・正�
 ```
 直した後:
 ```csharp
-            Assert.IsNull(SpecialNetworkReader.FilterSplitter(null, new[] { FilterSplitterOutputSide.Left }));
+            Assert.IsNull(SpecialNetworkReader.FilterSplitter(null, new[] { ServerFilterSplitterOutputSide.Left }));
 ```
 
 67〜76 行。直す前:
@@ -16765,14 +17246,14 @@ git commit -m "フィルター分岐器の出口を入口から見た左・正�
             CollectionAssert.AreEqual(new[] { new ItemId(4), ItemMaster.EmptyItemId }, detail.Directions[0].FilterItemIds);
             Assert.AreEqual(FilterSplitterMode.Blacklist, detail.Directions[1].Mode);
 ```
-直した後（側は既定値の Left 以外にして、写し漏れで既定値が残ると落ちるようにする）:
+直した後（サーバーの側を渡し、クライアントの側に写っていることを見る。側は既定値の Left 以外にして、写し漏れで既定値が残ると落ちるようにする）:
 ```csharp
             var response = new FilterSplitterStateProtocol.FilterSplitterStateResponse(true, FilterSplitterStateProtocol.FilterSplitterStateFailureReason.None, 2, 2, new List<FilterSplitterStateProtocol.DirectionStatePack>
             {
                 new() { Mode = ServerFilterSplitterMode.Whitelist, FilterItemIds = new List<ItemId> { new(4), ItemMaster.EmptyItemId } },
                 new() { Mode = ServerFilterSplitterMode.Blacklist, FilterItemIds = new List<ItemId> { new(7), new(8) } },
             });
-            var detail = SpecialNetworkReader.FilterSplitter(response, new[] { FilterSplitterOutputSide.Right, FilterSplitterOutputSide.Front });
+            var detail = SpecialNetworkReader.FilterSplitter(response, new[] { ServerFilterSplitterOutputSide.Right, ServerFilterSplitterOutputSide.Front });
             Assert.AreEqual(2, detail.Directions.Count);
             Assert.AreEqual(FilterSplitterMode.Whitelist, detail.Directions[0].Mode);
             CollectionAssert.AreEqual(new[] { new ItemId(4), ItemMaster.EmptyItemId }, detail.Directions[0].FilterItemIds);
@@ -16793,7 +17274,7 @@ git commit -m "フィルター分岐器の出口を入口から見た左・正�
                 new() { Mode = ServerFilterSplitterMode.Default, FilterItemIds = new List<ItemId> { ItemMaster.EmptyItemId, ItemMaster.EmptyItemId } },
             });
 
-            Assert.Throws<InvalidOperationException>(() => SpecialNetworkReader.FilterSplitter(response, new[] { FilterSplitterOutputSide.Left, FilterSplitterOutputSide.Front }));
+            Assert.Throws<InvalidOperationException>(() => SpecialNetworkReader.FilterSplitter(response, new[] { ServerFilterSplitterOutputSide.Left, ServerFilterSplitterOutputSide.Front }));
         }
 ```
 
@@ -16810,7 +17291,6 @@ using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.BlockInventory.Special.Source;
 using Core.Master;
-using Core.Master.FilterSplitter;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
@@ -16914,7 +17394,6 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Core.Master;
-using Core.Master.FilterSplitter;
 
 namespace Client.Ui.State.BlockInventory.Special.Details
 {
@@ -16935,7 +17414,9 @@ namespace Client.Ui.State.BlockInventory.Special.Details
     }
 ```
 
-`SpecialNetworkReader.cs`: using に `using Core.Master.FilterSplitter;` を足す（1〜9 行の並びの `using Client.Ui.State.Text;` の次）。33〜40 行。直す前:
+（`FilterSplitterOutputSide` はクライアントの列挙で、既存の `using Client.Ui.State.BlockInventory.Logic.Special;` で読める。using は足さない。）
+
+`SpecialNetworkReader.cs`: 9 行（`using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;`）の次に `using ServerFilterSplitterOutputSide = Game.Block.Interface.Component.FilterSplitterOutputSide;` を足す（`Client.Ui.State.asmdef` は `Game.Block.Interface` を参照している）。33〜40 行。直す前:
 ```csharp
         public static FilterSplitterDetail FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
         {
@@ -16950,7 +17431,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 ```csharp
         // 側は開いたブロックのマスタから呼び手が決める。方向の番号はサーバーも同じ outputConnects の並びで振る
         // The caller derives sides from the open block's master; the server numbers directions in the same outputConnects order
-        public static FilterSplitterDetail FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<FilterSplitterOutputSide> sides)
+        public static FilterSplitterDetail FilterSplitter(FilterSplitterStateProtocol.FilterSplitterStateResponse response, IReadOnlyList<ServerFilterSplitterOutputSide> sides)
         {
             // silent-ok: 未取得は分配器の初回取得の到着待ち / 届かないままなら録画（R-12）の分配器の段で気づく
             if (response == null) return null;
@@ -16959,12 +17440,28 @@ namespace Client.Ui.State.BlockInventory.Special.Details
             // A count mismatch means client and server masters differ; the headings would lie, so stop
             if (response.Directions.Count != sides.Count) throw new InvalidOperationException($"FilterSplitter response has {response.Directions.Count} directions but the client master has {sides.Count} outputs");
             var directions = new List<FilterSplitterDirectionDetail>(response.Directions.Count);
-            for (var d = 0; d < response.Directions.Count; d++) directions.Add(new FilterSplitterDirectionDetail(sides[d], ToClientMode(response.Directions[d].Mode), response.Directions[d].FilterItemIds));
+            for (var d = 0; d < response.Directions.Count; d++) directions.Add(new FilterSplitterDirectionDetail(ToClientSide(sides[d]), ToClientMode(response.Directions[d].Mode), response.Directions[d].FilterItemIds));
             return new FilterSplitterDetail(directions);
         }
 ```
 
-`SpecialBlockDetailReader.cs`（B3 の後の形。B3 は using に `Client.Ui.State.BlockInventory.Special.Cargo`・`Core.Master` を足し、`Read` に `unlockedPayloadItemIds` の引数と 2 行のコメントを足し、`ReadRocketLaunchPad`・`ReadSpaceElevator` の中身を書き換える。下の目印の行と `RocketLaunchPadDetail ReadRocketLaunchPad()` の行は B3 の後も残る）: using に `using Core.Master.FilterSplitter;` を足す（B3 の後の並びで `using Core.Master;` の次）。`Read` の戻り値の組み立ての行（今は 36 行、B3 の後は 40 行前後）。直す前:
+同じファイルの 64 行（`ToClientMode` の閉じ `}`）の後に足す（前例 `ToClientMode`。サーバーの列挙を画面の層へ持ち込まないために写す）:
+```csharp
+
+        internal static FilterSplitterOutputSide ToClientSide(ServerFilterSplitterOutputSide side)
+        {
+            return side switch
+            {
+                ServerFilterSplitterOutputSide.Left => FilterSplitterOutputSide.Left,
+                ServerFilterSplitterOutputSide.Front => FilterSplitterOutputSide.Front,
+                ServerFilterSplitterOutputSide.Right => FilterSplitterOutputSide.Right,
+                _ => throw new ArgumentOutOfRangeException(nameof(side), side, "未知のフィルタ分配器の出口の側"),
+            };
+        }
+```
+（ここでの `FilterSplitterOutputSide` は `using Client.Ui.State.BlockInventory.Logic.Special;` のクライアントの列挙。このファイルは `Game.Block.Interface.Component` を using しないので名前はぶつからない。77 行 → 95 行。）
+
+`SpecialBlockDetailReader.cs`（B3 の後の形。B3 は using に `Client.Ui.State.BlockInventory.Special.Cargo`・`Core.Master` を足し、`Read` に `unlockedPayloadItemIds` の引数と 2 行のコメントを足し、`ReadRocketLaunchPad`・`ReadSpaceElevator` の中身を書き換える。下の目印の行と `RocketLaunchPadDetail ReadRocketLaunchPad()` の行は B3 の後も残る）: using は足さない（`FilterSplitterOutputSideResolver` は既にある `using Game.Block.Interface.Component;`、`FilterSplitterBlockParam` は既にある `using Mooresmaster.Model.BlocksModule;` で読める。列挙の名前は書かないので、クライアントの列挙とぶつからない）。`Read` の戻り値の組み立ての行（今は 36 行、B3 の後は 40 行前後）。直す前:
 ```csharp
                 SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), SpecialNetworkReader.FilterSplitter(networkCache.FilterSplitter),
 ```
@@ -16995,7 +17492,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
             new FilterSplitterDirectionDetail(FilterSplitterMode.Blacklist, new[] { new ItemId(7), new ItemId(8) }),
         });
 ```
-直した後（出荷マスタと同じ 左・正面・右 の並び。using に `using Core.Master.FilterSplitter;` を足す〈B3 の後の並びで `using Core.Master;` の次〉）:
+直した後（出荷マスタと同じ 左・正面・右 の並び。列挙はクライアントのもので、既存の `using Client.Ui.State.BlockInventory.Logic.Special;` で読めるので using は足さない）:
 ```csharp
         public static FilterSplitterDetail FilterSplitter => new(new[]
         {
@@ -17007,14 +17504,26 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 
 - [ ] **Step 3: 側→文言キーを書く**
 
-`FilterSplitterLogic.cs`: using に `using Core.Master.FilterSplitter;` を足す。22〜25 行の summary を次にする:
+`FilterSplitterLogic.cs`: using は足さない。20 行（`FilterSplitterMode` の閉じ `}`）の後にクライアントの列挙を足す:
+```csharp
+
+    // フィルター分岐器の出口の側（入口から見て）。画面の層は Game.Block.Interface を参照しないので、サーバーの列挙を SpecialNetworkReader.ToClientSide で写す
+    // Exit side of the filter splitter seen from the entry; the UI layer does not reference Game.Block.Interface, so SpecialNetworkReader.ToClientSide maps the server enum
+    public enum FilterSplitterOutputSide
+    {
+        Left,
+        Front,
+        Right,
+    }
+```
+22〜25 行（列挙を足した後は 31〜34 行）の summary を次にする:
 ```csharp
     /// <summary>
     /// フィルタ枠のクリック・モード名・出口の側の文言
     /// Filter slot clicks, mode labels and exit side labels
     /// </summary>
 ```
-`ModeKey` の後（45 行の `}` の後）に足す:
+`ModeKey` の後（今の 45 行、列挙を足した後は 54 行の `}` の後）に足す（47 行 → 70 行）:
 ```csharp
 
         // 出口の見出し。並びは方向の番号のままで、文は入口から見た側で決まる（ユーザー裁定 2026-11-19）
@@ -17033,23 +17542,42 @@ namespace Client.Ui.State.BlockInventory.Special.Details
 
 - [ ] **Step 4: 文言の表を変える**
 
-`Localization/localization.csv` の今の 72〜75 行（B1 が 59〜62 行の後に 1 行足すので、B1 の後は 73〜76 行。中身は B1 の後も同じなので文字列で探す）。直す前:
+`Localization/localization.csv` を 1 行ずつキーで探して直す（行番号は B1 などの追加でずれるので使わない。参考: 今は 72〜75 行で、この 4 行は並んでいる）。列は key,Source,english,japanese,german,korean。
+
+キー `ui.blockInventory.filterDefault` の行。直す前:
 ```
 ui.blockInventory.filterDefault,Default,Default,デフォルト,Standard,기본
-ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Positivliste,화이트리스트
-ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト,Sperrliste,블랙리스트
-ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
 ```
-直した後（列は key,Source,english,japanese,german,korean。`outputNumber` の行はこの Task では残し、Task E3 で消す）:
+直した後:
 ```
 ui.blockInventory.filterDefault,Others,Others,その他すべて,Rest,그 외 전부
+```
+
+キー `ui.blockInventory.filterWhitelist` の行。直す前:
+```
+ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Positivliste,화이트리스트
+```
+直した後:
+```
 ui.blockInventory.filterWhitelist,Only Listed,Only Listed,指定した物だけ,Nur Liste,지정한 것만
+```
+
+キー `ui.blockInventory.filterBlacklist` の行。直す前:
+```
+ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト,Sperrliste,블랙리스트
+```
+直した後:
+```
 ui.blockInventory.filterBlacklist,Not Listed,Not Listed,指定した物以外,Außer Liste,지정한 것 외
-ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
+```
+
+キー `ui.blockInventory.outputNumber` の行（この Task では残し、Task E3 で消す）の直後に、次の 3 行を足す:
+```
 ui.blockInventory.filterOutputLeft,Left,Left,左,Links,왼쪽
 ui.blockInventory.filterOutputFront,Front,Front,正面,Vorne,정면
 ui.blockInventory.filterOutputRight,Right,Right,右,Rechts,오른쪽
 ```
+足した後に `grep -c "^ui.blockInventory.filterOutput" Localization/localization.csv` が 3、`grep -c "^ui.blockInventory.filter\(Default\|Whitelist\|Blacklist\)," Localization/localization.csv` が 3 であること（キーの重複が無い）。
 
 - [ ] **Step 5: 生成し直してコンパイルしテストを通す**
 
@@ -17060,7 +17588,7 @@ Expected: 2 回目の compile が ErrorCount 0（View はまだ `SpecialDetailTe
 - [ ] **Step 6: コミットする**
 
 ```bash
-git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs
+git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Details/FilterSplitterDetail.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialBlockDetailReader.cs moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialBlockDetailReaderFilterSplitterTest.cs.meta moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Logic/FilterSplitterLogicTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialNetworkReaderTest.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/Support/SpecialDetailSamples.cs
 git commit -m "フィルター分岐器の詳細に、開いたブロックのマスタから決めた出口の側を載せ、モード名を言い換え、出口の左・正面・右の文言を足す"
 ```
 
@@ -17071,7 +17599,7 @@ git commit -m "フィルター分岐器の詳細に、開いたブロックの�
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui/Screens/BlockInventory/Special/FilterSplitter/FilterDirectionView.cs`（全体）
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Text/SpecialDetailTexts.cs:8-10,53-58`
-- Modify: `Localization/localization.csv`（`ui.blockInventory.outputNumber` の行を消す。今の 75 行、B1・E2 の後は 76 行）
+- Modify: `Localization/localization.csv`（キー `ui.blockInventory.outputNumber` の行を消す。行番号は使わずキーで探す）
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/FilterSplitterBodyViewTest.cs`
 
 **Interfaces:**
@@ -17088,7 +17616,6 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Core.Master;
-using Core.Master.FilterSplitter;
 using Mooresmaster.Localization.Generated;
 ```
 `左押下は設定を送る` の後に足す:
@@ -17291,7 +17818,7 @@ View が `OutputNumber` を呼ばなくなるので消す。`SpecialDetailTexts.
     /// </summary>
 ```
 
-`Localization/localization.csv` の `outputNumber` の行（B1・E2 の後は 76 行。文字列で探す）を消す:
+`Localization/localization.csv` のキー `ui.blockInventory.outputNumber` の行（行番号は使わずキーで探す）を消す:
 ```
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index},출력 {index}
 ```
@@ -17470,6 +17997,8 @@ git commit -m "出荷マスタでフィルター分岐器の見出しが左・�
 - Consumes: なし
 - Produces: `ItemUnlockStateHolder.Unlock(ItemId)` は解放済みなら何もしない（`OnUnlockItem` を流さない）。呼び出し側のシグネチャは変わらない
 
+Task E7 の後に品質モジュールと速度モジュールの両方の研究から解放されるのは 13 品目（シリコンダイLv2〜5・ICチップLv2〜5・品質モジュールLv1〜5）。直す所はアイテムを選ばず全アイテムに効くので、NUnit は forUnitTest の ItemId4 を 2 回解放して通知の回数を見る（出荷マスタの 13 品目は v8 を読む NUnit にしない〈「判断」12〉。13 品目で解放の状態が保たれ例外が出ないことは Task E8 の録画が見る）。
+
 - [ ] **Step 1: テストを書く**
 
 ```csharp
@@ -17547,36 +18076,41 @@ git add moorestech_server/Assets/Scripts/Game.UnlockState/Holders/ItemUnlockStat
 git commit -m "解放済みのアイテムをもう一度解放しても解放の通知を流さない"
 ```
 
-### Task E7: マスタ repo で品質モジュール研究に ICチップLv2〜5 の解放を足す（別 repo の PR）
+### Task E7: マスタ repo で品質モジュール研究に ICチップ・シリコンダイ・品質モジュールのアイテム解放を足す（別 repo の PR）
 
 **Files（moorestech_master。本 repo ではない）:**
-- Modify: `server_v8/mods/moorestechAlphaMod_8/master/research.json`（研究「品質モジュールLv1」「品質モジュールLv2」「品質モジュールLv3」「品質モジュールLv4」の `clearedActions`）
+- Modify: `server_v8/mods/moorestechAlphaMod_8/master/research.json`（研究「品質モジュールLv1」「品質モジュールLv2」「品質モジュールLv3」「品質モジュールLv4」「品質モジュールLv5」の `clearedActions`）
 - Modify: `server_v8/mods/moorestechAlphaMod_8/master/items.json`（操作 A の再計算の結果だけ）
 
 **Interfaces:**
-- Consumes: ユーザー裁定 2026-11-21（ICチップLv2〜5 は品質モジュールLv1〜4 の研究でも解放する。速度モジュール側は残す）
+- Consumes: ユーザー裁定 2026-11-21（`.decisions/2026-11-21-積荷の一覧の解放はICチップLv2から5のアイテム解放を品質モジュールLv1から4の研究にも付けて決める.md`・`.decisions/2026-11-21-品質モジュールの研究にはシリコンダイと品質モジュールのアイテム解放も付ける.md`。研究「品質モジュールLvN」（N は 1〜4）に ICチップLv(N+1)・シリコンダイLv(N+1)・品質モジュールLvN、研究「品質モジュールLv5」に品質モジュールLv5。速度モジュールの研究の今の解放は外さない）
 - Produces: マスタ PR の先頭コミット（Task E8 がピンに使う）
 
-| 研究 | researchNodeGuid | 足す ICチップ | itemGuid |
-|---|---|---|---|
-| 品質モジュールLv1 | `01a167f3-bd6b-70c9-be6e-52e41907b21f` | ICチップLv2 | `878ea106-3689-4bcd-8d9a-e18b0e03072c` |
-| 品質モジュールLv2 | `01a173a4-cfe2-769c-9b35-eabb655f9a8f` | ICチップLv3 | `d403eb63-f913-456f-842d-41980cdfc0bc` |
-| 品質モジュールLv3 | `01a173a4-cfe2-769c-9b35-eabc81931e86` | ICチップLv4 | `2ef1886a-30b0-4792-8c20-0f39c370443a` |
-| 品質モジュールLv4 | `01a173a4-cfe2-769c-9b35-eabdf0cceabb` | ICチップLv5 | `01a17356-2aff-701f-9a1c-17524cddb030` |
+足す解放（研究ごとに `unlockItemRecipeView` の要素を 1 つ足し、`unlockItemGuids` に並べる。組み合わせと並びは、ピン `aaa89bc` の research.json で今の研究「速度モジュールLvN」が持つ `unlockItemRecipeView` と同じ〈シリコンダイ → ICチップ → 品質モジュールの順。速度モジュールLv5 は品質モジュールLv5 だけ〉）:
+
+| 研究 | researchNodeGuid | 今の `clearedActions` | 足すアイテム（並びの順） | 同じ組を持つ今の研究 |
+|---|---|---|---|---|
+| 品質モジュールLv1 | `01a167f3-bd6b-70c9-be6e-52e41907b21f` | `unlockMachineRecipe` [`01a167f3-bd88-747d-b30e-13f23f169ce4`] | シリコンダイLv2 `01a17356-2aff-701f-9a1c-174e55eb20f8`・ICチップLv2 `878ea106-3689-4bcd-8d9a-e18b0e03072c`・品質モジュールLv1 `01a167f3-bd96-73a2-a0ce-06ba261e109d` | 速度モジュールLv1 `019e3ae2-5005-7439-b242-9b7b3191a2c3` |
+| 品質モジュールLv2 | `01a173a4-cfe2-769c-9b35-eabb655f9a8f` | `unlockLevelInheritanceCraftLevel` level 2 | シリコンダイLv3 `01a17356-2aff-701f-9a1c-174f781ba191`・ICチップLv3 `d403eb63-f913-456f-842d-41980cdfc0bc`・品質モジュールLv2 `01a17370-c063-7479-84da-2d07d02e2953` | 速度モジュールLv2 `01a19cf1-4842-7064-82b6-5a6df2e2d583` |
+| 品質モジュールLv3 | `01a173a4-cfe2-769c-9b35-eabc81931e86` | `unlockLevelInheritanceCraftLevel` level 3 | シリコンダイLv4 `01a17356-2aff-701f-9a1c-1750b8ac3222`・ICチップLv4 `2ef1886a-30b0-4792-8c20-0f39c370443a`・品質モジュールLv3 `01a17370-c063-7479-84da-2d0837ecdcb1` | 速度モジュールLv3 `01a19cf1-484d-7116-99a9-6808c43f6199` |
+| 品質モジュールLv4 | `01a173a4-cfe2-769c-9b35-eabdf0cceabb` | `unlockLevelInheritanceCraftLevel` level 4 | シリコンダイLv5 `01a17356-2aff-701f-9a1c-175178dfda4c`・ICチップLv5 `01a17356-2aff-701f-9a1c-17524cddb030`・品質モジュールLv4 `01a17370-c063-7479-84da-2d09a793b11a` | 速度モジュールLv4 `01a19cf1-4858-722c-8a40-a2ca854edee9` |
+| 品質モジュールLv5 | `01a173a4-cfe2-769c-9b35-eabe85cfb575` | `unlockLevelInheritanceCraftLevel` level 5 | 品質モジュールLv5 `01a17370-c063-7479-84da-2d0a09b79551` | 速度モジュールLv5 `01a19cf1-4861-70b0-90d8-7d6af161a8ab` |
+
+5 つの研究のどれも `clearedActions` に `unlockItemRecipeView` をまだ持たない。足す 13 品目はどれも `initialUnlocked: false`・`recipeViewType: IsUnlocked` で、今これらを解放する研究は速度モジュールLv1〜5 だけ（ピン `aaa89bc` の research.json で確かめた）。
 
 - [ ] **Step 1: マスタの作業 worktree を作る**
 
 ```bash
 git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master fetch origin
-git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add -b feat/quality-research-unlocks-ic-chip /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-ic-chip origin/master
+git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add -b feat/quality-research-unlocks-items /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items origin/master
 ```
 `git -C <master worktree> diff aaa89bcf971289dc252dad4161ffec7ee54875e2 HEAD --stat` が空であること（2026-11-21 時点で origin/master `2d70ca2` はピンのマージで中身は同じ）。空でなければ research.json・items.json に当たる差分が無いかを見てから進める。
 
-- [ ] **Step 2: research.json に4か所足す**
+- [ ] **Step 2: research.json に5か所足す**
 
-4つの研究のどれも `clearedActions` に `unlockItemRecipeView` をまだ持たない。各研究の `clearedActions` の最後の要素の閉じ `}` の後に `,` と次の要素を足す（インデントは要素の `{` が 8 空白）。
+各研究の `clearedActions` の最後の要素の閉じ `}` を `},` にし、その後に次の要素を足す（インデントは要素の `{` が 8 空白）。研究は `researchNodeGuid` で探す（`level` の値だけで探すと、Lv2〜5 の 4 つは `targetItemGuids` が同じ品質モジュールなので取り違えやすい）。
 
-品質モジュールLv1（今の要素は `unlockMachineRecipe` [`01a167f3-bd88-747d-b30e-13f23f169ce4`]）。直す前:
+品質モジュールLv1（`01a167f3-bd6b-70c9-be6e-52e41907b21f`）。直す前:
 ```json
       "clearedActions": [
         {
@@ -17604,14 +18138,16 @@ git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add 
           "gameActionType": "unlockItemRecipeView",
           "gameActionParam": {
             "unlockItemGuids": [
-              "878ea106-3689-4bcd-8d9a-e18b0e03072c"
+              "01a17356-2aff-701f-9a1c-174e55eb20f8",
+              "878ea106-3689-4bcd-8d9a-e18b0e03072c",
+              "01a167f3-bd96-73a2-a0ce-06ba261e109d"
             ]
           }
         }
       ]
 ```
 
-品質モジュールLv2〜4（今の要素は `unlockLevelInheritanceCraftLevel`、`level` が 2・3・4）。Lv2 の直す前:
+品質モジュールLv2（`01a173a4-cfe2-769c-9b35-eabb655f9a8f`）。直す前:
 ```json
       "clearedActions": [
         {
@@ -17641,29 +18177,103 @@ git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add 
           "gameActionType": "unlockItemRecipeView",
           "gameActionParam": {
             "unlockItemGuids": [
-              "d403eb63-f913-456f-842d-41980cdfc0bc"
+              "01a17356-2aff-701f-9a1c-174f781ba191",
+              "d403eb63-f913-456f-842d-41980cdfc0bc",
+              "01a17370-c063-7479-84da-2d07d02e2953"
             ]
           }
         }
       ]
 ```
-Lv3 は `"level": 3` の要素の後に `2ef1886a-30b0-4792-8c20-0f39c370443a`、Lv4 は `"level": 4` の要素の後に `01a17356-2aff-701f-9a1c-17524cddb030` を、上と同じ形で足す（Lv3 の直した後の全文は Lv2 の直した後の `2`→`3`・`d403eb63-f913-456f-842d-41980cdfc0bc`→`2ef1886a-30b0-4792-8c20-0f39c370443a`、Lv4 は `2`→`4`・→`01a17356-2aff-701f-9a1c-17524cddb030`）。`level` の値で研究を取り違えないこと（3つとも `targetItemGuids` は品質モジュールで同じ）。
 
-ファイルは末尾に改行を持たない。保存後 `python3 -c "import json,sys; json.load(open(sys.argv[1]))" server_v8/mods/moorestechAlphaMod_8/master/research.json` が通り、`git diff --stat` が research.json の `32 insertions(+)` だけであること（4か所×8行。git は直前の `}` を `},` にした行を挿入の側へ寄せるので、下書き時の手元の再現でも削除は 0 行だった）。
+品質モジュールLv3（`01a173a4-cfe2-769c-9b35-eabc81931e86`）。直す前は Lv2 の直す前の `"level": 2` を `"level": 3` にしたもの。直した後:
+```json
+      "clearedActions": [
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "01a167f3-bd96-73a2-a0ce-06ba261e109d"
+            ],
+            "level": 3
+          }
+        },
+        {
+          "gameActionType": "unlockItemRecipeView",
+          "gameActionParam": {
+            "unlockItemGuids": [
+              "01a17356-2aff-701f-9a1c-1750b8ac3222",
+              "2ef1886a-30b0-4792-8c20-0f39c370443a",
+              "01a17370-c063-7479-84da-2d0837ecdcb1"
+            ]
+          }
+        }
+      ]
+```
+
+品質モジュールLv4（`01a173a4-cfe2-769c-9b35-eabdf0cceabb`）。直す前は `"level": 4`。直した後:
+```json
+      "clearedActions": [
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "01a167f3-bd96-73a2-a0ce-06ba261e109d"
+            ],
+            "level": 4
+          }
+        },
+        {
+          "gameActionType": "unlockItemRecipeView",
+          "gameActionParam": {
+            "unlockItemGuids": [
+              "01a17356-2aff-701f-9a1c-175178dfda4c",
+              "01a17356-2aff-701f-9a1c-17524cddb030",
+              "01a17370-c063-7479-84da-2d09a793b11a"
+            ]
+          }
+        }
+      ]
+```
+
+品質モジュールLv5（`01a173a4-cfe2-769c-9b35-eabe85cfb575`）。直す前は `"level": 5`。直した後:
+```json
+      "clearedActions": [
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "01a167f3-bd96-73a2-a0ce-06ba261e109d"
+            ],
+            "level": 5
+          }
+        },
+        {
+          "gameActionType": "unlockItemRecipeView",
+          "gameActionParam": {
+            "unlockItemGuids": [
+              "01a17370-c063-7479-84da-2d0a09b79551"
+            ]
+          }
+        }
+      ]
+```
+
+ファイルは末尾に改行を持たない（そのまま保つ）。保存後 `python3 -c "import json,sys; json.load(open(sys.argv[1]))" server_v8/mods/moorestechAlphaMod_8/master/research.json` が通り、`git diff --stat` が research.json の `48 insertions(+)` だけであること（Lv1〜4 が各 10 行・Lv5 が 8 行。git は直前の `}` を `},` にした行を挿入の側へ寄せるので削除は 0 行。下書き時に scratchpad でピン `aaa89bc` の research.json に同じ 5 か所を足して測った値）。
 
 - [ ] **Step 3: 解放の並び順を再計算する（master-refine 操作 A）**
 
 解放の順が変わったので sortPriority を作り直す。本 repo（moorestech の作業 worktree）のルートで:
 ```bash
-python3 .claude/skills/master-refine/scripts/recalc_sort_priority.py --mod-dir /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-ic-chip/server_v8/mods/moorestechAlphaMod_8
-git -C /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-ic-chip diff --stat
+python3 .claude/skills/master-refine/scripts/recalc_sort_priority.py --mod-dir /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items/server_v8/mods/moorestechAlphaMod_8
+git -C /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items diff --stat
 ```
-Expected: `WARN` が出ない。変わるのは research.json と items.json だけで blocks.json は変わらない。items.json は 30 品目の sortPriority と並びが動く（下書きを書いたときの手元の再現: ICチップLv2 800→730・Lv3 900→810・Lv4 960→910・Lv5 1020→970。間に入る 26 品目〈計算データ 730→740 を含む〉は 10 ずつ後ろへ）。これと違う動きなら止めて理由を調べる。
+Expected: `WARN` が出ない。変わるのは research.json と items.json だけで blocks.json は変わらない。items.json は 34 品目の sortPriority と並びが動く（`87 insertions(+), 87 deletions(-)`）。下書き時に scratchpad で同じスクリプトを走らせた再現: 前へ出るのは 品質モジュールLv1 780→730・シリコンダイLv2 790→740・ICチップLv2 800→750・品質モジュールLv2 880→810・シリコンダイLv3 890→820・ICチップLv3 900→830・品質モジュールLv3 940→910・シリコンダイLv4 950→920・ICチップLv4 960→930・品質モジュールLv4 1000→970・シリコンダイLv5 1010→980・ICチップLv5 1020→990・品質モジュールLv5 1060→1030 の 13 品目。残る 21 品目（計算データ 730→760・ロケット筐体素材 740→770 から 生産性モジュールLv4 1050→1060 まで）は後ろへずれる。これと違う動きなら止めて理由を調べる。
 
 - [ ] **Step 4: マスタ repo の検査を通す**
 
 ```bash
-cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-ic-chip
+cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items
 python3 scripts/check_shipped_data_contracts.py
 git show HEAD:.github/workflows/check-zero-width-json.yml | sed -n "/python3 - <<'PY'/,/^ *PY\$/p" | sed '1d;$d' | sed 's/^          //' > /tmp/check_zero_width.py && python3 /tmp/check_zero_width.py
 ```
@@ -17672,13 +18282,13 @@ Expected: どちらも失敗なし。2つ目は `.github/workflows/check-zero-wi
 - [ ] **Step 5: コミットして push し、マスタの PR を作る**
 
 ```bash
-cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-ic-chip
+cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/quality-research-unlocks-items
 git add server_v8/mods/moorestechAlphaMod_8/master/research.json server_v8/mods/moorestechAlphaMod_8/master/items.json
-git commit -m "品質モジュールLv1〜4の研究でICチップLv2〜5のアイテム解放を足し、解放順でsortPriorityを再計算する"
-git push -u origin feat/quality-research-unlocks-ic-chip
-gh pr create --repo moorestech/moorestech_master --base master --head feat/quality-research-unlocks-ic-chip --title "品質モジュールLv1〜4の研究でICチップLv2〜5を解放する" --body "$(cat <<'BODY'
-研究「品質モジュールLv1〜4」の完了で ICチップLv2〜5 のアイテム解放（unlockItemRecipeView）を足す。速度モジュールLv1〜4 の研究にある同じ解放はそのまま残す（ユーザー裁定 2026-11-21）。
-解放の順が変わったので master-refine 操作 A（recalc_sort_priority.py）で items.json の sortPriority と並びを再計算した（30 品目）。
+git commit -m "品質モジュールLv1〜5の研究でICチップLv2〜5・シリコンダイLv2〜5・品質モジュールLv1〜5のアイテム解放を足し、解放順でsortPriorityを再計算する"
+git push -u origin feat/quality-research-unlocks-items
+gh pr create --repo moorestech/moorestech_master --base master --head feat/quality-research-unlocks-items --title "品質モジュール研究でICチップ・シリコンダイ・品質モジュールのアイテムを解放する" --body "$(cat <<'BODY'
+研究「品質モジュールLvN」（N は 1〜4）の完了で ICチップLv(N+1)・シリコンダイLv(N+1)・品質モジュールLvN、研究「品質モジュールLv5」の完了で品質モジュールLv5 のアイテム解放（unlockItemRecipeView）を足す。組み合わせは今の研究「速度モジュールLvN」と同じで、速度モジュールの研究にある同じ解放はそのまま残す（ユーザー裁定 2026-11-21）。
+解放の順が変わったので master-refine 操作 A（recalc_sort_priority.py）で items.json の sortPriority と並びを再計算した（34 品目）。
 
 本体 repo（moorestech/moorestech）の PR: feat/ui-clarity-rocket-cleanroom-dicing（ピンをこの PR の先頭コミットへ進める）
 
@@ -17688,14 +18298,14 @@ BODY
 ```
 コミットのハッシュを控える（Task E8 で使う）。マスタ repo の PR は E7 で作り、本 repo の PR 本文から張る。マスタ repo の PR を先にマージする（本 repo のピンはこの PR の push 済みコミットを指すため。AGENTS.md「別リポジトリに変更が及ぶ場合も…PRを作る」）。
 
-### Task E8: ピンを進め、出荷マスタで品質モジュール研究が ICチップを解放することを録画で確かめる
+### Task E8: ピンを進め、出荷マスタで品質モジュール研究が ICチップ・シリコンダイ・品質モジュールを解放することを録画で確かめる
 
 **Files:**
 - Modify: `.moorestech-external-revisions.json`（`moorestech_master` の `commitHash`）
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs`
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-items.cs`
 
 **Interfaces:**
-- Consumes: Task E7 のマスタのコミット
+- Consumes: Task E7 のマスタのコミット。Task E6 の `ItemUnlockStateHolder.Unlock`（解放済みなら通知しない）
 - Produces: なし
 
 ピン先のマスタが読めることは、テストの CI（`.github/workflows/run_test.yml` がピン先を checkout）とこのシナリオの起動の両方で見る。以前の Shipped Master Gate（G1 読込・G3 研究ウォーク）は eba8cd30f6 で消えているので、それを回す Step は書かない。
@@ -17705,10 +18315,10 @@ BODY
 `.moorestech-external-revisions.json` の `"commitHash": "aaa89bcf971289dc252dad4161ffec7ee54875e2"` を Task E7 Step 5 のコミットハッシュ（40桁）に替える。ほかの行は変えない。
 ```bash
 git add .moorestech-external-revisions.json
-git commit -m "moorestech_master のピンを品質モジュール研究でICチップLv2〜5を解放するコミットへ進める"
-git show HEAD:.moorestech-external-revisions.json | grep -A1 '"moorestech_master"' -n
+git commit -m "moorestech_master のピンを品質モジュール研究でICチップ・シリコンダイ・品質モジュールを解放するコミットへ進める"
+git show HEAD:.moorestech-external-revisions.json | python3 -c "import json,sys; print(next(r['commitHash'] for r in json.load(sys.stdin)['repositories'] if r['key']=='moorestech_master'))"
 ```
-Expected: `git show HEAD:` の `moorestech_master` の commitHash が E7 のハッシュ（`docs/development/worktree-and-review-pitfalls.md`「master ピンが戻る」）。
+Expected: 出力の 1 行が E7 のハッシュ（40桁）。直す前の今のピンで同じコマンドを走らせると `aaa89bcf971289dc252dad4161ffec7ee54875e2` が出ることを下書き時に確かめた（`grep -A1 '"moorestech_master"'` では key と relativePath の 2 行しか出ず、commitHash は 3 行目なので使わない）（`docs/development/worktree-and-review-pitfalls.md`「master ピンが戻る」）。
 
 - [ ] **Step 2: ピンの master worktree を用意する**
 
@@ -17719,8 +18329,8 @@ git -C /Users/sakastudio/hermes-agent/data/repos/moorestech_master worktree add 
 - [ ] **Step 3: シナリオを書く**
 
 ```csharp
-// 出荷マスタで品質モジュールLv1〜4 の研究を完了扱いにし、速度モジュールの研究をせずに ICチップLv2〜5 がクライアントで解放済みになることと、後から速度モジュールLv1〜4 を済ませても解放の状態が変わらず例外も出ないことを確かめる
-// On the shipped master, complete quality module Lv1-4 research and confirm IC chip Lv2-5 unlock on the client without speed module research, then that completing speed module Lv1-4 afterwards keeps them unlocked without exceptions
+// 出荷マスタで品質モジュールLv1〜5 の研究を完了扱いにし、速度モジュールの研究をせずに ICチップLv2〜5・シリコンダイLv2〜5・品質モジュールLv1〜5 がクライアントで解放済みになることと、後から速度モジュールLv1〜5 を済ませても解放の状態が変わらず例外も出ないことを確かめる
+// On the shipped master, complete quality module Lv1-5 research and confirm IC chip Lv2-5, silicon die Lv2-5 and quality module Lv1-5 unlock on the client without speed module research, then that completing speed module Lv1-5 afterwards keeps them unlocked without exceptions
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17738,22 +18348,25 @@ using VContainer;
 
 var qualityResearch = new[]
 {
-    "01a167f3-bd6b-70c9-be6e-52e41907b21f", "01a173a4-cfe2-769c-9b35-eabb655f9a8f", "01a173a4-cfe2-769c-9b35-eabc81931e86", "01a173a4-cfe2-769c-9b35-eabdf0cceabb",
+    "01a167f3-bd6b-70c9-be6e-52e41907b21f", "01a173a4-cfe2-769c-9b35-eabb655f9a8f", "01a173a4-cfe2-769c-9b35-eabc81931e86", "01a173a4-cfe2-769c-9b35-eabdf0cceabb", "01a173a4-cfe2-769c-9b35-eabe85cfb575",
 }.Select(Guid.Parse).ToArray();
 var speedResearch = new[]
 {
-    "019e3ae2-5005-7439-b242-9b7b3191a2c3", "01a19cf1-4842-7064-82b6-5a6df2e2d583", "01a19cf1-484d-7116-99a9-6808c43f6199", "01a19cf1-4858-722c-8a40-a2ca854edee9",
+    "019e3ae2-5005-7439-b242-9b7b3191a2c3", "01a19cf1-4842-7064-82b6-5a6df2e2d583", "01a19cf1-484d-7116-99a9-6808c43f6199", "01a19cf1-4858-722c-8a40-a2ca854edee9", "01a19cf1-4861-70b0-90d8-7d6af161a8ab",
 }.Select(Guid.Parse).ToArray();
-var chips = new[]
-{
-    "878ea106-3689-4bcd-8d9a-e18b0e03072c", "d403eb63-f913-456f-842d-41980cdfc0bc", "2ef1886a-30b0-4792-8c20-0f39c370443a", "01a17356-2aff-701f-9a1c-17524cddb030",
-}.Select(Guid.Parse).ToArray();
-var speedOnlyDies = new[]
+// 品質モジュール研究が解放する 13 品目（シリコンダイLv2〜5・ICチップLv2〜5・品質モジュールLv1〜5）
+// The 13 items the quality module research unlocks (silicon die Lv2-5, IC chip Lv2-5, quality module Lv1-5)
+var unlockedItems = new[]
 {
     "01a17356-2aff-701f-9a1c-174e55eb20f8", "01a17356-2aff-701f-9a1c-174f781ba191", "01a17356-2aff-701f-9a1c-1750b8ac3222", "01a17356-2aff-701f-9a1c-175178dfda4c",
+    "878ea106-3689-4bcd-8d9a-e18b0e03072c", "d403eb63-f913-456f-842d-41980cdfc0bc", "2ef1886a-30b0-4792-8c20-0f39c370443a", "01a17356-2aff-701f-9a1c-17524cddb030",
+    "01a167f3-bd96-73a2-a0ce-06ba261e109d", "01a17370-c063-7479-84da-2d07d02e2953", "01a17370-c063-7479-84da-2d0837ecdcb1", "01a17370-c063-7479-84da-2d09a793b11a", "01a17370-c063-7479-84da-2d0a09b79551",
 }.Select(Guid.Parse).ToArray();
+// 速度モジュールLv1 だけが解放する機械レシピ（速度モジュールLv1 の製作）。2 回目の段がクライアントへ届いた目印に使う
+// The machine recipe only speed module Lv1 unlocks; marks that the second pass reached the client
+var speedOnlyMachineRecipe = Guid.Parse("01a167f3-bd8b-7732-badd-8c1a011f7c26");
 
-return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 120f }, async p =>
+return PlaytestRunner.Run("quality-research-unlocks-items", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 120f }, async p =>
 {
     await p.SetupFlatGround();
     await p.SkipOpeningSkitIfPlaying();
@@ -17762,34 +18375,34 @@ return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOpt
     // 前提の閉包に速度モジュールの研究が入らないことを先に確かめる（入ると速度側の解放で通ってしまう）
     // First confirm the prerequisite closure contains no speed module research (otherwise the speed-side unlock would pass the check)
     var done = WithPrerequisites(qualityResearch).ToList();
-    p.Assert(!done.Intersect(speedResearch).Any(), "品質モジュールLv1〜4 の前提に速度モジュールLv1〜4 が入っていない");
+    p.Assert(!done.Intersect(speedResearch).Any(), "品質モジュールLv1〜5 の前提に速度モジュールLv1〜5 が入っていない");
     var clientUnlock = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
-    var chipIds = chips.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToArray();
-    var dieIds = speedOnlyDies.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToArray();
-    p.Assert(chipIds.All(id => !clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), "研究の前は ICチップLv2〜5 が未解放");
+    var itemIds = unlockedItems.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToArray();
+    p.Assert(itemIds.All(id => !clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), "研究の前は 13 品目が未解放");
+    p.Assert(!clientUnlock.MachineRecipeUnlockStateInfos[speedOnlyMachineRecipe].IsUnlocked, "研究の前は速度モジュールLv1 の機械レシピが未解放");
 
     // 品質モジュールの研究を前提ごと完了扱いにする（解放アクションも再実行される。前例 tier9-2-modules）
     // Mark the quality module research done with prerequisites (unlock actions are replayed; precedent tier9-2-modules)
-    await p.RunOnServer("品質モジュールLv1〜4 を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = done.Select(g => g.ToString()).ToList() }));
-    await p.WaitForResearch(qualityResearch, Array.Empty<Guid>(), 15f, "品質モジュールLv1〜4 の研究が完了");
-    await p.Until(() => chipIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "ICチップLv2〜5 がクライアントで解放済み");
-    await p.Screenshot("quality-research-unlocks-ic-chip");
+    await p.RunOnServer("品質モジュールLv1〜5 を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = done.Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(qualityResearch, Array.Empty<Guid>(), 15f, "品質モジュールLv1〜5 の研究が完了");
+    await p.Until(() => itemIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "ICチップ・シリコンダイ・品質モジュールの 13 品目がクライアントで解放済み");
+    await p.Screenshot("quality-research-unlocks-items");
 
-    // 速度モジュールLv1〜4 も前提ごと完了扱いにする。LoadResearchData は完了一覧を置き換えるので、品質側と合わせた閉包を渡す
-    // Also mark speed module Lv1-4 done with prerequisites; LoadResearchData replaces the completed list, so pass the closure including the quality side
+    // 速度モジュールLv1〜5 も前提ごと完了扱いにする。LoadResearchData は完了一覧を置き換えるので、品質側と合わせた閉包を渡す
+    // Also mark speed module Lv1-5 done with prerequisites; LoadResearchData replaces the completed list, so pass the closure including the quality side
     var exceptions = new List<string>();
     Application.LogCallback onLog = (condition, _, type) => { if (type == LogType.Exception) exceptions.Add(condition); };
     Application.logMessageReceived += onLog;
     var doneWithSpeed = WithPrerequisites(qualityResearch.Concat(speedResearch)).ToList();
-    await p.RunOnServer("速度モジュールLv1〜4 も前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = doneWithSpeed.Select(g => g.ToString()).ToList() }));
-    await p.WaitForResearch(qualityResearch.Concat(speedResearch).ToArray(), Array.Empty<Guid>(), 15f, "速度モジュールLv1〜4 の研究も完了");
+    await p.RunOnServer("速度モジュールLv1〜5 も前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = doneWithSpeed.Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(qualityResearch.Concat(speedResearch).ToArray(), Array.Empty<Guid>(), 15f, "速度モジュールLv1〜5 の研究も完了");
 
-    // 速度側だけが解放するシリコンダイLv2〜5 がクライアントに届くのを待ち、同じ回の ICチップの重複解放を受け終えてから見る（通知の回数は Task E6 の NUnit が見る）
-    // Wait until the speed-only silicon die Lv2-5 unlocks reach the client, so the duplicate IC chip unlocks of the same pass are received too (notification counts are E6's NUnit)
-    await p.Until(() => dieIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "速度側のシリコンダイLv2〜5 がクライアントで解放済み");
+    // 13 品目の再解放は Task E6 で通知が出ないので、速度側だけの機械レシピの解放がクライアントに届くのを待ってから見る（通知の回数は E6 の NUnit が見る）
+    // Re-unlocking the 13 items sends nothing after Task E6, so wait for the speed-only machine recipe unlock to reach the client before checking (notification counts are E6's NUnit)
+    await p.Until(() => clientUnlock.MachineRecipeUnlockStateInfos[speedOnlyMachineRecipe].IsUnlocked, 15f, "速度モジュールLv1 の機械レシピがクライアントで解放済み");
     Application.logMessageReceived -= onLog;
-    p.Assert(chipIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), "速度モジュールLv1〜4 の後も ICチップLv2〜5 は解放済みのまま");
-    p.Assert(exceptions.Count == 0, $"速度モジュールLv1〜4 の重複解放で例外が出ない: {string.Join(" / ", exceptions)}");
+    p.Assert(itemIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), "速度モジュールLv1〜5 の後も 13 品目は解放済みのまま");
+    p.Assert(exceptions.Count == 0, $"速度モジュールLv1〜5 の重複解放で例外が出ない: {string.Join(" / ", exceptions)}");
     await p.Screenshot("quality-then-speed-research");
 
     #region Internal
@@ -17808,7 +18421,7 @@ return PlaytestRunner.Run("quality-research-unlocks-ic-chip", new PlaytestRunOpt
     #endregion
 });
 ```
-（`MasterHolder.ItemMaster.GetItemId(Guid)` は `Core.Master/ItemMaster.cs:73`、`ItemUnlockStateInfo.IsUnlocked` は `Game.UnlockState/States/ItemUnlockStateInfo.cs:10`。速度モジュールLv1〜4 の GUID と、それぞれが `unlockItemRecipeView` で解放するシリコンダイLv(n+1)・ICチップLv(n+1)・品質モジュールLvn は、ピン `aaa89bc` の research.json で確かめた。`ResearchDataStore.LoadResearchData` は先頭で `_completedResearchGuids.Clear()` するので（`Game.Research/ResearchDataStore.cs:141`）、2 回目は品質側を含む閉包を渡す。）
+（`MasterHolder.ItemMaster.GetItemId(Guid)` は `Core.Master/ItemMaster.cs:73`、`ItemUnlockStateInfo.IsUnlocked` は `Game.UnlockState/States/ItemUnlockStateInfo.cs:10`、`MachineRecipeUnlockStateInfo.IsUnlocked` は `Game.UnlockState/States/MachineRecipeUnlockStateInfo.cs:9`。クライアントの `MachineRecipeUnlockStateInfos` は Guid をキーに、初期データで全機械レシピの未解放・解放済みを持ち（`Client.Game/InGame/UnlockState/ClientGameUnlockStateDatastore.cs:66-72`）、解放イベントで書き換わる（同 `:133-135`。サーバーは `UnlockedEventPacket.cs:34` で機械レシピの解放を流す）。機械レシピ `01a167f3-bd8b-7732-badd-8c1a011f7c26` は `initialUnlocked: false` で、ピン `aaa89bc` の research.json で解放するのは速度モジュールLv1 だけ。速度モジュールLv1〜5 の GUID と、それぞれが `unlockItemRecipeView` で解放する 13 品目は、ピン `aaa89bc` の research.json で確かめた。`ResearchDataStore.LoadResearchData` は先頭で `_completedResearchGuids.Clear()` するので（`Game.Research/ResearchDataStore.cs:141`）、2 回目は品質側を含む閉包を渡す。）
 
 「例外も出ない」の見方: `RunOnServer` の中のサーバーの例外は `PlaytestServerThreadAction` がシナリオへ渡して failed になる（`Client.Playtest/Core/PlaytestServerThreadAction.cs:79,144`）。一方 result.json の `Success` は assert だけで決まり（`PlaytestRunner.cs` の `result.Success = result.Asserts.TrueForAll(...)`）、クライアント側で `Debug.LogException` に流れた例外は `ErrorLogs` に載るだけで failed にしない。そこで速度側の段の間だけ `Application.logMessageReceived` で `LogType.Exception` を集め、assert にする。
 
@@ -17827,24 +18440,24 @@ using と使う型・拡張メソッドの突き合わせ（`run-scenario.sh` �
 | `Cysharp.Threading.Tasks` | 非同期ラムダが返す `UniTask`（前例 `tier9-2-modules.cs:15` と同じく置く） |
 | `Game.Context` | `ServerContext.GetService<T>()`（`Game.Context/ServerContext.cs:27`） |
 | `Game.Research` | `IResearchDataStore`・`ResearchSaveJsonObject`（`Game.Research/IResearchDataStore.cs`） |
-| `Game.UnlockState` | `IGameUnlockStateData.ItemUnlockStateInfos`（`Game.UnlockState/IGameUnlockStateDatastoreController.cs:19`。値の `ItemUnlockStateInfo` はメンバーを読むだけなので `Game.UnlockState.States` の using は要らない） |
+| `Game.UnlockState` | `IGameUnlockStateData.ItemUnlockStateInfos`・`MachineRecipeUnlockStateInfos`（`Game.UnlockState/IGameUnlockStateDatastoreController.cs:19,21`。値の `ItemUnlockStateInfo`・`MachineRecipeUnlockStateInfo` はメンバーを読むだけなので `Game.UnlockState.States` の using は要らない） |
 | `UnityEngine` | `Camera`・`Application.LogCallback`・`Application.logMessageReceived`・`LogType` |
 | `VContainer` | `IObjectResolver.Resolve<T>()` の拡張（前例 `uitk-production-loop.cs:26,78`） |
 
-シナリオは 88 行（200 行以下。コードブロックの行を数えた）。
+シナリオは 91 行（200 行以下。コードブロックの行を数えた）。
 
 - [ ] **Step 4: 走らせる**
 
 ```bash
-.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/pin-<先頭8桁>/server_v8
+.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-items.cs /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/pin-<先頭8桁>/server_v8
 ```
-Expected: passed（下書き時に確かめたこと: 4つの品質モジュール研究の前提の閉包は 43 研究で、速度モジュール研究も、ICチップLv2〜5 を解放する研究も入っていない。ICチップLv2〜5 は `initialUnlocked: false`。よって「研究の前は未解放」と「品質モジュール研究だけで解放」の assert は今のマスタで正しく分かれる）。終わりの段の assert（速度モジュールLv1〜4 の後も ICチップLv2〜5 が解放済みのまま・例外が出ない）も通り、result.json の `ErrorLogs` に `[Exception]` が無いこと。録画でスクショが 2 枚（`quality-research-unlocks-ic-chip`・`quality-then-speed-research`）あること。同じピンで既存の `scenarios/tier9/tier9-2-modules.cs`（速度モジュールLv1 を含む研究と、Lv2 チップが製作上限で拒まれること）も走らせ、passed のままであること（製作上限は `unlockLevelInheritanceCraftLevel` で別なので変わらない想定）。重複解放で通知が 1 回になることは録画では数えない（Task E6 の NUnit `ItemUnlockDuplicateTest` が見る）。
+Expected: passed（下書き時に確かめたこと: 5 つの品質モジュール研究の前提の閉包は 44 研究で、速度モジュール研究も、13 品目を解放するほかの研究も入っていない。13 品目はどれも `initialUnlocked: false`。よって「研究の前は未解放」と「品質モジュール研究だけで解放」の assert は今のマスタで正しく分かれる）。終わりの段の assert（速度モジュールLv1〜5 の後も 13 品目が解放済みのまま・例外が出ない）も通り、result.json の `ErrorLogs` に `[Exception]` が無いこと。録画でスクショが 2 枚（`quality-research-unlocks-items`・`quality-then-speed-research`）あること。同じピンで既存の `scenarios/tier9/tier9-2-modules.cs`（速度モジュールLv1 を含む研究と、Lv2 チップが製作上限で拒まれること）も走らせ、passed のままであること（製作上限は `unlockLevelInheritanceCraftLevel` で別なので変わらない想定）。重複解放で通知が 1 回になることは録画では数えない（Task E6 の NUnit `ItemUnlockDuplicateTest` が見る）。
 
 - [ ] **Step 5: コミットする**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-ic-chip.cs
-git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜5を解放することを録画で確かめるシナリオを足す"
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/ui-clarity/quality-research-unlocks-items.cs
+git commit -m "出荷マスタで品質モジュール研究がICチップ・シリコンダイ・品質モジュールを解放することを録画で確かめるシナリオを足す"
 ```
 
 ### Task Z1: moores-code-review による全ブランチレビュー
@@ -17872,7 +18485,10 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 
 | 新しく置く物 | 同じ役割の前例（パス） | 前例: 誰の持ち物を誰が取得・呼ぶか | 今回: 誰の持ち物を誰が取得・呼ぶか | 違う所と理由 |
 |---|---|---|---|---|
-| 選択部品 `OrbitalCargoSelectorComponent` | `IMachineRecipeSelectorComponent`（`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IMachineRecipeSelectorComponent.cs`、実装は機械の processor） | 機械の processor が選択を持ち、通信が `TryGetComponent` で取って `SetSelectedRecipe(recipe, playerInventory)` を呼ぶ | 選択部品が選択を持ち、通信・ブループリントが `IOrbitalCargoSelectorComponent` で取って `SelectCargo(id, inventory)` を呼ぶ。発射台の processor・在庫と拠点の在庫・昇降機は共有セル `OrbitalCargoSelectionState` を読む・購読する | 2種のブロックで同じ選択を持つので、processor へ埋め込まず独立部品にした。作る順の循環（processor が選択を読み、選択の返却が在庫を触る）をセルで切った |
+| 選択部品 `OrbitalCargoSelectorComponent` | `IMachineRecipeSelectorComponent`（`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IMachineRecipeSelectorComponent.cs`、実装は機械の processor） | 機械の processor が選択を持ち、通信が `TryGetComponent` で取って `SetSelectedRecipe(recipe, playerInventory)` を呼ぶ | 選択部品が選択を持ち、通信・ブループリントが `IOrbitalCargoSelectorComponent` で取って `SelectCargo(id, inventory)` を呼ぶ。発射台の processor・在庫・積載と拠点の在庫・入口は共有セルを読む口 `IOrbitalCargoSelectionReader` で読む・購読する（昇降機は在庫の `PeekSatellite`・`InletWaitStatus`・`SelectedCargoItemId`・`OnInletConditionChanged` を通して読む） | 2種のブロックで同じ選択を持つので、processor へ埋め込まず独立部品にした。作る順の循環（processor が選択を読み、選択の返却が在庫を触る）をセルで切った |
+| 選択の読む口 `IOrbitalCargoSelectionReader`（`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoSelectionReader.cs`） | `IMachineProcessStateReader`（`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs:7`。public・`CurrentState { get; }` だけ）。同じ置き方の internal 版は `IMachinePendingRealizationReader`（同ディレクトリ `:7`） | 機械の processor が加工状態を持って書き（`VanillaMachineProcessorComponent.cs:27` の `{ get; private set; }`）、読むだけの `MachineInputLevelStallComponent` は ctor で読む口の型だけを受け取る（`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStallComponent.cs:14–16`）。テンプレートが processor をその型で渡す（`moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs:62`、清浄室は `VanillaCleanRoomMachineTemplate.cs:61` で `processor.PendingRealizationReader`） | テンプレートが共有セル `OrbitalCargoSelectionState` を作り、書く選択部品だけへ実体で、発射台の在庫・積載・processor と拠点の在庫・入口へは読む口の型で渡す | 前例は書き手が持ち主（processor）そのもので、読む口に変化の通知が無い。今回は書き手（選択部品）と持ち主（セル）が別で、読み手が選択の変化を購読するので `OnChanged` を読む口に含める。public にしたのは、受け取る `RocketLaunchPadProcessorComponent`・`SpaceElevatorBaseInventoryComponent` の ctor が public で、internal の型を引数にすると CS0051 になるため（前例の public 版と同じ） |
+| 選択の型の判定・変換（`OrbitalCargoSelection.IsSelected`・`ToNullablePayloadItemId`・`ToItemGuidTextOrNull`） | 判別 union の各腕が自分の変換を持つ前例は見つけていない（前例なし）。`Game.Block.Interface` の中で `ItemId` を GUID 文字列へ変える前例は `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ConnectToolMaterialSaveJsonObject.cs:22`（`MasterHolder.ItemMaster.GetItemGuid(material.ItemId).ToString()`） | 前例はセーブ用の型が自分の ctor で値から GUID 文字列を作る | 選択の型が自分の腕ごとに3つの判定・変換を持ち、在庫・積載・入口・processor・選択部品・ブループリント部品が呼ぶ | 判定と変換を本番コードの1か所に寄せるため（判断 23）。腕ごとの override にしたのは、`is SelectedOrbitalCargo` の型判定を呼ぶ側に散らさないため。層の地図（`.claude/skills/moores-writing-plans/references/moorestech-layer-map.md:9`）は `Game.Xxx.Interface` に実装クラス・可変状態を置かないとする。足した3つは値を変えない読み取りで、`MasterHolder.ItemMaster` を読むだけなので、地図の範囲に収まる |
+| GUID 文字列 → 今のマスタの `ItemId`（`OrbitalCargoItemGuid.TryParseExistingItemGuid`） | 共通関数の前例なし。同じ変換を各所がその場で書いている（`moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Save/RocketLaunchPadSaveConverter.cs:52` の `Guid.TryParse` → `ItemMaster.GetItemIdOrNull`、`moorestech_server/Assets/Scripts/Core.Item/ItemStackLevelDataStore.cs:93–94` の `Guid.TryParse` → `ExistItemId`）。`ItemMaster`（`moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs:73–117`）は `Guid` を受ける `GetItemId`・`GetItemIdOrNull`・`ExistItemId` だけで、文字列を受ける口は無い | 各部品が自分のセーブ値を自分で読み解く | 選択部品のロードとブループリント部品の適用が、この1本を呼ぶ | 層の地図（`moorestech-layer-map.md:58`）は `ItemMaster` へのメソッド追加をほぼ誤りとするので、`Core.Master` には足さず、使う2つの部品と同じ `Game.Block/Blocks/OrbitalCargo/` に internal で置いた |
 | 選択のセーブ | 機械のレシピ選択のセーブ（processor の `IBlockSaveState`）・`BlockComponentStateReader.TryRead` | 部品が自分のキーで保存し、ロード ctor で読む | 同じ（キー `orbitalCargoSelection`） | 項目なしを許す（`TryRead`）。版を上げない（ADR 0106 の 6） |
 | 通信 `OrbitalCargoSelectionProtocol` | `RocketLaunchPadCommandProtocol`（座標＋実体ID）・`MachineRecipeSelectionProtocol`（返却先） | 通信がワールドからブロックを取り、部品を呼ぶ。返却先は `IPlayerInventoryDataStore` から要求者の手持ち | 同じ | 積荷は `ItemId?` で送る（前例のレシピは GUID 文字列）。状態の項目と同じ型にそろえるため（判断 3。`ItemId` を直接送る前例は `FilterSplitterStateProtocol.cs:42`） |
 | ブループリント部品 | `MachineRecipeBlueprintSettingsComponent` | `BlockFactory` が設置直後に `ApplyBlueprintSettingsJson` を呼び、部品が選択口を呼ぶ | 同じ | 不正 GUID を前例は無言で捨てる。今回は警告を出す（AGENTS.md「無音の縮退は禁止」） |
@@ -17906,14 +18522,19 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | 最終の内訳 `CleanRoomFinalOdds`・改善の差分 `CleanRoomYieldImprovementCalculator` | `Game.Block/.../YieldPreview/CleanRoomYieldPreview.cs`・`CleanRoomYieldPreviewComponent.cs` | 室内機械の部品 `CleanRoomYieldPreviewComponent` が持つ選択レシピ・部屋の効果・装着を、プロトコルが `GetPreview()` で取得し、部品が `CleanRoomRoleRates` を呼ぶ | 同じ部品が同じ入力で `Evaluate` を回し、内訳と差分も作る。プロトコルは同じ `GetPreview()` で取得する |
 | 確率の取得に足す Key 7〜9 | `GetCleanRoomYieldInfoProtocol` の Key 3〜6（判別子＋役割ごとの入れ子＋読み口1か所） | クライアントの `CleanRoomYieldInfoPollSource` が1秒ごとに要求し、`TryReadView` で読む | 同じ。新しい入れ子も判別子の役割の欄にだけ書く |
 | 改善1行の wire `CleanRoomYieldImprovementMessagePack` | `CleanRoomLeakMessagePack`・`CleanRoomSummaryMessagePack`（種別＋種別ごとの factory＋TryGet） | サーバーの factory が種別ごとに組み、クライアントは TryGet/TryGetView だけで読む | 同じ |
-| 照会した清浄機自身の状態 `CleanRoomQueriedAirFilterMessagePack`・`CleanRoomRoomSummary.TryGetQueriedAirFilterStatus` | `CleanRoomLeakMessagePack`・`CleanRoomSummaryMessagePack.TryGetClass`（種別＋factory＋TryGet）。値の出どころは今の `CleanRoomAirFilterSummary`（`ICleanRoomAirFilter.GetStatus()`） | `CleanRoomRoomSummary.Create` が部屋の全清浄機の `GetStatus()` を一覧へ詰め、クライアントが一覧を読む | 同じ `Create` が照会したブロックの `GetStatus()` だけを読み、factory が種別つきの入れ子へ写す。クライアントは `TryGetStatus` だけで読む。不在は null でなく `NotAirFilter` 種別 |
-| 次のクラスの見通し `CleanRoomNextClassOutlook` | `Game.CleanRoom/Info/CleanRoomClassStanding.cs`（`Of(room)`・閉じた種別） | `CleanRoomInfoQuery` が datastore の部屋を取得し、`CleanRoomRoomSummary.Create` が `CleanRoomClassStanding.Of` を呼ぶ | 同じ `Create` が `CleanRoomNextClassOutlook.Of` を呼ぶ。照会したブロックを渡す点だけ違う（台数は「照会した清浄機と同じ種類」で数えるため） |
-| `CleanRoomPurityLogic.TryCountUnitsToPromote` | 同じファイルの `DecideThresholdIndex`・`AirChangeRate`（純関数） | datastore の判定段が呼ぶ | 見通しが呼び、中で `DecideThresholdIndex` を呼ぶ（判定式を写さない） |
+| 照会した清浄機自身の状態の wire `CleanRoomQueriedAirFilterMessagePack` | `CleanRoomLeakMessagePack`・`CleanRoomSummaryMessagePack.TryGetClass`（種別＋factory＋TryGet）。値の出どころは今の `CleanRoomAirFilterSummary`（`ICleanRoomAirFilter.GetStatus()`） | `CleanRoomRoomSummary.Create` が部屋の全清浄機の `GetStatus()` を一覧へ詰め、クライアントが一覧を読む | 同じ `Create` の中の `CleanRoomQueriedFrom.Of` が照会したブロックの `GetStatus()` だけを読み、factory が種別つきの入れ子へ写す。クライアントは `TryGetStatus` だけで読む。不在は null でなく `NotAirFilter` 種別 |
+| 照会の出どころ `CleanRoomQueriedFrom`（`CleanRoomQueriedFromNonAirFilter.Instance`・`CleanRoomQueriedFromAirFilter { Status; NextClass }`。`CleanRoomRoomSummary.cs` の中） | `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomClassStanding.cs:7-43`（抽象＋`private protected` ctor＋種別ごとの sealed 型＋値の無い種別は `Instance`＋`Of(room)`）・`Game.CleanRoom/Info/CleanRoomInfo.cs:8-43`（2つの種別を1ファイルに閉じる） | `CleanRoomRoomSummary.Create` が `CleanRoomClassStanding.Of(room)` を呼んで種別の型を持ち、`CleanRoomInfoMessagePackFactory.CreateSummary`（20-25・37-42 の switch）が種別ごとに写す | 同じ `Create` が `CleanRoomQueriedFrom.Of(...)` を呼んで持ち、同じ factory の `CreateQueriedFrom` が1つの switch で wire の2つの欄（`NextClass`・`QueriedAirFilter`）へ写す。`TryGetComponent<ICleanRoomAirFilter>` は `Of` の1か所だけ |
+| 次のクラスの見通し `CleanRoomNextClassOutlook` | `Game.CleanRoom/Info/CleanRoomClassStanding.cs`（`Of(room)`・閉じた種別） | `CleanRoomInfoQuery` が datastore の部屋を取得し、`CleanRoomRoomSummary.Create` が `CleanRoomClassStanding.Of` を呼ぶ | 同じ `Create` の `CleanRoomQueriedFrom.Of` が、清浄機から引いたときだけ `CleanRoomNextClassOutlook.Of` を呼ぶ。照会した清浄機を渡す点だけ違う（台数は「照会した清浄機と同じ種類」で数えるため） |
+| `CleanRoomPurityLogic.TryCountUnitsToPromote` | 同じファイルの `DecideThresholdIndex`・`AirChangeRate`（純関数） | datastore の判定段が呼ぶ | 見通しが呼び、`TryCountUnitsToPromote` は中で `CleanRoomClassYield.TryGetPromotionTargetIndex` と `DecideThresholdIndex` を呼ぶ（判定式も「いちばん良いクラスか」も写さない） |
+| `CleanRoomClassYield.TryGetPromotionTargetIndex`（`Game.Block.Interface/Component/CleanRoom/CleanRoomClassYield.cs`） | 同じファイルの `FromThresholdIndex`（閾値行の添字からマスタの行を読む static） | 部屋の効果の押し込み（`CleanRoomMachineEffectService`〈Game.CleanRoom〉）と改善の計算（Game.Block）の両方が呼ぶ | 閾値行の添字の約束（0 がいちばん良い・Out は行数）を持つ値の型に、添字だけを扱う純関数を置く。層の決まりの「`Game.Xxx.Interface` に置いてよいもの: マスタ生成物を読むだけの static util」に当たる。`Game.Block` は `Game.CleanRoom` を参照しないので `Game.CleanRoom` には置けない。3か所から呼べる置き場は `Core.Master`（閾値行の数 `CleanRoomMaster.OutThresholdIndex` がある）と `Game.Block.Interface` の2つだが、層の決まりで `Core.Master` にはドメインの解釈を置かない（マスタ値のドメイン解釈は `Game.Xxx.Interface` の static util）ため、`Game.Block.Interface` にした。`Component/CleanRoom/` の .cs は 7 本のまま（ファイルを足さない） |
 | `CleanRoomDatastore.RequiredAirChangeRates` | `CleanRoomDatastore.TryGetCleanRoom`（照会用の読み口） | `CleanRoomInfoQuery` が datastore の持ち物を読む | 同じ。しきい値の列を作り直さず、判定段と同じ列を読む |
 | `ICleanRoomAirFilter.RatedRemovalVolumePerSecond` | 同じ interface の `RemovalVolumePerSecond` | 清浄機の部品の持ち物を collector が読む | 同じ |
 | `MachineModuleEffectComponent.CollectEffectiveModules`・`CanEquipOneMore` | 同じ部品の `AggregateCurrent`、`VanillaMachineModuleInventory.IsModuleEffective`・`CheckPlacement` | モジュール欄の持ち物（スロット・上限）を、効果の部品が読んで集計する | 同じ。「あと1個入るか」の判定はモジュール欄に置き、効果の部品は委ねるだけ |
 | 指定 tier の品質モジュールを引く `TryGetQualityModuleOfTier`（`CleanRoomQualityModuleCandidates.Select` のローカル関数） | `moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade/ModuleSlotStackLimitMasterUtil.cs`（マスタの値にドメインの解釈を足して引く static util。`ItemMaster` には足さない） | 機械のモジュール欄・研究がドメイン層の util を呼び、util が `MasterHolder.ItemMaster.Items` を読む | `CleanRoomQualityModuleCandidates`（Game.Block）だけが呼ぶので、その中のローカル関数に置き、`MasterHolder.ItemMaster.Items.Modules` を読む。呼び手が1つなので util ファイルは作らない（呼び手が増えたら `Game.Block.Interface/MachineUpgrade/` へ出す。今そこは 7 本） |
-| 刺さっている最高 tier | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffect.cs:46,67,89` の `HighestQualityModuleTier` | 抽選（品質の書き換え）が集計結果を読む | 候補選びも同じ `MachineModuleEffect.Aggregate(equipped).HighestQualityModuleTier` を読み、新しい探索関数を作らない |
+| 刺さっている最高 tier | `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffect.cs:46,67,89` の `HighestQualityModuleTier` | 抽選（品質の書き換え）が集計結果を読む | 部品 `CleanRoomYieldPreviewComponent` が `MachineModuleEffect.Aggregate(equipped)` を1回だけ呼び、その `HighestQualityModuleTier` を候補選びへ渡す。新しい探索関数を作らない |
+| 抽選の中身の報告の種別 `CleanRoomYieldPreviewReport`（`CleanRoomNoRoleYieldReport.Instance`・`CleanRoomNotOperableYieldReport.Instance`・`CleanRoomOddsYieldReport`） | `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewResult.cs:12-18,50-74`（抽象＋`private protected` ctor＋種別ごとの sealed 型＋値の無い種別は `Instance`。C3 で消す `NoRolePreview`・`NotOperablePreview` が今この役割を持つ）・`Game.CleanRoom/Info/CleanRoomClassStanding.cs:7-43` | 部品 `CleanRoomYieldPreviewComponent.GetPreview` が種別の型を返し、プロトコルの `CreateResponse`（`GetCleanRoomYieldInfoProtocol.cs:45-57`）が `report.Next` の型の switch で応答へ写す | 同じ部品が報告の種別の型を返し、`CleanRoomYieldResponseFactory.Create` が報告の型（と `Odds` の型）の1つの switch で写す。数字は `CleanRoomOddsYieldReport` だけが必ず持つ。MessagePack の `[Union]` は repo に前例が無いので使わない（中の型なので wire に関係しない） |
+| 報告の型と中の値の型を1つの switch で読む property pattern（`CleanRoomOddsYieldReport { Odds: DicingFinalOdds dicing } withOdds`） | `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs:87`（`token is JValue { Type: JTokenType.String } value`） | 移行の段が JSON の型と中の値を1回で判定する | 応答の factory が報告の種別と最終の内訳の型を1回で判定する |
+| 改善の行の検査を1か所に置く `CleanRoomYieldImprovementMessagePack.AreReadable` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomInfoProtocol.cs:89-126`（`TryReadView` → `IsReadableRoom`。wire の型が自分の読めるかを持つ） | クライアントのポーラーが `TryReadView` を呼び、検査は Server.Protocol の wire の型の中にだけある | 同じ。読み口 `CleanRoomYieldResponseReader.Read`（`TryReadView`）が呼び、クライアントは自分で検査を書かない（要るときは同じメソッドを呼ぶ。`Client.Ui.State.asmdef` が `Server.Protocol` を参照済み） |
 | `CleanRoomClassYield.FromThresholdIndex` | `CleanRoom.TryGetClassRow` | 部屋が自分の添字でマスタの行を読む | 値の側が添字からマスタの行を読む。部屋の効果の押し込みと仮のクラスが同じ口を通る |
 | 応答の組み立て `CleanRoomYieldResponseFactory` | `CleanRoomInfoMessagePackFactory`（部屋の取得側） | プロトコルがサーバーの照会結果を渡し、factory が wire へ写す | 同じ。今は `GetCleanRoomYieldInfoProtocol` の中にある写しを、部屋の取得と同じ形に外へ出す（ファイルが200行に近づくため） |
 
@@ -17929,13 +18550,14 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | `ICleanRoomYieldImprovementCommands` と View からの直接呼び | `IMachineRecipeSelectCommand`（`MachineSectionView` が `_selectCommand.Select` を直接呼ぶ）・`SpaceElevatorSectionView`（`kit.Commands.ConnectSpaceElevator()`） | View が DI で受けた口を押下で直接呼ぶ（Presenter は中継しない） | 同じ | なし |
 | 確率の欄の `PanelActionButton` | `SpaceElevatorSectionView` の `space-elevator-connect` | 欄の View が作って `UiStack` の項目に足し、出す・出さないを Render で決める | 欄の View が作って行の並びの最後に足し、改善の行の有無で決める | なし |
 | `CleanRoomYieldOdds`・`CleanRoomOddsImprovement`（抽象＋static factory＋sealed 派生） | `CleanRoomFetchedDetail`・`CleanRoomHeadline`（`CleanRoomDetail.cs`） | 写し（`*ViewConversion`）が factory で作り、Logic が型で分岐して読む | 同じ | なし |
-| `CleanRoomSummary.ForMachine`/`ForAirFilter`＋`TryGetAirFilter` | `CleanRoomFetchedDetail` の factory、`SectionContent.TryGetPresent` | 写しが作り、Logic が Try で読む | 同じ | 照会元で中身が違うので、null を外へ出さず Try に閉じる |
-| `CleanRoomAirFilterRoomStatus.TryGetUnitsToNextClass` | C6 の `CleanRoomNextClassMessagePack.TryGetUnitsToNextClass` | サーバーの型が台数の有無を Try に閉じる | クライアントの型も同じ形で持つ | なし |
-| 部屋・確率の照会の写し（異常の文面を返す） | `CleanRoomViewConversion`・`ContextViewConversion` の既存の `anomaly`（呼び手の `AnomalyReportGate` がログ） | 写しが文面を返し、Model がログを出す | 同じ（新しい異常2種も同じ経路） | なし |
+| `CleanRoomSummary`（抽象）／`MachineCleanRoomSummary`・`AirFilterCleanRoomSummary`（照会元を型で分ける） | 同じファイルの `CleanRoomHeadline`（`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/CleanRoom/CleanRoomDetail.cs:7-36`。抽象＋`private protected` ctor＋static factory＋sealed 派生 `ClassCleanRoomHeadline`・`ClassOutCleanRoomHeadline`）・`CleanRoomFetchedDetail`（同 `:79-156`） | 写し（`CleanRoomViewConversion`）が factory で作り、Logic（`CleanRoomLogic`）が `is`／switch で型を読む（`ClassOutCleanRoomHeadline` は Out だけ、`ClassCleanRoomHeadline` だけがクラス名を持つ） | 写しが `ForMachine`／`ForAirFilter` で作り、`CleanRoomLogic.EnclosedRows` が switch で型を読む。清浄機から見た部屋は `AirFilterCleanRoomSummary` だけが必ず持つ | なし（前の版の「null を Try に閉じる」形をやめた。判断 D-27） |
+| `CleanRoomAirFilterRoomStatus.TryGetUnitsToNextClass`（中は `CleanRoomUnitsToNextClass` の種別） | 読む口は C6 の `CleanRoomNextClassMessagePack.TryGetUnitsToNextClass`。中の種別は `CleanRoomHeadline`（同上 `:7-36`。`ClassOut` は static の1つ、値を持つ型だけが値を持つ） | サーバーの型が台数の有無を Try に閉じる／見出しは値を持つ型だけが値を持つ | 読む口は Try のまま（読み手 `CleanRoomLogic.PurifierHeadline` とテストが変わらない）。中は届く型だけが台数と次のクラス名を持つ | 中の種別を internal にした（読み手は Try だけを使うので外へ出さない） |
+| 部屋・確率の照会の写し（異常の文面を返す） | `CleanRoomViewConversion`・`ContextViewConversion` の既存の `anomaly`（呼び手の `AnomalyReportGate` がログ） | 写しが文面を返し、Model がログを出す | 同じ（新しい異常2種〈清浄機の照会に自分の状態が無い・写せない改善の種別〉も同じ経路） | 改善の行の長さ・種別の検査は写しに置かず、C の `CleanRoomYieldImprovementMessagePack.AreReadable`（読み口 `CleanRoomYieldResponseReader.Read` が呼ぶ）の1か所に任せる（判断 D-14） |
 | サーバーの値をクライアントへ運ぶ経路 | 部屋・確率の照会（`BlockInfoPoller` の取り直し。`BlockNetworkInfoCache`） | 機械の画面を開いている間 Model が約1秒ごとに照会する | 同じ照会に C が足した項目を読む | 新しいプロトコル・イベントは作らない（ADR 0105 §4「確率と同じ取得で運ぶ」） |
 | DI 入口の登録 | `BlockInventoryMachineGameUiRegistration.cs:28` の `RegisterEntryPoint<BlockContextModel>().As<IBlockContextModel>()` | 入口として登録し `Initialize` で購読を始める | 同じ | なし |
 | `PlaytestCleanRoomUiOps`（`this PlaytestDriver` 拡張） | `PlaytestInteractOps`・`PlaytestCleanRoomSnapshots` | シナリオが拡張メソッドを呼ぶ | 同じ | `Operations/Ui/` が10本の上限なので `Ui/CleanRoom/` に置く |
 | `RecordingCleanRoomYieldImprovementCommands` | `RecordingRecipeSelectCommand` | テストが組み立てて渡し、呼ばれた記録を読む | 同じ | なし |
+| `CleanRoomYieldLogic.ShowsZero`（0.0 の判定の1か所）・`ShownLevels`（0.0% の Lv を飛ばす並び） | 同じクラスの `Percent`・`ZeroPercent`（`CleanRoomYieldImprovementLogic` が既に `CleanRoomYieldLogic.Percent` を呼んで書式をそろえている。D3 の前の版） | 欄の Logic が書式の正本を持ち、モーダルの Logic がそれを呼ぶ | 同じ。0.0% の判定も書式の正本の隣に置き、3か所が呼ぶ | なし（判断 D-28） |
 | `CleanRoomYieldImprovementModalContent.SameAs`（中身の比較） | 前例なし（`ModalScreenPresenter` は要求 ID が変わったときだけ描き直す） | — | 橋が前回出した中身と比べ、違うときだけ新しい要求を出す | `ModalRequestService` に差し替えの口を足さず、ID が変われば描き直す既存の規約に乗せるため（判断 D-4） |
 
 ### 領域 E: フィルター分岐器の文言と研究マスタ
@@ -17943,7 +18565,8 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | 新しく置くもの | 同じ役割の前例（パス） | 前例: 誰の持ち物を誰が取得・呼ぶか | 今回: 誰の持ち物を誰が取得・呼ぶか | 前例と違う所と理由 |
 |---|---|---|---|---|
 | 読込時の分岐器マスタ検証 `FilterSplitterParamValidator` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` | BlockMaster の `Blocks` を `BlockMasterUtil.Validate` が渡し、検証がブロック種別の param を読んで `[BlockMaster]` の文を返す | 同じ。`FilterSplitterBlockParam.InventoryConnectors` を読む | 置き場だけ違う: `Validator/Block/` 直下は 10 本で上限なので、サブディレクトリ `Validator/Block/FilterSplitter/`（名前空間 `Core.Master.Validator.Block.FilterSplitter`）に置き、呼び手が using で呼ぶ（前例 `Validator/OrbitalPayload/` を `ItemMasterUtil.cs:5` の using で呼ぶ形） |
-| 側を決める純関数 `FilterSplitterOutputSideResolver` | `moorestech_server/Assets/Scripts/Core.Master/CleanRoomRoles/`（マスタの値から役割を導く Core.Master 内の専用フォルダ） | Core.Master の静的関数をサーバー・クライアントの各所が呼ぶ | Core.Master の静的関数を読込時の検証（サーバー）とクライアントの読み手が呼ぶ | なし。向きの回転は `BlockDirectionExtension.ConvertLocalCell` が持つが、側は回転前のブロック座標で決まるので回転を持ち込まない |
+| 側を決める純関数 `FilterSplitterOutputSideResolver` と列挙 `FilterSplitterOutputSide`（`Game.Block.Interface/Component/FilterSplitter/`、名前空間 `Game.Block.Interface.Component`） | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs:1-30`（名前空間 `Game.Block.Interface.Component`。`RocketLaunchPadBlockParam` を受けて枠の並びを組む） | `Game.Block.Interface` の型が `Mooresmaster.Model.BlocksModule` の blockParam を読み、サーバー（発射台の部品）とクライアントの読み手（`SpecialBlockDetailReader.ReadRocketLaunchPad` の `new RocketLaunchPadSlotLayout(rocketParam)`）が同じ並びを使う。読込時の検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` が条件を別に書く | `Game.Block.Interface` の static 関数が `FilterSplitterBlockParam.InventoryConnectors` を読み、クライアントの読み手（`SpecialBlockDetailReader.ReadFilterSplitter`）が呼ぶ。読込時の検証は `Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` が条件を別に書く | 前例はサーバーの部品も同じ型を使うが、分岐器のサーバーの部品は方向の番号だけを使い側を読まないので、今の呼び手はクライアントとテストだけ。計算と検証の食い違いは前例に無いテスト（`FilterSplitterOutputSideTest` の表）で押さえる。向きの回転は `BlockDirectionExtension.ConvertLocalCell` が持つが、側は回転前のブロック座標で決まるので回転を持ち込まない |
+| クライアントの列挙 `Client.Ui.State.BlockInventory.Logic.Special.FilterSplitterOutputSide` と `SpecialNetworkReader.ToClientSide` | 同じファイルの `FilterSplitterMode`（`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Logic/Special/FilterSplitterLogic.cs:13-20`）と `SpecialNetworkReader.ToClientMode`（`moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Source/SpecialNetworkReader.cs:55-64`。サーバーの列挙は別名 `ServerFilterSplitterMode`） | 読み手がサーバーの列挙をクライアントの列挙へ写し、詳細と画面（`Client.Ui`）はクライアントの列挙だけを見る | 同じ。別名は `ServerFilterSplitterOutputSide` | なし。`Client.Ui.asmdef` は `Game.Block.Interface` を参照しない（CS0012 になる）ので、モードと同じく写す |
 | 開いた分岐器のマスタから側を決めて詳細に載せる（`SpecialBlockDetailReader.ReadFilterSplitter`） | 同じファイルの `ReadRocketLaunchPad`（`new RocketLaunchPadSlotLayout(rocketParam)` で枠の並びをマスタから組む）・`ReadSpaceElevator`（`SpaceElevatorBaseInventoryComponent.GetCarriedPayloadItemIds(elevatorParam)`） | クライアントの読み手が `block.BlockMasterElement.BlockParam` を引き、サーバーと共有する関数でマスタから不変の値を組み、届いた状態と合わせる | 同じ。`FilterSplitterBlockParam.InventoryConnectors` を `ResolveAll` に渡し、届いた応答の方向と番号で合わせる | なし |
 | 側→文言キー `OutputSideKey` | `FilterSplitterLogic.ModeKey` | 画面が Logic の静的関数でキーを引き `UiText` にする | 同じ | なし |
 | 見出しを Render で書く | `FilterDirectionView.Render` の `_mode.SetSelected` | 届いた詳細で毎回書き換える | 同じ | 今は見出しを ctor で一度書く。数が同じなら View が使い回される（`FilterSplitterBodyView`）ので、側に依存する文は Render へ移す |
@@ -17985,19 +18608,19 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 
 | 今プレイヤーが使える操作 | 計画の後 | 根拠 |
 |---|---|---|
-| 発射台を開いて資材・積荷の枠を見る | 変わる: 未選択は積荷の一覧だけ。選んだ後は資材 3 枠と選んだ積荷の 1 枠（＋前の種類の残り） | ADR 0106 の 1（ユーザー裁定 2026-11-19「レシピ設定みたいに選択」、画面の並びは agent 前提で異論なし） |
+| 発射台を開いて資材・積荷の枠を見る | 変わる（裁定済み）: 未選択は積荷の一覧だけ。選んだ後は資材 3 枠と選んだ積荷の 1 枠（＋前の種類の残り） | ADR 0106 の 1（ユーザー裁定 2026-11-19「レシピ設定みたいに選択」）。未選択は一覧だけ: ユーザー裁定 2026-11-21（判断 23）。選んだ後の並びは agent 前提で異論なし |
 | 発射台の枠へ持ち物を置く・取る（クリック） | 生きる（選んだ後）。未選択では枠が画面に無い | ADR 0106 の 2「選ぶまで何も受け取らない」（ユーザー裁定 2026-11-20） |
 | 発射台へ Shift で送る | 変わる: 未選択は拒否、選んだ後は資材と選んだ積荷だけ | ADR 0106 の 2・A の Interfaces 4 |
 | 選んでいない種類の積荷の残りを取り出す | 生きる（中身がある間だけ積荷の群に出る） | ADR 0106 の 4「入りきらないぶんは枠に残り、画面に出て取り出せる」 |
 | 建造・発射のボタン | 生きる（題の操作は変えない）。未選択で押すとサーバーが拒否し、トースト「…（rocket_command_cargo_not_selected）」 | 依頼文「最初の建造・発射のボタンはそのまま」、A の `CargoNotSelected` |
-| 発射台の状態文・進み | 生きる（選んだ後の画面）。未選択は一覧の先頭に「積荷を選んでいない」 | ADR 0106 の 5（待ち理由の追加） |
-| 発射台の出力を取り出す | 生きる | 変えない |
-| 宇宙エレベーター拠点を開いて入口・出口を見る | 変わる: 未選択は接続の有無にかかわらず一覧だけ | ADR 0106 の 7（ユーザー裁定 2026-11-21「選んでから接続」） |
+| 発射台の状態文・進み | 変わる（裁定済み）: 選んだ後の画面にだけ出る。未選択の間は見えず、一覧の先頭に待ち理由「積荷を選んでいない」だけが出る | ADR 0106 の 5（待ち理由の追加）、ユーザー裁定 2026-11-21（判断 23） |
+| 発射台の出力を手で取り出す | 変わる（裁定済み）: 選んだ後の画面でだけ取り出せる。未選択の間は出力の枠が画面に無い（出力から隣のベルトなどへ出す動きは止まらない） | ユーザー裁定 2026-11-21（判断 23） |
+| 宇宙エレベーター拠点を開いて入口・出口を見る | 変わる（裁定済み）: 未選択は接続の有無にかかわらず一覧だけ | ADR 0106 の 7（ユーザー裁定 2026-11-21「選んでから接続」）、ユーザー裁定 2026-11-21「一覧だけ」（判断 23） |
 | 拠点の接続ボタン | 変わる: 選んだ後の画面にだけ出る（未選択ではサーバーも拒否） | ADR 0106 の 7（同上） |
 | 拠点の入口へ置く・Shift | 変わる: 選んだ種類だけ | ADR 0106 の 7「細部は発射台と同じ」 |
-| 拠点の「ケーブルのプール」の行・昇降の進み | 生きる（選んだ後の画面） | ADR 0106 の 7「プールの行は変えない」 |
-| 拠点の電力網の区画を見る | 変わる: 選んだ後の画面にだけ出る（一覧の間は見えない） | ADR 0106 の 7「開くと積荷を選ぶ画面」から導いた（判断 7。機械の一覧モードも本文を出さない） |
-| 拠点の出口を取り出す | 生きる | 変えない |
+| 拠点の状態文・「ケーブルのプール」の行（ケーブルプールの数）・昇降の進み | 変わる（裁定済み）: 選んだ後の画面にだけ出る（行の中身は今のまま）。未選択の間は接続済みでも見えず、一覧の先頭に状態「積荷を選んでいない」だけが出る | ADR 0106 の 7「プールの行は変えない」、ユーザー裁定 2026-11-21（判断 23） |
+| 拠点の電力網の区画（電力の状態）を見る | 変わる（裁定済み）: 選んだ後の画面にだけ出る（一覧の間は見えない） | ユーザー裁定 2026-11-21（判断 7・23） |
+| 拠点の出口を手で取り出す | 変わる（裁定済み）: 選んだ後の画面でだけ取り出せる。未選択の間は接続済みでも出口の枠が画面に無い（出口から隣へ出す動きは止まらない）。選ぶとその積荷の受け取りが始まる | ユーザー裁定 2026-11-21（判断 23） |
 | 機械のレシピ選択・ヘッダ | 生きる（触らない。共有部品 `RecipeRow`・`RecipeListScrollView` は使うだけ） | 変えない |
 | ほかの特殊族（分配器・回転生成機・電柱・ベルト・歯車）の画面 | 生きる（`BlockItemGrid.Render` は中で `RenderContents` を呼ぶだけで描き方は同じ） | 変えない |
 
@@ -18031,8 +18654,8 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | 失敗率の改善方法（差分）を見る | 新しく生まれる | ADR 0105 §4（ユーザー裁定 2026-11-19・2026-11-20） |
 | 室内の機械の画面で換気回数・清浄機1台ずつの行を見る | 死ぬ | 裁定 `2026-11-20-機械の画面の部屋の情報は1行にし清浄機の一覧は機械から外す`。wire の `AirFilters` も C7 で外す（判断 22） |
 | 室内の機械の画面で部屋クラス・停止の理由を見る | 生きる | ADR 0105 §1。`TryGetClass` と停止理由の状態は変えない |
-| 清浄機の画面で清浄機1台ずつの行（電力・フィルター個数・残量）を見る | 変わる: 台数のまとめ1行と「この清浄機: 電力 100% / 残量 50%」の1行。ほかの清浄機1台ずつの行と、フィルターの個数は消える | ADR 0105 §5（ユーザー裁定 2026-11-19 赤）。自身の行の中身は判断 22（agent前提。画面案 `screen-mock-02.html` で提示済み） |
-| 清浄機の画面で換気回数を見る | 死ぬ | 判断 21（agent前提・黙認。画面案 `screen-mock-01.html` 問1 の注記「換気回数の行は A・B・C のどれでも消えます」で提示し、問1 はお任せで通った） |
+| 清浄機の画面で清浄機1台ずつの行（電力・フィルター個数・残量）を見る | 変わる: 台数のまとめ1行と「この清浄機: 電力 100% / 残量 50%」の1行。ほかの清浄機1台ずつの行と、フィルターの個数は消える | ADR 0105 §5（ユーザー裁定 2026-11-19 赤）。清浄機1台ずつの行を消し、自身の電力・残量の行を残すことは判断 22（出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」（`.decisions/2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md`）） |
+| 清浄機の画面で換気回数を見る | 死ぬ | 判断 21（出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」（`.decisions/2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md`）） |
 | 清浄機のフィルター残量を録画シナリオ・消費テストで確かめる | 生きる | `GetStatus` と `CleanRoomAirFilterStatus` は残す（`cleanroom-purifier-filter-consumption.cs:149`・`CleanRoomAirFilterConsumptionTest.cs:144`） |
 | 清浄機の画面で「次のクラスまであと何台」を見る | 新しく生まれる | ADR 0105 §5・裁定 `2026-11-20-あと何台は今の稼働状態のまま数える` |
 | 壁・ドア・ハッチのホバーで部屋の要約を見る（裁定 2026-10-23） | 今のコードに無い（影響なし） | クライアントで部屋の取得を引くのは `BlockNetworkInfoCache` だけで、対象は `CleanRoomDetailTarget.Machine`・`AirFilter` の2つ（`BlockNetworkInfoCache.cs:130-135`）。壁ホバーの経路は grep で見つからない |
@@ -18042,7 +18665,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | ダイシング・EUV の抽選の結果（出るダイ・層の失敗） | 生きる | `Evaluate`・`CleanRoomRoleRates`・書き換え器は変えない。`CleanRoomYieldPreview.Compute` を消すのは表示側の入口だけ |
 | モジュールの移動・入れ替え・上限 | 生きる | `CheckPlacement`・`GetSlotStackLimit` は変えない。C2 は判定を足すだけ。`AggregateCurrent` は同じ結果（`CollectEffectiveModules` へ切り出しただけ）。既存の `Upgrade/` テストと `MachineModuleEquipMoveProtocolTest` を C2 で回す |
 | 清浄機のフィルター消費・自動搬入（ADR 0101） | 生きる | `CleanRoomAirFilterComponent` は読み口を1つ足すだけ |
-| セーブとロード | 生きる（形式は変えない） | 抽選記録・清浄機のセーブ・機械のセーブの項目を変えない。`WorldSaveAllInfo.CurrentVersion` を上げない |
+| セーブとロード | 生きる（形式は変えない） | 抽選記録・清浄機のセーブ・機械のセーブの項目を変えない。`WorldSaveAllInfo.CurrentVersion` を上げない。C3 で消す `NoRolePreview`・`NotOperablePreview` は保存されない種別（`CaptureDrawRecord` が例外を投げ、抽選記録の読み込み `CleanRoomYieldPreviewResult.cs` もこの2つを読まない）なので、セーブに影響しない |
 
 ### 領域 D: クリーンルームの機械と清浄機の画面（クライアント）
 
@@ -18056,8 +18679,9 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | 未密閉の部屋の見出し（隙間 N 個・囲い無し・大きすぎ・検出中）を見る | 生きる | D は `Leak` の写しと `HeadlineOnly` を変えない。`CleanRoomLogicTest.未密閉の部屋は見出しだけを出す` |
 | 部屋欄の取得状態の行（応答なし・読めない等）を見る | 生きる | `CleanRoomSectionView` の `_unavailable` を変えない |
 | 清浄機の画面で部屋クラスを見る | 変わる（「クラスC（クラスBまであと5台）」） | ADR 0105 §5 |
-| 清浄機の画面で清浄機1台ずつの行を見る | 変わる（「清浄機 6台（うち1台が止まっています）」の1行と「この清浄機: 電力 / 残量」の1行。フィルターの個数は出さない） | ADR 0105 §5（ユーザー裁定 2026-11-19「フィルター3個は見れば分かる…」） |
-| 清浄機の画面で換気回数を見る | 死ぬ | ADR 0105 §5（部屋の行は「クラス…」の形）・Supersedes の `2026-10-23-部屋の状態は…` |
+| 清浄機の画面で清浄機1台ずつの行（1台ずつの電力・フィルター個数・残量）を見る | 死ぬ（裁定済み。「清浄機 6台（うち1台が止まっています）」の1行と「この清浄機: 電力 / 残量」の1行に替わる。ほかの清浄機の電力・残量とフィルターの個数は出さない） | 出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」（`.decisions/2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md`）・ADR 0105 §5（ユーザー裁定 2026-11-19「フィルター3個は見れば分かる…」）。判断 D-26 |
+| 清浄機の画面で止まっている清浄機が「どれか」を見る | 死ぬ（裁定済み。止まっている台数だけが「うち N 台が止まっています」で分かり、どれかは清浄機を1台ずつ開いて「この清浄機」の行で探す） | 出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」。判断 D-26 |
+| 清浄機の画面で換気回数を見る | 死ぬ（裁定済み） | 出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」・ADR 0105 §5（部屋の行は「クラス…」の形）・Supersedes の `2026-10-23-部屋の状態は…`。判断 D-26 |
 | 清浄機の画面で「この部屋に清浄機がありません」を見る | 死ぬ（清浄機から照会するので台数は必ず1以上） | 照会元が清浄機（`BlockNetworkInfoCache.ToCleanRoomTarget`）。ADR 0105 §5 |
 | 清浄機の画面のフィルター枠へ入れる・取り出す | 生きる | `SectionStackConfigTable.cs:30` の `clean-room-filter-grid` を変えない。`CleanRoomLayoutTest.清浄機パネルは…フィルタ枠へ届き…`・`cleanroom-room-usability.cs` |
 | EUV の確率の欄で失敗の割合を見る | 変わる（「失敗：30.8%」の1行） | ADR 0105 §2 |
@@ -18090,14 +18714,14 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 | ブループリントで分岐器の設定を写す | 生きる | 設定は `ConnectorGuid` で写す（`BlueprintFilterSplitterSettingsTest`）。方向の番号も並びも変えない |
 | セーブ・ロード | 生きる | セーブ形式を変えない（側はマスタから毎回決める） |
 | Ctrl+クリックでベルトを分岐させる | 生きる | `BeltRouteBranchGeometry` は分岐器の出口の並びを読まない（下書き時に確認） |
-| テスト用 mod・ほかの mod の分岐器を読み込む | 生きる（今ある mod は全部通る）。今後、出口が入口から見て左・正面・右に決まらない分岐器を作った mod は読込時に止まる | 追跡中の blocks.json で `FilterSplitter` を持つのは forUnitTest（入口 (0,0,-1)・出口 +X/-X/+Z）と v8 出荷マスタ（入口 (0,0,-1)・出口 -X/+Z/+X）だけで、どちらも通る。EditModeInPlayingTestMod には分岐器が無い。止める判断は「判断」3 |
-| 研究「品質モジュールLv1〜4」を完了する | 変わる: ICチップLv2〜5 が解放され、レシピ一覧・研究画面の解放一覧（`UnlockEntries.cs:18` の ItemRecipeViewItemIds）・解放の通知・積荷の選択肢（解放済みだけを出す。裁定 2026-11-20）に出る | 裁定 2026-11-21 |
-| 研究「速度モジュールLv1〜4」を完了する | 生きる。ICチップLv(n+1) の解放はそのまま残る。品質モジュール研究を先に済ませていても、同じ ICチップの解放の通知は2回目を出さない（Task E6） | 裁定 2026-11-21（速度側は残す）。通知を1回にするのは「判断」15。出荷マスタで品質→速度の順に済ませても解放の状態が変わらず例外も出ないことは Task E8 のシナリオの終わりの段、通知の回数は Task E6 の NUnit で見る |
+| テスト用 mod・ほかの mod の分岐器を読み込む | 生きる（今ある mod は全部通る）。今後、入口が 1 つでない・出口が入口から見て左・正面・右に当たらない・同じ側に出口が 2 つある分岐器を作った mod は読込時に止まる（ゲームが起動しない）。出口が 2 つだけの分岐器は止まらない | 追跡中の blocks.json で `FilterSplitter` を持つのは forUnitTest（入口 (0,0,-1)・出口 +X/-X/+Z）と v8 出荷マスタ（入口 (0,0,-1)・出口 -X/+Z/+X）だけで、どちらも通る。EditModeInPlayingTestMod には分岐器が無い。止める判断は「判断」3 |
+| 研究「品質モジュールLv1〜5」を完了する | 変わる: 品質モジュールLvN（N は 1〜4）で シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN が、品質モジュールLv5 で品質モジュールLv5 が解放され、レシピ一覧・研究画面の解放一覧（`UnlockEntries.cs:18` の ItemRecipeViewItemIds）・解放の通知に出る。積荷の選択肢（解放済みだけを出す。裁定 2026-11-20）が見るのは ICチップの解放だけなので、積荷への影響は ICチップLv2〜5 の分だけ | 裁定 2026-11-21（2 件。`.decisions/2026-11-21-品質モジュールの研究にはシリコンダイと品質モジュールのアイテム解放も付ける.md` が範囲を広げた） |
+| 研究「速度モジュールLv1〜5」を完了する | 生きる。今の解放（速度モジュールLvN の シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN、速度モジュールLv5 の品質モジュールLv5）はそのまま残る。品質モジュール研究を先に済ませていても、同じアイテムの解放の通知は2回目を出さない（Task E6） | 裁定 2026-11-21（速度側は残す）。通知を1回にするのは「判断」15。出荷マスタで品質→速度の順に済ませても 13 品目の解放の状態が変わらず例外も出ないことは Task E8 のシナリオの終わりの段、通知の回数は Task E6 の NUnit で見る |
 | ICチップLv2〜5 を作る（品質モジュールを刺した精密切断機・組立機） | 生きる | 製作上限は `unlockLevelInheritanceCraftLevel`（品質モジュール item）で別。裁定 2026-10-23。`tier9-2-modules.cs` で確かめる |
-| 既存の開発用ワールドを読み込む | 変わる: 品質モジュールLv1 以降を研究済みのワールドは、次に読み込んだとき ICチップLv2〜 が解放される | `ResearchDataStore.LoadResearchData` が完了済み研究の解放を再実行する（`WorldSaveDataRestorer.cs:110` で解放状態 → `:137` で研究）。`ResearchUnlockRecordFallbackLoadTest` が固定。ユーザーへの説明と食い違う → 「食い違い」1 |
-| アイテム一覧の並び順 | 変わる: 30 品目の sortPriority が動く（ICチップLv2〜5 が前へ） | master-refine 操作 A（解放順で並べる規約） |
+| 既存の開発用ワールドを読み込む | 変わる: 品質モジュールLvN を研究済みのワールドは、次に読み込んだとき シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN（Lv5 なら品質モジュールLv5）が解放される | `ResearchDataStore.LoadResearchData` が完了済み研究の解放を再実行する（`WorldSaveDataRestorer.cs:110` で解放状態 → `:137` で研究）。`ResearchUnlockRecordFallbackLoadTest` が固定。ユーザーへの説明と食い違う → 「食い違い」1 |
+| アイテム一覧の並び順 | 変わる: 34 品目の sortPriority が動く（シリコンダイLv2〜5・ICチップLv2〜5・品質モジュールLv1〜5 の 13 品目が前へ、間の 21 品目が後ろへ） | master-refine 操作 A（解放順で並べる規約） |
 | プレイテスト版（半導体レシピを消したリリース専用ブランチ） | 影響なし | そのブランチは半導体製造より先に進めない（`origin/release/playtest-no-semiconductor` eae8087）。master へは混ざらない |
-| 一度解放されたアイテムの再解放（研究・チャレンジのアクション） | 状態は変わらず、通知と解放イベントが出なくなる | 今の v8 には2つの研究が同じアイテムを解放する例が無く（下書き時に research.json で 0 件）、今まで再解放は起きていなかった。ロード時の再実行（`ResearchDataStore.LoadResearchData`）でも解放済みのアイテムの通知が出なくなる（ロード中は購読するクライアントがまだ居ない）。「判断」15 |
+| 一度解放されたアイテムの再解放（研究・チャレンジのアクション） | 状態は変わらず、通知と解放イベントが出なくなる | 今の v8 には2つの研究が同じアイテムを解放する例が無く（下書き時に research.json で 0 件）、今まで再解放は起きていなかった。Task E7 の後は 13 品目が品質モジュールと速度モジュールの研究の両方から解放される。ロード時の再実行（`ResearchDataStore.LoadResearchData`）でも解放済みのアイテムの通知が出なくなる（ロード中は購読するクライアントがまだ居ない）。「判断」15 |
 
 ## 未確認（実装の中で確かめる）
 
@@ -18148,7 +18772,7 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 6. `BlockContextModel` が同じ値の取り直しでも `Current` を流すか。流さない場合、言語の切り替えは値が変わるまで開いているモーダルに映らない（判断 D-3 の範囲が狭まるだけで、誤った数字は出ない）。
 7. `ModalTableViewTest` の位置の検査（値の行の字下げ）が、`ScreenTestHost` で `Modal.uss` が当たる前提に立つこと。既存の `ModalViewTest` がスタイル込みで見ているかは読んでいない。
 8. 新しいシナリオの配線: 室外の発電機 (-15,32,-15) から5台を足しても `TryConnectBothSides` が距離で拒まないこと（フィルター消費のシナリオは1台で通っている）。
-9. tier9-3 のダイシングで改善の行が1つ以上返ること（部屋クラスがAでない、またはモジュールの枠に空きがある。C の要裁定3 の決まり方にもよる）。返らなければボタンが出ず、DSL の待ちで失敗する。
+9. tier9-3 のダイシングで改善の行が1つ以上返ること（部屋クラスがAでない、またはモジュールの枠に空きがある。まだ作れない品質モジュールの行も出す〈判断 D-30〉ので、研究の進み具合では減らない）。返らなければボタンが出ず、DSL の待ちで失敗する。
 10. `run-scenario.sh` が新しいサブディレクトリ `scenarios/cleanroom/` のファイルをそのまま受けること（引数はファイルのパスなので通ると推測）。
 11. 生成されるキーの名前 `LocalizationKeys.Ui.Common.Close`。csv の `ui.common.close`（7行目）から、`ui.common.itemFallback` → `LocalizationKeys.Ui.Common.ItemFallback`（`NotificationText.cs:39`）と同じ規則で生成されると推測。`Close` の既存の使い手は本番コードに無い（grep）。
 
@@ -18157,249 +18781,11 @@ git commit -m "出荷マスタで品質モジュール研究がICチップLv2〜
 1. **事実4「プレイテスト版は半導体より先へ進めない」の裁定ファイル。** `.decisions/2026-11-08-プレイテスト版は半導体レシピだけ消したリリース専用ブランチで出す.md` はこの worktree に無い（メインのクローンの未追跡ファイルで、読まない決まり）。マスタ repo の `origin/release/playtest-no-semiconductor`（eae8087）のコミット文「半導体系…を出力する機械レシピ11本を削除し、半導体製造以降を到達不能にする…master へはマージしない」とは合っている。
 2. **訳が択一のボタンに1行で収まるか。** 読むだけでは測れない。Task E3 の L1 テストで確かめる（落ちたら「判断」7 の短い別案）。
 3. **録画で見出しと実物の出口の向きが合うか。** 側の計算はテストマスタで単体と読み手のテストを書いたが、出荷マスタの分岐器のモデルで「左」の出口が本当に左に見えるか（モデルの向きとマスタのコネクタの向きが合っているか）は、Task E5 の録画を見るまで分からない。
-4. **sortPriority の再計算の結果。** 30 品目という数は、下書き時に scratchpad で同じスクリプトを走らせた再現で、マスタの作業 worktree では未実行。
+4. **sortPriority の再計算の結果。** 34 品目・research.json の 48 行という数は、下書き時に scratchpad（ピン `aaa89bc` の mod を `git archive` で取り出した複製）で同じ 5 か所を足して同じスクリプトを走らせた再現で、マスタの作業 worktree では未実行。
 5. **調査報告 `elevator-base-and-unlock-facts.md` の行番号。** master を取り込む前に書かれたもので、この下書きでは引いていない。使う側が今のコードで確かめる。
+6. **空の `inputConnects`・`outputConnects` を読めるか。** スキーマ（`VanillaSchema/ref/inventoryConnects.yml`）では両方 `optional: true` の配列で、要素の数の下限は無い。Core.Master でこの 2 つを読むのは `BlockConnectorValidator.ValidateShapeGuids`（null と空を回すだけ）と今回の検証だけ。それでも、生成されたローダーが空の配列を空配列として読むか（null になるか）と、`new BlockMaster(blocks)` が例外を出さないかは、読んだだけで実物を試していない。どちらになっても検証と `ResolveAll` は止める側へ倒れるように書いた（向きの無い出口〈`directions` が空の配列〉も同じ）。Task E1 Step 6 で読込の例外が出たら、表の該当の 3 行を外して報告する。
 
 ## 付録
-
-### 領域 C: 付録: 要裁定3 で B のとき
-
-要裁定3 が B（今作れる品質モジュールだけ「品質モジュールLv{N} を追加」に出す）になったときに、この plan へ足す差分。A のままならこの節は使わない。
-
-#### 調べた事実
-
-- 解放の状態はワールドで1つ。`IGameUnlockStateData`（`Game.UnlockState/IGameUnlockStateDatastoreController.cs:16-26`）の辞書はレシピ GUID・`ItemId` をキーにし、プレイヤーを持たない。`GameplayServiceRegistration.cs:134-137` が singleton で登録する。機械のレシピ選択の解放判定も、サーバーの部品がこれを持って読む（`VanillaMachineInputInventory.cs:115-118` の `IsRecipeUnlocked` が `MachineRecipeUnlockStateInfos` を読む。部品へは `BlockTemplateUtil.cs:56-57` が `ServerContext.GetService<IGameUnlockStateDataController>()`・`ServerContext.GetService<ILevelInheritanceCraftCapLookup>()` で渡す）。よって B でも要求者の情報はいらず、プロトコルは変わらない。
-- 製作上限（継承レシピで出せる最高レベル）も ワールドで1つ: `ILevelInheritanceCraftCapLookup.GetCraftCap(familyBaseItemGuid)`（`Game.Block.Interface/MachineUpgrade/ILevelInheritanceCraftCapLookup.cs`）。継承レシピで今出せる最高レベルは `MachineRecipeLevelInheritanceUtil.GetMaxCraftableLevel(shape, lookup)`（同ディレクトリ `MachineRecipeLevelInheritanceUtil.cs:87-91`）、そのレベルで出るアイテムは `ResolveOutputItemId(recipe, outputIndex, level)`（同 103-107）。
-- v8 ピン `aaa89bcf`（`server_v8/mods/moorestechAlphaMod_8/master/`）の品質モジュール Lv1〜5（`items.json` の `modules`、tier 1〜5 が各1種類）:
-
-| tier | アイテムの解放（`unlockItemRecipeView`） | 作れるようになる研究 | 作り方 |
-|---|---|---|---|
-| 1 | 研究「速度モジュールLv1」 | 研究「品質モジュールLv1」（`unlockMachineRecipe` 機械レシピ `01a167f3-bd88-747d-b30e-13f23f169ce4`） | その機械レシピ（`initialUnlocked: false`・`levelInheritance: InheritUpToUnlocked`）。クラフトレシピは無い |
-| 2〜5 | 研究「速度モジュールLv{N}」 | 研究「品質モジュールLv{N}」（`unlockLevelInheritanceCraftLevel`・対象 Lv1 の系列・level N） | 同じ Lv1 の機械レシピの継承（Lv1 のアイテムが `levelFamilies` の基準）。専用のレシピは無い |
-
-  アイテムの解放（`ItemUnlockStateInfos`）で見ると、品質モジュールを作れない段階（速度モジュールの研究だけ済んだ）でも行が出て、作れる段階でも速度モジュールの研究が済んでいなければ出ない。B の「解放済み」は「解放済みのレシピで、今の製作上限以内で出せる」で見る。
-- テストマスタ（`Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/`）: tier1 `TestQualityModule`（`...1234-000000000005`）は `initialUnlocked: true` の機械レシピ2本（`085c97d3-...` ほか）が出力する。tier2 `TestQualityFractionalModule`（`...1234-000000000006`）を出力するレシピは無い。B にすると C3・C4 のテストで tier2 の行（`add2`）が出なくなる。
-
-#### 足す差分
-
-1. `Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomQualityModuleCraftability.cs`（新。`YieldPreview/` の本数は C3 の後に数え直し、10本を超えるならサブディレクトリへ）:
-
-```csharp
-using Core.Master;
-using Game.Block.Interface.MachineUpgrade;
-using Game.UnlockState;
-using Mooresmaster.Model.ItemsModule;
-
-namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
-{
-    /// <summary>
-    ///     品質モジュールを今作れるか。解放済みのクラフトレシピか、解放済みの機械レシピが今の製作上限以内でそのアイテムを出せるかで見る
-    ///     Whether a quality module can be made now: an unlocked craft recipe, or an unlocked machine recipe that outputs the item within the current craft cap
-    /// </summary>
-    internal class CleanRoomQualityModuleCraftability
-    {
-        private readonly IGameUnlockStateData _unlockStateData;
-        private readonly ILevelInheritanceCraftCapLookup _craftCapLookup;
-
-        public CleanRoomQualityModuleCraftability(IGameUnlockStateData unlockStateData, ILevelInheritanceCraftCapLookup craftCapLookup)
-        {
-            _unlockStateData = unlockStateData;
-            _craftCapLookup = craftCapLookup;
-        }
-
-        public bool CanCraft(ModuleMasterElement module)
-        {
-            var itemId = MasterHolder.ItemMaster.GetItemId(module.ItemGuid);
-            return HasUnlockedCraftRecipe() || HasUnlockedMachineRecipe();
-
-            #region Internal
-
-            bool HasUnlockedCraftRecipe()
-            {
-                foreach (var recipe in MasterHolder.CraftRecipeMaster.GetResultItemCraftRecipes(itemId))
-                {
-                    if (_unlockStateData.CraftRecipeUnlockStateInfos.TryGetValue(recipe.CraftRecipeGuid, out var info) && info.IsUnlocked) return true;
-                }
-                return false;
-            }
-
-            // 継承レシピは今の製作上限までのレベルだけを出せる。継承でない出力は書いたまま
-            // An inheritance recipe outputs only levels up to the current craft cap; other outputs are as written
-            bool HasUnlockedMachineRecipe()
-            {
-                foreach (var info in _unlockStateData.MachineRecipeUnlockStateInfos.Values)
-                {
-                    if (!info.IsUnlocked) continue;
-                    var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(info.MachineRecipeGuid);
-                    for (var outputIndex = 0; outputIndex < recipe.OutputItems.Length; outputIndex++)
-                    {
-                        if (OutputsAtCraftableLevel(recipe, outputIndex)) return true;
-                    }
-                }
-                return false;
-            }
-
-            bool OutputsAtCraftableLevel(Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement recipe, int outputIndex)
-            {
-                if (!MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape) || shape.TargetOutputIndex != outputIndex)
-                {
-                    return MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, outputIndex, null) == itemId;
-                }
-                var maxLevel = MachineRecipeLevelInheritanceUtil.GetMaxCraftableLevel(shape, _craftCapLookup);
-                for (var level = 1; level <= maxLevel; level++)
-                {
-                    if (MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, outputIndex, level) == itemId) return true;
-                }
-                return false;
-            }
-
-            #endregion
-        }
-    }
-}
-```
-
-（`OutputItems` は配列〈`MachineRandomDrawSiteTest.cs:39` が `.Length` を使う〉、`CraftRecipeGuid` の名前は `CraftRecipeUnlockStateHolder.cs:24` で確認。`MachineRecipeUnlockStateInfos` はマスタの全機械レシピを持つ〈`MachineRecipeUnlockStateHolder.cs:20-25`〉。）
-
-2. `CleanRoomQualityModuleCandidates.Select` に引数 `CleanRoomQualityModuleCraftability craftability` を足し、2つの条件に `craftability.CanCraft(...)` を足す:
-
-```csharp
-        // 直す前
-        public static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped)
-            if (0 < highestTier && TryGetQualityModuleOfTier(highestTier, out var highest) && effectComponent.CanEquipOneMore(highest)) candidates.Add(highest);
-            if (TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier)) candidates.Add(nextTier);
-        // 直した後
-        public static List<ModuleMasterElement> Select(MachineModuleEffectComponent effectComponent, IReadOnlyList<MachineModuleEffect.EquippedModule> equipped, CleanRoomQualityModuleCraftability craftability)
-            if (0 < highestTier && TryGetQualityModuleOfTier(highestTier, out var highest) && effectComponent.CanEquipOneMore(highest) && craftability.CanCraft(highest)) candidates.Add(highest);
-            if (TryGetQualityModuleOfTier(highestTier + 1, out var nextTier) && effectComponent.CanEquipOneMore(nextTier) && craftability.CanCraft(nextTier)) candidates.Add(nextTier);
-```
-
-3. `CleanRoomYieldPreviewComponent` の ctor に `CleanRoomQualityModuleCraftability craftability` を足してフィールドに持ち、`GetPreview` の `CleanRoomQualityModuleCandidates.Select(_moduleEffectComponent, equipped)` を `Select(_moduleEffectComponent, equipped, _craftability)` にする。`VanillaCleanRoomMachineTemplate.cs` の `new CleanRoomYieldPreviewComponent(...)` に `new CleanRoomQualityModuleCraftability(ServerContext.GetService<IGameUnlockStateDataController>(), ServerContext.GetService<ILevelInheritanceCraftCapLookup>())` を足す（前例 `BlockTemplateUtil.cs:56-57`）。
-
-4. テスト: `CleanRoomQualityModuleCandidatesTest` に「出力するレシピが無い tier2 は、刺せても候補に入らない」を足す。tier1 を出す機械レシピ2本はテストマスタで `initialUnlocked: true` で、解放を取り消す API は無いので、tier1 はテストでは常に候補になる。C3 の `CleanRoomYieldImprovementCalculatorTest` は `Compute` に候補を直接渡すので変わらない。C4 の `CleanRoomYieldOddsProtocolTest` の期待（`add2` の行）は消え、`add1` の1行だけになる。研究で解放したら行が出ることを確かめるテストは、テストマスタに品質モジュールを出す未解放のレシピを足す必要がある（マスタ変更が要る。B を採るときに決める）。
-
-5. 毎秒の照会で全機械レシピを回す負荷（v8 の機械レシピ数 × 候補2つ）は測っていない。重ければ「モジュールのアイテム → それを出すレシピ」の表を起動時に作る。
-
-### 領域 E: 付録: 要裁定 2 で (b) のとき
-
-要裁定 1（前の下書きの要裁定 2）で (b) が選ばれたら、Task E7・E8 の次の Step だけを差し替える。E1〜E6 は変わらない（E6 で重複解放の通知は1回になるので、速度モジュール研究との重複が増えても通知は増えない）。
-
-#### 足す解放（研究ごと。`unlockItemRecipeView` を1つ足し、`unlockItemGuids` に並べる）
-
-| 研究 | researchNodeGuid | 足すアイテム（並びの順） |
-|---|---|---|
-| 品質モジュールLv1 | `01a167f3-bd6b-70c9-be6e-52e41907b21f` | ICチップLv2 `878ea106-3689-4bcd-8d9a-e18b0e03072c`・シリコンダイLv2 `01a17356-2aff-701f-9a1c-174e55eb20f8`・品質モジュールLv1 `01a167f3-bd96-73a2-a0ce-06ba261e109d` |
-| 品質モジュールLv2 | `01a173a4-cfe2-769c-9b35-eabb655f9a8f` | ICチップLv3 `d403eb63-f913-456f-842d-41980cdfc0bc`・シリコンダイLv3 `01a17356-2aff-701f-9a1c-174f781ba191`・品質モジュールLv2 `01a17370-c063-7479-84da-2d07d02e2953` |
-| 品質モジュールLv3 | `01a173a4-cfe2-769c-9b35-eabc81931e86` | ICチップLv4 `2ef1886a-30b0-4792-8c20-0f39c370443a`・シリコンダイLv4 `01a17356-2aff-701f-9a1c-1750b8ac3222`・品質モジュールLv3 `01a17370-c063-7479-84da-2d0837ecdcb1` |
-| 品質モジュールLv4 | `01a173a4-cfe2-769c-9b35-eabdf0cceabb` | ICチップLv5 `01a17356-2aff-701f-9a1c-17524cddb030`・シリコンダイLv5 `01a17356-2aff-701f-9a1c-175178dfda4c`・品質モジュールLv4 `01a17370-c063-7479-84da-2d09a793b11a` |
-| 品質モジュールLv5 | `01a173a4-cfe2-769c-9b35-eabe85cfb575` | 品質モジュールLv5 `01a17370-c063-7479-84da-2d0a09b79551` |
-
-組み合わせは、今の速度モジュールLvn の研究が解放している [シリコンダイLv(n+1)・ICチップLv(n+1)・品質モジュールLvn]（速度モジュールLv5 は品質モジュールLv5 だけ）を、同じ段の品質モジュール研究にも持たせる形。品質モジュールLv5 の行は、品質モジュールLvn のアイテムを、その段の製作上限を開ける研究（品質モジュールLv2〜5 は `unlockLevelInheritanceCraftLevel` の level n）でそろって出すために足す。ここも速度側（速度モジュールLv5）は残す。
-
-#### 差し替える Step
-
-**Task E7 Step 2**（research.json）: 品質モジュールLv1 の直した後は次の全文:
-```json
-      "clearedActions": [
-        {
-          "gameActionType": "unlockMachineRecipe",
-          "gameActionParam": {
-            "unlockMachineRecipeGuids": [
-              "01a167f3-bd88-747d-b30e-13f23f169ce4"
-            ]
-          }
-        },
-        {
-          "gameActionType": "unlockItemRecipeView",
-          "gameActionParam": {
-            "unlockItemGuids": [
-              "878ea106-3689-4bcd-8d9a-e18b0e03072c",
-              "01a17356-2aff-701f-9a1c-174e55eb20f8",
-              "01a167f3-bd96-73a2-a0ce-06ba261e109d"
-            ]
-          }
-        }
-      ]
-```
-品質モジュールLv2 の直した後は次の全文（Lv3・Lv4 は `"level"` と3つの GUID を上の表の行に替えた同じ形）:
-```json
-      "clearedActions": [
-        {
-          "gameActionType": "unlockLevelInheritanceCraftLevel",
-          "gameActionParam": {
-            "targetItemGuids": [
-              "01a167f3-bd96-73a2-a0ce-06ba261e109d"
-            ],
-            "level": 2
-          }
-        },
-        {
-          "gameActionType": "unlockItemRecipeView",
-          "gameActionParam": {
-            "unlockItemGuids": [
-              "d403eb63-f913-456f-842d-41980cdfc0bc",
-              "01a17356-2aff-701f-9a1c-174f781ba191",
-              "01a17370-c063-7479-84da-2d07d02e2953"
-            ]
-          }
-        }
-      ]
-```
-品質モジュールLv5 は、`"level": 5` の `unlockLevelInheritanceCraftLevel` の要素の後に足す:
-```json
-        {
-          "gameActionType": "unlockItemRecipeView",
-          "gameActionParam": {
-            "unlockItemGuids": [
-              "01a17370-c063-7479-84da-2d0a09b79551"
-            ]
-          }
-        }
-```
-（前の要素の閉じ `}` を `},` にする。）Expected の `git diff --stat` は research.json の `48 insertions(+)`（下書き時に scratchpad で同じ差分を作って測った値）。
-
-**Task E7 Step 3**（sortPriority の再計算）の Expected: items.json の 34 品目が動く（scratchpad の再現）。前へ出るもの: 品質モジュールLv1 780→730・シリコンダイLv2 790→740・ICチップLv2 800→750・品質モジュールLv2 880→810・シリコンダイLv3 890→820・ICチップLv3 900→830・品質モジュールLv3 940→910・シリコンダイLv4 950→920・ICチップLv4 960→930・品質モジュールLv4 1000→970・シリコンダイLv5 1010→980・ICチップLv5 1020→990・品質モジュールLv5 1060→1030。残る 21 品目（計算データ 730→760 など）は後ろへずれる。blocks.json は変わらない。
-
-**Task E7 Step 5**: コミット文を「品質モジュールLv1〜5の研究でICチップLv2〜5・シリコンダイLv2〜5・品質モジュールLv1〜5のアイテム解放を足し、解放順でsortPriorityを再計算する」、PR の題を「品質モジュール研究でICチップ・シリコンダイ・品質モジュールのアイテムを解放する」、本文の1行目を同じ内容にし、件数を「34 品目」にする。
-
-**Task E8 Step 3**（シナリオ）: using（`Client.Playtest.Operations` を含む本文の並び）・`speedResearch`（速度モジュールLv1〜4）・終わりの速度モジュールの段の流れは本文と同じ。替えるのは次の 3 か所で、assert の文の「ICチップLv2〜5」は「ICチップ・シリコンダイ・品質モジュール」に読み替える。
-
-(1) `qualityResearch` と `chips` の配列を次に替える:
-```csharp
-var qualityResearch = new[]
-{
-    "01a167f3-bd6b-70c9-be6e-52e41907b21f", "01a173a4-cfe2-769c-9b35-eabb655f9a8f", "01a173a4-cfe2-769c-9b35-eabc81931e86", "01a173a4-cfe2-769c-9b35-eabdf0cceabb", "01a173a4-cfe2-769c-9b35-eabe85cfb575",
-}.Select(Guid.Parse).ToArray();
-var chips = new[]
-{
-    "878ea106-3689-4bcd-8d9a-e18b0e03072c", "d403eb63-f913-456f-842d-41980cdfc0bc", "2ef1886a-30b0-4792-8c20-0f39c370443a", "01a17356-2aff-701f-9a1c-17524cddb030",
-    "01a17356-2aff-701f-9a1c-174e55eb20f8", "01a17356-2aff-701f-9a1c-174f781ba191", "01a17356-2aff-701f-9a1c-1750b8ac3222", "01a17356-2aff-701f-9a1c-175178dfda4c",
-    "01a167f3-bd96-73a2-a0ce-06ba261e109d", "01a17370-c063-7479-84da-2d07d02e2953", "01a17370-c063-7479-84da-2d0837ecdcb1", "01a17370-c063-7479-84da-2d09a793b11a", "01a17370-c063-7479-84da-2d0a09b79551",
-}.Select(Guid.Parse).ToArray();
-```
-(2) (b) ではシリコンダイLv2〜5 も品質モジュール研究で解放されるので、`speedOnlyDies` の配列（4 行）と `var dieIds = …;` の行を消す。
-
-(3) 速度側のシリコンダイを待つ段は、(b) では速度モジュールLv1〜4 が新しく解放する物が無く待つ目印にならないので、次の 3 行（コメント 2 行と `Until`）を
-
-```csharp
-    // 速度側だけが解放するシリコンダイLv2〜5 がクライアントに届くのを待ち、同じ回の ICチップの重複解放を受け終えてから見る（通知の回数は Task E6 の NUnit が見る）
-    // Wait until the speed-only silicon die Lv2-5 unlocks reach the client, so the duplicate IC chip unlocks of the same pass are received too (notification counts are E6's NUnit)
-    await p.Until(() => dieIds.All(id => clientUnlock.ItemUnlockStateInfos[id].IsUnlocked), 15f, "速度側のシリコンダイLv2〜5 がクライアントで解放済み");
-```
-
-次に替える:
-
-```csharp
-    // (b) では速度側に新しい解放が無いので、再実行の解放イベントがクライアントへ届く間だけ待ってから見る（通知の回数は Task E6 の NUnit が見る）
-    // In (b) the speed side unlocks nothing new, so wait for the replayed unlock events to reach the client before checking (notification counts are E6's NUnit)
-    await p.WaitSeconds(1f);
-```
-
-シナリオの読み方（using・`LocalizedLabel` を読む所）は E8 には無く、E5 は (b) で変わらない。
-
-下書き時に確かめたこと: 品質モジュールLv1〜5 の前提の閉包は 44 研究で、速度モジュール研究も、上の 13 品目を解放する研究も入っていない。13 品目はどれも `initialUnlocked: false`。
-
-**死活表**の「研究『品質モジュールLv1〜4』を完了する」の行は「Lv1〜5」とし、出るアイテムに シリコンダイLv2〜5・品質モジュールLv1〜5 を足す。「アイテム一覧の並び順」の行は 34 品目にする。
 
 ### 領域の間の取り決め（下書きの間で出した注文。どれも反映済み）
 
@@ -18414,7 +18800,7 @@ var chips = new[]
 1. **D が持つテストのうち C7 で直すのは `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Context/CleanRoomWireSamples.cs` だけにしてほしい。** `moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs:105`（`CreateDicing(new DicingYieldMessagePack(…), null)`）は C が C4〜C6 で書き換えるファイルなので、C7 でも C が直す（D は触らない）。 `ClassifiedRoom`・`OutRoom` は `CreateClassified(className, thresholdIndex, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter)`・`CreateOut(airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter)` へ、`LayerExposure`・`Dicing` はビューの2引数の ctor `(odds, improvements)` へ替える。C4・C6 が `ContextViewConversionTest.cs` に入れる行の編集は、D3（確率のテストを外す）と D4（全面書き換え）で置き換わる。C4〜C6 の時点でそのテストが緑であれば足りる。
 2. **C7 の「クライアントの本番コードに旧項目の読み手が無い」確かめは、「Interfaces 一覧」の末尾の grep で当たりが無いことにしてほしい。** D の終わりで当たりは無い。
 3. **画面の対応についての C の問いへの答え:** 止まった台数が 0 のときは「うち…」を出さない（判断 D-11）。Out のときに台数が返れば「クラス未達（クラスDまであと2台）」で出す（判断 D-9）。`AtBestClass`・`Unreachable`・`NotCounted` は区別せず「クラスC」だけにする（判断 D-10）。
-4. **改善の行の約束:** `LevelRateDeltas` の長さは同じ応答の `Odds.LevelRates` と同じ（露光は空の配列）にしてほしい。違えばクライアントは確率の欄ごと出さず異常として記録する（判断 D-14）。並び順はサーバーの順（部屋クラス → 最高 Lv を増やす → 1つ上を刺す）のまま出す。
+4. **改善の行の約束:** `LevelRateDeltas` の長さは同じ応答の `Odds.LevelRates` と同じ（露光は空の配列）にしてほしい。違う応答は C の読み口（`CleanRoomYieldImprovementMessagePack.AreReadable` を呼ぶ `CleanRoomYieldResponseReader.Read`）が警告つきで読めない応答にし、クライアントは同じ検査を書かない（判断 D-14。C の判断 23・27 と同じ約束）。並び順はサーバーの順（部屋クラス → 最高 Lv を増やす → 1つ上を刺す）のまま出す。
 5. **任意:** 漏れの照会（密閉されていない部屋）でも照会した清浄機の状態を運べば、密閉されていない清浄機の画面にも「この清浄機」の行を出せる。今回の D は出さない（判断 D-12）ので、C が足さなくても D は変わらない。
 
 ### 下書きを書いたときに見つけた、資料や前の説明とコードの食い違い
@@ -18449,7 +18835,7 @@ var chips = new[]
 
 #### 領域 E
 
-1. **「開発用ワールドで品質モジュールLv1 を研究済みなら、速度モジュールLv1 まで今と同じ」という説明は違う。** 完了済みの研究は、ワールドを読み込むたびに解放アクションが再実行される（`moorestech_server/Assets/Scripts/Game.Research/ResearchDataStore.cs` の `LoadResearchData` → `ExecuteUnlockActions`。`UnlockReplayGameActionTypes` に `unlockItemRecipeView` が入っている。順序は `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldSaveDataRestorer.cs:110` で解放状態を読み、`:137` で研究を読む）。よって品質モジュールLv1 を研究済みの既存ワールドは、新しいマスタで次に読み込んだときに ICチップLv2 が解放される。この再実行は `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Research/ResearchUnlockRecordFallbackLoadTest.cs`（`解放記録を消したアイテムは完了済み研究の再実行でだけ解放されるTest`）が固定している。出典: 裁定 `.decisions/2026-11-21-*ICチップ*` の帰結の文。
+1. **「開発用ワールドで品質モジュールLv1 を研究済みなら、速度モジュールLv1 まで今と同じ」という説明は違う。** 完了済みの研究は、ワールドを読み込むたびに解放アクションが再実行される（`moorestech_server/Assets/Scripts/Game.Research/ResearchDataStore.cs` の `LoadResearchData` → `ExecuteUnlockActions`。`UnlockReplayGameActionTypes` に `unlockItemRecipeView` が入っている。順序は `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldSaveDataRestorer.cs:110` で解放状態を読み、`:137` で研究を読む）。よって品質モジュールLvN を研究済みの既存ワールドは、新しいマスタで次に読み込んだときに シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN（Lv5 なら品質モジュールLv5）が解放される。この再実行は `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Research/ResearchUnlockRecordFallbackLoadTest.cs`（`解放記録を消したアイテムは完了済み研究の再実行でだけ解放されるTest`）が固定している。出典: 裁定 `.decisions/2026-11-21-*ICチップ*` の帰結の文（範囲を広げた `.decisions/2026-11-21-品質モジュールの研究にはシリコンダイと品質モジュールのアイテム解放も付ける.md` でも同じ）。
 2. **事実2「ICチップLv2 は品質モジュールLv1 を精密切断機に刺すと出始める」は言い方に注意が要る。** 品質モジュールLv1 の段で出始めるのは**シリコンダイLv2**（ダイシングの表で品質モジュールLv1 の段の levelRates が `[0.83125, 0.11875, …]`）。ICチップLv2 は、そのダイを電気精密組立機のレシピ（`levelInheritance: Inherit`）で組んだときにできる。「品質モジュールLv1 レシピは研究『品質モジュールLv1』」「速度Lv1 はその後で ICチップLv1 3000 個」は正しい（研究「速度モジュールLv1」の前提は品質モジュールLv1、消費は ICチップLv1 ×3000・鋼鉄フレーム ×150・制御モータ ×120）。
 3. **Shipped Master Gate は今は無い。** 依頼は「Shipped Master Gate を探す」だが、G1 読込・G3 研究ウォーク（`.github/workflows/shipped-master-gate.yml`・`Editor/MasterGate/*`）は eba8cd30f6 で消えている（メッセージ「ピン先マスタはテスト CI がすでに読んでいる」）。ピン先は `.github/workflows/run_test.yml` が checkout してテストに使う。マスタ repo の CI は `scripts/check_shipped_data_contracts.py`（challenges・map・blocks だけ）と全角幅ゼロ文字の検査だけ。
 4. **research_sync は無い。** マスタ repo の Python ツール群は 79303ff で消えている。マスタの書き換えは手で行い、並びは本 repo の master-refine のスクリプト（`.claude/skills/master-refine/scripts/recalc_sort_priority.py`）で直す。
@@ -18471,7 +18857,11 @@ var chips = new[]
 | `2026-11-19-発射台の積荷はレシピ設定のように選択式にする.md` | R-A1 |
 | `2026-11-20-積荷を選んでいない発射台は何も受け取らない.md` | R-A2 |
 | `2026-11-20-グラフェンケーブルの成果は発射台に1便の効果だけ書く.md` | R-A4 |
-| `2026-11-20-積荷を選ぶ一覧は解放した種類だけ出す.md`・`2026-11-21-積荷の一覧の解放はICチップLv2から5のアイテム解放を品質モジュールLv1から4の研究にも付けて決める.md` | R-A5・R-F1 |
+| `2026-11-20-積荷を選ぶ一覧は解放した種類だけ出す.md`・`2026-11-21-積荷の一覧の解放はICチップLv2から5のアイテム解放を品質モジュールLv1から4の研究にも付けて決める.md`・`2026-11-21-品質モジュールの研究にはシリコンダイと品質モジュールのアイテム解放も付ける.md` | R-A5・R-F1 |
+| `2026-11-21-積荷を選んでいない発射台と拠点の画面は一覧だけを出す.md` | R-A2・R-B4 |
+| `2026-11-21-失敗率の改善方法にはまだ作れない品質モジュールの行も出す.md` | R-C7 |
+| `2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md` | R-D3 |
+| `2026-11-21-見出しを左正面右に決められない分岐器のマスタは読込時に止める.md` | R-E3 |
 | `2026-11-20-積荷を選び直しても建造済みの1便はそのまま打ち上げ次の便から切り替える.md` | R-A7 |
 | `2026-11-20-積荷を選び直したとき枠に残る前の種類は選んだ人のインベントリへ返す.md` | R-A8 |
 | `2026-11-20-発射台の積荷選択にセーブのマイグレーションは書かない.md` | R-A11 |
@@ -18497,16 +18887,16 @@ var chips = new[]
 - **この plan は1本で、PR も本 repo に1本（＋マスタ repo に1本）。** 出所: ユーザー裁定 2026-11-20 問い「Tab の直しを先に出しますか」→ 選択「A. Tab だけ先に出す (PR は2本)」。領域 A と B は同じ PR でないと画面が例外で落ちるので、領域ごとに PR を割らない（出所: agent前提）。
 - **セーブ形式が変わるが、版を上げず変換ステップも足さない。** 対象は `RocketLaunchPad` と `SpaceElevatorBase` のブロックのセーブ（領域 A の Task A1〜A3）。出所: ユーザー裁定（上の表の R-A11・R-B5）。AGENTS.md の規則の例外。
 - **確認シートで「そのまま通す項目」として見せ、印が付かずに返ったもの（黙認。ユーザー裁定ではない。出所: agent前提）**: 拠点の細部は発射台と同じにする／拠点の一覧の行も「積むもの → 返るもの」の形／未解放の種類の選択はサーバーも受け付けず、ブループリントで来たら未選択のまま置く／「失敗率の改善方法」に出す行が無いときはボタンを出さず、品質モジュールが無いときは「品質モジュールLv1 を追加」の1行／EUV の確率の欄は「失敗：◯%」の1行／接続した後の拠点の画面の「ケーブルのプール」の行は変えない／積荷を選んだ後の発射台・拠点の画面に、選んだ積荷の必要な数と成果を常に出す。
-- **清浄機の画面から換気回数の行を消し、「この清浄機」の行（電力・フィルターの残量）は残す。** 出所: agent前提（画面案1枚目の注記「換気回数の行は A・B・C のどれでも消えます」と、画面案2枚目の清浄機の図の3行。どちらもユーザーへ見せて異論なし。黙認）。
+- **清浄機の画面から換気回数の行と清浄機1台ずつの行を消し、「この清浄機」の行（電力・フィルターの残量）は残す。** 出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」。
 - **ランタイムの挙動に触れるので、実ゲームでの確認を入れた。** EditModeInPlayingTest は B7、unity プレイ録画テストは B8・D7・E5・E8。
 - **Task の本文は、領域ごとに別の subagent（opus）が今のコードを読んで下書きし、1本にまとめた。** コードは Unity を起動せずに書いたもので、未コンパイル・未テスト（Global Constraints）。下書きと、下書きの間で出した直しの記録は `../moorestech_logs/harness/ui-clarity-kgfsp/plan-draft-*.md`。
 - **確認シートに書いた事実の訂正**（どれも決定は変わらない）: 「品質モジュールLv1 を研究済みのワールドは、速度モジュールLv1 を研究するまで今と同じ」は誤りで、完了済みの研究の解放はロードのたびに再実行される（裁定のファイルに訂正を足した）／「出力の空き待ち」は切り終えた後ではなく、切る前に抽選だけ確定して出力が詰まっている間（ADR 0105 を直した）／拠点の入口の「詰まりの表示」は今は運べない品のときだけ出るので、選んでいない種類の残りも同じ表示に載せる（ADR 0106 に足した）。
 
 ### 領域 A の判断（出所はすべて agent前提。根拠は各項に書いてある前例・原則）: 積荷の選択（サーバー）
 
-1. **選択を共有セル `OrbitalCargoSelectionState` に置き、書くのは選択部品だけ**。前例のレシピ選択は processor が持つが、発射台と拠点の2種で同じ選択口を持たせ、作る順の循環（processor・昇降機が選択を読む／選択の返却が在庫を触る）を切るため。比べた別案: processor/昇降機に `IOrbitalCargoSelectorComponent` を実装させる（2か所に同じ拒否・返却・セーブが重なるので不採用）。
+1. **選択を共有セル `OrbitalCargoSelectionState` に置き、書くのは選択部品だけ**（書けないことは型で守る。判断 22）。前例のレシピ選択は processor が持つが、発射台と拠点の2種で同じ選択口を持たせ、作る順の循環（processor・昇降機が選択を読む／選択の返却が在庫を触る）を切るため。比べた別案: processor/昇降機に `IOrbitalCargoSelectorComponent` を実装させる（2か所に同じ拒否・返却・セーブが重なるので不採用）。
 2. **通知の速さ**: 発射台は選択の変化で即時に状態を出す。拠点は既存の「在庫の変化で次の tick に再評価」に選択の変化を合流させる（昇降機の既存の作り。1 tick の遅れは表示上問題にならない）。
-3. **状態と通信の積荷の欄は `ItemId?`（null＝無し）**（元の要裁定 1。調整役の指示で A に確定）。同じ役割の前例を実物で確かめた:
+3. **状態と通信の積荷の欄は `ItemId?`（null＝無し）**（元の要裁定 1。調整役の指示で A に確定し、確認シート05 の問 10 で「このまま」に確定した。判断 24）。同じ役割の前例を実物で確かめた:
    - 機械の「レシピを選んでいない」: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/MachineBlockStateDetail.cs:26` の `[Key(2)] string SelectedRecipeGuid` で、未選択は `Guid.Empty` の文字列（番兵値）。実行中のレシピ（`:21`）も同じ。
    - 採掘機の「掘っている品」: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/CommonMinerBlockStateDetail.cs:21` の `int[] CurrentMiningItemIdInts`（無いときは空配列。`ItemId` を生の int で運ぶ）。
    - `ItemId` をそのまま MessagePack で運ぶ前例: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/FilterSplitterStateProtocol.cs:42` の `[Key(7)] ItemId ItemId`。nullable の前例: 要求側の `int? ExpectedInstanceId`（`RocketLaunchPadCommandProtocol.cs:87`・`ConnectSpaceElevatorProtocol.cs:56`・`RemoveBlockProtocol.cs:136`）。
@@ -18531,16 +18921,27 @@ var chips = new[]
 19. **`LoadedCargoItemId` は `Launching` では null**（`LaunchingStage` が積荷を持たない）。上昇中の積荷の欄はクライアントの下書き B が要らないとした（B の判断 1）。
 20. **状態の `ItemId?` の往復をテストで確かめ（A7）、落ちたら判断 3 の別案（生の int）へ切り替える**。
 21. **未選択の台に前から入っていた積荷は、最初の選択でも選んだ種類以外を返す**（選び直しと同じ扱い。ADR 0106 の 4 の「前の種類の残りは選んだ人へ返す」を、旧セーブの残りにも当てる。返さずに残すと発射台では取り出せるが、拠点では入口が塞がったままになるため）。
+22. **共有セルを読む口と書く口に分ける。読む口は `public interface IOrbitalCargoSelectionReader { OrbitalCargoSelection Current { get; } IObservable<Unit> OnChanged { get; } }`（`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/IOrbitalCargoSelectionReader.cs`）で、書く口 `SetCurrent` は実体 `OrbitalCargoSelectionState` にだけ残す**。実体を受け取るのは選択部品 `OrbitalCargoSelectorComponent` の ctor 2本だけで、発射台の `RocketLaunchPadInventoryComponent`・`RocketLaunchPadCargoLoader`・`RocketLaunchPadProcessorComponent` と拠点の `SpaceElevatorBaseInventoryComponent`・`SpaceElevatorBaseInlet` は読む口の型で受け取る。昇降機は在庫のメソッド（`PeekSatellite`・`InletWaitStatus`・`SelectedCargoItemId`・`OnInletConditionChanged`）を通して読むので、選択の型も入口も受け取らない。名前と置き場は前例 `IMachineProcessStateReader`（`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs:7`）に合わせた（前例の照合）。読む口を public にしたのは、受け取る processor と拠点の在庫の ctor が public で、internal の型を引数にするとコンパイルが通らない（CS0051）ため。直す前の下書きは public の ctor に internal の `OrbitalCargoSelectionState` を渡していて、この点でもコンパイルが通らなかったと推測する（コンパイルは未実施。C# のアクセスの規則から読んだ）。「選んだ種類か」の `IsSelected` は読む口に置かず選択の型に置いた（判断 23）。読む部品は `Current.IsSelected(id)` で呼び、本体は1つにする。読む口とセルの両方に置くと、同じ判定の本体が2つになるため。比べた別案: 読む口に `IsSelected` も置き、`Current` に委ねる（本体は1つで済むが、同じ名前の口が2つになって呼ぶ側の書き方が割れるので取らない）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）
+23. **本番コードの2か所以上にあった同じ判定・変換を選択の型 `OrbitalCargoSelection` に寄せる**。寄せたのは次の3つ。
+    - 「選んだ種類か」→ `abstract bool IsSelected(ItemId)`。呼ぶのは選択部品の同じ種類の判定、発射台の在庫の `IsOpenInput`、拠点の入口の `Accepts`・`Peek`、選び直しの返却の判定（発射台の `RocketLaunchPadCargoInletSlots`・拠点の `SpaceElevatorBaseInlet`）。返却の判定を同じ口で呼ぶため、`IOrbitalCargoInletSlots.RefundUnselectedPayloads` の第1引数を `ItemId selectedPayloadItemId` から `SelectedOrbitalCargo selection` に変えた（呼ぶのは選択部品だけ。テストの `FakeInletSlots` も直した）。
+    - `ItemId?` への変換 → `abstract ItemId? ToNullablePayloadItemId()`。呼ぶのは発射台の processor の状態詳細と、拠点の入口の `SelectedCargoItemId()`。
+    - GUID 文字列への変換 → `abstract string ToItemGuidTextOrNull()`。呼ぶのは選択部品の `GetSaveState` とブループリント部品の `GetBlueprintSettingsJson`。
+    - 拠点の昇降機の `ResolveStatus` で入口の状態を2度読んでいた所は、在庫の `InletWaitStatus()`（判断 25）で1度読んだ値を使う形に直した。判定の順は変えていない。
+    - GUID 文字列 → 今のマスタにある `ItemId` の逆向きの変換（パース → マスタに在るか → `ItemId` に引く）も、選択部品のロード（`TryResolveCarried`）とブループリント部品の `ApplyBlueprintSettingsJson` の2か所にあったので、`OrbitalCargoItemGuid.TryParseExistingItemGuid(string, out ItemId)`（`moorestech_server/Assets/Scripts/Game.Block/Blocks/OrbitalCargo/OrbitalCargoItemGuid.cs`）に寄せて2か所から呼ぶ。問 11 の回答「同じ計算・判定は1か所に寄せる」に向きの区別は無いため（再検査 `plan-rereview2-AB.md` の「型の形 弱 1」）。片方だけ直すとセーブとブループリントで受け入れる GUID の範囲が食い違うのを防ぐ。repo に同じ変換の共通関数は無かった（Grep `Guid.TryParse`・`ExistItemId`：各所がその場で書いている）。ログの文はそれぞれの呼び手に残した。
+    - 寄せていないのは次の2つ。発射台の積載の `CheckSelectedCargo` の `is not SelectedOrbitalCargo selected` は、積荷表の位置を引くために選択を取り出す所で、判定の重複ではない。失敗理由を1つの false にまとめている Try（`TryResolveCarried`・新しい `TryParseExistingItemGuid`）は、問 11 の回答どおり理由を分けない。
+    - 出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）
+24. **通信で送る型（状態の詳細の `RocketLaunchPadStateDetail.SelectedCargoItemId`・`LoadedCargoItemId`、`SpaceElevatorBaseStateDetail.SelectedCargoItemId`・`ClimbingCargoItemId` の `ItemId?` の欄、要求 `OrbitalCargoSelectionRequest.PayloadItemId`）は「種別＋使わない欄は空」の形のまま変えない**。検査 `plan-review-phase26-AB.md` の「強」の1つ目（未選択を `WaitReason/Status == CargoNotSelected` と `SelectedCargoItemId == null` の2か所で表している）は、この回答で「このまま」に確定した。送る型に空の欄が残り、読む側のメソッドで閉じる。サーバー側は、空の欄の値を選択の型の `ToNullablePayloadItemId()` 1か所で作る（判断 23）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）
+25. **拠点の昇降機は入口 `SpaceElevatorBaseInlet` を直接読まず、在庫部品のメソッド（`PeekSatellite`・`InletWaitStatus()`・`SelectedCargoItemId()`・`OnInletConditionChanged`）を通して読む。読み取りの3つは在庫側の `CheckDestroy(this)` を踏む**。今のコードで昇降機は在庫のメソッドを通して読み、壊れた後の読み取りを `CheckDestroy` で止めている（worktree の `SpaceElevatorClimberComponent.cs:124`・`:176` → `SpaceElevatorBaseInventoryComponent.cs:76`）ので、その流儀に合わせて案 2（`PeekSatellite` を残して呼ぶ）を選び、同じ形の口を2つ足した。直す前の下書きは `PeekSatellite` を呼び手なしで残し、昇降機の4か所が `Inlet` を直接読んでいた（再検査 `plan-rereview2-AB.md` の W2）。使われなくなる `OnInventoryChanged` は `OnInletConditionChanged` に置き換え、呼ばれないメンバーを残さない。出所: agent前提（再検査の指摘への対応。確認シートの問いではない）
 
 ### 領域 B の判断（出所はすべて agent前提。根拠は各項に書いてある前例・原則）: 積荷の選択（クライアントの画面と録画シナリオ）
 
 1. **A の未確認 4（上昇中に積荷を見せるか）: サーバーに欄を足さない。** 上昇中（`Launching`）は `LoadedCargoItemId` が null なので、見出しは選んだ積荷を出し、「次の便から」は出さない。根拠: 到着の処理は上昇の段に入る前に済んでいる（`LaunchingStage` の「上昇演出の期間だけ進め、到着処理を再実行しない」）。成果はもう出力口にあり、上昇中の機体は演出だけで、選び直しの影響を受ける「今の便」ではない。
 2. **透かしと「持っている数／必要な数」は ref-uitk-design の既存の語彙で足りる。** `ItemSlotGhost`・`ItemSlotShortage`・`SlotItemContent.From(content, slot, shortage, ghost)` が機械の枠で使われている。語彙の追加は無い。
-3. **一覧の行の左は積荷 1 枠だけ、右は成果の品、秒は 1 便の所要（発射台は建造 `buildSeconds`、拠点は昇降 `climbSeconds`）。** 資材は全行で同じなので行に並べない（ADR 0106 の 1「積むものと返るものの対」）。ケーブルは右を空にし、文が「ケーブルプール +1000」を語る。画面案の行の「120秒」に合わせた。比べた案: 資材 3 枠も左に並べる（全行同じ 3 枠が並び、違いが見えにくい）。
+3. **一覧の行の左は積荷 1 枠だけ、右は成果の品、秒は 1 便の所要（発射台は建造 `buildSeconds`、拠点は昇降 `climbSeconds`）。** 資材は全行で同じなので行に並べない（ADR 0106 の 1「積むものと返るものの対」）。プールへ足すだけの種類（今のマスタのケーブル）は右を空にし、文が「ケーブルプール +1000」を語る。プールと出力の両方を持つ種類は右に出力を並べ、文に両方を書く（判断 21）。画面案の行の「120秒」に合わせた。比べた案: 資材 3 枠も左に並べる（全行同じ 3 枠が並び、違いが見えにくい）。
 4. **機械の名前の付いた枠の型（`BoundItemSlot`・`MachineItemGhost`・`MachineSlotContents.For`）をそのまま使う。** 中身は「枠の添字・入るべき品・数」だけで、機械レシピの語彙を持たない。比べた案: 中立の名前の型を作って機械側も移す（触る範囲が機械の画面へ広がる）。帰結: 積荷のコードが `Logic.Machine` と `Machine.Slots` の名前空間を参照する。機械の型の名前を中立にする改名は、この PR では行わない。
 5. **一覧の局所状態は、発射台・拠点の本文用に新しく作る Presenter `OrbitalCargoBodyPresenter` が持つ。** 前例の機械は `MachineSectionPresenter` が `MachineSelectionModeState` を持ち、View の押下を購読して状態を進め、`MachineSectionView.Render(viewModel, showsSelection)` で描かせる。特殊族で局所状態を持つ区画は、汎用の `SpecialSectionPresenter<T>` ではなく専用の Presenter を `SpecialPresenters` で作る（`Belt(...)` → `BeltThroughputSectionPresenter`）。その 2 つの前例に合わせ、`SpecialPresenters.OrbitalCargoBody(view)` で作り、本文の工場が使う。View（`OrbitalCargoPane` と本文）は押下を Subject で出し、`Render(…, showsSelection)` を受けるだけにする。選ぶコマンドは前例どおり View が送る（`MachineSectionView` は行の押下を直接コマンドへ送り、Presenter は要求を覚えて描き直すだけ。D-24・D-33）。帰結: 本文の View は `ISpecialSectionRenderer<SpecialBlockDetailViewModel>` を外れ、モードの引数つきの `IOrbitalCargoBodyView` を実装する。汎用の Presenter と同じ「枠と詳細の流れ」は `SpecialPanelDetailStream.Of` へ移して 2 つの Presenter で共有する。
 6. **解放済みの種類が 0 の未選択でも一覧を出す。** 機械は「行が 0 件なら選択モードなし」だが、積荷は選ぶまで何も受け取らないので、本文を出しても何もできない（ADR 0106 の 2・7）。出荷マスタでは、発射台（研究「ロケット技術」）も拠点（「軌道エレベーターの建設」）も、前提の閉包に「半導体製造」（ICチップLv1 の解放）を含む。そのため、プレイの順では 0 件にならない（ピンのマスタ `aaa89bcf` の `research.json` で閉包を辿って確かめた）。
-7. **未選択の拠点では電力網の区画も一覧の間は見えない。** ADR 0106 の 7「開くと積荷を選ぶ画面」を、機械の一覧モード（本文を木に置かない）と同じに読んだ。
+7. **未選択の拠点では電力網の区画も一覧の間は見えない。** 判断 23 の一部。出所: ユーザー裁定 2026-11-21 問い「積荷を選んでいない発射台・拠点は、一覧だけを出して、出力の枠や状態は選ぶまで出さない形でよいですか」→ 選択「A. 一覧だけ (機械と同じ。選ぶまでは出力を手で取り出せず、状態・電力の状態・ケーブルプールの数も見えない)」。`.decisions/2026-11-21-積荷を選んでいない発射台と拠点の画面は一覧だけを出す.md` に記録済み。
 8. **一覧の先頭の状態文は、そのブロックの状態文をそのまま出す**（発射台は待ち理由、拠点は状態の文）。未選択なら「積荷を選んでいない」。見出しから開き直したときは今の状態（「ロケットを建造中」など）。新しい案内文は足さない。待ち理由「積荷を選んでいない」（ADR 0106 の 5）の出る場所がこれで決まる。
 9. **録画シナリオの直し方は主題で分けた。** 画面の流れが主題の tier9-4・tier9-6・uitk-block-special-panels は UI の行を押して選ぶ。Shift が主題の tier9-4b はサーバーで直接選ぶ。選び直しは新しい tier9-4c に分けた（tier9-4 は今 191 行で、足すと 200 行を超えるため）。tier9-4c では、Lv2 をサーバーで解放してから UI で選び直す（ロケット技術の前提では Lv1 しか解放されないため）。tier9-4b では、ケーブルをサーバーで解放する（研究を済ませないシナリオのため）。uitk-block-special-panels でも Lv1 をサーバーで解放する（同じ理由）。
 10. **拒否の文は特殊族の前例どおり汎用のトースト＋失敗コード**（「ブロックが操作を受け付けませんでした（cargo_select_locked）」）。専用の文は足さない。一覧には解放済みしか出ないので、拒否は状態の食い違いのときだけ起きる。
@@ -18549,11 +18950,14 @@ var chips = new[]
 13. **拠点の「積荷を選んでいない」は不足色にしない**（`ReadyToConnect` と同じく、操作を待つ状態で、足りない物は無い）。
 14. **「次の便から」の 1 行は、行と同じ「積むもの → 返るもの」を続ける**（「次の便から ICチップLv2 ×20 → 計算データ ×40」）。次の便で何が返るかまで 1 行で分かるようにした。
 15. **今選んでいる行を押したら、送ったうえでその場で一覧を閉じる。** サーバーは同じ種類の選択を成功で何もしない（A）ので、状態の更新が来ず、閉じる契機が無いため。
-16. **成果の品が複数あるときは ", " でつなぐ。** 出荷マスタの積荷はどれも成果が 1 品なので、今は出ない。
+16. **成果の品が複数あるときは ", " でつなぐ。** 出荷マスタの積荷はどれも成果が 1 品なので、今は出ない。プールの文と出力の品を両方書くときも同じ ", " でつなぐ（判断 21）。
 17. **見出しの描き直しは、見出しと次の便の種類が変わったときだけ**（前例 `SelectedRecipeHeader` の D-37）。
 18. **tier9-4b の「受け付けない枠」は、筐体素材の入った資材の 1 枠目にする。** 選んでいない積荷の枠は画面に出ないため（ADR 0106 の 1）。
 19. **文の組み立て `OrbitalCargoNames` は Screens に置く**（アイテム名を `GameContentPresentation` から引くため。前例 `MachineRecipeNames`）。
 20. **「ケーブルプールへ足す種類か」はクライアントで決めず、サーバーの判定を共有の口で読む**（注文 1）。計算の持ち主はサーバー。
+21. **プールへ足し、到着時にアイテムも出す積荷の行は、文に両方を書く（型 `OrbitalCargoChoice` はこのまま `AddsToCablePool` と `ArrivalOutputs` を並べて持つ）。** 文は「グラフェンケーブル ×1000 → ケーブルプール +1000, 計算データ ×7」の形で、プールの文を先に、続けて出力の品を、出力が複数のときと同じ ", " でつなぐ。行の右の枠は前から出力を全部並べるので変わらない。分岐は `OrbitalCargoNames.Outcome` の 1 か所だけで、見出しと「次の便から」も `OrbitalCargoNames.Row` を通るので同じ文になる。文言の表は既存の `orbitalCargoOutcomeCablePool`・`orbitalCargoOutcomeItem` で足り、行を足さない。理由: サーバーはプールへの加算と出力を別々に処理するので、その動きをそのまま画面に出し、マスタの書き方を狭めない。比べた案: 型を分けて両方を持つ積荷を読込で止める（マスタの書き方を狭める）／文はプールだけ（出力が枠にしか出ず、文と枠が食い違う）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「積荷の一覧の1行で、「ケーブルプールへ足す」と「到着時にアイテムが出る」の両方を持つ積荷をどう扱いますか」→「A. 両方あれば文も両方出す (型はこのまま)」。
+22. **「選んだ種類か」の判定は `OrbitalCargoDetail.IsSelectedChoice` の 1 か所に寄せる。** `OrbitalCargoSlotBinding.Payloads` と `PadShiftBindings` は `ItemId? selected` の代わりに `OrbitalCargoDetail cargo` を受け、`cargo.IsSelectedChoice(required.ItemId)`・`cargo.IsSelected` を呼ぶ（前は「選んでいて、その種類と同じか」を 2 回書いていた）。`OrbitalCargoDetail.TryGetNextFlight` の中の「今の便が選んだ種類か」の比較も `IsSelectedChoice(CurrentFlightCargoItemId.Value)` と `IsSelected` に替えた（false の返し方は変えない）。呼び手は `RocketLaunchPadDetail.PayloadBoundSlots`（`Cargo` を渡す）と `SpecialBlockDetailReader.ReadRocketLaunchPad`（直前で組んだ `cargo` を渡す）。`ElevatorShiftBindings(int, ItemId?)` は「選んでいるか」と値の取り出しだけで、種類の比較を持たないので変えない。`TryGetCarried`・`TryGetHeadline`・`TryGetNextFlight`・`TryGetSelected` が失敗理由を 1 つの false にまとめている所は直さない（呼ぶ側はどの理由でも「出さない」に倒すため）。ほかの本番コード（B4 のコマンドの種別の確かめ、`OrbitalCargoLargePanelRule`、`OrbitalCargoDetailSelector`、B6 の Presenter と本文）も読み、同じ判定の重複は無かった。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「検査で「直すほどではないかもしれない」と出た重複と Try のうち、直すものはありますか」→「A. 重複だけ直す (同じ計算・判定は1か所に寄せる。Try はこのまま)」。
+23. **積荷を選んでいない発射台・拠点の画面は積荷の一覧だけを出す（接続済みの拠点でも同じ）。** 出力の枠・状態・電力の状態・ケーブルプールの行は選ぶまで出さない。一覧の先頭には判断 8 のとおりブロックの状態文を出し、未選択の間はそれが「積荷を選んでいない」になる（A は発射台の未選択を他の待ち理由より先に返し、拠点では昇っていない間は接続の有無より先に `CargoNotSelected` を返す）。帰結: 選ぶまでは出力を手で取り出せず、今あるワールドの接続済みの拠点で出口にアイテムが残っていても、積荷を選ぶまで手では取り出せない（出力から隣のベルトなどへ出す動きは止まらない）。死活表の該当行を「裁定済み」にした。B6 の `OrbitalCargoBodyPresenterTest`・`SpaceElevatorViewTest` の未選択のテストで、出力の枠とプールの行が木に無いことも見る。出所: ユーザー裁定 2026-11-21 問い「積荷を選んでいない発射台・拠点は、一覧だけを出して、出力の枠や状態は選ぶまで出さない形でよいですか」→ 選択「A. 一覧だけ (機械と同じ。選ぶまでは出力を手で取り出せず、状態・電力の状態・ケーブルプールの数も見えない)」。`.decisions/2026-11-21-積荷を選んでいない発射台と拠点の画面は一覧だけを出す.md` に記録済み。
 
 ### 領域 C の判断（出所はすべて agent前提。根拠は各項に書いてある前例・原則）: クリーンルームの数字（サーバーと運ぶ経路）
 
@@ -18562,12 +18966,12 @@ var chips = new[]
 3. **「数字が変わらない行」は、全項目の差分の絶対値が 0.0005（表示の最小単位 0.1% の半分）未満の行**とした。EUV は低減の上限で厳密に0になるが、ダイシングの近づき度は 1−exp で厳密な頭打ちが無く、いつまでも小さな差が出るため。閾値はサーバーの `CleanRoomYieldImprovementCalculator.VisibleDeltaThreshold` に1つだけ置く。表示の桁を変えたらここも変える。
 4. **改善の並びは「部屋クラス → 最高 tier を増やす → 1つ上を刺す」**。ADR の例の順。
 5. **品質モジュールが刺さっていないとき**は「1つ上」＝ tier1 になり、最高 tier の行が無いので「品質モジュールLv1 を追加」の1行になる（ADR §4 のとおり）。同じ式から自然に出るので特別扱いの分岐を作らない。
-6. **「あと1個刺せるか」は「効く形で入る空きスロットがある、または同じアイテムで上限未満のスロットがある」**。プレイヤーがそのモジュールを持っているか・研究で解放したかは見ない（要裁定3。B のときは付録）。モジュールのアイテム自体のスタック上限はスロット上限より大きい前提（未確認に書いた）。
+6. **「あと1個刺せるか」は「効く形で入る空きスロットがある、または同じアイテムで上限未満のスロットがある」**。プレイヤーがそのモジュールを持っているか・研究で解放したか（今作れるか）は見ない。まだ作れない品質モジュールの行も、作れる行と同じ見た目で出る。出所: ユーザー裁定 2026-11-21 問い「「失敗率の改善方法」に、まだ作れない品質モジュールの行も出しますか」→ 選択「A. 作れなくても出す (上げるとどうなるかを先に見せる。まだ作れない品質モジュールの行が、印なしで混ざる)」（`.decisions/2026-11-21-失敗率の改善方法にはまだ作れない品質モジュールの行も出す.md`）。モジュールのアイテム自体のスタック上限はスロット上限より大きい前提（未確認に書いた）。
 7. **同じ tier の品質モジュールが複数定義されていたら、マスタの並びで先のもの**を「1つ上」と「最高 tier を増やす」の両方に使う（最高 tier は `MachineModuleEffect.HighestQualityModuleTier` の値で、どのアイテムかは持たないため）。引く関数は Core.Master（`ItemMaster`）に置かず、唯一の呼び手 `CleanRoomQualityModuleCandidates` のローカル関数にした（`moores-writing-plans/references/moorestech-layer-map.md` の「Core.Master にドメイン固有の解釈を置かない」）。v8 と テストマスタはどちらも tier ごとに1種類（未確認の欄に根拠）。起動時の検証は足さない（今の形では起きないため、一番軽い形に留める）。
 8. **改善は「部屋が稼働を許す」間だけ作る**。止まっている間は確率の欄自体を出さない（裁定 2026-11-20）ので、差分も要らない。
 9. **部屋クラスを上げた差分は、仮のクラスの行を `CleanRoomClassYield.FromThresholdIndex` で作る**。値の構造体に添字を持たせた（別案: 品質倍率などの値から行を逆引きする → 同じ値の行が2つあれば壊れるので採らない）。
 10. **次のクラスまでの台数は「照会した清浄機と同じ種類」を1台ずつ足して数える**。除去量は `RatedRemovalVolumePerSecond`（マスタの値。電力・フィルターを掛ける前）、セル数はそのブロックの占めるセル数。1台ごとに部屋の空きセルを減らす（`CleanRoom.Volume` は空きセルの数）。
-11. **機械の画面から引いた照会は台数を数えない**（`NotCounted`）。機械の画面は部屋クラスの1行だけで、台数を出す画面が無いため。
+11. **機械の画面から引いた照会は台数を数えない**。機械の画面は部屋クラスの1行だけで、台数を出す画面が無いため。サーバーの中の型では照会の出どころ `CleanRoomQueriedFromNonAirFilter` で表し、見通しそのものを持たない（判断 25）。wire では今のまま `NextClass` が `NotCounted`、`QueriedAirFilter` が `NotAirFilter`（判断 26）。
 12. **Out の部屋の「次のクラス」はいちばん下の行**（v8 では D）。1台で A まで上がる場合も「D まであと1台」と書く（書いた台数を置けば D 以上に上がるので嘘にならない）。
 13. **空きを全部埋めても届かない部屋は `Unreachable`**。画面は台数を付けず「クラスC」だけにする想定（クライアントの下書きで決める）。
 14. **「止まっている清浄機」は除去量が0の台**（電力0かフィルター無し）。部分的な電力不足（電力 50% など）は止まっていない扱い。クラス判定で除去0として数えられる台と同じ定義にした。
@@ -18577,10 +18981,23 @@ var chips = new[]
 18. **新しいテストは v8 マスタを読まない**（裁定 `2026-11-20-v8のダイシング基準値をv8マスタを読むテストで固定しない`）。全部テストマスタの値で書き、期待値は ADR 0104 の式を写した手計算（既存の `CleanRoomRoleRatesTest` の値と一致を確認済み）。
 19. **画面・入力に触れる EditModeInPlayingTest・unity プレイ録画テストはこの領域に置かない**。サーバーの数字と運ぶ経路だけで、画面の変更はクライアントの下書きの持ち物。サーバー側は CombinedTest（プロトコルを実際に通す）で確かめる。
 20. **新しい型の置き場**: `Server.Protocol/PacketResponse/CleanRoom/` 直下が10本で上限のため、確率側を `Yield/`、部屋側を `RoomSummary/` に分けた。namespace は直下と同じにしてクライアントの using を増やさない。
-21. **清浄機の画面から換気回数の行を消す**（C7 で wire の `AirChangeRate`・`Volume` も外す）。出所: agent前提（黙認。ユーザー裁定ではない）。画面案 `moorestech_logs/harness/ui-clarity-kgfsp/screen-mock-01.html` の問1 の注記に「換気回数の行は A・B・C のどれでも消えます」と書いてユーザーへ見せ、問1 はお任せ（推奨 A）で通った。「あと何台」が換気回数の役目（次のクラスに足りるか）を置き換える。
-22. **清浄機の画面に「この清浄機: 電力 ◯% / 残量 ◯%」の1行を残し、照会した清浄機自身の状態だけを1つの入れ子で運ぶ**。出所: agent前提。画面案 `screen-mock-02.html` の清浄機の図（「クラスC（クラスBまであと5台）／清浄機 6台（うち1台が止まっています）／この清浄機: 電力 100% / 残量 50%」の3行。ユーザーの赤「フィルターの個数は出さない」を反映した形）で提示済み。運び方: `CleanRoomSummaryMessagePack.QueriedAirFilter`（C6）。不在（機械から引いた照会）は null でなく `NotAirFilter` 種別で表し、`TryGetStatus` だけで読む（`CleanRoomNextClassMessagePack` と同じ形）。部屋の全清浄機の一覧（`AirFilters`・`CleanRoomAirFilterMessagePack`・`CleanRoomAirFilterSummary`）は C7 で外す。比べた別案: 一覧を残しクライアントが自分の位置の行を探す → 自身の1行のために全台を毎秒運び続け、機械の画面の照会にも載り、クライアントが自分の位置を知る必要があるので採らない。一覧のほかの使い道は grep で確かめた（クライアントの画面3か所とテストだけ。録画シナリオ・消費テストは `GetStatus` を直接使い一覧を使わない。C7 の「外すもの」に全部挙げた）。
-23. **改善の行の Lv別差分（`LevelRateDeltas`）の長さは、同じ応答の `Odds.LevelRates` と同じ。露光は空の配列（null にしない）**。サーバーでは改善の差分を、同じ役割の2つの最終の内訳（今と仮）の Lv ごとの差で作るので長さは揃い、露光の最終の内訳は Lv を持たない（C3 `CleanRoomYieldImprovementCalculatorTest` が配列ごと比べる。C4 `CleanRoomYieldOddsProtocolTest` がダイシングの全行の長さと、露光の空の配列が wire を通っても空のまま届くことを確かめる）。クライアントの読み口 `CleanRoomYieldImprovementMessagePack.AreReadable(list, levelCount)` は長さが違う行を壊れた wire として弾く（画面側の判断 D-14 と同じ約束）。
+21. **清浄機の画面から換気回数の行を消す**（C7 で wire の `AirChangeRate`・`Volume` も外す）。出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」（`.decisions/2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md`）。「あと何台」が換気回数の役目（次のクラスに足りるか）を置き換える。
+22. **清浄機の画面に「この清浄機: 電力 ◯% / 残量 ◯%」の1行を残し、照会した清浄機自身の状態だけを1つの入れ子で運ぶ**。出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」（`.decisions/2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md`）。決まった画面は「クラスC（クラスBまであと5台）／清浄機 6台（うち1台が止まっています）／この清浄機: 電力 100% / 残量 50%」の3行（画面案 `screen-mock-02.html` の清浄機の図。ユーザーの赤「フィルターの個数は出さない」を反映した形）。wire での運び方（1つの入れ子にすること）は agent前提。運び方: `CleanRoomSummaryMessagePack.QueriedAirFilter`（C6）。不在（機械から引いた照会）は null でなく `NotAirFilter` 種別で表し、`TryGetStatus` だけで読む（`CleanRoomNextClassMessagePack` と同じ形）。サーバーの中では `CleanRoomQueriedFromAirFilter.Status` として必ず持つ（判断 25）。部屋の全清浄機の一覧（`AirFilters`・`CleanRoomAirFilterMessagePack`・`CleanRoomAirFilterSummary`）は C7 で外す。比べた別案: 一覧を残しクライアントが自分の位置の行を探す → 自身の1行のために全台を毎秒運び続け、機械の画面の照会にも載り、クライアントが自分の位置を知る必要があるので採らない。一覧のほかの使い道は grep で確かめた（クライアントの画面3か所とテストだけ。録画シナリオ・消費テストは `GetStatus` を直接使い一覧を使わない。C7 の「外すもの」に全部挙げた）。
+23. **改善の行の Lv別差分（`LevelRateDeltas`）の長さは、同じ応答の `Odds.LevelRates` と同じ。露光は空の配列（null にしない）**。サーバーでは改善の差分を、同じ役割の2つの最終の内訳（今と仮）の Lv ごとの差で作るので長さは揃い、露光の最終の内訳は Lv を持たない（C3 `CleanRoomYieldImprovementCalculatorTest` が配列ごと比べる。C4 `CleanRoomYieldOddsProtocolTest` がダイシングの全行の長さと、露光の空の配列が wire を通っても空のまま届くことを確かめる）。長さが違う行・未知の種別の行・クラス名の無い RoomClassUp を壊れた wire として弾く検査は `CleanRoomYieldImprovementMessagePack.AreReadable(IReadOnlyList<…>, int levelCount)` の1か所だけに置き、読み口 `CleanRoomYieldResponseReader.Read`（`TryReadView`）が呼ぶ（画面側の判断 D-14 と同じ約束。クライアントは同じ検査を書かない。判断 27）。
 24. **密閉されていない部屋の照会は、照会した清浄機の状態を運ばない**（漏れの応答 `CleanRoomLeakMessagePack` は今のまま）。密閉されていない部屋の清浄機の画面は見出しだけにする（画面側の判断 D-12 に合わせる。画面側の注文5〈任意〉は採らない）。
+25. **確率の報告と部屋の照会の「無い」を、種別の型1つで表す**（null と種別の併用をやめる）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「クリーンルームの確率の報告と部屋の照会で、「無い」を null と種別の両方で表している所を、種別1つに寄せますか」→ 推奨「A. 種別1つに寄せる (種別ごとに型を分け、数字は「数字あり」の型が必ず持つ)」。
+   - 確率の報告: `CleanRoomYieldPreviewReport` を抽象にし、`CleanRoomNoRoleYieldReport.Instance`・`CleanRoomNotOperableYieldReport.Instance`・`CleanRoomOddsYieldReport`（`Odds`・`Improvements` を ctor で必ず受ける）の3つに閉じる（C3）。`TryGetNumbers` と `_odds` の null 判定は無くなり、応答の factory は報告の型と `Odds` の型を1つの switch で読む（C4・C7）。役割なし・稼働できないの種別は報告の型が持つので、抽選の率の型から `NoRolePreview`・`NotOperablePreview` を消した（残すと「数字ありの報告なのに `Next` が NoRole」の値が組み立てられるため。保存の記録にもならない種別で、使い手は報告と factory だけだった）。C3〜C6 の間だけ `CleanRoomOddsYieldReport` が古い wire 項目のために `Next`・`PendingDraw` を持ち（`PendingDraw` は待っていなければ null）、C7 で外すと `Odds`・`Improvements` だけになる。
+   - 部屋の照会: 「機械から聞いたか・清浄機から聞いたか」を `CleanRoomRoomSummary.QueriedFrom`（`CleanRoomQueriedFromNonAirFilter.Instance`／`CleanRoomQueriedFromAirFilter { Status; NextClass }`）の1つの区別にした（C6）。清浄機から聞いたときだけ自身の状態と次のクラスまでの見通しを必ず持つ。`_hasQueriedAirFilterStatus`・`TryGetQueriedAirFilterStatus` と見通しの `NotCounted` の種別（`CleanRoomNextClassNotCountedOutlook`）は無くなり、見通しの種別は AtBest・あと N 台・届かない の3つになる。置き場は `CleanRoomRoomSummary.cs` の中（`Info/` の本数を増やさない。前例 `CleanRoomInfo.cs` が2種別を1ファイルに閉じる形）。
+   - 型の分け方は repo の同じ役割の前例（抽象＋`private protected` ctor＋種別ごとの sealed 型＋値の無い種別は `Instance`。`CleanRoomYieldPreviewResult.cs`・`CleanRoomClassStanding.cs`・`CleanRoomInfo.cs`）に合わせた。MessagePack の `[Union]` は前例が無いので使わない（中の型は wire に乗らないので関係もしない）。
+26. **通信で送る型は「種別＋欄」と static factory・`TryGet*` のまま変えない**（`CleanRoomYieldImprovementMessagePack`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`CleanRoomSummaryMessagePack`・応答 `ResponseCleanRoomYieldInfoMessagePack`）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「通信で送る型は「種別＋使わない欄は空」の形のままでよいですか」→ 推奨「A. このままでよい (種別＋欄。送る型に空の欄が残り、読むメソッドで閉じる)」。検査報告 `plan-review-phase26-CD.md` の「強」の 3（判別子＋ペイロード型に分けるか）はこれで「このまま」に確定した。中の型（判断 25）を分けても、wire のキー・欄・名前・factory・`TryGet*` はクライアント（下書き D）から見て変わらない。中の型の区別は factory が1つの switch で wire の2つの欄へ写す（機械からの照会 → `NextClass` が `CreateNotCounted()`・`QueriedAirFilter` が `CreateNotAirFilter()`）。変えたのは `AreReadable` の引数の型（`List<…>` → `IReadOnlyList<…>`）だけで、wire の形ではない（判断 27）。
+27. **今回書くコード同士の同じ計算・同じ判定は1か所に寄せる。Try 系の「失敗理由を1つの false にまとめる」形はこのまま**。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「検査で「直すほどではないかもしれない」と出た重複と Try のうち、直すものはありますか」→ 推奨「A. 重複だけ直す (同じ計算・判定は1か所に寄せる。Try はこのまま)」。この下書きで寄せたもの（`plan-review-phase26-CD.md` の「弱」の 2 つ目）:
+   - (a) 今の確率: 装着の集計 `MachineModuleEffect.Aggregate`・次の抽選の率 `Evaluate`・今の最終の内訳 `CleanRoomFinalOdds.Of` は部品 `GetPreview` で1回だけ出し、`CleanRoomYieldImprovementCalculator.Compute` へ `current` を、`CleanRoomQualityModuleCandidates.Select` へ `HighestQualityModuleTier` を渡す（C3・C7）。計算の部品の中の `OddsOf` は仮の条件のときだけ回る。
+   - (c) 改善の行の長さ・種別の検査: `CleanRoomYieldImprovementMessagePack.AreReadable` の1か所（Server.Protocol。クライアントのアセンブリ `Client.Ui.State` が参照する）。クライアントが同じ引数で呼べるよう、引数をビューと同じ `IReadOnlyList<…>` にした。クライアント側（下書き D の `TryConvertImprovements`）の重複を消すのは D の担当（報告の注文に書く）。
+   - (d) 「このブロックは清浄機か」（`TryGetComponent<ICleanRoomAirFilter>`）: `CleanRoomQueriedFrom.Of` の1か所。`CleanRoomNextClassOutlook.Of` は清浄機を引数で受け、調べない（C6）。
+   - (e) 「今が最上位クラスか」と「1つ上の行」: `CleanRoomClassYield.TryGetPromotionTargetIndex`（C1。`Game.Block.Interface`）の1か所にし、改善の計算 `CleanRoomYieldImprovementCalculator` の `AddRoomClassUp`（C3。Game.Block）・`TryCountUnitsToPromote`（C5）・見通し `CleanRoomNextClassOutlook.Of`（C6。どちらも Game.CleanRoom）の3か所がこれを呼ぶ。置き場は `Game.Block` と `Game.CleanRoom` の両方から呼べる `Core.Master`・`Game.Block.Interface` のうち、層の決まりで `Core.Master` にはドメインの解釈を置かないため `Game.Block.Interface` にした（`Game.Block` は `Game.CleanRoom` を参照しないので、`Game.CleanRoom` の中には置けない）。`TryCountUnitsToPromote` の戻り値（最上位と「届かない」が同じ false）は変えない。
+   - (b)（0.0% の Lv を飛ばすループ）はクライアント側なので、この下書きでは触らない。
+28. **「今作れる品質モジュールだけを出す」場合の付録（差分）は消した**。判断 6 のとおり「作れなくても出す」で確定したため。出所: ユーザー裁定 2026-11-21 問い「「失敗率の改善方法」に、まだ作れない品質モジュールの行も出しますか」→ 選択「A. 作れなくても出す (上げるとどうなるかを先に見せる。まだ作れない品質モジュールの行が、印なしで混ざる)」（`.decisions/2026-11-21-失敗率の改善方法にはまだ作れない品質モジュールの行も出す.md`）。
+29. **wire の「清浄機以外から照会した」の2つの種別（`NextClass.Kind == NotCounted` と `QueriedAirFilter.Kind == NotAirFilter`）は、読み口で組がそろっているかを確かめ、食い違った応答は読めない扱いにする**。出所: agent前提（再検査の指摘。通信の型は変えずに読み口で閉じる）。通信の型は判断 26 のとおり「種別＋欄」のままで、サーバーの中では `CleanRoomQueriedFrom` の1つの区別から factory が2つの欄を1回の分岐で作る（判断 25）ので、正しいサーバーは食い違った組を送らない。読み口 `GetCleanRoomInfoProtocol` の `IsReadableRoom` が、片方だけの応答に `[GetCleanRoomInfo] Room query-source kinds disagree` を出して false を返し、呼び出し元が今の壊れた部屋と同じ警告 `[GetCleanRoomInfo] Enclosed response has a missing or broken room` を出して `Unreadable` にする（C6 で足し、C7 の後も残る。テスト `GetCleanRoomInfoProtocolTest.MismatchedQuerySourceKindsAreUnreadableWithWarningTest`）。C6 で足すのは、2つの欄が入る Task だから。C6〜C7 の間に古い項目（換気回数・体積・一覧）と並んでも、この条件は古い項目を見ないので、今のサーバーの応答（清浄機から: 見通しの3種別＋`AirFilter`／機械から: `NotCounted`＋`NotAirFilter`）とテストが作る応答は弾かれない（下書き C の中で応答を作る所を Grep して確かめた）。クライアント（下書き D）が読む名前・型は変わらない。
 
 ### 領域 D の判断（出所はすべて agent前提。根拠は各項に書いてある前例・原則）: クリーンルームの機械と清浄機の画面（クライアント）
 
@@ -18597,7 +19014,7 @@ var chips = new[]
 - **D-11 止まった台数は赤にしない。止まった台数が 0 のときは「うち…」を出さない。** 根拠: `CleanRoomLogic` の原則「赤は稼働を妨げている行だけ」。0 台の扱いは C の下書きが画面側に任せた問い。
 - **D-12 清浄機の画面で部屋が密閉されていないときは見出しだけ（台数・この清浄機の行を出さない）。** 根拠: 漏れの照会は台数と清浄機の状態を運ばない（C の形）。「サーバー側の下書きへの注文」5 に任意の注文として書いた。
 - **D-13 清浄機からの照会なのに自分の状態（`QueriedAirFilter`）が無ければ、部屋欄を出さず異常の文面を返す（`AnomalyReportGate` がログ）。** 根拠: 既存の写しの異常の扱い（D-6〈既存コードの判断記録〉）。必須の値を既定値で埋めない。
-- **D-14 改善の行の差分の数が Lv の数と違う・種類が読めないときは、確率の欄ごと出さず異常の文面を返す。** 根拠: 同上。差分を Lv に当て違えると誤った数字を見せる。
+- **D-14 改善の行の差分の数が Lv の数と違う・種類が読めない・クラス名が無い応答は、C の読み口が読めない応答にする。クライアントの写し（`ContextViewConversion.TryConvertImprovements(IReadOnlyList<CleanRoomYieldImprovementMessagePack> packs, out List<CleanRoomOddsImprovement> improvements, out string anomaly)`。前の版の `levelCount` の引数と長さの検査を消した）は同じ検査を書かず、確率の欄は取得状態の行（「受け取ったデータを読めない（再試行中）」）になる。** 根拠: 検査は C の `CleanRoomYieldImprovementMessagePack.AreReadable(IReadOnlyList<CleanRoomYieldImprovementMessagePack>, int levelCount)` の1か所で、`CleanRoomYieldResponseReader.Read`（`TryReadView`）が C4 の時点から呼び、false の応答を警告 `[GetCleanRoomYieldInfo] {kind} response has broken improvements; treating it as unreadable` つきで `Unreadable` にする（C の下書き C4・C7 の `Read` で確かめた）。ポーラーは読めない応答の値を捨てるので、検査を通らない改善の行はビューに届かない。差分を Lv に当て違えて誤った数字を見せることは、これで起きない。写しに残すのは「RoomClassUp でも AddQualityModule でもない」の1つだけで、これは wire の検査ではなく写しの網羅の検査（定義済みの種別は `AreReadable` の `Enum.IsDefined` を通るので、種別を足してこの写しを直し忘れると読み口では止まらない）。そのときは欄を出さず異常の文面 `[ContextViewConversion] unmapped improvement kind: {Kind}` を返す。投げない理由: `ContextViewConversion.Yield` は `BlockContextModel.Rebuild`（`_cache.OnUpdated` の購読の中）から呼ばれ、投げると部屋・搬入停止の欄ごと組み直しが止まる。前例は列挙の追加漏れを異常の文面で返す `CleanRoomViewConversion.TryGetHaltReason`（D-6）。テストは `ContextYieldConversionTest.写せない種別の改善の行は欄を出さず異常を返す`（`TryGetHaltReason((CleanRoomOperability)99)` のテストと同じ形）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「検査で「直すほどではないかもしれない」と出た重複と Try のうち、直すものはありますか」→ 推奨「A. 重複だけ直す (同じ計算・判定は1か所に寄せる。Try はこのまま)」の (c)。
 - **D-15 改善の行が無いのに `Open` が来たら警告ログだけを出し、モーダルを出さない（トースターは出さない）。** 根拠: ボタンは改善の行があるときだけ出るので、取り直しと押下の入れ違いでしか起きない。プレイヤーには次の取り直しでボタンが消えることで分かる。
 - **D-16 ボタンは `PanelActionButton` を確率の欄の最後の行に置き、押下は View から口へ直接渡す。** 根拠: `SpaceElevatorSectionView`・`MachineSectionView` の前例。
 - **D-17 OS カーソルと開く口は ctor で欄 → 3欄 → 文脈の工場／機械の区画 → 機械の工場へ通す。** 根拠: `MachineSectionView` が `osCursor`・`selectCommand` を同じく ctor で受ける前例。デフォルト引数は使わず呼び手をすべて直す（AGENTS.md）。
@@ -18609,24 +19026,37 @@ var chips = new[]
 - **D-23 テストで C7 に消える項目へ触れる組み立ては `CleanRoomWireSamples.cs` の1ファイルに寄せる。** 根拠: C7 の差分を1ファイルにし、C と D の順番の取り違えでテストが広く壊れないようにする。
 - **D-24 室内機械の見出しの日本語を「部屋のクラス」から「部屋クラス」に替える。** 根拠: CONTEXT.md の用語「部屋クラス」と ADR 0105 §1 の例。
 - **D-25 tier9-3 のダイシングで Lv2 の行を見ない。49行目の `p.Note` を消して行数を 200 未満に保つ。** 根拠: ADR 0104 の式で Lv2 が表示 0.0% になり行が出ないことがある（D-8）。49行目は直前のコメントと同じ内容。
+- **D-26 清浄機の画面の部屋の欄は「部屋クラス（あと何台）／台数のまとめ（うち何台が止まっているか）／この清浄機の電力・フィルターの残量」の3行。換気回数の行と清浄機1台ずつの行は消す。** 止まっている清浄機が「どれか」は、清浄機を1台ずつ開いて「この清浄機」の行で探すことになる（死活表に「死ぬ（裁定済み）」で載せた）。D4 の `CleanRoomSectionView`・`CleanRoomLogic`・`localization.csv`（`cleanRoomAir`・`cleanRoomFilter`・`cleanRoomNoFilter` を消す）は前の版のまま。出所: ユーザー裁定 2026-11-21 問い「清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか」→ 選択「A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる)」。`.decisions/2026-11-21-清浄機の画面から換気回数の行と清浄機1台ずつの行を消す.md`。
+- **D-27 部屋の要約の照会元（室内機械／清浄機）は型1つで表す。`CleanRoomSummary` を抽象にし、`MachineCleanRoomSummary` と `AirFilterCleanRoomSummary { CleanRoomAirFilterRoomStatus AirFilter }` に分ける。清浄機から見た部屋（台数・止まっている台数・あと何台・この清浄機）は `AirFilterCleanRoomSummary` だけが必ず持つ。`TryGetAirFilter` と「清浄機の欄が null なら機械」をやめる。同じ形の `CleanRoomAirFilterRoomStatus` の「台数で次のクラスへ届くか」（bool と null の次のクラス名の併用）も、届く型だけが台数と次のクラス名を持つ internal の種別 `CleanRoomUnitsToNextClass`（`ReachableUnitsToNextClass`・`NoUnitsToNextClass.Instance`）にする。** 型の分け方は同じファイルの `CleanRoomHeadline`・`CleanRoomFetchedDetail`（抽象＋`private protected` ctor＋static factory＋sealed 派生）に合わせた（前例の照合）。factory の名前（`ForMachine`・`ForAirFilter`・`WithUnitsToNextClass`・`WithoutUnitsToNextClass`）と `TryGetUnitsToNextClass` は変えないので、変わる読み手は `CleanRoomLogic.EnclosedRows`（型の switch。ほかの型は `ArgumentOutOfRangeException`）と `ContextViewConversionTest` の2か所（`Assert.IsInstanceOf`）だけ。確率の側の `CleanRoomYieldOdds`・`CleanRoomOddsImprovement` は前の版から抽象＋派生で、null と種別の併用は無い（確かめた）。`Logic/CleanRoom/` の .cs は 9 本のまま（新しい型は `CleanRoomDetail.cs`・`CleanRoomAirFilterRoomStatus.cs` に同居）。通信で送る型（`CleanRoomSummaryMessagePack`・`CleanRoomNextClassMessagePack`・`CleanRoomQueriedAirFilterMessagePack`・`CleanRoomYieldImprovementMessagePack`）は変えない（判断 D-29）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「クリーンルームの確率の報告と部屋の照会で、「無い」を null と種別の両方で表している所を、種別1つに寄せますか」→ 推奨「A. 種別1つに寄せる (種別ごとに型を分け、数字は「数字あり」の型が必ず持つ)」。検査報告 `plan-review-phase26-CD.md` の「強」の 2 のクライアント側。
+- **D-28 「表示が 0.0 になるか」の判定（絶対値を小数1桁にして `ZeroPercent` と比べる）は `CleanRoomYieldLogic.ShowsZero(double)` の1か所にする。0.0% の Lv を飛ばす並びは `CleanRoomYieldLogic.ShownLevels(IReadOnlyList<double>)`（`ShowsZero` を呼び、出す Lv の番号を返す）にし、欄の行（`CleanRoomYieldLogic.Lines`）・「今」の値（`CleanRoomYieldImprovementLogic.CurrentValues`）・改善の差分（`CleanRoomYieldImprovementLogic.Rows` の `Deltas`）の3か所がこれを呼ぶ。差分の符号を付けない判定（`Rows` の `Signed`。失敗の差分にも使う）も `ShowsZero` を呼ぶ。本番コードで `ZeroPercent` と比べるのは `ShowsZero` の中だけ（Grep で確かめた）。** 差分の判定は前の版でも「符号を付ける前の絶対値が 0.0 か」と同じなので、表示は変わらない（D3 のテストの期待値はそのまま）。書式の関数を渡す形（`Func<>`）は使わず、呼び手が Lv の番号から値を引いて書式を当てる。ほかの重複は無かった: `CleanRoomLogic` の `MachineHeadline`／`PurifierHeadline` はクラスがあるときの文言キーが違う（「部屋クラス C」と「クラスC」）、ボタンの条件とモーダルを組める条件はどちらも `CleanRoomYieldOdds.HasImprovements` を読む、橋の `Close`／`WaitClosed` が同じ3つの欄を戻すのは計算・判定ではない。Try 系（`CleanRoomYieldImprovementModalContent.TryBuild` 等）が失敗理由を1つの false にまとめている所は変えない。改善の行の検査の重複（(c)）は判断 D-14。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「検査で「直すほどではないかもしれない」と出た重複と Try のうち、直すものはありますか」→ 推奨「A. 重複だけ直す (同じ計算・判定は1か所に寄せる。Try はこのまま)」。検査報告 `plan-review-phase26-CD.md` の「弱」の 2 つ目の (b)・(c)。
+- **D-29 通信で送る型（MessagePack の「種別＋欄」と static factory・`TryGet*`）は変えない。D は前の版と同じく `TryGetRoomClassUp`・`TryGetAddQualityModule`・`NextClass.TryGetUnitsToNextClass`・`QueriedAirFilter.TryGetStatus` だけで読む。** C が変えたのは `AreReadable` の引数の型（`List<…>` → `IReadOnlyList<…>`）だけで、D は `AreReadable` を呼ばない（読み口が呼ぶ。判断 D-14）。出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「通信で送る型は「種別＋使わない欄は空」の形のままでよいですか」→ 推奨「A. このままでよい (種別＋欄。送る型に空の欄が残り、読むメソッドで閉じる)」。
+- **D-30 「失敗率の改善方法」には、まだ作れない品質モジュールの行も出す。クライアントはサーバーが返した改善の行を印なしでそのまま並べるので、D のコード・テストは変わらない。** 効き目の無い行（枠が埋まっている・品質の上限・最高クラス・表示の%が変わらない）はサーバーが返さない。出所: ユーザー裁定 2026-11-21 問い「「失敗率の改善方法」に、まだ作れない品質モジュールの行も出しますか」→ 選択「A. 作れなくても出す (上げるとどうなるかを先に見せる。まだ作れない品質モジュールの行が、印なしで混ざる)」。`.decisions/2026-11-21-失敗率の改善方法にはまだ作れない品質モジュールの行も出す.md`。
+- **D-31 `uitk/post-visual/pv-cleanroom.cs` は見出しのコメント（1-2行目）だけを直し、撮る順・台数・スクショの名前は変えない。** testid・文言・部屋の型を読まないので今回の変更で止まらない。スクショの名前は Web の参照（`moorestech_web/webui/e2e/mock-host/fixtures/blocks/cleanRoomFixtures.ts:53-63` の fixture 名。撮る7枚の名前がすべてここにあることを確かめた）と対になっているので変えると並べ比べが崩れる。ただし清浄機1台以上で UITK の画面が Web と違うのは ADR 0105 §1・§5 と判断 D-26 による意図どおりの差なので、後退と読み違えないようコメントに書く。比べた別案: 台数の段（8〜30 台）を減らす → 「台数で長くなる部屋の欄」を見る目的は無くなったが、Web 側の fixture と対の名前を崩し、`master` と両方でコンパイルできる API だけを使うという見出しの約束にも触れるので棄却。
+- **D-32 `ContextViewConversionTest` から、「次のクラスまでの台数」が `NotCounted` で「照会した清浄機」が `AirFilter` の食い違った組を写しへ渡す1行を消し、テスト名を `最上位_届かないときは次のクラスまでの台数を持たない` にした（(a) 消す）。** 理由: C6 から、この組は読み口 `GetCleanRoomInfoProtocol` の `IsReadableRoom` が警告つきで読めない応答にする（C の下書き C6・C7 の `IsReadableRoom`）。クライアントで `CleanRoomEnclosedView` を作るのは、その読み口の `TryReadView` だけ（worktree の本番コードを grep。`GetCleanRoomInfoProtocol.cs:103` の1か所）。写しは `BlockNetworkInfoCache.GetCleanRoom` → ポーラーの `GetLatest` からしか部屋のビューを受けず、ブロックの状態の通知（`CleanRoomOperabilityStateDetail`）は稼働可否だけを運ぶ。だから、読み口を通らずにこの組が届く経路は無い。そろった組（機械から `NotCounted`＋`NotAirFilter`、清浄機から3種別＋`AirFilter`）を渡すほかの行は残した。出所: agent前提（下書き C からの注文。`plan-revise-05-C.md` の「追加の直し」）。
 
 ### 領域 E の判断（出所はすべて agent前提。根拠は各項に書いてある前例・原則）: フィルター分岐器の文言と研究マスタ
 
 1. **側は方向の番号でなく、マスタの入口・出口の向きから決める。** テストマスタの並び（右・左・正面）と出荷マスタの並び（左・正面・右）が違い、番号→側の固定表では片方が嘘になるため。別案「番号 0/1/2 を左/正面/右に固定」は、テストマスタで見出しが実物と食い違うので捨てた。
-2. **側の計算は Core.Master に置き、クライアントの読み手（`SpecialBlockDetailReader`）が開いた分岐器のマスタから呼ぶ。プロトコルに項目を足さない。** 調べた根拠: (1) Core.Master はサーバーとクライアントが共有するアセンブリで（`Client.Ui.State.asmdef` が参照）、関数を共有するので式の写しにならない。(2) 読み手は既に `block.BlockMasterElement.BlockParam` を引いている（`SpecialBlockDetailReader.cs:32`）。(3) 方向の番号はサーバーでも同じマスタの `OutputConnects` の並びで振られ（`VanillaFilterSplitterTemplate.cs:32` → `VanillaFilterSplitterComponent.cs:47-50`）、応答はその番号順に並ぶ（`FilterSplitterStateHandler.BuildSnapshotResponse`）ので、`ResolveAll` の並びと必ず一致する。(4) 同じ役割の前例（発射台の枠の並び・拠点の積荷）がクライアントでマスタから組む形。(5) キャッシュの応答は開いたブロックの分のもので、別のブロックを追うと消える（`BlockNetworkInfoCache.cs:173`）。数が食い違うのはクライアントとサーバーのマスタが違うときだけなので、黙って詰めずに例外で止める。別案「サーバーが応答に側を詰める」は、マスタだけで決まる不変の値を毎回送ることになり、プロトコルとそのテストが増えるだけなので捨てた（前の下書きはこちらだった）。
-3. **側が決まらない分岐器は読込時に止める（検証を足す）。** 画面に番号の見出しへ戻る道を残すと「黙った縮退」になり、必須の前提が無いときはいちばん早い段階（読込）で止める原則に合うため。別案「決まらない出口だけ番号の見出しに戻す」は、番号と側が混ざった画面になり `outputNumber` の文言も残るので捨てた。今ある mod（forUnitTest・v8）は全部通るので、壊れる操作は無い。
-4. **列挙は `Core.Master.FilterSplitter.FilterSplitterOutputSide` を1つだけ作り、クライアントの詳細でもそのまま使う。** モードのようにクライアント用の列挙を別に作る前例もあるが、側は表示にしか使わず変換表が増えるだけなので共有した。
+2. **側の計算（列挙 `FilterSplitterOutputSide` と `FilterSplitterOutputSideResolver` の `TryResolve`・`ResolveAll`）は `Game.Block.Interface/Component/FilterSplitter/`（名前空間 `Game.Block.Interface.Component`）に置き、クライアントの読み手（`SpecialBlockDetailReader`）が開いた分岐器のマスタから呼ぶ。プロトコルに項目を足さない。** 出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「分岐器の「左・正面・右」を決める計算を、どの層に置きますか」（確認シート05 の `j1`）に推奨「B. Game.Block.Interface に置く」で確定。調べた根拠: (1) 層の決まり（`moorestech-layer-map.md`）で Core.Master にドメインの解釈を置かず、マスタ値のドメイン解釈は `Game.Xxx.Interface` の static util に置く。同じ役割の前例 `RocketLaunchPadSlotLayout`（`Game.Block.Interface/Component/RocketLaunchPad/`、名前空間 `Game.Block.Interface.Component`）に置き場と名前空間を合わせた。新しいディレクトリの .cs は 2 本。(2) `Game.Block.Interface.asmdef` は `Core.Master` を参照するので生成型の blockParam を読める。クライアントで呼ぶ `Client.Ui.State.asmdef` とクライアントのテストの `Tests.asmdef`、サーバーのテストの `Server.Tests.asmdef` は `Game.Block.Interface` を参照している。画面の `Client.Ui.asmdef` は参照していないので、列挙はクライアントへ写す（「判断」4）。(3) 読み手は既に `block.BlockMasterElement.BlockParam` を引き、`using Game.Block.Interface.Component;` も持っている（`SpecialBlockDetailReader.cs:15,32`）。(4) 方向の番号はサーバーでも同じマスタの `OutputConnects` の並びで振られ（`VanillaFilterSplitterTemplate.cs:32` → `VanillaFilterSplitterComponent.cs:47-50`）、応答はその番号順に並ぶ（`FilterSplitterStateHandler.BuildSnapshotResponse`）ので、`ResolveAll` の並びと必ず一致する。(5) キャッシュの応答は開いたブロックの分のもので、別のブロックを追うと消える（`BlockNetworkInfoCache.cs:173`）。数が食い違うのはクライアントとサーバーのマスタが違うときだけなので、黙って詰めずに例外で止める。別案「Core.Master に置く」（式は 1 つで済む）は層の決まりから外れるので捨てた。別案「サーバーが応答に側を詰める」は、マスタだけで決まる不変の値を毎回送ることになり、プロトコルとそのテストが増えるだけなので捨てた。
+3. **見出しを左・正面・右に決められない分岐器は読込時に止める（`Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs`）。止めるのは、入口が 1 つでない／出口が入口から見て左・正面・右のどれにも当たらない（入口と同じ面・斜め・上下）／同じ側に出口が 2 つある、の 3 つ。出口が 2 つだけ（左と右だけ、など）の分岐器は止めない。** 出所: ユーザー裁定 2026-11-21 問い「見出しを左・正面・右に決められない分岐器のマスタは、読込時に止めてよいですか」→ 選択「A. 読込時に止める (そういう分岐器を足した mod を入れると、ゲームが起動しない)」。記録は `.decisions/2026-11-21-見出しを左正面右に決められない分岐器のマスタは読込時に止める.md`。今ある mod（forUnitTest・v8）は全部通るので、壊れる操作は無い。棄却案「番号の見出しに戻して続ける」は、番号と側が混ざった画面になり `outputNumber` の文言も残る。
+   - **「入口が 1 つでない」は、入口コネクタの数が 1 でないときに加えて、1 つの入口コネクタの向きが水平の 1 方向でない（向きが 2 つ・上下）ときにも当てる。** 出所: agent前提。裁定の文は入口の数だけを言うが、向きが水平の 1 方向でないと流れる向きが 1 つに決まらず、どの出口の側も決まらない（計算の `TryResolve` も false を返す）。表の行 `入口の向きが2つあれば止める`・`入口が上向きなら止める` で見る。
+   - **出口が 0 個の分岐器も止める。** 出所: agent前提。裁定の 3 条件の外だが、出口が無い分岐器は振り分ける先が無く、画面に見出しが 1 つも出ない（必須の前提が無いときはいちばん早い段階で止める原則）。計算の側も `ResolveAll` が出口 0 個で例外にするので、表のテストで両方そろって止まることを見る。
+4. **列挙は 2 つ置く。サーバー側の正は `Game.Block.Interface.Component.FilterSplitterOutputSide`、詳細と画面はクライアントの列挙 `Client.Ui.State.BlockInventory.Logic.Special.FilterSplitterOutputSide` を使い、`SpecialNetworkReader.ToClientSide` で写す。** 出所: agent前提（「判断」2 で置き場を Game.Block.Interface に決めた帰結）。画面のアセンブリ `Client.Ui` は `Game.Block.Interface` を参照しない（`moorestech_client/Assets/Scripts/Client.Ui/Client.Ui.asmdef` の references に無く、`Client.Ui` の .cs に `using Game.` は 1 つも無い）。詳細が Game.Block.Interface の型を持つと、`FilterDirectionView` が `direction.Side` を `FilterSplitterLogic.OutputSideKey` へ渡す所で CS0012 になる（参照は推移しない。前例 `docs/superpowers/plans/2026-11-07-uitk-s3-buildmenu.md` の D-54・`2026-11-07-uitk-s2-mode-tooltip.md` の D-38 が同じ CS0012 を実測）。同じファイルのモード（`FilterSplitterMode` と `ToClientMode`）が同じ理由でクライアントの列挙を持つ前例に合わせた。サーバーの列挙を名指しするのは `SpecialNetworkReader.cs` と `SpecialNetworkReaderTest.cs` だけで、別名 `ServerFilterSplitterOutputSide` で書く（`ServerFilterSplitterMode` と同じ）。別案「`Client.Ui.asmdef` に `Game.Block.Interface` を足す」は、画面の層がゲームの層の型を直接読むようになり、モードの前例と食い違うので捨てた。前の下書きでは Core.Master の列挙 1 つを共有していた（Core.Master は `Client.Ui` も参照するので通っていた）。
 5. **モードの列挙名・文言キー名・testid は変えない（文の値だけ変える）。** 裁定は画面の文の変更で、コード名の変更は求めていない。名前を変えると既存のシナリオ・テストの testid が全部ずれるため。
 6. **見出しの文は ctor でなく Render で書く。** 方向数が同じ別の分岐器へ View が使い回されるため（`FilterSplitterBodyView` は数が変わったときだけ作り直す）。
 7. **訳は英語 Left/Front/Right・Others/Only Listed/Not Listed、ドイツ語 Links/Vorne/Rechts・Rest/Nur Liste/Außer Liste、韓国語 왼쪽/정면/오른쪽・그 외 전부/지정한 것만/지정한 것 외。** 択一は3つ横並びで幅が狭いので短い語を選んだ。E3 の「1行に収まる」テストで4言語とも確かめ、落ちた言語は短い別案（英語 Rest/Only/Except、ドイツ語 Sonst/Nur/Außer、韓国語 나머지/지정만/지정 제외）へ替える。
 8. **`SpecialDetailTexts.OutputNumber` と文言キー `outputNumber` は消す。** 呼び手が無くなるため（使わない文言を残さない）。
 9. **研究の説明文（description）は変えない。** 速度モジュール研究の説明も ICチップを挙げていない（裁定 2026-08-22 の説明文の規則に合わせ、解放一覧は研究画面が出す）。
-10. **マスタは手で4か所足し、sortPriority は master-refine 操作 A で再計算する。** 解放の順が変わると並びも変わる規約のため。research_sync は削除済み（79303ff）なので使わない。
-11. **ICチップLv2〜5 を入力・出力に持つレシピは無いので、レシピの同期規則（裁定 2026-08-25）で動かすものは無い。** ICチップのレシピは Lv1 の1本（`01a17363-05b5-72d8-8a5d-a0c6e92df431`、`levelInheritance: Inherit`）だけ。
+10. **マスタは手で5か所足し、sortPriority は master-refine 操作 A で再計算する。** 解放の順が変わると並びも変わる規約のため。research_sync は削除済み（79303ff）なので使わない。
+11. **機械レシピの解放は動かさない（裁定 2026-08-25「機械レシピは出力アイテムを解放する研究で解放する」で動かすものは無い）。** ICチップのレシピは Lv1 の1本（`01a17363-05b5-72d8-8a5d-a0c6e92df431`、`levelInheritance: Inherit`）だけ。シリコンダイLv1〜5 を出すダイシングのレシピ（`01a17363-05b5-72d8-8a5d-a0c5f18cd451`）は、出力のシリコンダイLv1 を解放する研究「半導体製造」が解放していて、今回も変わらない。品質モジュールLv1 のレシピ（`01a167f3-bd88-747d-b30e-13f23f169ce4`、`InheritUpToUnlocked`）は研究「品質モジュールLv1」が解放し、今回その出力の品質モジュールLv1 のアイテムも同じ研究で解放されるので、裁定の則にむしろ合う（今は出力のアイテムを速度モジュールLv1 が解放していて食い違っている）。
 12. **v8 の値を読む NUnit テストは書かず、出荷マスタの確認は録画シナリオで行う。** 裁定 2026-11-20（v8 の基準値を v8 マスタを読むテストで固定しない）に合わせた。ロード時の再実行は既存の `ResearchUnlockRecordFallbackLoadTest` が固定済みなので足さない。
 13. **新しいサーバーのテストはサブディレクトリに置く。** `Tests/CombinedTest/Game/` 直下は 43 本で、1ディレクトリ10本の規約を既に超えているため。
 14. **既存の `uitk-block-special-panels.cs`（195 行）には足さず、新しいシナリオを置く。** 200 行の上限のため。
-15. **アイテムの解放は、解放済みなら何もしない（Task E6。前例 `BlueprintUnlockStateHolder.Unlock`）。** 品質モジュール研究のあとに速度モジュール研究を済ませると、同じ ICチップの「解放されました」通知（`AchievementNotificationWiring.cs:43`）と解放イベント（`UnlockedEventPacket.cs:32`）がもう一度出るため。今回の変更で初めて起きる二重通知で、同じ役割の前例がある（コーディネーター経由の指示で確定。前の下書きでは要裁定 1 だった）。別案「そのままにする」は新しい情報の無い通知が出るので、「速度モジュール研究から外す」は裁定 2026-11-21（速度側は残す）と食い違うので捨てた。マスタ（Task E7）より先に当て、マスタが入った時点で二重通知が出ない順にする。
+15. **アイテムの解放は、解放済みなら何もしない（Task E6。前例 `BlueprintUnlockStateHolder.Unlock`）。** 品質モジュール研究のあとに速度モジュール研究を済ませると、同じアイテム（シリコンダイLv2〜5・ICチップLv2〜5・品質モジュールLv1〜5 の 13 品目）の「解放されました」通知（`AchievementNotificationWiring.cs:43`）と解放イベント（`UnlockedEventPacket.cs:32`）がもう一度出るため。今回の変更で初めて起きる二重通知で、同じ役割の前例がある（コーディネーター経由の指示で確定。前の下書きでは要裁定 1 だった）。別案「そのままにする」は新しい情報の無い通知が出るので、「速度モジュール研究から外す」は裁定 2026-11-21（速度側は残す）と食い違うので捨てた。マスタ（Task E7）より先に当て、マスタが入った時点で二重通知が出ない順にする。
+
+16. **研究「品質モジュールLvN」（N は 1〜4）に シリコンダイLv(N+1)・ICチップLv(N+1)・品質モジュールLvN の、研究「品質モジュールLv5」に品質モジュールLv5 のアイテム解放を付ける。速度モジュールの研究の今の解放は外さない。** 出所: ユーザー裁定 2026-11-21 問い「研究「品質モジュールLv1〜4」で、レシピ一覧に早く出すアイテムをどこまでにしますか」→ 選択「B. 途中のアイテムもそろえて出す (シリコンダイLv2〜5 と品質モジュールLv1〜5 の解放も、品質モジュールの研究に付ける)」。記録は `.decisions/2026-11-21-品質モジュールの研究にはシリコンダイと品質モジュールのアイテム解放も付ける.md`（前の決定 `.decisions/2026-11-21-積荷の一覧の解放はICチップLv2から5のアイテム解放を品質モジュールLv1から4の研究にも付けて決める.md` の範囲を広げる。ICチップの分は変わらない）。組み合わせと `unlockItemGuids` の並び（シリコンダイ → ICチップ → 品質モジュール）は、ピン `aaa89bc` の research.json で今の研究「速度モジュールLvN」が持つ `unlockItemRecipeView` に合わせた。研究「品質モジュールLv1」を終えた直後にレシピ一覧へ新しく出るアイテムは シリコンダイLv2・ICチップLv2・品質モジュールLv1 の 3 つになり、作り方の順につながる。棄却案「ICチップだけ」（シリコンダイと品質モジュールは速度モジュールの研究まで一覧に出ない）。
+17. **計算（`ResolveAll`）と検証（`FilterSplitterParamValidator`）が同じ回し方をする点は、1 か所に寄せず、層の違う 2 か所に書いて、同じ入力の表のテスト（`FilterSplitterOutputSideTest.検証と側の計算は同じ接続の組で食い違わない`）で食い違いを押さえる。** 出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）。問い「検査で「直すほどではないかもしれない」と出た重複と Try のうち、直すものはありますか」に推奨「A. 重複だけ直す (同じ計算・判定は1か所に寄せる。Try はこのまま)」で確定したが、この重複（検査 `plan-review-phase26-E.md` の「弱」の 4）は「判断」2 で計算を Game.Block.Interface へ移した結果、Core.Master の検証から計算を呼べなくなったので寄せられない（コーディネーターの指示で、この重複は寄せずにテストで押さえる）。検証は計算の回転の式を写さず、「入口が水平の 1 方向・出口が水平の 1 方向で入口と同じ向きでない・同じ向きの出口が 2 つ無い」という同じ意味の条件を直接書く（水平の 4 方向のうち入口の向きを除いた 3 つが正面・右・左に 1 対 1 で当たるため）。表の各行は「検証を通るなら計算は全部の側を決める／止めるなら計算は例外か同じ側の重なり」を行の頭で確かめ、両方に同じ JSON を当てる。
+18. **`TryResolve` が失敗の理由（入口の向きが水平の 1 方向でない・出口の向きが水平の 1 方向でない・出口が入口と同じ面）を 1 つの `false` にまとめている点は直さない。** 出所: agent前提（確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定）（同じ問いの「Try はこのまま」。検査 `plan-review-phase26-E.md` の「弱」の 1）。理由を分けて見せたいのは開発者向けのマスタの検証の文で、そちらは検証が自分の条件で入口と出口の文を分けて出す（`does not point to a single horizontal direction`・`is not left, front or right of its input`）。
 
 ### レビュー担当の対象になるファイルと、その判断
 
@@ -18639,10 +19069,10 @@ var chips = new[]
 | `OrbitalCargoSelectionProtocol.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/OrbitalCargo/OrbitalCargoSelectionProtocol.cs` | A5 | 積荷を選ぶ通信 `va:orbitalCargoSelection` | agent前提（根拠は「領域 A の判断」と「配置と前例」の領域 A の表） |
 | `PacketResponseCreator.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs` | A5 | 積荷を選ぶ通信 `va:orbitalCargoSelection` | agent前提（根拠は「領域 A の判断」と「配置と前例」の領域 A の表） |
 | `BlockRequestApi.cs` | `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs` | A5 | 積荷を選ぶ通信 `va:orbitalCargoSelection` | agent前提（根拠は「領域 A の判断」と「配置と前例」の領域 A の表） |
+| `GetCleanRoomYieldInfoProtocol.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs` | C3・C4・C7 | 最終の内訳と改善の差分をサーバーで計算する（Game.Block） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldOddsMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldOddsMessagePack.cs` | C4 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldImprovementMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldImprovementMessagePack.cs` | C4 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldResponseFactory.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/Yield/CleanRoomYieldResponseFactory.cs` | C4・C7 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
-| `GetCleanRoomYieldInfoProtocol.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs` | C4・C7 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldResponseReader.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldResponseReader.cs` | C4・C7 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldView.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldView.cs` | C4・C7 | 確率の取得（`va:getCleanRoomYieldInfo`）に最終の内訳と改善の差分を載せる | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomDatastore.cs` | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs` | C5 | 次のクラスまでに足す台数を数える純関数と、その材料 | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
@@ -18650,12 +19080,8 @@ var chips = new[]
 | `CleanRoomQueriedAirFilterMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/RoomSummary/CleanRoomQueriedAirFilterMessagePack.cs` | C6 | 部屋の要約に清浄機の台数のまとめと次のクラスまでの台数を載せる（`va:getCleanRoomInfo`） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomSummaryMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomSummaryMessagePack.cs` | C6・C7 | 部屋の要約に清浄機の台数のまとめと次のクラスまでの台数を載せる（`va:getCleanRoomInfo`） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomInfoMessagePackFactory.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoMessagePackFactory.cs` | C6・C7 | 部屋の要約に清浄機の台数のまとめと次のクラスまでの台数を載せる（`va:getCleanRoomInfo`） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
-| `GetCleanRoomInfoProtocol.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomInfoProtocol.cs` | C6・C7 | 部屋の要約に清浄機の台数のまとめと次のクラスまでの台数を載せる（`va:getCleanRoomInfo`） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `VanillaCleanRoomMachineTemplate.cs` | `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs` | C7 | 古い項目を外す（クライアントの画面の Task が新しい項目へ移り終えた後に実施） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
 | `CleanRoomYieldMessagePack.cs` | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldMessagePack.cs` | C7 | 古い項目を外す（クライアントの画面の Task が新しい項目へ移り終えた後に実施） | agent前提（根拠は「領域 C の判断」と「配置と前例」の領域 C の表） |
-| `FilterSplitterOutputSide.cs` | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSide.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
-| `FilterSplitterOutputSideResolver.cs` | `moorestech_server/Assets/Scripts/Core.Master/FilterSplitter/FilterSplitterOutputSideResolver.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
-| `FilterSplitterParamValidator.cs` | `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/FilterSplitter/FilterSplitterParamValidator.cs` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
 | `BlockMasterUtil.cs:5,27-28` | `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:5,27-28` | E1 | 出口の側を決める関数と、側が決まらないマスタを読込時に止める検証 | agent前提（根拠は「領域 E の判断」と「配置と前例」の領域 E の表） |
 
 ### 設計検査・反証検査の結果
@@ -18680,15 +19106,23 @@ var chips = new[]
 **直した範囲の再検査（fresh-context の opus subagent 2 体。報告は `../moorestech_logs/harness/ui-clarity-kgfsp/plan-rereview-B.md`・`plan-rereview-E-and-C2C3.md`）**
 
 - 領域 B の Task B1・B2・B5・B6・B8: 配置・前例の違反 0／Critical 2・Warning 1（上の「再検査」の行で直した）／型の形は強 0・弱 3（どれも最初の検査で挙がったものと同じ箇所か、前例どおりの形）
-- 領域 E の Task E1・E2・E3・E5・E7・E8 と領域 C の Task C2・C3: 配置・前例の違反 0／Critical 0／Warning 1（直した）／型の形は強 1・弱 1（どちらも最初の検査で挙がり、ユーザーへ確認中のもの）
+- 領域 E の Task E1・E2・E3・E5・E7・E8 と領域 C の Task C2・C3: 配置・前例の違反 0／Critical 0／Warning 1（直した）／型の形は強 1・弱 1（どちらも最初の検査で挙がり、確認シート05 で扱いが決まったもの）
+
+**確認シート05 の回答を反映した後の再検査（fresh-context の opus subagent 4 体。報告は `../moorestech_logs/harness/ui-clarity-kgfsp/plan-rereview2-{AB,C,D,E}.md`。直しの記録は同 `plan-revise-05-{A,B,C,D,E}.md`）**
+
+- 領域 A・B: 配置・前例の違反 0／Critical 0／Warning 2・型の形 弱 1 → 直した（GUID の文字列から ItemId への変換を `OrbitalCargoItemGuid.TryParseExistingItemGuid` の1か所へ／A1 の期待件数／昇降機が入口を読むときに必ず在庫側の `CheckDestroy` を通る形）
+- 領域 C: 配置・前例の違反 0／Critical 3（テストの using 抜け 2・`Core` が `Tests.UnitTest.Core` に解決される書き方 1）・Warning 4・型の形 弱 1・設計判断 1 → 直した。設計判断（通信の応答で「次のクラスまでの台数の種別」と「問い合わせた清浄機の種別」が食い違っても読めてしまう）は、通信の型を変えず、読む口 `IsReadableRoom` で食い違いを読めない扱いにした（出所: agent前提。再検査の指摘）
+- 領域 D: 配置・前例の違反 0／Critical 0／Warning 4・型の形 弱 1 → 直した（0.0% の判定の寄せ残し・行数の記載）
+- 領域 E: 配置・前例の違反 0／Critical 0／Warning 3 → 直した（ピンの確認コマンド・`git add` の `.meta`・表のテストの行）。研究マスタに足す 13 品目の JSON は、検査役が手元で再現して下書きと一致した
 
 **前例の無い作り（PR 本文に注目点として書く。出所: agent前提。理由は各領域の判断）**
 
-- 発射台・拠点の部品が共有する選択の入れ物 `OrbitalCargoSelectionState`（領域 A の判断 1）
+- 発射台・拠点の部品が共有する選択の入れ物 `OrbitalCargoSelectionState`（領域 A の判断 1）。読むだけの部品には読む口 `IOrbitalCargoSelectionReader` だけを渡す
 - 積荷のクライアントのコードが機械の枠の型（`BoundItemSlot`・`MachineSlotContents.For`）を使う（領域 B の判断 4）
 - 改善方法のモーダルの「開いている」を橋 `CleanRoomYieldImprovementModalBridge` が持ち、中身の比較で出し直す（D-4）
 - 「数字が変わらない行」のしきい値 0.0005 をサーバーの Game.Block が持つ（領域 C の判断 3）
-- 部屋の照会の結果が、照会したブロックで変わる（`CleanRoomNextClassOutlook.Of`）
+- 部屋の照会の結果が、照会したブロックで変わる（照会の出どころを決める `CleanRoomQueriedFrom.Of`。清浄機から聞いたときだけ、中で `CleanRoomNextClassOutlook.Of` を呼んで「あと何台」を持つ）
+- 分岐器の出口の側の列挙を、サーバーとクライアントの共有の層（`Game.Block.Interface`）と画面の状態の層（`Client.Ui.State`）に1つずつ置き、`SpecialNetworkReader.ToClientSide` で写す（画面の層 `Client.Ui` は `Game.Block.Interface` を参照していないため。モードの列挙と `ToClientMode` の前例にそろえた。領域 E の判断）
 - 状態の積荷の欄を `ItemId?` で送る（領域 A の判断 3）／積荷を選ぶ通信は `ItemId` のまま送り、ブループリントの不正な GUID は警告を出す
 
 **この PR の外のリファクタ提案（plan のタスクにしない。PR 本文に書く）**
@@ -18696,6 +19130,27 @@ var chips = new[]
 - 既存 `moorestech_server/Assets/Scripts/Game.Orbit/OrbitalArrivalService.cs:20-24,31`（積荷表を読み解いて1便の成果を出す）／新設 クライアントの `OrbitalCargoCatalog.Create`・`UnlockedOrbitalCargoSource.Rebuild`／同じ積荷表を別々に読み解いている
 - 既存 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Route/BeltRouteDirection.cs`（`Right`・`Left`）と `.../Session/Branch/BeltRouteBranchGeometry.cs:50-79`／新設 `FilterSplitterOutputSideResolver.TryResolve`／どちらも「水平の流れる向きから見た左・右・正面」を決める
 
-**ユーザーへ確認中（回答が来たらこの節と Task を書き換える）**
+**確認シート05 の回答（2026-11-21。問いと選択肢の全文は `../moorestech_logs/harness/ui-clarity-kgfsp/shiwake-05-items.json`、回答は同 `shiwake-05-answer.json`）**
 
-確認シート05（`../moorestech_logs/harness/ui-clarity-kgfsp/shiwake-05-items.json`）の 11 問: 未決1・未決2（Task の順と依存の節）／清浄機の画面から換気回数と1台ずつの行を消すか／未選択の発射台・拠点は一覧だけを出すか／分岐器の側の計算の置き場（Core.Master か Game.Block.Interface か）／型の形 5 問（選択の入れ物の読み書きの分離・積荷の行の成果の持ち方・クリーンルームの報告の null と種別・通信の型の形・弱い当たり）／左・正面・右に決まらない分岐器を読込で止めるか。**回答が来るまで、Task の本文は各問いの「今の計画」の形で書いてある。**
+ユーザーが自分で選んだ 5 問（出所: ユーザー裁定 2026-11-21。`.decisions/` に記録済み）:
+
+| 問い | 選択 | 反映した Task |
+|---|---|---|
+| 研究「品質モジュールLv1〜4」で、レシピ一覧に早く出すアイテムをどこまでにしますか | B. 途中のアイテムもそろえて出す (シリコンダイLv2〜5 と品質モジュールLv1〜5 の解放も、品質モジュールの研究に付ける) | E7・E8 |
+| 「失敗率の改善方法」に、まだ作れない品質モジュールの行も出しますか | A. 作れなくても出す (上げるとどうなるかを先に見せる。まだ作れない品質モジュールの行が、印なしで混ざる) | C2・C3（変更なし） |
+| 清浄機の画面から、換気回数の行と、清浄機1台ずつの行を消してよいですか | A. 両方消す (3行。止まっている清浄機が「どれか」は、1台ずつ開いて探すことになる) | D4・D7（変更なし。D7 に既存シナリオの扱いを足した） |
+| 積荷を選んでいない発射台・拠点は、一覧だけを出して、出力の枠や状態は選ぶまで出さない形でよいですか | A. 一覧だけ (機械と同じ。選ぶまでは出力を手で取り出せず、状態・電力の状態・ケーブルプールの数も見えない) | B6（変更なし） |
+| 見出しを左・正面・右に決められない分岐器のマスタは、読込時に止めてよいですか | A. 読込時に止める (そういう分岐器を足した mod を入れると、ゲームが起動しない) | E1 |
+
+ユーザーが触らず、推奨で確定した 6 問（出所: agent前提。確認シート05 で推奨として提示し、ユーザーは触らず推奨で確定。ユーザー裁定ではない）:
+
+| 問い | 確定した案 | 反映した Task |
+|---|---|---|
+| 分岐器の「左・正面・右」を決める計算を、どの層に置きますか | B. Game.Block.Interface に置く (層の決まりどおり。検証は条件を別に書くので、計算と食い違わないかをテストで見る) | E1・E2・E3 |
+| 積荷の選択を持つ共有の入れ物を、読むだけの口と書く口に分けますか | A. 分ける (書けるのは選択の部品だけ) | 領域 A |
+| 積荷の一覧の1行で、「ケーブルプールへ足す」と「到着時にアイテムが出る」の両方を持つ積荷をどう扱いますか | A. 両方あれば文も両方出す (型はこのまま) | 領域 B |
+| クリーンルームの確率の報告と部屋の照会で、「無い」を null と種別の両方で表している所を、種別1つに寄せますか | A. 種別1つに寄せる (種別ごとに型を分け、数字は「数字あり」の型が必ず持つ) | 領域 C・D |
+| 通信で送る型は「種別＋使わない欄は空」の形のままでよいですか | A. このままでよい (種別＋欄。送る型に空の欄が残り、読むメソッドで閉じる) | 変更なし |
+| 検査で「直すほどではないかもしれない」と出た重複と Try のうち、直すものはありますか | A. 重複だけ直す (同じ計算・判定は1か所に寄せる。Try はこのまま) | 領域 A〜D |
+
+同じシートの「そのまま通す項目」5 件は、どれも印が付かずに返った（黙認。出所: agent前提）: 「ICチップLv2〜5 の解放を品質モジュールLv1〜4 の研究にも付ける」の決定はそのまま進める（添えた説明の誤りの訂正つき）／室内の機械の画面は部屋クラスの1行だけ／前例の無い作り 5 か所を使う（上の一覧）／この PR の外のリファクタ提案 2 件は PR に書くだけにする／既に解放済みのアイテムの再解放で通知を出さない。
