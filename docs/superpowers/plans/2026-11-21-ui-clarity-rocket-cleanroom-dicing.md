@@ -11581,7 +11581,7 @@ git commit -m "クリーンルームの画面の新しい文言と、モーダ�
   - `public (string requestId, UniTask<ModalResult> response) ModalRequestService.RequestTableModal(string title, string message, IReadOnlyList<ModalTableRow> rows, string buttonText)`
   - testid: `modal-table`・`modal-table-row-{i}`・`modal-table-row-{i}-label`・`modal-table-row-{i}-values`。USS クラス: `modal-view__table`・`modal-view__table-row`・`modal-view__table-values`
 
-- [ ] **Step 1: 失敗するテストを書く（State）**
+- [x] **Step 1: 失敗するテストを書く（State）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Modal/ModalTableRequestTest.cs` を作る。
 
@@ -11637,7 +11637,7 @@ namespace Client.Tests.Ui.State.Modal
 }
 ```
 
-- [ ] **Step 2: 失敗するテストを書く（View）**
+- [x] **Step 2: 失敗するテストを書く（View）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Modal/ModalRequestSamples.cs` を次の全文に替える（既存の3つに `Rows` の空を足し、表の要求 `Table()` を足す。`ModalView` は `Rows` を必ず読むため）。
 
@@ -11745,12 +11745,12 @@ namespace Client.Tests.Ui.Screens.Modal
 }
 ```
 
-- [ ] **Step 3: 赤を確かめる**
+- [x] **Step 3: 赤を確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`ModalTableRow`・`ModalRequest.Rows`・`RequestTableModal` が無い CS0246 / CS0117 / CS1061）
 
-- [ ] **Step 4: 要求に行を足す**
+- [x] **Step 4: 要求に行を足す**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/Modal/ModalRequest.cs` の1-15行目。直す前:
 
@@ -11813,7 +11813,7 @@ namespace Client.Ui.State.Modal
     }
 ```
 
-- [ ] **Step 5: 行つきの要求を出す口を足す**
+- [x] **Step 5: 行つきの要求を出す口を足す**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/Modal/ModalRequestService.cs`。直す前（1行目と37-78行目）:
 
@@ -11918,7 +11918,7 @@ using System.Collections.Generic;
             };
 ```
 
-- [ ] **Step 6: View に行を描かせる**
+- [x] **Step 6: View に行を描かせる**
 
 `moorestech_client/Assets/Scripts/Client.Ui/Screens/Modal/ModalView.cs` を次の全文に替える（変えたのは using 1行・47-49行目の表の差し込み・`CreateTable`/`TableLabel` のローカル関数。ほかは今のまま）。
 
@@ -12108,7 +12108,7 @@ namespace Client.Ui.Screens.Modal
 }
 ```
 
-- [ ] **Step 7: コンパイルとテスト**
+- [x] **Step 7: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ErrorCount 0`
@@ -12122,7 +12122,7 @@ Expected: 全件 PASS
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\.(Screens|State)\.Modal\.|BlueprintNameInputModalBridgeTest|WholeUiRootHidingTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State/Modal/ModalRequest.cs moorestech_client/Assets/Scripts/Client.Ui.State/Modal/ModalRequestService.cs moorestech_client/Assets/Scripts/Client.Ui/Screens/Modal/ModalView.cs moorestech_client/Assets/Scripts/Client.Ui/Screens/Modal/Modal.uss moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Modal/ moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Modal/
