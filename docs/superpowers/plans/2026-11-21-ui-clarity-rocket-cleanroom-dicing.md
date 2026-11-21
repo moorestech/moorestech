@@ -2593,7 +2593,7 @@ ADR 0106 の 7（未選択は何も受け取らない・昇降中の便はその
   - `SatelliteInletState.NotSelectedKind`・`SatelliteTakeResult.NotSelectedKind`・`static class SatelliteInletWait`
   - テスト補助: `SpaceElevatorTestUtil.PlaceBase(Vector3Int, ItemId selectedCargo)`・`PlaceUnselectedBase(Vector3Int)`・`PlaceConnectedBase(float, ItemId)`・`SetupConnected(float, ItemId)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorTestUtil.cs` の 29–38 行を次へ置き換え、`using Core.Master;`・`using Tests.Util.OrbitalCargo;` を足す:
 
@@ -2807,11 +2807,11 @@ grep -rnE "\b(PlaceBase|PlaceConnectedBase|SetupConnected)\([^,()]*\)" . | grep 
 ```
 （置換式は単引用符でそのまま渡す。`printf` を通すと `\b` が後退文字になり何も置き換わらない。手元で同じ式を `PlaceBase(Vector3Int.zero)`・`Inventory(PlaceBase(new Vector3Int(1, 0, 0)))`・`SetupConnected(100f)` に当てて、入れ子の括弧も含め引数が足されることを確かめた。`ForUnitTestItemId` の using が無いファイルには `using Tests.Module.TestMod;` を足す）
 
-- [ ] **Step 2: テストが失敗するのを確かめる**
+- [x] **Step 2: テストが失敗するのを確かめる**
 
 `uloop compile --project-path ./moorestech_client` → `SpaceElevatorBaseStateDetail.SelectedCargoItemId`・`SpaceElevatorBaseStatus.CargoNotSelected` が無くてコンパイルエラー。
 
-- [ ] **Step 3: 共有の型を足す**
+- [x] **Step 3: 共有の型を足す**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStatus.cs` 全文:
 
@@ -2880,7 +2880,7 @@ namespace Game.Block.Interface.State
 }
 ```
 
-- [ ] **Step 4: 拠点の実装を書く**
+- [x] **Step 4: 拠点の実装を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorSatelliteInletState.cs` 全文（58 行。塞がりのログ文言「今のマスタで運ぶ積荷ではないため昇れません」は既存のまま）:
 
@@ -3495,7 +3495,7 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
 }
 ```
 
-- [ ] **Step 5: 既存テストを直す**
+- [x] **Step 5: 既存テストを直す**
 
 | ファイル | 行 | 扱い | 理由 |
 |---|---|---|---|
@@ -3510,16 +3510,17 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Special/Source/SpecialInletBindingContributorTest.cs` | 31 | `…ReadyToConnect, null, null)` | 同上 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Block/Tier9ModelStateProcessorTest.cs` | 57・63 | `…Climbing, null, null)`・`…ReadyToConnect, null, null)` | 同上 |
 
-- [ ] **Step 6: コンパイルとテスト**
+- [x] **Step 6: コンパイルとテスト**
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.OrbitalCargo.OrbitalCargoBaseSelectionTest"`
-`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.(Game\.(SpaceElevator|Tier9)|Server\.PacketTest\.(SpaceElevator|BeltRemoval))\."`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.(Game\.(SpaceElevator|Tier9)|Server\.PacketTest\.(SpaceElevator))\."`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Game\.RocketLaunchPad\.Regression\.RocketLaunchPadArrivalCommitTest"`
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\..*(Special|Tier9ModelStateProcessor)"`
 期待: すべて成功。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 `git commit -m "宇宙エレベーター拠点も積荷を選ぶ方式にし、入口を拠点の在庫部品から分ける"`
 
@@ -3763,7 +3764,8 @@ namespace Game.SpaceElevator
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.OrbitalCargo.OrbitalCargoBaseConnectTest"`
-`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.(Game\.(SpaceElevator|Tier9|RocketLaunchPad\.Regression)|Server\.PacketTest\.(SpaceElevator|BeltRemoval))\."`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.(Game\.(SpaceElevator|Tier9|RocketLaunchPad\.Regression)|Server\.PacketTest\.(SpaceElevator))\."`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 期待: すべて成功。
 
 - [ ] **Step 6: コミット**
@@ -4542,7 +4544,8 @@ namespace Tests.CombinedTest.Game.OrbitalCargo
 
 - [ ] **Step 3: 領域全体の回帰**
 
-`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(CombinedTest\.(Game\.(OrbitalCargo|RocketLaunchPad|SpaceElevator|Tier9|Blueprint)|Server\.PacketTest\.(Rocket|SpaceElevator|OrbitalCargo|BeltRemoval))|UnitTest\.Game\.OrbitalCargo)"`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(CombinedTest\.(Game\.(OrbitalCargo|RocketLaunchPad|SpaceElevator|Tier9|Blueprint)|Server\.PacketTest\.(Rocket|SpaceElevator|OrbitalCargo))|UnitTest\.Game\.OrbitalCargo)"`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\..*(Special|Tier9ModelStateProcessor|RocketLaunchPad)"`
 期待: すべて成功。
 
@@ -4744,7 +4747,8 @@ namespace Game.SpaceElevator
 
 `uloop compile --project-path ./moorestech_client`
 `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.UnitTest.Core.Block.SpaceElevator.SpaceElevatorCableItemsTest"`
-`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.(Game\.(SpaceElevator|Tier9|SaveLoad\.Tier9|RocketLaunchPad)|Server\.PacketTest\.(SpaceElevator|BeltRemoval))\."`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.(Game\.(SpaceElevator|Tier9|SaveLoad\.Tier9|RocketLaunchPad)|Server\.PacketTest\.(SpaceElevator))\."`
+`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.CombinedTest\.Server\.PacketTest\.(Belt(Connection)?RemovalRefund|SpaceElevatorRemovalCapacityTest)"`
 期待: すべて成功（プールの数え方は変わらない）。
 
 - [ ] **Step 5: コミット**
