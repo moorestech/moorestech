@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using Client.Tests.Common;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine.InputSystem;
 
 namespace Client.Tests.UIState.DragDelete.Service
@@ -70,6 +71,49 @@ namespace Client.Tests.UIState.DragDelete.Service
             Service.ClearAll();
             Service.Update(0, false);
             CollectionAssert.AreEqual(new[] { LocalizationKeys.Ui.Tooltip.DeleteResultPending.Key }, TooltipKeys());
+        }
+
+        [Test]
+        public void 処理中は対象数によらず件数つきの1行にまとまる()
+        {
+            var targets = Enumerable.Range(0, 100).Select(_ => CreateDeferredTarget()).ToArray();
+            CommitByHold(targets);
+            Service.Update(0, false);
+
+            // 100件でも行は1つで、件数を持つ
+            // A hundred targets still make one line carrying the count
+            var pendingLines = Tooltip.GetPresentation().Lines.Where(line => line.Key.Key == LocalizationKeys.Ui.Tooltip.DeleteResultPending.Key).ToArray();
+            Assert.AreEqual(1, pendingLines.Length);
+            Assert.AreEqual("100", pendingLines[0].TextParams.Single(param => param.Name == "count").Value);
+
+            // 応答が返った分だけ件数が減る
+            // The count drops as responses arrive
+            targets[0].Target.Complete(DeleteCompletionKind.Succeeded, null);
+            Service.Update(0, false);
+            Assert.AreEqual("99", Tooltip.GetPresentation().Lines.Single(line => line.Key.Key == LocalizationKeys.Ui.Tooltip.DeleteResultPending.Key).TextParams.Single(param => param.Name == "count").Value);
+        }
+
+        [Test]
+        public void 拒否は理由ごとに件数つきの行と通知1通にまとまる()
+        {
+            var notifications = new System.Collections.Generic.List<string>();
+            using var subscription = ClientDIContext.ClientLocalNotificationSource.OnNotification.Subscribe(message => notifications.Add(message.MessageId));
+            var targets = Enumerable.Range(0, 5).Select(_ => CreateDeferredTarget()).ToArray();
+            CommitByHold(targets);
+            for (var i = 0; i < 3; i++) targets[i].Target.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
+            for (var i = 3; i < 5; i++) targets[i].Target.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.RailHasVehicle);
+            Service.Update(0, false);
+
+            // 理由ごとに「件数の行→理由の行」の順で並ぶ
+            // Each reason yields a count line followed by its reason line
+            var lines = Tooltip.GetPresentation().Lines;
+            CollectionAssert.AreEqual(new[]
+            {
+                LocalizationKeys.Ui.Tooltip.DeleteResultRejected.Key, LocalizationKeys.Ui.Delete.InventoryFull.Key,
+                LocalizationKeys.Ui.Tooltip.DeleteResultRejected.Key, LocalizationKeys.Ui.Delete.RailHasVehicle.Key,
+            }, lines.Select(line => line.Key.Key).ToArray());
+            CollectionAssert.AreEqual(new[] { "3", "2" }, lines.Where(line => line.Key.Key == LocalizationKeys.Ui.Tooltip.DeleteResultRejected.Key).Select(line => line.TextParams.Single(param => param.Name == "count").Value).ToArray());
+            CollectionAssert.AreEqual(new[] { "denied.deleteRejected", "denied.deleteRejected" }, notifications);
         }
 
         private HoverDenyReasonTarget CreateDeferredTarget()
