@@ -4,7 +4,6 @@ using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using Client.Ui.State.Modal;
-using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -12,8 +11,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 「失敗率の改善方法」のモーダルの開閉と、取り直しでの出し直し（ADR 0105 §4）
-    /// Opening and closing the improvement modal and re-issuing it on refetch (ADR 0105 §4)
+    /// 「失敗率の改善方法」のモーダルを押した時点の中身で開く（ADR 0105 §4）
+    /// Opens the improvement modal with the contents at press time (ADR 0105 §4)
     /// </summary>
     public class CleanRoomYieldImprovementModalBridgeTest
     {
@@ -29,7 +28,6 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             _context = new FakeBlockContextModel();
             _modal = new ModalRequestService();
             _bridge = new CleanRoomYieldImprovementModalBridge(_context, _modal);
-            _bridge.Initialize();
         }
 
         [Test]
@@ -59,62 +57,17 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         }
 
         [Test]
-        public void 開いている間は中身が変われば出し直し_同じなら出し直さない()
+        public void 開いている間に取り直しがあっても中身を変えない()
         {
             _context.Set(Dicing(0.505));
             _bridge.Open();
-            var firstId = _modal.Pending.Id;
+            var opened = _modal.Pending;
 
-            // 同じ値の取り直し（別の実体）では要求を替えない
-            // A refetch with equal values (a new instance) keeps the request
-            _context.Set(Dicing(0.505));
-            Assert.AreEqual(firstId, _modal.Pending.Id);
-
-            // 失敗の割合が変わると新しい要求で出し直す
-            // A changed failure share re-issues a new request
             _context.Set(Dicing(0.48));
-            Assert.AreNotEqual(firstId, _modal.Pending.Id);
-            Assert.AreEqual("Now: Lv1 44.8% / Lv2 7.2% / Failed 48.0%", _modal.Pending.Message);
-        }
-
-        [Test]
-        public void 閉じるボタンで閉じた後は取り直しでも出さない()
-        {
-            _context.Set(Dicing(0.505));
-            _bridge.Open();
-            Assert.IsTrue(_modal.Respond(_modal.Pending.Id, ModalResult.Confirm, null));
-
-            _context.Set(Dicing(0.4));
-            Assert.IsNull(_modal.Pending);
-        }
-
-        [Test]
-        public void 機械の画面が閉じる_または改善の行が無くなるとモーダルを閉じる()
-        {
-            _context.Set(Dicing(0.505));
-            _bridge.Open();
             _context.Set(BlockContextViewModel.None);
-            Assert.IsNull(_modal.Pending, "機械の画面を閉じると文脈が無しになる");
 
-            _context.Set(Dicing(0.505));
-            _bridge.Open();
-            _context.Set(WithOdds(CleanRoomYieldOdds.LayerExposure(0.01, new List<CleanRoomOddsImprovement>())));
-            Assert.IsNull(_modal.Pending, "改善の行が無い");
-        }
-
-        [Test]
-        public void 別のモーダルに置き換わったら閉じたままで_それを取り消さない()
-        {
-            _context.Set(Dicing(0.505));
-            _bridge.Open();
-            var ownId = _modal.Pending.Id;
-            LogAssert.Expect(LogType.Warning, $"[CleanRoomYieldImprovementModalBridge] modal request {ownId} was replaced by another modal; the improvement modal stays closed");
-            _modal.RequestModal("other", "other", "OK", ModalVariant.Confirm).Forget();
-            var otherId = _modal.Pending.Id;
-
-            _context.Set(Dicing(0.4));
-            _context.Set(BlockContextViewModel.None);
-            Assert.AreEqual(otherId, _modal.Pending.Id);
+            Assert.AreEqual(opened.Id, _modal.Pending.Id);
+            Assert.AreEqual("Now: Lv1 42.3% / Lv2 7.2% / Failed 50.5%", _modal.Pending.Message);
         }
 
         [Test]
