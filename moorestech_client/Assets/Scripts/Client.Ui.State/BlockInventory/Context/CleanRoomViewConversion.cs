@@ -77,7 +77,7 @@ namespace Client.Ui.State.BlockInventory.Context
                     roomAnomaly = "[CleanRoomViewConversion] air-filter room query carries no queried air-filter status";
                     return SectionContent<CleanRoomFetchedDetail>.Absent;
                 }
-                var status = room.NextClass.TryGetUnitsToNextClass(out var nextClassName, out var units)
+                var status = room.QueriedAirFilter.TryGetUnitsToNextClass(out var nextClassName, out var units)
                     ? CleanRoomAirFilterRoomStatus.WithUnitsToNextClass(room.AirFilterCount, room.StoppedAirFilterCount, powerRatio, filterRemainingRatio, nextClassName, units)
                     : CleanRoomAirFilterRoomStatus.WithoutUnitsToNextClass(room.AirFilterCount, room.StoppedAirFilterCount, powerRatio, filterRemainingRatio);
                 return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForAirFilter(headline, status), haltReason));

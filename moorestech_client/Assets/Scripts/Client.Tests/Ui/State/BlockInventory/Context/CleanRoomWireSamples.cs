@@ -9,14 +9,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
     /// </summary>
     public static class CleanRoomWireSamples
     {
-        public static CleanRoomSummaryMessagePack ClassifiedRoom(string className, int thresholdIndex, int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
+        public static CleanRoomSummaryMessagePack ClassifiedRoom(string className, int thresholdIndex, int airFilterCount, int stoppedAirFilterCount, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return CleanRoomSummaryMessagePack.CreateClassified(className, thresholdIndex, airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
+            return CleanRoomSummaryMessagePack.CreateClassified(className, thresholdIndex, airFilterCount, stoppedAirFilterCount, queriedAirFilter);
         }
 
-        public static CleanRoomSummaryMessagePack OutRoom(int airFilterCount, int stoppedAirFilterCount, CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
+        public static CleanRoomSummaryMessagePack OutRoom(int airFilterCount, int stoppedAirFilterCount, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return CleanRoomSummaryMessagePack.CreateOut(airFilterCount, stoppedAirFilterCount, nextClass, queriedAirFilter);
+            return CleanRoomSummaryMessagePack.CreateOut(airFilterCount, stoppedAirFilterCount, queriedAirFilter);
         }
 
         public static CleanRoomYieldLayerExposureView LayerExposure(double failedRate, List<CleanRoomYieldImprovementMessagePack> improvements)

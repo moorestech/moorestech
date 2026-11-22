@@ -9,8 +9,8 @@ using Game.CleanRoom.Util;
 namespace Game.CleanRoom.Info
 {
     /// <summary>
-    ///     清浄機の画面に出す次のクラスまでの見通し。いちばん良いクラス／あと N 台／空きを埋めても届かない のどれか1つ
-    ///     Outlook to the next class for the purifier screen: exactly one of best class, N more units, or unreachable even when filled
+    ///     清浄機の画面に出す次のクラスまでの見通し。あと N 台を出せるか出せないか（最上位と届かないは画面で同じ）
+    ///     Outlook to the next class for the purifier screen: either N more units or none (the best class and unreachable look the same on screen)
     /// </summary>
     public abstract class CleanRoomNextClassOutlook
     {
@@ -26,25 +26,25 @@ namespace Game.CleanRoom.Info
         {
             // いちばん良いクラスかと次のクラスの行は、台数の数え上げと同じ口で決める（Out〈行数〉のときはいちばん下の行）
             // The best-class check and the next class row come from the same entry point as the unit count (the lowest row from Out, the row count)
-            if (!CleanRoomClassYield.TryGetPromotionTargetIndex(room.ThresholdIndex, out var nextClassIndex)) return CleanRoomAtBestClassOutlook.Instance;
+            if (!CleanRoomClassYield.TryGetPromotionTargetIndex(room.ThresholdIndex, out var nextClassIndex)) return CleanRoomNoUnitsToNextClassOutlook.Instance;
             var nextClassName = MasterHolder.CleanRoomMaster.Thresholds[nextClassIndex].ClassName;
             var removal = CleanRoomAirFilterCollector.SumRemovalVolume(entries);
             var unitCellCount = queriedBlock.BlockPositionInfo.EnumeratePositions().Count();
             if (!CleanRoomPurityLogic.TryCountUnitsToPromote(room.ThresholdIndex, removal, room.Volume, queriedFilter.RatedRemovalVolumePerSecond, unitCellCount, requiredAirChangeRates, out var units))
             {
-                return new CleanRoomNextClassUnreachableOutlook(nextClassName);
+                return CleanRoomNoUnitsToNextClassOutlook.Instance;
             }
             return new CleanRoomUnitsToNextClassOutlook(nextClassName, units);
         }
     }
 
-    // いちばん良いクラス。次のクラスは無い
-    // The best class; there is no next class
-    public sealed class CleanRoomAtBestClassOutlook : CleanRoomNextClassOutlook
+    // いちばん良いクラス、または空きを埋めても次のクラスに届かない
+    // The best class, or the next class stays out of reach even when every free cell is filled
+    public sealed class CleanRoomNoUnitsToNextClassOutlook : CleanRoomNextClassOutlook
     {
-        public static readonly CleanRoomAtBestClassOutlook Instance = new();
+        public static readonly CleanRoomNoUnitsToNextClassOutlook Instance = new();
 
-        private CleanRoomAtBestClassOutlook()
+        private CleanRoomNoUnitsToNextClassOutlook()
         {
         }
     }
@@ -58,18 +58,6 @@ namespace Game.CleanRoom.Info
         {
             NextClassName = nextClassName;
             Units = units;
-        }
-    }
-
-    // 空きセルを全部清浄機で埋めても次のクラスに届かない
-    // Even filling every free cell with purifiers does not reach the next class
-    public sealed class CleanRoomNextClassUnreachableOutlook : CleanRoomNextClassOutlook
-    {
-        public string NextClassName { get; }
-
-        public CleanRoomNextClassUnreachableOutlook(string nextClassName)
-        {
-            NextClassName = nextClassName;
         }
     }
 }

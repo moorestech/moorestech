@@ -23,14 +23,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
 
         // クラスC・清浄機6台（うち1台停止）・Bまであと5台・照会した清浄機は電力 100%・残量 50%
         // Class C, six purifiers (one stopped), five more to B, the queried purifier at full power and half life
-        private static CleanRoomEnclosedView ClassC(CleanRoomNextClassMessagePack nextClass, CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
+        private static CleanRoomEnclosedView ClassC(CleanRoomQueriedAirFilterMessagePack queriedAirFilter)
         {
-            return new CleanRoomEnclosedView(CleanRoomWireSamples.ClassifiedRoom("C", 2, 6, 1, nextClass, queriedAirFilter));
+            return new CleanRoomEnclosedView(CleanRoomWireSamples.ClassifiedRoom("C", 2, 6, 1, queriedAirFilter));
         }
 
         private static CleanRoomEnclosedView ClassC()
         {
-            return ClassC(CleanRoomNextClassMessagePack.CreateUnitsToNextClass("B", 5), CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 0.5));
+            return ClassC(CleanRoomQueriedAirFilterMessagePack.CreateAirFilterWithUnits(1, 0.5, "B", 5));
         }
 
         private static CleanRoomFetchedDetail Machined(CleanRoomInfoView view, CleanRoomOperability operability) =>
@@ -54,7 +54,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             Assert.AreEqual("C", ((ClassCleanRoomHeadline)enclosed.Room.Headline).ClassName);
             Assert.IsInstanceOf<MachineCleanRoomSummary>(enclosed.Room, "室内機械は清浄機の行を持たない");
 
-            var outRoom = new CleanRoomEnclosedView(CleanRoomWireSamples.OutRoom(1, 0, CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter()));
+            var outRoom = new CleanRoomEnclosedView(CleanRoomWireSamples.OutRoom(1, 0, CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter()));
             Assert.IsInstanceOf<ClassOutCleanRoomHeadline>(((EnclosedCleanRoomDetail)Machined(outRoom, CleanRoomOperability.ClassOut)).Room.Headline);
         }
 
@@ -75,15 +75,13 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         [Test]
         public void 最上位_届かないときは次のクラスまでの台数を持たない()
         {
-            var queried = CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1);
-            Assert.IsFalse(AirFiltered(ClassC(CleanRoomNextClassMessagePack.CreateAtBestClass(), queried)).TryGetUnitsToNextClass(out _, out _));
-            Assert.IsFalse(AirFiltered(ClassC(CleanRoomNextClassMessagePack.CreateUnreachable("A"), queried)).TryGetUnitsToNextClass(out _, out _));
+            Assert.IsFalse(AirFiltered(ClassC(CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(1, 1))).TryGetUnitsToNextClass(out _, out _));
         }
 
         [Test]
         public void 清浄機の照会なのに自分の状態が無ければ欄を出さず異常を返す()
         {
-            var view = ClassC(CleanRoomNextClassMessagePack.CreateNotCounted(), CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
+            var view = ClassC(CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter());
             var entry = CleanRoomViewConversion.Build(AirFilter, Fetched, view, null, out var anomaly);
 
             Assert.IsTrue(entry.IsAbsent);

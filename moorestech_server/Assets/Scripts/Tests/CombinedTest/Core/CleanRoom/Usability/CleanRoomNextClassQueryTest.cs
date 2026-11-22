@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // 最高クラスには次のクラスが無く、満電の清浄機は止まっていない
             // The best class has no next class, and the fully powered purifier is not stopped
             Assert.IsInstanceOf<CleanRoomClassifiedStanding>(room.Class, "room never reached the best class within 3000 ticks");
-            Assert.IsInstanceOf<CleanRoomAtBestClassOutlook>(AsQueriedFromAirFilter(room).NextClass);
+            Assert.IsInstanceOf<CleanRoomNoUnitsToNextClassOutlook>(AsQueriedFromAirFilter(room).NextClass);
             Assert.AreEqual(0, room.StoppedAirFilterCount);
         }
 
