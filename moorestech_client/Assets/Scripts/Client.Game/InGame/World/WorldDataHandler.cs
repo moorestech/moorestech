@@ -17,7 +17,10 @@ namespace Client.Game.InGame.World
     /// </summary>
     public class WorldDataHandler
     {
+        private const float RemoveSoundMinimumIntervalSeconds = 1f;
+
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly SoundEffectRepeatLimiter _removeSoundLimiter = new(RemoveSoundMinimumIntervalSeconds);
 
         public WorldDataHandler(BlockGameObjectDataStore blockGameObjectDataStore, InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -47,8 +50,9 @@ namespace Client.Game.InGame.World
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(packet);
 
-            //viewにブロックがおかれたことを通知する
-            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
+            // 一括撤去で撤去音が重ならないよう、間隔ごとに1回だけ鳴らす
+            // Play the removal sound once per interval so a bulk removal does not stack it
+            if (_removeSoundLimiter.TryAccept(Time.unscaledTime)) SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.DestroyBlock);
             _blockGameObjectDataStore.RemoveBlock(data.Position);
         }
 

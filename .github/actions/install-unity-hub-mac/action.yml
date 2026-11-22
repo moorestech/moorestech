@@ -1,0 +1,17 @@
+# unity-builder は Hub が無いと brew の最新版を入れるが、Hub 4 は headless install を廃止したので Editor を入れられない。
+# Hub が既にあれば brew を呼ばないので、headless install が動く版を先に置く。上げるときは unity-builder が Unity CLI に対応してから。
+# unity-builder installs the latest brew Hub when none exists, but Hub 4 removed headless install and cannot install the Editor.
+# It skips brew when a Hub is present, so place a version with headless install first; raise it only once unity-builder supports the Unity CLI.
+name: Install Unity Hub (macOS)
+description: Installs a checksum-verified Unity Hub that still supports headless install
+
+runs:
+  using: composite
+  steps:
+    - name: Install Unity Hub
+      shell: bash
+      env:
+        HUB_VERSION: 3.22.5
+        HUB_ARM64_SHA256: c767b8c3df4a9361d8a2aeb2cd7ef1730956bcb63a89c83140858be314c6dbf0
+        HUB_DESTINATION: /Applications
+      run: bash "$GITHUB_ACTION_PATH/install.sh"

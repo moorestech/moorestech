@@ -40,13 +40,13 @@ Transition(UIStateEnum.GameScreen);
 // 2. 本番の遷移で新しく有効になった GameObject を持ち主ごとに数える
 // 2. Count GameObjects newly activated by the real transition, per owner
 var all = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-var activeBefore = new HashSet<int>();
-foreach (var t in all) if (t.gameObject.activeInHierarchy) activeBefore.Add(t.GetInstanceID());
+var activeBefore = new HashSet<EntityId>();
+foreach (var t in all) if (t.gameObject.activeInHierarchy) activeBefore.Add(t.GetEntityId());
 var countedEnterMs = Transition(UIStateEnum.PlaceBlock);
 var categories = new Dictionary<string, int>();
 foreach (var t in all)
 {
-    if (t == null || !t.gameObject.activeInHierarchy || activeBefore.Contains(t.GetInstanceID())) continue;
+    if (t == null || !t.gameObject.activeInHierarchy || activeBefore.Contains(t.GetEntityId())) continue;
     var key = Category(t);
     categories[key] = categories.TryGetValue(key, out var c) ? c + 1 : 1;
 }

@@ -46,10 +46,10 @@ namespace ProjectWindowHistory
             ??= ProjectBrowserType.GetMethod("GetFolderInstanceIDs", BindingFlags.NonPublic | BindingFlags.Static);
 
         private static MethodInfo _setFolderSelectionMethod;
-        // オーバーロードがあるので引数2つのメソッドの方を探して呼ぶ
+        // オーバーロードがあるので、6000.6でnotifyFolderTreeListenersが足された引数3つの版を探して呼ぶ
         private static MethodInfo SetFolderSelectionMethod => _setFolderSelectionMethod
             ??= ProjectBrowserType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                .FirstOrDefault(method => method.Name == "SetFolderSelection" && method.GetParameters().Length == 2);
+                .FirstOrDefault(method => method.Name == "SetFolderSelection" && method.GetParameters().Length == 3);
 
         private static MethodInfo _setSearchMethod;
         // オーバーロードがあるのでSearchFilter型引数のメソッドの方を探して呼ぶ
@@ -131,7 +131,7 @@ namespace ProjectWindowHistory
         /// 左側のツリーで選択したフォルダのインスタンスIDを取得する
         /// </summary>
         /// <returns></returns>
-        public static int[] GetLastFolderInstanceIds(EditorWindow targetProjectWindow)
+        public static EntityId[] GetLastFolderInstanceIds(EditorWindow targetProjectWindow)
         {
             // 選択中のフォルダのパス配列を取得
             // Get selected folder path array
@@ -139,9 +139,7 @@ namespace ProjectWindowHistory
 
             // Unity 6.3でint[]からEntityId[]に変更された
             // Unity 6.3 changed return type from int[] to EntityId[]
-            var result = GetFolderInstanceIDsMethod.Invoke(null, new[] { lastFolderPaths });
-            var entityIds = (EntityId[]) result;
-            return entityIds.Select(id => (int) id).ToArray();
+            return (EntityId[]) GetFolderInstanceIDsMethod.Invoke(null, new[] { lastFolderPaths });
         }
 
         /// <summary>
@@ -149,12 +147,16 @@ namespace ProjectWindowHistory
         /// </summary>
         /// <param name="targetProjectWindow"></param>
         /// <param name="selectedFolderInstanceIds"></param>
-        public static void SetFolderSelection(EditorWindow targetProjectWindow, int[] selectedFolderInstanceIds)
+        public static void SetFolderSelection(EditorWindow targetProjectWindow, EntityId[] selectedFolderInstanceIds)
         {
-            // Unity 6.3でint[]からEntityId[]に変更された
-            // Unity 6.3 changed parameter type from int[] to EntityId[]
-            var entityIds = selectedFolderInstanceIds.Select(id => (EntityId) id).ToArray();
-            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { entityIds, false });
+            // 内部APIの形が変わって見つからないときは、履歴を動かさずに理由を出す
+            // When the internal API changed shape and is missing, leave the history as is and log why
+            if (SetFolderSelectionMethod == null)
+            {
+                Debug.LogError("ProjectBrowser.SetFolderSelection(引数3つ)が見つからないため、フォルダ選択の履歴移動ができません");
+                return;
+            }
+            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { selectedFolderInstanceIds, false, false });
         }
 
         /// <summary>
@@ -173,13 +175,13 @@ namespace ProjectWindowHistory
         /// <param name="targetProjectWindow"></param>
         /// <param name="searchedText"></param>
         /// <param name="selectedFolderInstanceIds"></param>
-        public static void SetSearch(EditorWindow targetProjectWindow, string searchedText, int[] selectedFolderInstanceIds)
+        public static void SetSearch(EditorWindow targetProjectWindow, string searchedText, EntityId[] selectedFolderInstanceIds)
         {
             // 検索文字列からsearchFilterを生成する
             var searchFilter = CreateSearchFilterFromStringMethod.Invoke(null, new object[] { searchedText });
 
             // searchFilterに選択中のフォルダを設定する
-            var selectedFolderPathList = selectedFolderInstanceIds.Select(AssetDatabase.GetAssetPath).ToArray();
+            var selectedFolderPathList = selectedFolderInstanceIds.Select(id => AssetDatabase.GetAssetPath(id)).ToArray();
             SearchFilterFoldersField.SetValue(searchFilter, selectedFolderPathList);
 
             // targetProjectWindowにsearchFilterを設定する

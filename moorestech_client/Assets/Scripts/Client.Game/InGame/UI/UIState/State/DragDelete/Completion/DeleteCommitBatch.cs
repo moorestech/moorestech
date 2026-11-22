@@ -20,6 +20,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
         private readonly Subject<DeleteCompletion> _completed = new();
         private LinkedListNode<IBuildOperationRecord> _reservation;
         private int _pendingRecords;
+        private int _unsettledEntries;
+        private readonly Dictionary<string, int> _failureCounts = new();
+        private string _firstFailedTarget;
         public IObservable<DeleteCompletion> OnCompleted => _completed;
 
         internal DeleteCommitBatch(IReadOnlyList<IDeleteTarget> targets, BuildOperationHistory history, IRemovalRestoreSender sender)
@@ -36,6 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
                 _entries.Add(entry);
                 if (entry.HasRecord) _pendingRecords++;
             }
+            _unsettledEntries = _entries.Count;
             if (_pendingRecords > 0) _reservation = _history.Reserve();
         }
 
@@ -61,7 +65,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
         {
             if (result.Kind == DeleteCompletionKind.Pending || result.Kind == DeleteCompletionKind.Unconfirmed)
             {
-                if (result.Kind == DeleteCompletionKind.Unconfirmed) Debug.LogWarning($"[DeleteBatch] final response still pending: {result.TargetKey} reason={result.DenyReason}");
+                if (result.Kind == DeleteCompletionKind.Unconfirmed) Debug.LogWarning($"[DeleteBatch] final response still pending: {result.TargetKey} reason={result.DenyReason?.Key}");
                 _completed.OnNext(result);
                 return;
             }
@@ -78,9 +82,29 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
                     else _history.Cancel(_reservation);
                 }
             }
-            if (result.Kind != DeleteCompletionKind.Succeeded) Debug.LogWarning($"[DeleteBatch] target={result.TargetKey} result={result.Kind} reason={result.DenyReason}");
+            if (result.Kind != DeleteCompletionKind.Succeeded) CountFailure(result);
             _completed.OnNext(result);
             entry.Subscription.Dispose();
+            _unsettledEntries--;
+            if (_unsettledEntries == 0 && 0 < _failureCounts.Count) LogFailureSummary();
+        }
+
+        // 失敗は1件ずつでなく理由ごとの件数で数える。数百件の拒否でログ出力がフレームを止めないようにする
+        // Count failures per reason rather than logging each, so hundreds of refusals cannot stall a frame on log output
+        private void CountFailure(DeleteCompletion result)
+        {
+            var label = $"{result.Kind}:{result.DenyReason?.Key}";
+            _failureCounts[label] = _failureCounts.TryGetValue(label, out var count) ? count + 1 : 1;
+            _firstFailedTarget ??= result.TargetKey.ToString();
+        }
+
+        // 全対象の応答が出そろった時に、失敗の内訳を1行で残す
+        // Once every target has answered, leave the failure breakdown in one line
+        private void LogFailureSummary()
+        {
+            var breakdown = new List<string>();
+            foreach (var (label, count) in _failureCounts) breakdown.Add($"{label} x{count}");
+            Debug.LogWarning($"[DeleteBatch] not removed: {string.Join(", ", breakdown)} / targets={_entries.Count} first={_firstFailedTarget}");
         }
 
         private sealed class Entry
