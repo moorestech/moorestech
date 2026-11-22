@@ -1,0 +1,29 @@
+# Windows の Docker は C ドライブへイメージを展開し、Unity 6.6 のイメージではランナーによって空きが足りず失敗する。
+# ビルドに使わない Android SDK の実体を消して空きを作り、前後の空き容量をログへ出す。C:\Android\android-sdk は実体へのリンクなので消しても空かない。
+# Windows Docker unpacks images onto C:, and the Unity 6.6 image runs out of space on some runners.
+# Remove the real Android SDK the build does not use and log free space; C:\Android\android-sdk is only a link, so deleting it frees nothing.
+name: Free Windows disk for Unity image
+description: Removes unused SDKs from C so the Unity editor image can be unpacked
+
+runs:
+  using: composite
+  steps:
+    - name: Free disk space
+      shell: pwsh
+      run: |
+        $PSNativeCommandUseErrorActionPreference = $false
+        $beforeGb = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+        $androidSdkPath = 'C:\Program Files (x86)\Android\android-sdk'
+        if (Test-Path -LiteralPath $androidSdkPath) {
+          cmd /c rmdir /s /q "$androidSdkPath"
+        } else {
+          Write-Host "::warning::$androidSdkPath was not found; the runner image may have moved the SDK"
+        }
+        $afterGb = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+        Write-Host "C: free space ${beforeGb}GB -> ${afterGb}GB"
+        # 消し残しでビルドは止めず、空かなかったことを Actions の注釈で知らせる
+        # Do not stop the build on a partial removal; report no gain through an Actions annotation
+        if ($afterGb -le $beforeGb) {
+          Write-Host "::warning::Removing the Android SDK freed no space on C:"
+        }
+        $global:LASTEXITCODE = 0

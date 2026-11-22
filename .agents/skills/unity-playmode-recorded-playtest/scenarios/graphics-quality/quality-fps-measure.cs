@@ -51,7 +51,7 @@ return PlaytestRunner.Run("quality-fps-measure", new PlaytestRunOptions { Record
         var data = ClientDIContext.DIContainer.DIContainerResolver.Resolve<BlockGameObjectDataStore>();
         var blockCount = await p.ReadWorldBlockCount();
         await p.Until(() => data.BlockGameObjectDictionary.Count >= blockCount, 90f, "実セーブ全ブロックのView受信");
-        p.Assert(Camera.main.GetComponent<Cinemachine.CinemachineBrain>().enabled, "CinemachineBrainを止めず通常カメラ追従");
+        p.Assert(Camera.main.GetComponent<Unity.Cinemachine.CinemachineBrain>().enabled, "CinemachineBrainを止めず通常カメラ追従");
         p.Assert(blockCount == 13852, $"原本の13852ブロック: {blockCount}");
         p.Assert(GraphicsQualityPreference.Current.Equals(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium)), "中プリセットで計測");
         await p.WaitSeconds(10f);

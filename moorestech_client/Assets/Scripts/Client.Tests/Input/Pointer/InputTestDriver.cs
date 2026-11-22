@@ -29,7 +29,7 @@ namespace Client.Tests.Input.Pointer
             // Editor は Game View に焦点が無くても常にプレイヤーループを回す（InputManager.OnFocusChanged）
             // The Editor always runs the player loop without Game View focus (InputManager.OnFocusChanged)
             runtime.GetType().GetProperty("runInBackground", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(runtime, true);
-            runtime.GetType().GetMethod("PlayerFocusLost", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(runtime, null);
+            runtime.GetType().GetMethod("InvokePlayerFocusChanged", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(runtime, new object[] { false });
         }
     }
 }
