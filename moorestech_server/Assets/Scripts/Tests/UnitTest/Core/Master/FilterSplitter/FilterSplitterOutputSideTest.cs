@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Core.Master;
 using Core.Master.Validator;
-using Game.Block.Interface.Component;
+using Core.Master.Validator.Block.FilterSplitter;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;

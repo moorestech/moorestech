@@ -17,6 +17,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using FilterSplitterOutputSideResolver = Core.Master.Validator.Block.FilterSplitter.FilterSplitterOutputSideResolver;
 
 namespace Client.Ui.State.BlockInventory.Special.Source
 {

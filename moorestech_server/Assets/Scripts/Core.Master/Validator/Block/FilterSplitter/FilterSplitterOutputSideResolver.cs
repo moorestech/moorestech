@@ -4,7 +4,7 @@ using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using UnityEngine;
 
-namespace Game.Block.Interface.Component
+namespace Core.Master.Validator.Block.FilterSplitter
 {
     /// <summary>
     /// フィルター分岐器の出口が入口から見て左・正面・右のどれかを、マスタの接続の向き（ブロックの座標系）から決める
@@ -12,9 +12,9 @@ namespace Game.Block.Interface.Component
     /// </summary>
     /// <remarks>
     /// 設置の向きは入口と出口の向きを同じ回転で回すだけなので、ブロックの座標系で決めた側はどの向きに置いても変わらない（BlockDirectionExtension.ConvertLocalCell）。
-    /// 止める条件は Core.Master の FilterSplitterParamValidator が別に書く（Core.Master からこの層は呼べない）。食い違いは FilterSplitterOutputSideTest の表で押さえる。
+    /// 読込時の検証 FilterSplitterParamValidator もこの計算を呼ぶので、左・正面・右の規則はここだけにある。
     /// Placement rotates the entry and exit directions by the same rotation, so a side decided in block-local space holds for every facing (BlockDirectionExtension.ConvertLocalCell).
-    /// FilterSplitterParamValidator in Core.Master writes the stop conditions separately (Core.Master cannot call this layer); FilterSplitterOutputSideTest's table keeps them in agreement.
+    /// The load-time FilterSplitterParamValidator calls this calculation too, so the left, front and right rule lives only here.
     /// </remarks>
     public static class FilterSplitterOutputSideResolver
     {
@@ -51,6 +51,13 @@ namespace Game.Block.Interface.Component
                 sides.Add(side);
             }
             return sides;
+        }
+
+        // 向きが水平の1方向か（入口の検証と側の計算が同じ判定を使う）
+        // Whether a connector points in a single horizontal direction (shared by entry validation and the side calculation)
+        public static bool HasSingleHorizontalDirection(IBlockConnector connector)
+        {
+            return TryGetSingleHorizontalDirection(connector, out _);
         }
 
         private static bool TryGetSingleHorizontalDirection(IBlockConnector connector, out Vector3Int direction)

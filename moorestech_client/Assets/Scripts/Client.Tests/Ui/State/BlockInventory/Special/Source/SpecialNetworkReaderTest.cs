@@ -8,7 +8,7 @@ using Game.Gear.Common;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using ServerFilterSplitterMode = Game.Block.Blocks.FilterSplitter.FilterSplitterMode;
-using ServerFilterSplitterOutputSide = Game.Block.Interface.Component.FilterSplitterOutputSide;
+using ServerFilterSplitterOutputSide = Core.Master.Validator.Block.FilterSplitter.FilterSplitterOutputSide;
 
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
