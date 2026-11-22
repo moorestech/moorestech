@@ -20,10 +20,11 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         private readonly GameContentPresentation _content;
         private readonly IMachineRecipeSelectCommand _recipeSelect;
         private readonly IUiOsCursor _osCursor;
+        private readonly ICleanRoomYieldImprovementCommands _improvementCommands;
 
         public SectionStackSlot Slot => SectionStackSlot.Machine;
 
-        public MachineSectionFactory(IMachineSectionModel machine, IBlockContextModel context, IBlockSlotCommands commands, GameContentPresentation content, IMachineRecipeSelectCommand recipeSelect, IUiOsCursor osCursor)
+        public MachineSectionFactory(IMachineSectionModel machine, IBlockContextModel context, IBlockSlotCommands commands, GameContentPresentation content, IMachineRecipeSelectCommand recipeSelect, IUiOsCursor osCursor, ICleanRoomYieldImprovementCommands improvementCommands)
         {
             _machine = machine;
             _context = context;
@@ -31,11 +32,12 @@ namespace Client.Ui.Screens.BlockInventory.Machine
             _content = content;
             _recipeSelect = recipeSelect;
             _osCursor = osCursor;
+            _improvementCommands = improvementCommands;
         }
 
         public IBlockInventorySection Create(SectionStackSectionMount mount)
         {
-            return new MachineSectionPresenter(new MachineSectionView(mount.FillsPanelHeight, _content, _commands, _osCursor, _recipeSelect), _machine, _context);
+            return new MachineSectionPresenter(new MachineSectionView(mount.FillsPanelHeight, _content, _commands, _osCursor, _recipeSelect, _improvementCommands), _machine, _context);
         }
     }
 }

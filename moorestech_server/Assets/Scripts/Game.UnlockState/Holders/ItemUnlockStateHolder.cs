@@ -27,6 +27,10 @@ namespace Game.UnlockState.Holders
 
         public void Unlock(ItemId itemId)
         {
+            // 複数の研究から重複解放されても通知は一度だけ（前例 BlueprintUnlockStateHolder.Unlock）
+            // Unlocks from multiple researches fire the notification only once (precedent BlueprintUnlockStateHolder.Unlock)
+            // silent-ok: 解放済みは状態が変わらず、知らせることが無い / 最初の解放の通知と研究画面の解放一覧でプレイヤーは既に知っている
+            if (_infos[itemId].IsUnlocked) return;
             _infos[itemId].Unlock();
             _onUnlock.OnNext(itemId);
         }

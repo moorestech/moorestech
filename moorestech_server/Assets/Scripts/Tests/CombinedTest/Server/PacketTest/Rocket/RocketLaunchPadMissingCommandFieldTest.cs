@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         {
             var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             var request = new RocketLaunchPadCommandRequest(Vector3Int.zero, RocketLaunchPadCommandOperation.Build, pad.BlockInstanceId);
             if (missingOperation) request.Operation = null;

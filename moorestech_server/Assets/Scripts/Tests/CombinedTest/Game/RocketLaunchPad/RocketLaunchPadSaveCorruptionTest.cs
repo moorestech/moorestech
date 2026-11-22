@@ -49,14 +49,6 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             if (0 < count) Assert.IsTrue(loaded.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Any(stack => stack.Id == itemId && stack.Count == count));
         }
 
-        [Test]
-        public void 負の巡回位置は積荷表の範囲へ正規化する()
-        {
-            var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
-            RocketLaunchPadSaveTestUtil.State(save)["nextPayloadIndex"] = -1;
-            var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(MasterHolder.ItemMaster.Items.OrbitalPayloads.Length - 1, RocketLaunchPadSaveTestUtil.Capture(loaded).NextPayloadIndex);
-        }
 
         [Test]
         public void 不明な段階は警告して待機へ戻る()
@@ -118,20 +110,17 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             if (!valid && field == "cargoMaterials") Assert.IsEmpty(loaded.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems());
         }
 
-        [TestCase("phase")]
-        [TestCase("nextPayloadIndex")]
-        public void 必須ゼロ値の欠落を警告する(string key)
+        [Test]
+        public void 段階の欠落を警告して待機へ戻る()
         {
             var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
             var state = RocketLaunchPadSaveTestUtil.State(save);
-            state["phase"] = (int)RocketLaunchPadPhase.Launching;
             state["cargoPayload"] = JObject.FromObject(new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.CreatEmpty()));
             state["cargoMaterials"] = new JArray();
-            RocketLaunchPadSaveTestUtil.State(save).Property(key).Remove();
-            LogAssert.Expect(LogType.Warning, new Regex(key == "phase" ? "段階の値が不明" : "巡回位置が無い"));
+            state.Property("phase").Remove();
+            LogAssert.Expect(LogType.Warning, new Regex("段階の値が不明"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(key == "phase" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
-            if (key == "nextPayloadIndex") Assert.AreEqual(0, RocketLaunchPadSaveTestUtil.Capture(loaded).NextPayloadIndex);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         [TestCase(0d)]

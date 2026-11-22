@@ -1,3 +1,10 @@
+using System.Linq;
+using Client.Localization;
+using Client.Tests.Ui.TestHost;
+using Client.Ui.State.BlockInventory.Logic.Special;
+using Client.Ui.State.BlockInventory.Special.Details;
+using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BlockInventory.Special.FilterSplitter;
@@ -42,6 +49,93 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             var view = Render();
             simulate.Click(Find<VisualElement>(view, "filter-slot-1-0"), MouseButton.LeftMouse);
             CollectionAssert.AreEqual(new[] { "filter_splitter.set_filter_item 1 0 set" }, Commands.Issued);
+        }
+
+        [Test]
+        public void 日本語の実際の文で出口を左正面右と出しモード名を言い換える()
+        {
+            Localize.TrySetChosenLanguage("japanese");
+            var view = Render();
+
+            // 見本は出荷マスタと同じ 左・正面・右 の並び
+            // The sample follows the shipped master order: left, front, right
+            Assert.AreEqual("左", TextOf(view, "filter-direction-label-0"));
+            Assert.AreEqual("正面", TextOf(view, "filter-direction-label-1"));
+            Assert.AreEqual("右", TextOf(view, "filter-direction-label-2"));
+            Assert.AreEqual("その他すべて", ModeLabelOf(view, "filter-mode-0-Default"));
+            Assert.AreEqual("指定した物だけ", ModeLabelOf(view, "filter-mode-0-Whitelist"));
+            Assert.AreEqual("指定した物以外", ModeLabelOf(view, "filter-mode-0-Blacklist"));
+        }
+
+        [Test]
+        public void 見出しは番号でなく届いた側で決まり同じ数の別の分岐器でも書き換わる()
+        {
+            // テストマスタと同じ 右・左・正面 の並びを描き、続けて同じ方向数の 左・正面・右 を描く（方向の View は数が同じなら使い回される）
+            // Render the test master order right, left, front, then a same-count left, front, right (direction views are reused when the count matches)
+            var view = Mount(new FilterSplitterBodyView(Kit(LoadContent())));
+            view.Render(NoSlots, SpecialDetailSamples.Only(Detail(FilterSplitterOutputSide.Right, FilterSplitterOutputSide.Left, FilterSplitterOutputSide.Front)));
+            simulate.FrameUpdate();
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.BlockInventory.FilterOutputRight), TextOf(view, "filter-direction-label-0"));
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.BlockInventory.FilterOutputLeft), TextOf(view, "filter-direction-label-1"));
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.BlockInventory.FilterOutputFront), TextOf(view, "filter-direction-label-2"));
+
+            var firstDirection = Find<VisualElement>(view, "filter-direction-0");
+            view.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.FilterSplitter));
+            simulate.FrameUpdate();
+            Assert.AreSame(firstDirection, Find<VisualElement>(view, "filter-direction-0"));
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.BlockInventory.FilterOutputLeft), TextOf(view, "filter-direction-label-0"));
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.BlockInventory.FilterOutputFront), TextOf(view, "filter-direction-label-1"));
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.BlockInventory.FilterOutputRight), TextOf(view, "filter-direction-label-2"));
+        }
+
+        [TestCase("japanese")]
+        [TestCase("english")]
+        [TestCase("german")]
+        [TestCase("korean")]
+        public void モード名はどの言語でも択一のボタンに1行で収まる(string language)
+        {
+            // 本物のパネルの幅で開く（前例 短い窓でも末尾の方向の枠へスクロールで届き解除を送る）。折り返しは1行の高さを超えることで見る（前例 BuildMenuLayoutTest）
+            // Open at the real panel width (precedent: the short-window test); wrapping shows as exceeding one line's height (precedent BuildMenuLayoutTest)
+            Localize.TrySetChosenLanguage(language);
+            Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.FilterSplitter));
+            var shell = BlockInventoryTestShell.Create(this, Panels.State, new FilterSplitterBodyFactory(Kit(LoadContent()), Presenters));
+            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            var viewport = Find<GameScrollView>(shell.View, "block-inventory-natural-scroll").contentViewport;
+            foreach (var mode in new[] { "Default", "Whitelist", "Blacklist" })
+            {
+                // 測るのは表示の文（text）、失敗の文に出すのは印を外した原文（PlainText）
+                // Measure the displayed text; report the tag-free source text on failure
+                var button = Find<Button>(shell.View, $"filter-mode-0-{mode}");
+                var label = button.Q<Label>(className: "mode-switch__label");
+                // フォールバックの字形で行高が変わるため、幅制限のない同じ文を1行の基準にする
+                // Fallback glyphs can change line height, so use the same text at unconstrained width as the one-line baseline
+                var oneLine = label.MeasureTextSize(label.text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined);
+                var actual = label.MeasureTextSize(label.text, label.contentRect.width, VisualElement.MeasureMode.Exactly, 0f, VisualElement.MeasureMode.Undefined).y;
+                // 折り返さない設定でも文字が見えるよう、中央揃えの文字と面・視口の重なる幅を比べる
+                // Check the centered text against the visible face and viewport even when wrapping is disabled
+                var textBox = label.LocalToWorld(label.contentRect);
+                var face = button.LocalToWorld(button.contentRect);
+                var visibleLeft = Mathf.Max(textBox.xMin, face.xMin, viewport.worldBound.xMin);
+                var visibleRight = Mathf.Min(textBox.xMax, face.xMax, viewport.worldBound.xMax);
+                var visibleWidth = 2f * Mathf.Min(textBox.center.x - visibleLeft, visibleRight - textBox.center.x);
+                var requiredWorldWidth = oneLine.x * (textBox.width / label.contentRect.width);
+                TestContext.WriteLine($"{language} {mode} 「{label.PlainText()}」: required={requiredWorldWidth:F2}, visible={visibleWidth:F2}, face={face.width:F2}, viewport={viewport.worldBound.width:F2}");
+                Assert.LessOrEqual(requiredWorldWidth, visibleWidth + 0.5f, $"{language} {mode} 「{label.PlainText()}」の文字が面または視口の外へ出た");
+                Assert.AreEqual(oneLine.y, actual, 0.5f, $"{language} {mode} 「{label.PlainText()}」が折り返した");
+            }
+        }
+
+        private static string ModeLabelOf(VisualElement root, string optionTestid)
+        {
+            return Find<Button>(root, optionTestid).Q<Label>(className: "mode-switch__label").PlainText();
+        }
+
+        private static FilterSplitterDetail Detail(params FilterSplitterOutputSide[] sides)
+        {
+            return new FilterSplitterDetail(sides.Select(side => new FilterSplitterDirectionDetail(side, FilterSplitterMode.Default, new[] { ItemMaster.EmptyItemId })).ToArray());
         }
 
         /// <web-test file="e2e/tests/block/filterSplitter.spec.ts">last direction's filter slot is reachable by scrolling on a short window</web-test>

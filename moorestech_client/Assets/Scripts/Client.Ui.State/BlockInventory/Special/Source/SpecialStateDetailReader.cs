@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Text;
-using Core.Master;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
 using Game.Block.Interface.State;
@@ -53,19 +53,19 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             return GearDetail.Consumer(UiNumberFormat.FromServerFloat(gear.CurrentRpm), UiNumberFormat.FromServerFloat(gear.CurrentTorque), baseRpm);
         }
 
-        public static RocketLaunchPadDetail RocketLaunchPad(RocketLaunchPadStateDetail state, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart)
+        public static RocketLaunchPadDetail RocketLaunchPad(RocketLaunchPadStateDetail state, IReadOnlyList<RequiredItemSlot> materialSlots, IReadOnlyList<RequiredItemSlot> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart, OrbitalCargoDetail cargo)
         {
-            return new RocketLaunchPadDetail(state.Phase, state.WaitReason, state.Progress, materialSlots, payloadSlots, inletBindings, outputSlotStart);
+            return new RocketLaunchPadDetail(state.Phase, state.WaitReason, state.Progress, materialSlots, payloadSlots, inletBindings, outputSlotStart, cargo);
         }
 
-        // 入口は 1 枠で運べる積荷だけを受け、出口は先頭から連番（Web SpaceElevatorDetailDtoBuilder と同じ）
-        // One inlet slot accepting the carried payloads and consecutive outlets from the first output slot (same as the Web builder)
-        public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStateDetail state, int satelliteSlot, IReadOnlyList<ItemId> carriedPayloadItemIds, int firstOutputSlot, int outputSlotCount, int cablesPerElevator)
+        // 入口は 1 枠で選んだ積荷だけを受け（未選択は何も受けない）、出口は先頭から連番
+        // One inlet slot accepting only the selected cargo (nothing when unselected) and consecutive outlets from the first output slot
+        public static SpaceElevatorDetail SpaceElevator(SpaceElevatorBaseStateDetail state, int satelliteSlot, int firstOutputSlot, int outputSlotCount, int cablesPerElevator, OrbitalCargoDetail cargo)
         {
             var outputs = new List<int>(outputSlotCount);
             for (var i = 0; i < outputSlotCount; i++) outputs.Add(firstOutputSlot + i);
-            var inletBindings = new[] { new InletSlotBinding(satelliteSlot, carriedPayloadItemIds) };
-            return new SpaceElevatorDetail(new[] { satelliteSlot }, outputs, inletBindings, state.IsConnected, state.CablePoolAmount, cablesPerElevator, state.ClimbProgress, state.Status);
+            var inletBindings = OrbitalCargoSlotBinding.ElevatorShiftBindings(satelliteSlot, cargo.SelectedCargoItemId);
+            return new SpaceElevatorDetail(new[] { satelliteSlot }, outputs, inletBindings, state.IsConnected, state.CablePoolAmount, cablesPerElevator, state.ClimbProgress, state.Status, cargo);
         }
     }
 }

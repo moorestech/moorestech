@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Logic.Machine;
+using Client.Ui.State.BlockInventory.Special.Cargo;
+using Client.Ui.State.Items;
 using Mooresmaster.Localization.Generated;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
 using Client.Ui.State.BlockInventory.Logic.Special;
@@ -7,22 +10,23 @@ using Game.Block.Interface.State;
 namespace Client.Ui.State.BlockInventory.Special.Details
 {
     /// <summary>
-    /// 発射台の詳細。資材・積荷の枠はサーバーの絶対添字、出力は先頭から在庫の末尾まで（Web RocketLaunchPadDetailDtoBuilder と同じ）
-    /// Launch pad detail; material and payload slots are absolute server indices, outputs run from the start to the inventory end (same as the Web builder)
+    /// 発射台の詳細。資材・積荷の枠はサーバーの絶対添字と必要な品・数、出力は先頭から在庫の末尾まで、積荷の選択（ADR 0106）
+    /// Launch pad detail: material and payload slots as absolute indices with required items and counts, outputs from the start to the inventory end, and the cargo selection (ADR 0106)
     /// </summary>
     public sealed class RocketLaunchPadDetail
     {
         internal RocketLaunchPadPhase Phase { get; }
         internal RocketLaunchPadWaitReason WaitReason { get; }
         public float Progress { get; }
-        public IReadOnlyList<int> MaterialSlots { get; }
-        public IReadOnlyList<int> PayloadSlots { get; }
-        // 資材・積荷の枠ごとに要求の 1 品だけを受ける Shift の束縛（本文の枠と同じ定義から組む）
-        // Shift bindings accepting the one required item per material/payload slot (built from the same definition as the body slots)
+        public IReadOnlyList<RequiredItemSlot> MaterialSlots { get; }
+        public IReadOnlyList<RequiredItemSlot> PayloadSlots { get; }
+        // 未選択は空、選べば資材と選んだ積荷の枠だけを受ける Shift の束縛
+        // Shift bindings: empty when unselected, otherwise only material slots and the selected payload slot
         public IReadOnlyList<InletSlotBinding> InletBindings { get; }
+        public OrbitalCargoDetail Cargo { get; }
         private int OutputSlotStart { get; }
 
-        public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<int> materialSlots, IReadOnlyList<int> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart)
+        public RocketLaunchPadDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress, IReadOnlyList<RequiredItemSlot> materialSlots, IReadOnlyList<RequiredItemSlot> payloadSlots, IReadOnlyList<InletSlotBinding> inletBindings, int outputSlotStart, OrbitalCargoDetail cargo)
         {
             Phase = phase;
             WaitReason = waitReason;
@@ -31,11 +35,21 @@ namespace Client.Ui.State.BlockInventory.Special.Details
             PayloadSlots = payloadSlots;
             InletBindings = inletBindings;
             OutputSlotStart = outputSlotStart;
+            Cargo = cargo;
         }
 
         // 状態文と題の操作は State で引き、Screens へサーバーの列挙を出さない（D-27）
         // Resolve the status text and title action in State so Screens never sees the server enums (D-27)
         public LocalizationKey StatusKey => RocketLaunchPadLogic.StatusKey(Phase, WaitReason);
+
+        // 資材の枠（透かしつき）と、選んだ積荷の枠＋前の種類の残り
+        // Material slots (ghosted) and the selected payload slot plus leftovers of previous kinds
+        public IReadOnlyList<BoundItemSlot> MaterialBoundSlots => OrbitalCargoSlotBinding.Materials(MaterialSlots);
+
+        public IReadOnlyList<BoundItemSlot> PayloadBoundSlots(IReadOnlyList<SlotItem> itemSlots)
+        {
+            return OrbitalCargoSlotBinding.Payloads(PayloadSlots, Cargo, itemSlots);
+        }
 
         public bool TryGetCommandButton(out RocketCommandButton button)
         {

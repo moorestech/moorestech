@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Game.Tier9
             // 発射台は最後に置く（網の再構築でテスト発電機が外れるため）
             // Place the powered pad last (rebuilds drop injected generators)
             var basePosition = new Vector3Int(10, 0, 0);
-            var elevatorBase = SpaceElevatorTestUtil.PlaceBase(basePosition);
+            var elevatorBase = SpaceElevatorTestUtil.PlaceBase(basePosition, Ids.GpuSatellite(1));
             var (gpuBlock, gpuInventory, gpuProcessor) = PlaceMachine(new Vector3Int(20, 0, 0));
             var (sat1Block, sat1Inventory, sat1Processor) = PlaceMachine(new Vector3Int(24, 0, 0));
             var (sat2Block, sat2Inventory, sat2Processor) = PlaceMachine(new Vector3Int(28, 0, 0));
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game.Tier9
             Assert.IsTrue(research.CompleteResearch(Ids.RocketTechnologyResearchGuid, playerId));
             Assert.IsTrue(unlocks.BlockUnlockStateInfos[Ids.RocketLaunchPadBlockGuid].IsUnlocked);
             Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, research.GetResearchNodeStates(playerId)[Ids.GpuUpgradeLv2ResearchGuid]);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, TakeOutput(sat1Inventory, Ids.GpuSatellite(1), 1).Id, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, TakeOutput(sat1Inventory, Ids.GpuSatellite(1), 1).Id, 1);
             LaunchFirst(pad);
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             Assert.AreEqual(10, MovePadOutputsToPlayer(pad, playerId));

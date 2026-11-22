@@ -3,6 +3,7 @@ using Client.Network.API;
 using Game.Block.Interface.Component;
 using Server.Protocol.PacketResponse;
 using FailureReason = Server.Protocol.PacketResponse.RocketLaunchPadCommandProtocol.RocketLaunchPadCommandFailureReason;
+using CargoFailure = Server.Protocol.PacketResponse.OrbitalCargoSelectionProtocol.OrbitalCargoSelectionFailureReason;
 
 namespace Client.Ui.State.BlockInventory.Special.Commands
 {
@@ -29,6 +30,7 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
                 SpaceElevatorConnectResult.Connected => SpecialBlockRequestOutcome.Accepted,
                 SpaceElevatorConnectResult.AlreadyConnected => SpecialBlockRequestOutcome.Stale("already_connected"),
                 SpaceElevatorConnectResult.InsufficientCable => SpecialBlockRequestOutcome.Failed("insufficient_cable"),
+                SpaceElevatorConnectResult.CargoNotSelected => SpecialBlockRequestOutcome.Failed("connect_cargo_not_selected"),
                 SpaceElevatorConnectResult.NotSpaceElevatorBase => SpecialBlockRequestOutcome.Failed("not_space_elevator_base"),
                 SpaceElevatorConnectResult.InvalidRequest => SpecialBlockRequestOutcome.Failed("connect_invalid_request"),
                 SpaceElevatorConnectResult.BlockNotFound => SpecialBlockRequestOutcome.Failed("connect_block_not_found"),
@@ -50,8 +52,25 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
                 FailureReason.MissingMaterials => SpecialBlockRequestOutcome.Failed("rocket_command_missing_materials"),
                 FailureReason.MissingPayload => SpecialBlockRequestOutcome.Failed("rocket_command_missing_payload"),
                 FailureReason.OutputFull => SpecialBlockRequestOutcome.Failed("rocket_command_output_full"),
+                FailureReason.CargoNotSelected => SpecialBlockRequestOutcome.Failed("rocket_command_cargo_not_selected"),
                 FailureReason.InstanceMismatch => SpecialBlockRequestOutcome.Failed("rocket_command_instance_mismatch"),
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の合図の拒否理由"),
+            };
+        }
+
+        // 積荷の選択拒否を専用コードへ写す
+        // Map cargo selection refusals to dedicated codes
+        public static SpecialBlockRequestOutcome FromCargoSelectionFailure(CargoFailure reason)
+        {
+            return reason switch
+            {
+                CargoFailure.InvalidRequest => SpecialBlockRequestOutcome.Failed("cargo_select_invalid_request"),
+                CargoFailure.BlockNotFound => SpecialBlockRequestOutcome.Failed("cargo_select_block_not_found"),
+                CargoFailure.InstanceMismatch => SpecialBlockRequestOutcome.Failed("cargo_select_instance_mismatch"),
+                CargoFailure.NotCargoSelector => SpecialBlockRequestOutcome.Failed("cargo_select_not_cargo_selector"),
+                CargoFailure.NotCarriedHere => SpecialBlockRequestOutcome.Failed("cargo_select_not_carried_here"),
+                CargoFailure.Locked => SpecialBlockRequestOutcome.Failed("cargo_select_locked"),
+                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の積荷の選択の拒否理由"),
             };
         }
     }

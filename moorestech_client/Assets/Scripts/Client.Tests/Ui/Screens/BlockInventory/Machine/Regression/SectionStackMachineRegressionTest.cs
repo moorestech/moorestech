@@ -93,10 +93,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
             fluids.Set(entry.Fluids);
 
             var content = new GameContentPresentation(new FakeContentTextureSource(Texture, Texture, Texture));
+            var osCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
+            var improvementCommands = new RecordingCleanRoomYieldImprovementCommands();
             var factories = new ISectionStackSectionFactory[]
             {
-                new ContextSectionFactory(content, context, machine),
-                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))),
+                new ContextSectionFactory(content, context, machine, osCursor, improvementCommands),
+                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), content, new RecordingRecipeSelectCommand(), osCursor, improvementCommands),
                 new MinerSectionFactory(content, miner),
                 new PumpSectionFactory(content, pump),
                 new GeneratorSectionFactory(generator),

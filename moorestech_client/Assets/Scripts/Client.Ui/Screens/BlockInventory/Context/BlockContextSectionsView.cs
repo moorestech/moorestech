@@ -1,4 +1,5 @@
 using Client.Ui.Content;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.State.BlockInventory.Context;
 using UnityEngine.UIElements;
@@ -13,12 +14,13 @@ namespace Client.Ui.Screens.BlockInventory.Context
     {
         private readonly UiStack _stack = new(UiGap.Sm);
         private readonly CleanRoomSectionView _cleanRoom = new();
-        private readonly CleanRoomYieldSectionView _cleanRoomYield = new();
+        private readonly CleanRoomYieldSectionView _cleanRoomYield;
         private readonly MachineInputStallSectionView _stall;
 
-        public BlockContextSectionsView(GameContentPresentation content)
+        public BlockContextSectionsView(GameContentPresentation content, IUiOsCursor osCursor, ICleanRoomYieldImprovementCommands improvementCommands)
         {
             name = "block-context-sections";
+            _cleanRoomYield = new CleanRoomYieldSectionView(osCursor, improvementCommands);
             _stall = new MachineInputStallSectionView(content);
             _stack.AddItem(_cleanRoom);
             _stack.AddItem(_cleanRoomYield);

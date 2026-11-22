@@ -7,7 +7,6 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Details;
-using Client.Ui.State.BlockInventory.Special.Text;
 using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine.UIElements;
@@ -15,8 +14,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
 {
     /// <summary>
-    /// フィルタ分配器の方向 1 つ: 「出力 n」・横の択一（既定/ホワイト/ブラック）・フィルタ枠（左押下で設定、右押下で解除）
-    /// One filter splitter direction: "Output n", horizontal exclusive switch (default/white/black), filter slots (left-down sets, right-down clears)
+    /// フィルタ分配器の方向 1 つ: 入口から見た側の見出し（左・正面・右）・横の択一（その他すべて/指定した物だけ/指定した物以外）・フィルタ枠（左押下で設定、右押下で解除）
+    /// One filter splitter direction: side heading seen from the entry (left/front/right), horizontal exclusive switch (others/only listed/not listed), filter slots (left-down sets, right-down clears)
     /// </summary>
     public sealed class FilterDirectionView : VisualElement
     {
@@ -24,6 +23,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
 
         private readonly SpecialViewKit _kit;
         private readonly int _directionIndex;
+        private readonly LocalizedLabel _heading;
         private readonly ModeSwitch<FilterSplitterMode> _mode;
         private readonly UiGroup _slots = new(UiGap.Px4);
         private readonly List<ItemSlot> _slotViews = new();
@@ -34,8 +34,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
             _directionIndex = directionIndex;
             name = $"filter-direction-{directionIndex}";
             var stack = new UiStack(UiGap.Xs);
-            var output = SpecialViewParts.Label(null, UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
-            output.SetText(SpecialDetailTexts.OutputNumber(directionIndex));
+            _heading = SpecialViewParts.Label($"filter-direction-label-{directionIndex}", UiTypographyClass.TextSm, UiTypographyClass.TextDefault);
 
             // 択一の選択肢は Web の filterModes の順。押下は目標のモードを明示して送る
             // Options follow the Web filterModes order; a press sends the target mode explicitly
@@ -45,7 +44,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
 
             _mode.OnOptionSelected.Subscribe(mode => _kit.Commands.SetFilterMode(_directionIndex, mode));
 
-            stack.AddItem(output);
+            stack.AddItem(_heading);
             stack.AddItem(_mode);
             stack.AddItem(_slots);
             Add(stack);
@@ -53,6 +52,9 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
 
         public void Render(FilterSplitterDirectionDetail direction)
         {
+            // 方向の View は方向数が同じなら別の分岐器でも使い回されるので、見出しは毎回届いた側から決める
+            // Direction views are reused across splitters with the same count, so the heading follows the received side every time
+            _heading.SetText(new UiText(FilterSplitterLogic.OutputSideKey(direction.Side)));
             _mode.SetSelected(direction.Mode);
             EnsureSlotCount(direction.FilterItemIds.Count);
             for (var i = 0; i < _slotViews.Count; i++) _slotViews[i].SetContent(SlotItemContent.ForOptionalItem(_kit.Presentation, direction.FilterItemIds[i]));

@@ -26,7 +26,7 @@ namespace Tests.Util.Rocket
         {
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             if (phase != RocketLaunchPadPhase.AwaitingBuildCommand)
@@ -45,7 +45,7 @@ namespace Tests.Util.Rocket
                 }
                 // 残した入れ口の中身も保存往復で検査する
                 // Also verify input contents left behind through the save round trip
-                RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.CablePayloadId, 5);
+                RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.CablePayloadId, 5);
             }
             Assert.AreEqual(phase, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             return JObject.Parse(SaveLoadJsonTestHelper.AssembleSaveJson(services));

@@ -27,6 +27,10 @@ namespace Client.Starter.Registration.GameUi.Screens
             builder.RegisterEntryPoint<GeneratorDetailModel>().As<IGeneratorDetailModel>();
             builder.RegisterEntryPoint<BlockContextModel>().As<IBlockContextModel>();
 
+            // 「失敗率の改善方法」のモーダルを開く口
+            // The entry that opens the improvement modal
+            builder.Register<CleanRoomYieldImprovementModalBridge>(Lifetime.Singleton).As<ICleanRoomYieldImprovementCommands>();
+
             // 選ぶコマンド（送信はコマンドが ClientContext.VanillaApi を直接 await する。D-40）
             // The select command (it awaits ClientContext.VanillaApi directly; D-40)
             builder.Register<MachineRecipeSelectCommand>(Lifetime.Singleton).As<IMachineRecipeSelectCommand>();

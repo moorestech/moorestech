@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
         }
 
         [Test]
-        public void DrawRecordRejectsUnknownKindsMissingRatesAndNonDrawStates()
+        public void DrawRecordRejectsUnknownKindsAndMissingRates()
         {
             Assert.IsNull(CleanRoomYieldPreviewResult.RestoreDrawRecord(null));
             Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(new JObject { ["kind"] = "unknown" }));
@@ -124,8 +124,6 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(JObject.Parse("{ 'kind': 'waferGrade', 'maxGrade': 3, 'promotionChance': 0.125 }")));
             Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(JObject.Parse("{ 'kind': 'dicing', 'dieLossRate': 0.375, 'levelRates': [1.0], 'failedRate': 0.0 }")));
             Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(JObject.Parse("{ 'kind': 'dicing', 'dieLossRate': 0.375, 'qualityTier': 0, 'failedRate': 0.0 }")));
-            Assert.Throws<InvalidOperationException>(() => NoRolePreview.Instance.CaptureDrawRecord());
-            Assert.Throws<InvalidOperationException>(() => NotOperablePreview.Instance.CaptureDrawRecord());
         }
     }
 }

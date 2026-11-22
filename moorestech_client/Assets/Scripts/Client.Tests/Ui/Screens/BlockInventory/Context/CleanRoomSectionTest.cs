@@ -2,7 +2,6 @@ using Client.Game.InGame.BlockInfoPolling;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Common;
-using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -25,28 +24,44 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             return view;
         }
 
-        /// <web-test file="src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomSection.test.ts">密閉済みの部屋は見出し・空気・清浄機・停止理由の順に描く</web-test>
         [Test]
-        public void 密閉済みの部屋は見出し空気清浄機停止理由の順()
+        public void 室内機械の部屋は部屋クラスと停止理由だけを描く()
         {
-            var filters = new[] { new CleanRoomAirFilter(1, 2, 0.5), new CleanRoomAirFilter(0.5, 1, 0.25) };
-            var summary = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 20, filters);
-            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.ClassOut)));
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForMachine(CleanRoomHeadline.Class("C")), CleanRoomHaltReason.ClassOut)));
 
-            CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-air-filter-1", "clean-room-halt-reason" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
+            CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-halt-reason" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
+            Assert.AreEqual("Room class C", view.Q<Label>("clean-room-headline").PlainText());
             Assert.IsFalse(view.Q<VisualElement>("clean-room-headline").ClassListContains(InsufficientClass));
             Assert.IsTrue(view.Q<VisualElement>("clean-room-halt-reason").ClassListContains(InsufficientClass));
         }
 
-        /// <web-test file="src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomSection.test.ts">清浄機が無い部屋はその旨を赤で出す</web-test>
         [Test]
-        public void 清浄機が無い部屋はその旨を赤で出す()
+        public void 清浄機の部屋は台数つきの見出しと台数とこの清浄機の順に描き止まった台数は赤にしない()
         {
-            var summary = new CleanRoomSummary(CleanRoomHeadline.Class("A"), 0, new CleanRoomAirFilter[0]);
-            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(summary, CleanRoomHaltReason.None)));
+            var status = CleanRoomAirFilterRoomStatus.WithUnitsToNextClass(6, 1, 1, 0.5, "B", 5);
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("C"), status), CleanRoomHaltReason.None)));
 
-            CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air", "clean-room-no-filter" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
-            Assert.IsTrue(view.Q<VisualElement>("clean-room-no-filter").ClassListContains(InsufficientClass));
+            CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air-filter-count", "clean-room-queried-air-filter" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
+            Assert.AreEqual("Class C (5 more to class B)", view.Q<Label>("clean-room-headline").PlainText());
+            Assert.AreEqual("Purifiers: 6 (1 stopped)", view.Q<Label>("clean-room-air-filter-count").PlainText());
+            Assert.AreEqual("This purifier: power 100% / life 50%", view.Q<Label>("clean-room-queried-air-filter").PlainText());
+            Assert.IsFalse(view.Q<VisualElement>("clean-room-air-filter-count").ClassListContains(InsufficientClass));
+            Assert.AreEqual(PickingMode.Ignore, view.Q<Label>("clean-room-air-filter-count").pickingMode);
+            Assert.AreEqual(PickingMode.Ignore, view.Q<Label>("clean-room-queried-air-filter").pickingMode);
+        }
+
+        [Test]
+        public void 室内機械から清浄機の部屋へ替わると台数とこの清浄機の行が足され_戻すと消える()
+        {
+            var view = Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForMachine(CleanRoomHeadline.Class("C")), CleanRoomHaltReason.None)));
+            var status = CleanRoomAirFilterRoomStatus.WithoutUnitsToNextClass(2, 0, 1, 1);
+            view.Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("C"), status), CleanRoomHaltReason.None)));
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { "clean-room-headline", "clean-room-air-filter-count", "clean-room-queried-air-filter" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
+
+            view.Render(SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForMachine(CleanRoomHeadline.Class("C")), CleanRoomHaltReason.None)));
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { "clean-room-headline" }, ShownNames(view.Q<VisualElement>("clean-room-section")));
         }
 
         /// <web-test file="src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomSection.test.ts">隙間がある部屋は件数の見出しだけを赤で出す</web-test>

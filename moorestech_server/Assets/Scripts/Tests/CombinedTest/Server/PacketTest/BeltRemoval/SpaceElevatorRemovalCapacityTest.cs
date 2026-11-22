@@ -10,6 +10,7 @@ using Game.SpaceElevator.Save;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util.OrbitalCargo;
 using UnityEngine;
 using static Tests.Util.BeltWorldTestUtil;
 
@@ -23,6 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var world = BeltRemovalRefundTestWorld.CreateServer();
             var position = new Vector3Int(20, 0, 0);
             var block = world.Place(ForUnitTestModBlockId.TestSpaceElevatorBase, position);
+            OrbitalCargoTestUtil.SelectCargo(block, ForUnitTestItemId.TestElevatorSatellite);
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
             var connections = ServerContext.GetService<SpaceElevatorConnectionService>();
             var removals = ServerContext.GetService<IBlockRemovalReservationService>();
@@ -37,6 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 空きができた後の再予約だけが撤去と一度の返却を行う
             // Only a new reservation after capacity frees removes and refunds once
             var other = world.Place(ForUnitTestModBlockId.TestSpaceElevatorBase, new Vector3Int(30, 0, 0));
+            OrbitalCargoTestUtil.SelectCargo(other, ForUnitTestItemId.TestElevatorSatellite);
             connections.Connect(other);
             removals.ReserveRemoval(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
             removals.ApplyReservedRemovals();
@@ -54,6 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             for (var z = 0; z <= 2; z++) world.Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z));
             var position = new Vector3Int(-1, 0, 1);
             var block = world.Place(ForUnitTestModBlockId.TestSpaceElevatorBase, position);
+            OrbitalCargoTestUtil.SelectCargo(block, ForUnitTestItemId.TestElevatorSatellite);
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
             var connections = ServerContext.GetService<SpaceElevatorConnectionService>();
             pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = 100 });
@@ -81,6 +85,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 別拠点の接続で空きができれば同じ要求を安全に再試行できる
             // Connecting another base frees capacity and makes the same request safe to retry
             var other = world.Place(ForUnitTestModBlockId.TestSpaceElevatorBase, new Vector3Int(20, 0, 0));
+            OrbitalCargoTestUtil.SelectCargo(other, ForUnitTestItemId.TestElevatorSatellite);
             connections.Connect(other);
             Assert.IsTrue(world.Remove(position).Success);
             Assert.AreEqual(int.MaxValue, pool.Amount);

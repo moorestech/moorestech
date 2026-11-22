@@ -18,5 +18,6 @@ namespace Game.Block.Interface.Component
         MissingMaterials,
         MissingPayload,
         OutputFull,
+        CargoNotSelected,
     }
 }

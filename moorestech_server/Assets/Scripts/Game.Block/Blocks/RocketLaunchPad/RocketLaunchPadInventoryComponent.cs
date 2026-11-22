@@ -6,6 +6,7 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.OrbitalCargo;
 using Game.Block.Interface.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -21,14 +22,16 @@ namespace Game.Block.Blocks.RocketLaunchPad
     {
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
+        private readonly IOrbitalCargoSelectionReader _cargoSelection;
 
         private readonly Subject<Unit> _inventoryChanged = new();
         internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
         internal OpenableInventoryItemDataStoreService ItemDataStoreService => _slots;
 
-        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent, int slotCount)
+        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent, int slotCount, IOrbitalCargoSelectionReader cargoSelection)
         {
             _layout = layout;
+            _cargoSelection = cargoSelection;
             // 在庫の書き込み元で局所通知とネットワーク通知を束ねる
             // Bind local and network notifications at the inventory write owner
             _slots = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount);
@@ -91,16 +94,20 @@ namespace Game.Block.Blocks.RocketLaunchPad
             }
         }
 
-        // 入れ口は割り当てたアイテムだけ、出力口は取り出し専用
-        // Input slots accept only their assigned item; output slots are take-out only
+        // 入れ口は開いている間だけ割り当てたアイテムを、出力口は取り出し専用
+        // Open input slots accept only their assigned item; output slots are take-out only
         public bool IsAllowedToPlace(int slot, IItemStack itemStack)
         {
             CheckDestroy(this);
             if (itemStack.Count == 0) return true;
-            // silent-ok: 配置可否の問い合わせはUIの移動サービスが拒否を扱う / プレイヤーは品が手元に残ることで気づく
-            if (_layout.IsOutputSlot(slot)) return false;
+            // silent-ok: 配置可否の問い合わせはUIの移動サービスが拒否を扱う / プレイヤーは品が手元に残ることと状態表示「積荷を選んでいない」で気づく
+            if (_layout.IsOutputSlot(slot) || !IsOpenInput(slot)) return false;
             return _layout.RequirementAt(slot).ItemId == itemStack.Id;
         }
+
+        // 選んでいる間だけ資材と選んだ積荷の入れ口を開ける（ADR 0106 2）
+        // Open the material inlets and the selected payload inlet only while a cargo is selected (ADR 0106 2)
+        private bool IsOpenInput(int slot) => _cargoSelection.Current is SelectedOrbitalCargo selected && (slot < _layout.Materials.Count || selected.IsSelected(_layout.RequirementAt(slot).ItemId));
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
@@ -151,9 +158,9 @@ namespace Game.Block.Blocks.RocketLaunchPad
             var remainders = new List<IItemStack>(itemStacks.Count);
             foreach (var itemStack in itemStacks)
             {
-                if (!_layout.TryGetInputSlot(itemStack.Id, out var slot))
+                if (!_layout.TryGetInputSlot(itemStack.Id, out var slot) || !IsOpenInput(slot))
                 {
-                    // silent-ok: 入れ口の無い品は余りとして呼び出し元へ返り、ベルト上や手元に残る / プレイヤーが入らないことを目視で気づく
+                    // silent-ok: 入れ口の無い品・閉じた入れ口の品は余りとして返り、ベルト上や手元に残る / プレイヤーが入らないことと状態表示で気づく
                     remainders.Add(itemStack);
                     continue;
                 }

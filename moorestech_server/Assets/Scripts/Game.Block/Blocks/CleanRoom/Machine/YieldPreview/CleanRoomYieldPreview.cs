@@ -1,36 +1,19 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.OutputRewrite;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Interface.Component;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 {
     /// <summary>
-    ///     選択工程の次の抽選に使う率を、抽選と同じ口（TryGetRecipeRole・CleanRoomRoleRates）から求める
-    ///     Computes the rates the next draw of the selected process will use, through the draw's own entry points (TryGetRecipeRole, CleanRoomRoleRates)
+    ///     工程の抽選に使う率を抽選と同じ口（CleanRoomRoleRates）から求める。表示・改善の差分・実抽選が同じ役割分岐を通る
+    ///     Computes a process's draw rates through the draw's own entry point (CleanRoomRoleRates); display, improvement deltas and actual draws share one role dispatch
     /// </summary>
     internal static class CleanRoomYieldPreview
     {
-        // selectedRecipe は選択済みのレシピ。未選択は呼び出し側が NoRolePreview にする
-        // selectedRecipe is the selected recipe; the caller turns "unselected" into NoRolePreview
-        public static CleanRoomYieldPreviewResult Compute(MachineRecipeMasterElement selectedRecipe, CleanRoomEffect cleanRoomEffect, MachineModuleEffect moduleEffect)
-        {
-            // 役割表に無いレシピは抽選しない
-            // Recipes outside the role tables never draw
-            if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(selectedRecipe.MachineRecipeGuid, out var role)) return NoRolePreview.Instance;
-
-            // 止まっている部屋の効果はクラス値を持たないので、数字を作らず停止として返す
-            // A halted room effect has no class values, so report it as halted instead of building numbers
-            if (!cleanRoomEffect.TryGetClassYield(out var classYield)) return NotOperablePreview.Instance;
-
-            return Evaluate(role, classYield, moduleEffect, null, out _);
-        }
-
         // Previewと実抽選を同じ役割分岐で選ぶ
         // Select preview and actual draw through one role dispatch
         internal static CleanRoomYieldPreviewResult Evaluate(CleanRoomRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect,

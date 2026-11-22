@@ -22,9 +22,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         {
             var (_, provider) = CreateServer();
             var sink = EventTestUtil.RegisterCaptureSink(provider, 1);
-            var first = PlaceBase(Vector3Int.zero);
+            var first = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var secondPos = new Vector3Int(10, 0, 0);
-            PlaceBase(secondPos);
+            PlaceBase(secondPos, ForUnitTestItemId.TestElevatorSatellite);
             sink.TakeAll();
             var service = ServerContext.GetService<SpaceElevatorConnectionService>();
 
@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void RealEventsCarryProgressOutletWaitResumeAndCompletion()
         {
             var (_, provider) = CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100f);
             LaunchCables(100);
             var sink = EventTestUtil.RegisterCaptureSink(provider, 1);

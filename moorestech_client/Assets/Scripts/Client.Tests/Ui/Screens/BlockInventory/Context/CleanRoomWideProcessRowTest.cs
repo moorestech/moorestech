@@ -22,7 +22,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         {
             // 精密切断機と同じ枠（入1・出6・モ3）
             // Same slots as the precision cutter (1 in, 6 out, 3 modules)
-            var shell = OpenCleanRoomMachine(2, new MachineSlotLayout(1, 6, 3), withRecipes);
+            var shell = OpenCleanRoomMachine(true, new MachineSlotLayout(1, 6, 3), withRecipes);
             Assert.AreEqual(withRecipes, shell.View.ClassListContains(BlockInventoryView.LargeClassName), "large only with recipe rows");
 
             // 持ち物パネル幅を左の列へ置く（本番同様）

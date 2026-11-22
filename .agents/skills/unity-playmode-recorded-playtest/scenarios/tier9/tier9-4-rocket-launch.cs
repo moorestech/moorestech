@@ -1,6 +1,6 @@
 using Game.Context;
-// 出荷マスタで発射台に1便を積み、UI の建造・発射ボタンから実時間の建造と上昇を経て計算データが届き、2便目は合図なしで建造が始まることを確かめる
-// On the shipped master, load one launch, build and launch from the UI in real time, receive compute data, and see the second launch build without commands
+// 出荷マスタで発射台を開いて積荷の一覧から ICチップLv1 を選び、1便を積み、UI の建造・発射ボタンから実時間の建造と上昇を経て計算データが届き、2便目は合図なしで建造が始まることを確かめる
+// On the shipped master, open the pad and pick IC chip Lv1 from the cargo list, load one launch, build and launch from the UI in real time, receive compute data, and see the second launch build without commands
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,16 +69,24 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     var payloadGuid = MasterHolder.ItemMaster.GetItemMaster(payloadId).ItemGuid;
     var countPerLaunch = MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(payload => payload.PayloadItemGuid == payloadGuid).CountPerLaunch;
     p.Assert(countPerLaunch == 20, $"ICチップLv1 の1便は20個（{countPerLaunch} 個）");
-    await LoadOneLaunch();
-    await p.Until(() => Phase() == RocketLaunchPadPhase.AwaitingBuildCommand, 10f, "建造の合図待ちになった");
     var padObject = await p.WaitBlockGameObject(padPos);
     await p.Until(() => !padObject.IsPlayingPlaceAnimation, 30f, "発射台の設置演出が終わった");
-    await p.Screenshot("01-awaiting-build");
-
-    // 発射台を開いて建造ボタンを押し、建造は実時間で待つ（DSL に時間を進める手段は無い）
-    // Open the pad and press build; the build is awaited in real time (the DSL cannot advance time)
-    p.Note($"建造ボタンを押し、建造 {param.BuildSeconds} 秒を早送りせずに待つ");
+    // 未選択の台は何も受け取らないので、開いて一覧の行を押して選んでから積む（ADR 0106 の 1・2。Lv1 はロケット技術の前提で解放済み）
+    // An unselected pad accepts nothing, so open it and press the list row before loading (ADR 0106 §1, §2; Lv1 is unlocked by rocket technology's prerequisites)
     await OpenPad();
+    await p.UntilUiElement($"rocket-launch-pad-cargo-row-{payloadId.AsPrimitive()}", 10f);
+    await p.Screenshot("00-cargo-list");
+    await p.ClickUi($"rocket-launch-pad-cargo-row-{payloadId.AsPrimitive()}");
+    await p.UntilUiElement("rocket-launch-pad-cargo-header", 10f);
+    // 空の枠の透かしを、資材を積む前に撮る
+    // Capture the empty-slot watermarks before loading materials
+    await p.Screenshot("00b-empty-slots");
+    await LoadOneLaunch();
+    await p.Until(() => Phase() == RocketLaunchPadPhase.AwaitingBuildCommand, 10f, "建造の合図待ちになった");
+    await p.Screenshot("01-awaiting-build");
+    // 建造ボタンを押し、建造は実時間で待つ（DSL に時間を進める手段は無い）
+    // Press build; the build is awaited in real time (the DSL cannot advance time)
+    p.Note($"建造ボタンを押し、建造 {param.BuildSeconds} 秒を早送りせずに待つ");
     await p.UntilUiElement("rocket-launch-pad-build", 10f);
     await p.Screenshot("02-panel-build-button");
     await p.ClickUi("rocket-launch-pad-build");

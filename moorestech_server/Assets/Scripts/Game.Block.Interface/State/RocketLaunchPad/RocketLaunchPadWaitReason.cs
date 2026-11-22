@@ -9,5 +9,6 @@ namespace Game.Block.Interface.State
         MissingPayload = 2,
         OutputFull = 3,
         NoPower = 4,
+        CargoNotSelected = 5,
     }
 }

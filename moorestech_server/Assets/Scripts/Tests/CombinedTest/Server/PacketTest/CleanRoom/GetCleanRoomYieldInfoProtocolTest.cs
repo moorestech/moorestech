@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Core.Master;
 using Core.Update;
@@ -50,25 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             // 層失敗率は 0.10×(1−min(1.0, 0.8))=0.02
             // The layer fail rate is 0.10 x (1 - min(1.0, 0.8)) = 0.02
             var view = ReadView<CleanRoomYieldLayerExposureView>(Invoke(packet, machine.BlockInstanceId));
-            Assert.AreEqual(0.02, view.LayerExposure.LayerFailRate, Tolerance);
-        }
-
-        [Test]
-        public void DicingShowsQualityTierAndLevelRatesTest()
-        {
-            var (packet, machine) = SetUpOperableMachine(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe);
-            var view = ReadView<CleanRoomYieldDicingView>(Invoke(packet, machine.BlockInstanceId));
-
-            // 近づき度 1−exp(−1)=0.632121 で、ダイ損失率はモジュール無しの0.15と十分入れた0.03の間を混ぜた値になる
-            // The approach weight 1-exp(-1)=0.632121 mixes the die loss between the no-module 0.15 and the full-module 0.03
-            Assert.AreEqual(0.074146, view.Dicing.DieLossRate, Tolerance);
-
-            // tier1・クラスA・1個は、モジュール無しの表 [.2,0,0] からTier1の表 [.7,.1,0] へ近づき度で寄った値を返す
-            // One tier-1 module in class A returns the no-module table [.2,0,0] moved toward the tier-1 table [.7,.1,0] by the approach weight
-            Assert.AreEqual(1, view.Dicing.QualityTier);
-            Assert.That(view.Dicing.LevelRates, Is.EqualTo(new[] { 0.531130, 0.066226, 0d }).Within(Tolerance));
-            Assert.AreEqual(0.402644, view.Dicing.FailedRate, Tolerance);
-            Assert.IsNull(view.PendingDraw);
+            Assert.AreEqual(0.02, view.Odds.FailedRate, Tolerance);
         }
 
         [Test]
@@ -126,29 +109,26 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         [Test]
         public void MalformedResponsesAreUnreadableWithWarningTest()
         {
-            // 判別子に対応する入れ子が欠けた応答（壊れた・版違いのwire）は、警告を出して読めない扱いにする
-            // A response missing the nested object its discriminator names (broken or mismatched wire) warns and is unreadable
-            var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1, null);
-            layerExposure.LayerExposure = null;
+            var noImprovements = new List<CleanRoomYieldImprovementMessagePack>();
+
+            // 判別子に対応する最終の内訳が欠けた応答（壊れた・版違いのwire）は、警告を出して読めない扱いにする
+            // A response missing the final odds its discriminator names (broken or mismatched wire) warns and is unreadable
+            var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(null, noImprovements);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] LayerExposure response has no"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, layerExposure.TryReadView(out _));
 
             // wire を通しても同じ（入れ子が null のまま届く）
             // The same holds through the wire (the nested object arrives as null)
-            var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2), null);
-            dicing.Dicing = null;
+            var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(null, noImprovements);
             var received = MessagePackSerializer.Deserialize<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack>(MessagePackSerializer.Serialize(dicing));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, received.TryReadView(out _));
 
-            // ダイシングのレベル別割合が欠けた応答も、次の抽選・確定済み抽選のどちらでも読めない
-            // A dicing response missing its level rates is unreadable too, for both the next draw and a fixed draw
-            var noLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, null, 0.2), null);
+            // ダイシングのLv別の最終割合が欠けた応答も読めない
+            // A dicing response missing its final per-level rates is unreadable too
+            var noLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingOddsMessagePack(300, null, 0.28), noImprovements);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, noLevelRates.TryReadView(out _));
-            var pendingNoLevelRates = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.1, 1, new[] { 0.7, 0.1, 0d }, 0.2), new DicingYieldMessagePack(0.1, 1, null, 0.2));
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));
-            Assert.AreEqual(BlockInfoReadResult.Unreadable, pendingNoLevelRates.TryReadView(out _));
         }
 
         private static (PacketResponseCreator packet, IBlock machine) SetUpOperableMachine(Guid recipeGuid)

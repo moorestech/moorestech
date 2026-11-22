@@ -5,7 +5,9 @@ using Core.Inventory;
 using Game.Context;
 using Game.Block.Interface;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Connector;
+using Game.Block.Blocks.OrbitalCargo;
 using Game.Block.Blocks.RocketLaunchPad.Save;
 using Game.Block.Blocks.RocketLaunchPad.Stage;
 using Game.Block.Interface.Component;
@@ -43,15 +45,17 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadOutputSlots _outputSlots;
         private readonly RocketLaunchPadLaunchSequence _sequence;
         private readonly CompositeDisposable _subscriptions;
+        private readonly IOrbitalCargoSelectionReader _cargoSelection;
         private float _suppliedPower;
 
-        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, CompositeDisposable subscriptions)
+        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, IOrbitalCargoSelectionReader cargoSelection, CompositeDisposable subscriptions)
         {
             _subscriptions = subscriptions;
+            _cargoSelection = cargoSelection;
             _layout = layout;
             _slots = slots;
             _outputSlots = new RocketLaunchPadOutputSlots(layout, slots, beltOutput, cablePool, arrivalService);
-            _cargoLoader = new RocketLaunchPadCargoLoader(layout, slots, _outputSlots);
+            _cargoLoader = new RocketLaunchPadCargoLoader(layout, slots, _outputSlots, cargoSelection);
             _sequence = new RocketLaunchPadLaunchSequence(param, _cargoLoader, _outputSlots, launchHistory);
 
             // ワールドの初打ち上げで発射の合図待ちを解く。建造の合図待ちと打ち上げそのものは各台の次の Update が行う
@@ -62,6 +66,9 @@ namespace Game.Block.Blocks.RocketLaunchPad
             inventoryChanges.Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
             cablePool.OnAmountChanged.Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
             ServerContext.GetService<IItemStackLevelLookup>().OnStackLevelUnlocked.Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
+            // 選び直しは待ち理由が同じでも状態の選択欄を変えるため、待機を解いてすぐ配信する
+            // A reselection changes the published selection even with the same wait reason, so invalidate and publish at once
+            cargoSelection.OnChanged.Subscribe(_ => { _sequence.InvalidateWait(); _changeState.OnNext(Unit.Default); }).AddTo(_subscriptions);
 
             #region Internal
 
@@ -75,15 +82,13 @@ namespace Game.Block.Blocks.RocketLaunchPad
             #endregion
         }
 
-        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, CompositeDisposable subscriptions)
-            : this(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, subscriptions)
+        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, IOrbitalCargoSelectionReader cargoSelection, CompositeDisposable subscriptions)
+            : this(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, cargoSelection, subscriptions)
         {
             // 実在品を保全してから段階を復元
             // Restore the stage only after verifying that all existing items can be retained
             var saveData = BlockComponentStateReader.Read<RocketLaunchPadSaveJsonObject>(componentStates, SaveKey);
             RocketLaunchPadSaveConverter.RestoreSlots(saveData, _layout, _slots);
-            if (!saveData.NextPayloadIndex.HasValue) Debug.LogWarning("発射台のセーブに巡回位置が無いため先頭から探します");
-            _cargoLoader.SetNextPayloadIndex(saveData.NextPayloadIndex.GetValueOrDefault());
             _sequence.SetStage(RocketLaunchPadStageRestorer.RestoreStage(saveData, _layout, _slots));
 
             // 初打ち上げ済みのワールドで発射の合図待ちのまま保存された台は、通知を受けた台と同じく打ち上げ待ちへ移す（履歴はブロックより先にロードされる）
@@ -132,7 +137,11 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public BlockStateDetail[] GetBlockStateDetails()
         {
             CheckDestroy(this);
-            return new[] { RocketLaunchPadStateDetail.CreateState(Phase, WaitReason, _sequence.CalculateProgress()) };
+            // 選択は次の便から、積んだ積荷は今の便の値（ADR 0106 4）
+            // The selection applies from the next flight; the loaded payload is the current flight's (ADR 0106 4)
+            var selected = _cargoSelection.Current.ToNullablePayloadItemId();
+            var loaded = _sequence.Stage is LoadedRocketStage loadedStage ? loadedStage.Cargo.Payload.Id : (ItemId?)null;
+            return new[] { RocketLaunchPadStateDetail.CreateState(Phase, WaitReason, _sequence.CalculateProgress(), selected, loaded) };
         }
 
         public IReadOnlyList<IItemStack> GetRefundItems()
@@ -145,7 +154,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public object GetSaveState()
         {
             CheckDestroy(this);
-            return RocketLaunchPadSaveConverter.Capture(_sequence.Stage, _cargoLoader.NextPayloadIndex, _layout, _slots);
+            return RocketLaunchPadSaveConverter.Capture(_sequence.Stage, _layout, _slots);
         }
 
         public void Destroy()

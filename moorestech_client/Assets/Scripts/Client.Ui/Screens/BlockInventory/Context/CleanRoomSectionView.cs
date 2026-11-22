@@ -12,24 +12,25 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋欄: クラス・空気・清浄機・停止理由の順
-    /// Room section: class, air, purifiers, halt reason in order (Web CleanRoomSection); only the fetch-state line while unavailable
+    /// 部屋欄: 見出し・（清浄機のときだけ）台数・この清浄機・停止理由の順。取得できない間は取得状態の1行だけ
+    /// Room section: headline, then (purifiers only) count and own status, then halt reason; only the fetch-state line while unavailable
     /// </summary>
     public sealed class CleanRoomSectionView : VisualElement
     {
         private readonly BlockInfoUnavailableLine _unavailable = new("clean-room-fetch-state", LocalizationKeys.Ui.BlockInventory.CleanRoomInfoLabel);
         private readonly ContextRowList _section = new("clean-room-section", UiGap.Px2);
         private readonly LackHighlightText _headline = new("clean-room-headline", LackHighlightTextSize.Sm);
-        private readonly LocalizedLabel _air = new() { name = "clean-room-air" };
-        private readonly List<LocalizedLabel> _filters = new();
-        private readonly LackHighlightText _noFilter = new("clean-room-no-filter", LackHighlightTextSize.Xs);
+        private readonly LocalizedLabel _airFilterCount = new() { name = "clean-room-air-filter-count", pickingMode = PickingMode.Ignore };
+        private readonly LocalizedLabel _queriedAirFilter = new() { name = "clean-room-queried-air-filter", pickingMode = PickingMode.Ignore };
         private readonly LackHighlightText _haltReason = new("clean-room-halt-reason", LackHighlightTextSize.Sm);
 
         public CleanRoomSectionView()
         {
             name = "clean-room-section-view";
-            _air.AddToClassList(UiTypographyClass.TextSm);
-            _air.AddToClassList(UiTypographyClass.TextDefault);
+            _airFilterCount.AddToClassList(UiTypographyClass.TextSm);
+            _airFilterCount.AddToClassList(UiTypographyClass.TextDefault);
+            _queriedAirFilter.AddToClassList(UiTypographyClass.TextXs);
+            _queriedAirFilter.AddToClassList(UiTypographyClass.TextDefault);
         }
 
         public void Render(SectionContent<CleanRoomFetchedDetail> entry)
@@ -56,20 +57,16 @@ namespace Client.Ui.Screens.BlockInventory.Context
                 var display = CleanRoomLogic.Display(detail);
                 var rows = new List<VisualElement>();
 
-                // 赤は不足のときだけ。空気は密閉時のみ
-                // Red only when insufficient; air and purifier rows exist only for an enclosed room
+                // 赤は不足のときだけ。台数とこの清浄機は清浄機から見た部屋だけ
+                // Red only when insufficient; count and own status only for the purifier's view
                 _headline.Render(display.Headline, display.HeadlineInsufficient);
                 rows.Add(_headline);
-                if (display is EnclosedCleanRoomDisplay enclosed)
+                if (display is AirFilterCleanRoomDisplay airFilter)
                 {
-                    _air.SetText(enclosed.Air);
-                    rows.Add(_air);
-                    AddFilterRows(enclosed, rows);
-                    if (enclosed.ShowsNoFilter)
-                    {
-                        _noFilter.Render(enclosed.NoFilter, true);
-                        rows.Add(_noFilter);
-                    }
+                    _airFilterCount.SetText(airFilter.AirFilterCount);
+                    rows.Add(_airFilterCount);
+                    _queriedAirFilter.SetText(airFilter.QueriedAirFilter);
+                    rows.Add(_queriedAirFilter);
                 }
 
                 // 止まっていなければ停止理由の行は無い
@@ -80,24 +77,6 @@ namespace Client.Ui.Screens.BlockInventory.Context
                     rows.Add(_haltReason);
                 }
                 _section.SetRows(rows);
-            }
-
-            void AddFilterRows(EnclosedCleanRoomDisplay source, List<VisualElement> rows)
-            {
-                for (var i = 0; i < source.Filters.Count; i++)
-                {
-                    if (i == _filters.Count) _filters.Add(NewFilterLabel(i));
-                    _filters[i].SetText(source.Filters[i]);
-                    rows.Add(_filters[i]);
-                }
-            }
-
-            LocalizedLabel NewFilterLabel(int index)
-            {
-                var label = new LocalizedLabel { name = $"clean-room-air-filter-{index}" };
-                label.AddToClassList(UiTypographyClass.TextXs);
-                label.AddToClassList(UiTypographyClass.TextDefault);
-                return label;
             }
 
             #endregion

@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Core.Master;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Orbit;
 using Game.SpaceElevator.Save;
@@ -21,10 +21,6 @@ namespace Game.SpaceElevator
         private readonly Subject<int> _onAmountChanged = new();
         private readonly IOrbitalArrivalService _orbitalArrivalService;
 
-        // 拠点のマスタが数えるケーブル。検証で高々1種に揃う。拠点の無いマスタでは空で何も数えない
-        // Cable items the base masters count; validation keeps it to at most one, and a master without bases leaves it empty
-        private readonly HashSet<ItemId> _cableItemIds = new();
-
         public SpaceElevatorCablePool(IOrbitalArrivalService orbitalArrivalService)
         {
             _orbitalArrivalService = orbitalArrivalService;
@@ -32,15 +28,12 @@ namespace Game.SpaceElevator
 
         public void Load()
         {
-            // ケーブル収集（整合は読込時に検証済み）
-            // Collect the cable items base masters count; table consistency was validated during master loading
-            _cableItemIds.UnionWith(SpaceElevatorBaseMasters.CableItemIds());
-
             // ケーブルの到着だけを数える。どの打ち上げ口から来たかは見ない
             // Count only cable arrivals, regardless of which launch site sent them
             _orbitalArrivalService.OnOrbitalArrival.Subscribe(arrival =>
             {
-                if (!_cableItemIds.Contains(arrival.PayloadItemId)) return;
+                // silent-ok: ケーブル以外の到着はプールの対象外 / 他の到着は各打ち上げ口の成果として届く
+                if (!SpaceElevatorCableItems.Contains(arrival.PayloadItemId)) return;
                 Add(arrival.PayloadCount);
             });
         }
@@ -76,7 +69,7 @@ namespace Game.SpaceElevator
 
         public bool CanAcceptArrival(ItemId itemId, int count)
         {
-            return !_cableItemIds.Contains(itemId) || (0 <= count && count <= int.MaxValue - Amount);
+            return !SpaceElevatorCableItems.Contains(itemId) || (0 <= count && count <= int.MaxValue - Amount);
         }
 
         public SpaceElevatorCablePoolSaveData GetSaveData()

@@ -54,13 +54,13 @@ namespace Client.Tests.Block
             foreach (var progress in new[] { 0f, 0.5f, 1f })
             {
                 processor.OnChangeState(State(SpaceElevatorBaseStateDetail.BlockStateDetailKey,
-                    new SpaceElevatorBaseStateDetail(true, 0, progress, SpaceElevatorBaseStatus.Climbing)));
+                    new SpaceElevatorBaseStateDetail(true, 0, progress, SpaceElevatorBaseStatus.Climbing, null, null)));
                 Assert.IsTrue(cable.activeSelf);
                 Assert.IsTrue(climber.gameObject.activeSelf);
                 Assert.That(Vector3.Distance(Vector3.Lerp(bottom, top, progress), climber.localPosition), Is.LessThan(0.0001f));
             }
             processor.OnChangeState(State(SpaceElevatorBaseStateDetail.BlockStateDetailKey,
-                new SpaceElevatorBaseStateDetail(false, 0, 0, SpaceElevatorBaseStatus.ReadyToConnect)));
+                new SpaceElevatorBaseStateDetail(false, 0, 0, SpaceElevatorBaseStatus.ReadyToConnect, null, null)));
             Assert.IsFalse(cable.activeSelf);
             Assert.IsFalse(climber.gameObject.activeSelf);
             Assert.AreEqual(bottom, climber.localPosition);
@@ -132,7 +132,7 @@ namespace Client.Tests.Block
             void Apply(RocketLaunchPadPhase phase, float progress)
             {
                 processor.OnChangeState(State(RocketLaunchPadStateDetail.BlockStateDetailKey,
-                    new RocketLaunchPadStateDetail(phase, RocketLaunchPadWaitReason.None, progress)));
+                    new RocketLaunchPadStateDetail(phase, RocketLaunchPadWaitReason.None, progress, null, null)));
             }
             #endregion
         }

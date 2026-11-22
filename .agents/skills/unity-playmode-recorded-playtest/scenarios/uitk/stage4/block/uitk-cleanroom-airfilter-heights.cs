@@ -18,7 +18,7 @@ using UnityEngine.UIElements;
 
 const int FilterCount = 8;
 const float MenuLowerSafeArea = 70f; // Tokens.uss --menu-lower-safe-area
-return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 300f }, async p =>
+return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOptions { Record = true, RecordResolutionChanges = true, ScenarioTimeoutSeconds = 300f }, async p =>
 {
     // 実行中の Error ログを数えて最後に 0 件を主張する
     // Count error logs during the run and assert zero at the end
@@ -68,7 +68,7 @@ return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOpt
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.Until(() => Root().Q<VisualElement>($"clean-room-air-filter-{FilterCount - 1}") != null && Root().Q<VisualElement>("clean-room-filter-grid") != null, 10f, $"部屋欄に清浄機 {FilterCount} 台とフィルタ枠");
+        await p.Until(() => Root().Q<VisualElement>("clean-room-queried-air-filter") != null && Root().Q<VisualElement>("clean-room-filter-grid") != null, 10f, $"部屋欄の最後の行（この清浄機）とフィルタ枠（清浄機 {FilterCount} 台）");
 
         // 3. 高さ 1080（2560 でなく 1920 幅）と 600 で届くことを見る
         // 3. Check reachability at heights 1080 (1920 wide) and 600
@@ -108,7 +108,7 @@ return PlaytestRunner.Run("uitk-cleanroom-airfilter-heights", new PlaytestRunOpt
         p.Note($"{label}: 倍率={scale} 根の高さ={Root().worldBound.height} パネル下端={panel.worldBound.yMax} 大型={panel.ClassListContains("block-inventory--large")}");
         p.Assert(!panel.ClassListContains("block-inventory--large"), $"{label}: 清浄機のパネルは大型でない");
         p.Assert(panel.worldBound.yMax <= Root().worldBound.yMax - MenuLowerSafeArea + 0.5f, $"{label}: パネルの下端が下の安全帯より上（{panel.worldBound.yMax} ≤ {Root().worldBound.yMax - MenuLowerSafeArea}）");
-        foreach (var target in new[] { Root().Q<VisualElement>($"clean-room-air-filter-{FilterCount - 1}"), grid })
+        foreach (var target in new[] { Root().Q<VisualElement>("clean-room-queried-air-filter"), grid })
         {
             scroll.ScrollTo(target);
             await UniTask.DelayFrame(3);

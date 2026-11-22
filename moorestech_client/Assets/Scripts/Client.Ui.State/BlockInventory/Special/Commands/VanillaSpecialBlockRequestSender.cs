@@ -63,6 +63,14 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
             return response.Success ? SpecialBlockRequestOutcome.Accepted : SpecialBlockResponseCodes.FromRocketFailure(response.FailureReason);
         }
 
+        public async UniTask<SpecialBlockRequestOutcome> SelectOrbitalCargo(Vector3Int position, BlockInstanceId instanceId, ItemId payloadItemId)
+        {
+            var (response, reason) = await ClientContext.VanillaApi.Response.Block.SendOrbitalCargoSelection(position, payloadItemId, instanceId, CancellationToken.None);
+            if (reason != PacketWaitCompletionReason.Received) return SpecialBlockResponseCodes.FromWait(reason, "cargo_select_timeout", "cargo_select_invalid_response");
+            if (response == null) return SpecialBlockRequestOutcome.Failed("cargo_select_invalid_response");
+            return response.Success ? SpecialBlockRequestOutcome.Accepted : SpecialBlockResponseCodes.FromCargoSelectionFailure(response.FailureReason);
+        }
+
         internal SpecialBlockRequestOutcome ApplyFilterResponse(FilterSplitterStateProtocol.FilterSplitterStateResponse response, BlockInstanceId sentInstanceId)
         {
             // 受理した応答は、送った分配器が今も開いているときだけ集約へ当てる。別のブロックに当てると本文に他個体の設定が残る
