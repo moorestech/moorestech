@@ -1,0 +1,13 @@
+38296:D3D12Fence::Wait(2279) error: got 18446744073709551615. Device removal.
+38297-d3d12: Device failed error (887a0006).
+38298-d3d12: GfxDevice was not out of Local memory
+38299-d3d12: Local memory usage:
+38300- Budget: 7608467456
+38301- CurrentUsage: 1763467264
+38302- AvailableForReservation: 67108864
+38303- CurrentReservation: 3938451456
+38304-d3d12: GfxDevice was not out of Non-Local memory
+38305-d3d12: Non-Local memory usage:
+38306- Budget: 67643031552
+38307- CurrentUsage: 519659520
+38308- AvailableForReservation: 0

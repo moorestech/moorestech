@@ -1,0 +1,40 @@
+23:05:41 [gfxmt-1] compile ok=1
+23:05:41 open: opened Assets/Scenes/Game/MainMenu.unity
+23:05:42 meshDeformation 2 -> 2 gpuSkinning=True
+23:05:53 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+23:06:59 steady renderers=217528
+23:06:59 vfx: FX_Flame n=178 on=178 alive=-356 visible=0 | FX_Smoke_White n=52 on=52 alive=112 visible=5 | FX_Smoke_Black n=48 on=48 alive=-87 visible=2
+23:07:00 exp: none
+23:07:01 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+23:07:07 vfx: FX_Flame n=178 on=178 alive=242 visible=40 | FX_Smoke_White n=52 on=52 alive=242 visible=48 | FX_Smoke_Black n=48 on=48 alive=-35 visible=5
+23:07:18 +11s: focused=True skinnedActive=4725 frame=1114 fps~11.2
+23:07:29 +22s: focused=True skinnedActive=4725 frame=1236 fps~11.8
+23:07:39 +32s: focused=True skinnedActive=4725 frame=1356 fps~11.2
+23:07:50 +43s: focused=True skinnedActive=4725 frame=1477 fps~11.4
+23:08:00 +53s: focused=True skinnedActive=4725 frame=1598 fps~11.5
+23:08:11 +64s: focused=True skinnedActive=4725 frame=1719 fps~11.4
+23:08:22 +75s: focused=True skinnedActive=4725 frame=1841 fps~10.9
+23:08:32 +85s: focused=True skinnedActive=4725 frame=1962 fps~10.7
+23:08:43 +96s: focused=True skinnedActive=4725 frame=2083 fps~11.2
+23:08:54 +107s: focused=True skinnedActive=4725 frame=2204 fps~11.4
+23:09:04 +117s: focused=True skinnedActive=4725 frame=2325 fps~11.6
+23:09:15 +128s: focused=True skinnedActive=4725 frame=2445 fps~11.5
+23:09:26 +139s: focused=True skinnedActive=4725 frame=2567 fps~11.5
+23:09:36 +149s: focused=True skinnedActive=4725 frame=2685 fps~10.6
+23:09:47 +160s: focused=True skinnedActive=4725 frame=2804 fps~10.4
+23:09:57 +170s: focused=True skinnedActive=4725 frame=2923 fps~10.8
+23:10:08 +181s: focused=True skinnedActive=4725 frame=3046 fps~11.1
+23:10:19 +192s: focused=True skinnedActive=4725 frame=3167 fps~11.5
+23:10:29 +202s: focused=True skinnedActive=4725 frame=3287 fps~11.2
+23:10:40 +213s: focused=True skinnedActive=4725 frame=3408 fps~11.6
+23:10:51 +224s: focused=True skinnedActive=4725 frame=3527 fps~11.0
+23:11:01 +234s: focused=True skinnedActive=4725 frame=3648 fps~11.6
+23:11:12 +245s: focused=True skinnedActive=4725 frame=3770 fps~11.5
+23:11:23 +256s: focused=True skinnedActive=4725 frame=3890 fps~11.4
+23:11:33 +266s: focused=True skinnedActive=4725 frame=4011 fps~11.6
+23:11:44 +277s: focused=True skinnedActive=4725 frame=4131 fps~11.2
+23:11:55 +288s: focused=True skinnedActive=4725 frame=4252 fps~11.2
+23:12:05 +298s: focused=True skinnedActive=4725 frame=4373 fps~11.4
+23:12:16 +309s: focused=True skinnedActive=4725 frame=4494 fps~11.8
+23:12:16 gpu-errors: 0
+23:12:24 [gfxmt-1] done dead=0
