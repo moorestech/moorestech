@@ -24,7 +24,14 @@ namespace Game.Block.Blocks.Machine.Module
         public MachineModuleEffect AggregateCurrent()
         {
             BlockException.CheckDestroy(this);
+            return MachineModuleEffect.Aggregate(CollectEffectiveModules());
+        }
 
+        // 効いているモジュールを上限で切った個数で集める
+        // Collect effective modules with counts clipped to the slot limit
+        public List<MachineModuleEffect.EquippedModule> CollectEffectiveModules()
+        {
+            BlockException.CheckDestroy(this);
             // スロットのアイテムをモジュール定義へ解決して集計
             // Resolve slot items to module definitions and aggregate
             var modules = new List<MachineModuleEffect.EquippedModule>();
@@ -43,7 +50,15 @@ namespace Game.Block.Blocks.Machine.Module
                 modules.Add(new MachineModuleEffect.EquippedModule(module, effectiveCount));
             }
 
-            return MachineModuleEffect.Aggregate(modules);
+            return modules;
+        }
+
+        // 改善候補をあと1個、効く形で刺せるか
+        // Whether one more candidate module can be equipped effectively
+        public bool CanEquipOneMore(ModuleMasterElement module)
+        {
+            BlockException.CheckDestroy(this);
+            return _moduleInventory.CanAcceptOneMore(module);
         }
 
         public bool IsDestroy { get; private set; }

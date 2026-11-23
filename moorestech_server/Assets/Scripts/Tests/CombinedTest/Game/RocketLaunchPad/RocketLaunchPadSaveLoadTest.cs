@@ -31,16 +31,18 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(JTokenType.Integer, before["phase"].Type);
             Assert.AreEqual((int)phase, before["phase"].Value<int>());
             if (phase == RocketLaunchPadPhase.Building) Assert.AreEqual(0.65d, before["remainingSeconds"].Value<double>(), 0.00001d);
-            Assert.AreEqual(1, before["nextPayloadIndex"].Value<int>());
 
-            // 実スロット・積荷・残秒・巡回位置が完全一致する
-            // Real slots, cargo, remaining seconds and the rotation index must match exactly
+            // 実スロット・積荷・残秒が完全一致する
+            // Real slots, cargo and remaining seconds must match exactly
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             var processor = loaded.GetComponent<RocketLaunchPadProcessorComponent>();
             var after = JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded));
             Assert.IsTrue(JToken.DeepEquals(before, after), $"before={before}\nafter={after}");
-            Assert.AreEqual(phase, RocketLaunchPadTestUtil.ReadState(processor).Phase);
-            TestContext.WriteLine($"保存復元 phase={phase} remainingSeconds={after["remainingSeconds"]} nextPayloadIndex={after["nextPayloadIndex"]} JSON同一=true");
+            var state = RocketLaunchPadTestUtil.ReadState(processor);
+            Assert.AreEqual(phase, state.Phase);
+            Assert.AreEqual(ForUnitTestItemId.CablePayloadId, state.SelectedCargoItemId);
+            Assert.AreEqual(ForUnitTestItemId.SatellitePayloadId, state.LoadedCargoItemId);
+            TestContext.WriteLine($"保存復元 phase={phase} remainingSeconds={after["remainingSeconds"]} JSON同一=true");
             RocketLaunchPadSaveTestUtil.ClearOutputs(loaded);
             for (var i = 0; i < 40 && RocketLaunchPadTestUtil.ReadState(processor).Phase == RocketLaunchPadPhase.Building; i++)
             {
@@ -70,7 +72,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         {
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             processor.RequestBuild();

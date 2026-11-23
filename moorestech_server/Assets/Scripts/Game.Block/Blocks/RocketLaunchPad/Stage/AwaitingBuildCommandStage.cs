@@ -1,3 +1,4 @@
+using System;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 
@@ -25,7 +26,9 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
                 RocketLaunchPadWaitReason.OutputFull => RocketLaunchPadCommandResult.OutputFull,
                 RocketLaunchPadWaitReason.MissingMaterials => RocketLaunchPadCommandResult.MissingMaterials,
                 RocketLaunchPadWaitReason.MissingPayload => RocketLaunchPadCommandResult.MissingPayload,
-                _ => RocketLaunchPadCommandResult.Accepted,
+                RocketLaunchPadWaitReason.None => RocketLaunchPadCommandResult.Accepted,
+                RocketLaunchPadWaitReason.CargoNotSelected => RocketLaunchPadCommandResult.CargoNotSelected,
+                var other => throw new ArgumentOutOfRangeException(nameof(other), other, "積載の判定が返さない待ち理由です"),
             };
         }
 

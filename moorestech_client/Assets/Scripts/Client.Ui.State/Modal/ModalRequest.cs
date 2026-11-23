@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Client.Ui.State.Modal
 {
     /// <summary>
@@ -12,6 +15,25 @@ namespace Client.Ui.State.Modal
         public string ButtonText;
         public ModalVariant Variant;
         public bool RequiresInput;
+        // 本文の下に並べる項目名と値の行。無ければ空（null にしない）
+        // Label-and-values rows under the message; empty when none (never null)
+        public IReadOnlyList<ModalTableRow> Rows = Array.Empty<ModalTableRow>();
+    }
+
+    /// <summary>
+    /// モーダルの表の1行。項目名と値は要求側が解いた文（題・本文と同じ）
+    /// One modal table row; label and values are requester-resolved text like the title and message
+    /// </summary>
+    public sealed class ModalTableRow
+    {
+        public string Label { get; }
+        public string Values { get; }
+
+        public ModalTableRow(string label, string values)
+        {
+            Label = label;
+            Values = values;
+        }
     }
 
     /// <summary>

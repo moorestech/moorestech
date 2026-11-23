@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.Common;
 using Cysharp.Threading.Tasks;
 using UniRx;
@@ -38,7 +39,7 @@ namespace Client.Ui.State.Modal
         // Show a modal and await its result
         public async UniTask<ModalResult> RequestModal(string title, string message, string buttonText, ModalVariant variant)
         {
-            var (_, response) = RequestCore(title, message, buttonText, variant, false);
+            var (_, response) = RequestCore(title, message, buttonText, variant, false, Array.Empty<ModalTableRow>());
             var (result, _) = await response;
             return result;
         }
@@ -47,10 +48,28 @@ namespace Client.Ui.State.Modal
         // Show an input modal and return its own request id with the wait for (result, entered text); text is null on cancel
         public (string requestId, UniTask<(ModalResult result, string text)> response) RequestInputModal(string title, string message, string buttonText)
         {
-            return RequestCore(title, message, buttonText, ModalVariant.Confirm, true);
+            return RequestCore(title, message, buttonText, ModalVariant.Confirm, true, Array.Empty<ModalTableRow>());
         }
 
-        private (string requestId, UniTask<(ModalResult result, string text)> response) RequestCore(string title, string message, string buttonText, ModalVariant variant, bool requiresInput)
+        // 項目名と値の行を並べたモーダルを出し、自分の要求IDと結果の待ちを返す（入力欄なし）
+        // Show a modal listing label-and-values rows and return its own request id with the wait for the result (no input field)
+        public (string requestId, UniTask<ModalResult> response) RequestTableModal(string title, string message, IReadOnlyList<ModalTableRow> rows, string buttonText)
+        {
+            var (requestId, response) = RequestCore(title, message, buttonText, ModalVariant.Confirm, false, rows ?? throw new ArgumentNullException(nameof(rows)));
+            return (requestId, ResultOnly());
+
+            #region Internal
+
+            async UniTask<ModalResult> ResultOnly()
+            {
+                var (result, _) = await response;
+                return result;
+            }
+
+            #endregion
+        }
+
+        private (string requestId, UniTask<(ModalResult result, string text)> response) RequestCore(string title, string message, string buttonText, ModalVariant variant, bool requiresInput, IReadOnlyList<ModalTableRow> rows)
         {
             // 最新要求の状態を先に確定し、既存要求は再入しても上書きしない順序で cancel 解決する
             // Commit the latest request state first, then cancel the previous request without reentrant overwrites
@@ -70,6 +89,7 @@ namespace Client.Ui.State.Modal
                 ButtonText = buttonText,
                 Variant = variant,
                 RequiresInput = requiresInput,
+                Rows = rows,
             };
             _onPendingChanged.OnNext(Unit.Default);
 

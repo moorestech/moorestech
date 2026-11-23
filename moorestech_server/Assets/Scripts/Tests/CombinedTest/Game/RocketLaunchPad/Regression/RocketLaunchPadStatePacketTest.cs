@@ -1,3 +1,4 @@
+using Tests.Util.OrbitalCargo;
 using System.Linq;
 using Core.Update;
 using Game.Block.Blocks.RocketLaunchPad;
@@ -32,8 +33,14 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestBlockStateProtocolMessagePack(Vector3Int.zero)), BoundPacketContext.Bind(1));
             Assert.AreEqual(RocketLaunchPadPhase.Idle, LastState().Phase);
             GameUpdater.RunFrames(1);
+            Assert.AreEqual(RocketLaunchPadWaitReason.CargoNotSelected, LastState().WaitReason);
+            // 選択は tick を待たず購読で配信される
+            // The selection is published by the subscription without waiting for a tick
+            OrbitalCargoTestUtil.SelectCargo(pad, ForUnitTestItemId.SatellitePayloadId);
+            Assert.AreEqual(ForUnitTestItemId.SatellitePayloadId, LastState().SelectedCargoItemId);
+            GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadWaitReason.MissingMaterials, LastState().WaitReason);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, LastState().Phase);
 
@@ -45,6 +52,13 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             Assert.That(LastState().Progress, Is.GreaterThan(0));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingLaunchCommand, 40));
             Assert.AreEqual(RocketLaunchPadPhase.AwaitingLaunchCommand, LastState().Phase);
+
+            // 段階も待ち理由も変わらない選び直しでも、選択欄と今の便の積荷が届く（ADR 0106 4）
+            // A reselection that changes neither phase nor reason still delivers the selection and the current flight's cargo (ADR 0106 4)
+            OrbitalCargoTestUtil.SelectCargo(pad, ForUnitTestItemId.CablePayloadId);
+            var reselected = LastState();
+            Assert.AreEqual(ForUnitTestItemId.CablePayloadId, reselected.SelectedCargoItemId);
+            Assert.AreEqual(ForUnitTestItemId.SatellitePayloadId, reselected.LoadedCargoItemId);
 
             // 他台の初発射履歴を受けた購読がtick前に配信する
             // The subscription publishes another pad's first launch before this pad ticks

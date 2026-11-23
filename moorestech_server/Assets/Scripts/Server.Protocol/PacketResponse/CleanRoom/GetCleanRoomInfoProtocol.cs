@@ -125,19 +125,17 @@ namespace Server.Protocol.PacketResponse
 
                 bool IsReadableRoom()
                 {
-                    if (Room == null || Room.AirFilters == null) return false;
+                    if (Room == null) return false;
                     if (!Enum.IsDefined(typeof(CleanRoomClassResponseKind), Room.ClassKind))
                     {
                         Debug.LogWarning($"Unreadable room class: {Room.ClassKind}");
                         return false;
                     }
                     if (Room.ClassKind == CleanRoomClassResponseKind.Classified && Room.ClassName == null) return false;
-                    foreach (var filter in Room.AirFilters)
-                    {
-                        if (filter == null || filter.Position == null) return false;
-                    }
 
-                    return true;
+                    // 照会した清浄機の状態の欠けや未知の種別も壊れた部屋として読めない（呼び出し元が警告を出す）
+                    // A missing or unknown-kind queried-purifier state is a broken room too (the caller warns)
+                    return Room.QueriedAirFilter != null && Room.QueriedAirFilter.IsReadable();
                 }
 
                 #endregion

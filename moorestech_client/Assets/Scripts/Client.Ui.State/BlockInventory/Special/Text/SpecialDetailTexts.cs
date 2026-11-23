@@ -6,7 +6,7 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Ui.State.BlockInventory.Special.Text
 {
     /// <summary>
-    /// 特殊族の区画・本文の文。値の書式は Web の各 View と同じ（NetworkSections・GearToElectricSection・ElectricToGearInventory・FilterSplitterInventory・SpaceElevatorSection）
+    /// 特殊族の区画・本文の文。値の書式は Web の各 View と同じ（NetworkSections・GearToElectricSection・ElectricToGearInventory・SpaceElevatorSection）
     /// Sentences of the special sections and bodies; value formats match each Web view
     /// </summary>
     public static class SpecialDetailTexts
@@ -48,13 +48,6 @@ namespace Client.Ui.State.BlockInventory.Special.Text
         public static UiText ElectricToGearConsumedPower(ElectricToGearDetail detail)
         {
             return With(LocalizationKeys.Ui.BlockInventory.ElectricToGearConsumedPower, Param("power", UiNumberFormat.Fixed(detail.ConsumedElectricPower, 0)));
-        }
-
-        // 方向は 1 始まりで見せる
-        // Directions are shown starting at 1
-        public static UiText OutputNumber(int directionIndex)
-        {
-            return With(LocalizationKeys.Ui.BlockInventory.OutputNumber, Param("index", (directionIndex + 1).ToString()));
         }
 
         public static UiText SpaceElevatorPool(SpaceElevatorDetail detail)

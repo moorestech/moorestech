@@ -42,7 +42,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         private readonly SpecialPresenters _presenters;
         public SpaceElevatorBodyFactory(SpecialViewKit kit, SpecialPresenters presenters) { _kit = kit; _presenters = presenters; }
         public BlockInventoryBodyKind Kind => BlockInventoryBodyKind.SpaceElevator;
-        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.Section(new SpaceElevatorBodyView(_kit), new WholeSpecialDetailSelector());
+        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.OrbitalCargoBody(new SpaceElevatorBodyView(_kit, mount.FillsPanelHeight));
     }
 
     public sealed class RocketLaunchPadBodyFactory : IBlockInventoryBodyFactory
@@ -51,7 +51,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
         private readonly SpecialPresenters _presenters;
         public RocketLaunchPadBodyFactory(SpecialViewKit kit, SpecialPresenters presenters) { _kit = kit; _presenters = presenters; }
         public BlockInventoryBodyKind Kind => BlockInventoryBodyKind.RocketLaunchPad;
-        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.Section(new RocketLaunchPadBodyView(_kit), new WholeSpecialDetailSelector());
+        public IBlockInventoryPart Create(BlockInventoryBodyMount mount) => _presenters.OrbitalCargoBody(new RocketLaunchPadBodyView(_kit, mount.FillsPanelHeight));
     }
 
     public sealed class RocketLaunchPadTitleActionFactory : IBlockInventoryTitleActionFactory

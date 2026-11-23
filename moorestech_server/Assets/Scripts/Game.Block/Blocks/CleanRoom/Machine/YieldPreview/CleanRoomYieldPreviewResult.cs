@@ -47,32 +47,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         }
     }
 
-    // 未選択か、役割表に無いレシピ
-    // No recipe selected, or a recipe outside the role tables
-    public sealed class NoRolePreview : CleanRoomYieldPreviewResult
-    {
-        public static readonly NoRolePreview Instance = new();
-
-        private NoRolePreview()
-        {
-        }
-
-        internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NoRolePreview");
-    }
-
-    // 部屋が稼働を許さない（未密閉・クラス不足）。停止理由は A7 の状態が配る
-    // The room does not allow operation (not enclosed or class out); A7's state carries the halt reason
-    public sealed class NotOperablePreview : CleanRoomYieldPreviewResult
-    {
-        public static readonly NotOperablePreview Instance = new();
-
-        private NotOperablePreview()
-        {
-        }
-
-        internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NotOperablePreview");
-    }
-
     public sealed class LayerExposurePreview : CleanRoomYieldPreviewResult
     {
         public double LayerFailRate { get; }

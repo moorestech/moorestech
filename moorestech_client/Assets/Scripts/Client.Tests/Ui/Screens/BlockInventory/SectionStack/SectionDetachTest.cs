@@ -37,15 +37,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [Test]
         public void 文脈の区画はDetachで偽へ戻る()
         {
-            ContextModel.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent));
-            AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel).Create(Mount("Chest")), "Chest");
+            ContextModel.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent));
+            AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel, OsCursor, ImprovementCommands).Create(Mount("Chest")), "Chest");
         }
 
         [Test]
         public void 機械の区画はDetachで偽へ戻る()
         {
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModelWithModules(0, 0f, 1)));
-            AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor).Create(Mount("ElectricMachine")), "ElectricMachine");
+            AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor, ImprovementCommands).Create(Mount("ElectricMachine")), "ElectricMachine");
         }
 
         [Test]

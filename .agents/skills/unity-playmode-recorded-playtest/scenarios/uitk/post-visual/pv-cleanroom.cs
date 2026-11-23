@@ -1,5 +1,5 @@
-// post-visual の並べ比べ（クリーンルーム）: 部屋を作り清浄機を 0→2→8→14→16→20→30 台と増やしながら、清浄機と室内の精密切断機の画面を Web と UITK で同じ状態にして 1280×720 で撮る
-// post-visual comparison (clean room): build a room and grow purifiers 0->2->8->14->16->20->30, shooting the purifier and the in-room cutter panels in the same state on Web and UITK at 1280x720
+// post-visual の並べ比べ（クリーンルーム）: 部屋を作り清浄機を 0→2→8→14→16→20→30 台と増やしながら、清浄機と室内の精密切断機の画面を Web と UITK で同じ状態にして 1280×720 で撮る。ADR 0105 の後の UITK は台数に関係なく清浄機の部屋の欄が3行（クラスとあと何台・台数・この清浄機）、切断機が部屋クラスの1行なので、清浄機1台以上で Web（清浄機1台ずつの行・換気回数）と違うのは意図どおり
+// post-visual comparison (clean room): build a room and grow purifiers 0->2->8->14->16->20->30, shooting the purifier and the in-room cutter panels in the same state on Web and UITK at 1280x720; after ADR 0105 UITK shows three room lines on the purifier (class with units to next, count, this purifier) and one room-class line on the cutter whatever the count, so differing from Web (per-purifier rows, air changes) with one or more purifiers is intended
 // master と feature/uitk の両方でコンパイルできる API だけを使う（部屋の検出は両側にある WaitForCleanRoom）
 // Uses only APIs that compile on both branches (room detection via WaitForCleanRoom, present on both)
 using System;

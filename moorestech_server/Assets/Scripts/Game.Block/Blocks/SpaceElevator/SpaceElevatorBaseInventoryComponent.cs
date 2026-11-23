@@ -4,6 +4,7 @@ using Game.Orbit;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Game.Block.Blocks.Connector;
+using Game.Block.Blocks.OrbitalCargo;
 using Game.Block.Blocks.Service;
 using Game.Block.Interface.Event;
 using UniRx;
@@ -13,9 +14,9 @@ using System;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 using static Game.Block.Interface.BlockException;
 namespace Game.Block.Blocks.SpaceElevator
 {
@@ -29,7 +30,12 @@ namespace Game.Block.Blocks.SpaceElevator
         public BlockInstanceId BlockInstanceId { get; }
         public IReadOnlyCollection<int> SortExcludedSlots => Enumerable.Range(0, _slotCount).ToArray();
         public string SaveKey { get; } = typeof(SpaceElevatorBaseInventoryComponent).FullName;
-        internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
+        // 入口の在庫か選択が変わったときの通知。昇降機は入口を直接触らず、在庫のこの口と下の読み取りを通す
+        // Fires when the inlet inventory or the selection changes; the climber never touches the inlet directly and goes through this and the reads below
+        internal IObservable<Unit> OnInletConditionChanged => Inlet.OnConditionChanged;
+        // 入口の受け入れ・塞がり・選び直しの返却は入口が持つ。外から触るのはテンプレート（選択部品へ渡す）だけ
+        // The inlet owns acceptance, blocking and reselection refunds; only the template touches it (to hand it to the selector)
+        internal SpaceElevatorBaseInlet Inlet { get; }
         private readonly Subject<Unit> _inventoryChanged = new();
         private readonly IOrbitalArrivalService _arrivalService;
         private readonly int[] _outputSlots;
@@ -39,7 +45,7 @@ namespace Game.Block.Blocks.SpaceElevator
         // 積荷と1便の個数（マスタ積荷表）
         // Payloads and per-launch counts from the master table
         private readonly Dictionary<ItemId, int> _countPerLaunchByCarriedPayload;
-        public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService)
+        public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService, IOrbitalCargoSelectionReader cargoSelection)
         {
             BlockInstanceId = blockInstanceId;
             _blockInventoryInserter = blockInventoryInserter;
@@ -50,6 +56,7 @@ namespace Game.Block.Blocks.SpaceElevator
             _countPerLaunchByCarriedPayload = param.CarriedPayloadItemGuids.ToDictionary(
                 guid => MasterHolder.ItemMaster.GetItemId(guid),
                 guid => MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(payload => payload.PayloadItemGuid == guid).CountPerLaunch);
+            Inlet = new SpaceElevatorBaseInlet(_itemDataStoreService, _countPerLaunchByCarriedPayload, cargoSelection, _inventoryChanged);
             #region Internal
             void InvokeEvent(int slot, IItemStack itemStack)
             {
@@ -59,30 +66,22 @@ namespace Game.Block.Blocks.SpaceElevator
             }
             #endregion
         }
-        public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService) :
-            this(blockInstanceId, param, blockInventoryInserter, arrivalService)
+        public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService, IOrbitalCargoSelectionReader cargoSelection) :
+            this(blockInstanceId, param, blockInventoryInserter, arrivalService, cargoSelection)
         {
-            // ロード時はまだワールドに登録されていないのでイベントを出さない
-            // Loading does not fire events because the block is not registered in the world yet
+            // ロード時はまだワールドに登録されていないのでイベントを出さない。戻し先は運べる全種類で決め、選択では絞らない
+            // Loading fires no events before world registration; restoration uses every carried kind, not the selection
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             SpaceElevatorInventoryRestorer.Restore(itemJsons, _itemDataStoreService, _slotCount, blockInstanceId);
         }
         // 入口の受入定義を配信側と共有する
         // Share the inlet acceptance definition with the publisher
         public static IReadOnlyList<ItemId> GetCarriedPayloadItemIds(SpaceElevatorBaseBlockParam param) => param.CarriedPayloadItemGuids.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToList();
-        private bool IsCarriedPayload(ItemId itemId) { return _countPerLaunchByCarriedPayload.ContainsKey(itemId); }
-        // 入口の中身を見る。運べないアイテムはマスタを変えた後のロードでだけ残る
-        // Peek at the inlet; a non-carried item only remains after loading with a changed master
-        internal SatelliteInletState PeekSatellite(out ItemId satelliteId)
-        {
-            CheckDestroy(this);
-            var stack = _itemDataStoreService.GetItem(SatelliteSlot);
-            satelliteId = stack.Id;
-            if (stack.Count == 0) return SatelliteInletState.MissingPayload;
-            if (!_countPerLaunchByCarriedPayload.TryGetValue(stack.Id, out var countPerLaunch)) return SatelliteInletState.NotCarried;
-            // silent-ok: 1便に満たない積荷は通常の待機 / プレイヤーは拠点UIの積荷待ちと入口の個数で気づく
-            return stack.Count < countPerLaunch ? SatelliteInletState.MissingPayload : SatelliteInletState.Carriable;
-        }
+        // 昇降機からの入口の読み取りは、ここを通して壊れた後の読み取りを止める（今のコードの PeekSatellite と同じ流儀）
+        // The climber reads the inlet only through these, so reads after destruction are stopped (same style as the existing PeekSatellite)
+        internal SatelliteInletState PeekSatellite(out ItemId satelliteId) { CheckDestroy(this); return Inlet.Peek(out satelliteId); }
+        internal SpaceElevatorBaseStatus InletWaitStatus() { CheckDestroy(this); return Inlet.WaitStatus(); }
+        internal ItemId? SelectedCargoItemId() { CheckDestroy(this); return Inlet.SelectedCargoItemId(); }
         // ロード時に昇降中の積荷を1便ぶんへ正規化し、昇らせない分は入口・出口へ戻す（入らなければ消す）
         // Normalize a climbing payload to one launch on load, returning the rest to the inlet or outlets (discarding what does not fit)
         internal IItemStack TakeLaunchableClimbingPayloadOnLoad(IItemStack savedPayload) { return SpaceElevatorInventoryRestorer.TakeLaunchableClimbingPayloadOnLoad(savedPayload, _countPerLaunchByCarriedPayload, _itemDataStoreService, _outputSlots, BlockInstanceId); }
@@ -92,9 +91,9 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             CheckDestroy(this);
             satellite = ServerContext.ItemStackFactory.CreatEmpty();
-            var inlet = PeekSatellite(out satelliteId);
+            var inlet = Inlet.Peek(out satelliteId);
             // silent-ok: 通常の入口待機 / 呼出側が理由を状態詳細と初回ログへ反映する
-            if (inlet != SatelliteInletState.Carriable) return inlet == SatelliteInletState.MissingPayload ? SatelliteTakeResult.MissingPayload : SatelliteTakeResult.NotCarried;
+            if (inlet != SatelliteInletState.Carriable) return SatelliteInletWait.ToWaitResult(inlet);
             var countPerLaunch = _countPerLaunchByCarriedPayload[satelliteId];
             // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
             if (!InventoryInsertItem.TryFillAllPreferringExisting(_arrivalService.PreviewArrivalOutputs(satelliteId, countPerLaunch), CopyOutlets())) return SatelliteTakeResult.OutputBlocked;
@@ -127,35 +126,13 @@ namespace Game.Block.Blocks.SpaceElevator
             CheckDestroy(this);
             BlockOutputTransfer.Transfer(_itemDataStoreService, _outputSlots, _blockInventoryInserter);
         }
-        // ベルト・プレイヤーからは運ぶ積荷だけを入口へ受ける
-        // Belts and players may only put carried payloads into the inlet
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            CheckDestroy(this);
-            // silent-ok: 積荷以外はベルト上に残す通常の受け入れ拒否 / プレイヤーはベルトの詰まりと拠点UIの入口で気づく
-            if (!IsCarriedPayload(itemStack.Id)) return itemStack;
-            var result = _itemDataStoreService.GetItem(SatelliteSlot).AddItem(itemStack);
-            _itemDataStoreService.SetItem(SatelliteSlot, result.ProcessResultItemStack);
-            return result.RemainderItemStack;
-        }
-        public bool InsertionCheck(List<IItemStack> itemStacks)
-        {
-            CheckDestroy(this);
-            var slot = _itemDataStoreService.GetItem(SatelliteSlot);
-            foreach (var itemStack in itemStacks)
-            {
-                // silent-ok: 搬送の事前確認は在庫を変えない / 呼び出し側が返値で詰まりを認識する
-                if (!IsCarriedPayload(itemStack.Id)) return false;
-                var result = slot.AddItem(itemStack);
-                // silent-ok: 満杯の通常拒否 / 呼び出し側と入口UIに残数が届く
-                if (0 < result.RemainderItemStack.Count) return false;
-                slot = result.ProcessResultItemStack;
-            }
-            return true;
-        }
-        // 入口は積荷だけ、出口は取り出し（空にする）だけを許す
-        // The inlet accepts only payloads and the outlets only taking out (emptying)
-        public bool IsAllowedToPlace(int slot, IItemStack itemStack) => itemStack.Count == 0 || slot == SatelliteSlot && IsCarriedPayload(itemStack.Id);
+        // ベルト・プレイヤーからは選んだ積荷だけを入口へ受ける（ADR 0106 7）
+        // Belts and players may only put the selected payload into the inlet (ADR 0106 7)
+        public IItemStack InsertItem(IItemStack itemStack) { CheckDestroy(this); return Inlet.Insert(itemStack); }
+        public bool InsertionCheck(List<IItemStack> itemStacks) { CheckDestroy(this); return Inlet.InsertionCheck(itemStacks); }
+        // 入口は選んだ積荷だけ、出口は取り出し（空にする）だけを許す
+        // The inlet accepts only the selected payload and the outlets only taking out (emptying)
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack) => itemStack.Count == 0 || slot == SatelliteSlot && Inlet.Accepts(itemStack.Id);
         public object GetSaveState()
         {
             CheckDestroy(this);

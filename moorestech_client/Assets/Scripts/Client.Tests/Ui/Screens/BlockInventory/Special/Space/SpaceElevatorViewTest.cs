@@ -1,7 +1,9 @@
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Logic.Special;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Text;
 using Game.Block.Interface.State;
@@ -56,6 +58,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
 
         /// <web-test file="src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx">%s の文言と不足色を表示する</web-test>
         [TestCase(SpaceElevatorBaseStatus.ReadyToConnect, false)]
+        [TestCase(SpaceElevatorBaseStatus.CargoNotSelected, false)]
         [TestCase(SpaceElevatorBaseStatus.InsufficientCable, true)]
         [TestCase(SpaceElevatorBaseStatus.WaitingSatellite, false)]
         [TestCase(SpaceElevatorBaseStatus.Climbing, false)]
@@ -74,8 +77,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
         [Test]
         public void 詳細の未着は取得待ちを出し接続ボタンを出さない()
         {
-            var view = Mount(new SpaceElevatorBodyView(Kit(null)));
-            view.Render(Slots(true), SpecialBlockDetailViewModel.Empty);
+            var view = Mount(new SpaceElevatorBodyView(Kit(null), false));
+            view.Render(Slots(true), SpecialBlockDetailViewModel.Empty, false);
             Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading).Resolve(), TextOf(view, "space-elevator-loading"));
             Assert.IsFalse(IsShown(Find<VisualElement>(view, "space-elevator-section")));
             Assert.IsFalse(IsDisplayedInHierarchy(Find<Button>(view, "space-elevator-connect")), "接続ボタンは隠れた区画の中にあり見えない");
@@ -95,6 +98,30 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
             }
 
             #endregion
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 未選択の拠点は接続の有無にかかわらず一覧を出し接続ボタンを出さない(bool connected)
+        {
+            var unselected = new OrbitalCargoDetail(null, null, new[] { OrbitalCargoSamples.ChipLv1Choice, OrbitalCargoSamples.ChipLv2Choice }, new[] { OrbitalCargoSamples.ChipLv1 }, 240);
+            var view = Attach(Slots(true), SpecialDetailSamples.SpaceElevatorWith(SpaceElevatorBaseStatus.CargoNotSelected, connected, 1000, 0f, unselected));
+            Assert.IsNotNull(view.Q<VisualElement>("space-elevator-cargo-row-1"));
+            Assert.IsNull(view.Q<VisualElement>("space-elevator-cargo-row-2"), "未解放の Lv2 は出さない");
+            Assert.IsNull(view.Q<VisualElement>("space-elevator-connect"));
+            Assert.IsNull(view.Q<VisualElement>("space-elevator-output-grid"), "出口の枠も選ぶまで出さない（ユーザー裁定 2026-11-21・判断 23）");
+            Assert.IsNull(view.Q<VisualElement>("space-elevator-pool"), "接続済みでもケーブルプールの行は選ぶまで出さない（同上）");
+            Assert.AreEqual(new UiText(SpaceElevatorLogic.StatusDisplay(SpaceElevatorBaseStatus.CargoNotSelected).LabelKey).Resolve(), TextOf(view, "space-elevator-cargo-status"));
+        }
+
+        [Test]
+        public void 昇降中に選び直すと見出しは昇っている便で下に次の便からを出し入口は新しい種類の透かしになる()
+        {
+            var cargo = new OrbitalCargoDetail(OrbitalCargoSamples.ChipLv2, OrbitalCargoSamples.ChipLv1, new[] { OrbitalCargoSamples.ChipLv1Choice, OrbitalCargoSamples.ChipLv2Choice }, new[] { OrbitalCargoSamples.ChipLv1, OrbitalCargoSamples.ChipLv2 }, 240);
+            var view = Render(Slots(true), SpecialDetailSamples.SpaceElevatorWith(SpaceElevatorBaseStatus.Climbing, true, 0, 0.5f, cargo));
+            Assert.IsTrue(IsShown(Find<VisualElement>(view, "space-elevator-cargo-next-flight")));
+            Assert.AreEqual(new[] { "space-elevator-input-grid-slot-0" }, FrameIds(view, "space-elevator-input-grid"));
+            Assert.IsTrue(IsShown(Find<VisualElement>(view, "space-elevator-pool")), "接続済みでもケーブルのプールの行は今のまま");
         }
     }
 }

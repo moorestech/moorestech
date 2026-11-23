@@ -20,6 +20,7 @@ using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Orbit;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
@@ -106,13 +107,16 @@ return PlaytestRunner.Run("uitk-block-special-panels", new PlaytestRunOptions { 
     await Capture("gear-generator");
     await Close();
 
-    // 宇宙エレベーター拠点: ケーブル不足の状態文 → 1 便の軌道到着 → UI の接続ボタンで接続済みになり進みが出る（接続に電力は要らない）
-    // Space elevator base: insufficient-cable status → one cable arrival → the UI connect button connects and shows progress (connecting needs no power)
-    await Open("宇宙エレベーター拠点", elevatorPos, 9, 9, 0.4f, "space-elevator-view");
-    await p.Until(() => Shown("space-elevator-status") && Text("space-elevator-status").Trim().Length > 0, 15f, "状態文が出た");
+    // 宇宙エレベーター拠点: 未選択は積荷の一覧 → ICチップLv1 の行を押して選ぶ → ケーブル不足の状態文 → 1 便の軌道到着 → UI の接続ボタンで接続済みになり進みが出る（接続に電力は要らない）
+    // Space elevator base: the cargo list while unselected → press the IC chip Lv1 row → insufficient-cable status → one cable arrival → the UI connect button connects and shows progress (connecting needs no power)
+    var (chipId, cableId) = (MasterHolder.ItemMaster.GetItemId(Guid.Parse("f6dd7835-0845-4877-87d0-b719d037ae7d")), MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"))); // ICチップLv1・グラフェンケーブル
+    await p.RunOnServer("ICチップLv1 を解放する（このシナリオは研究を済ませない）", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockItem(chipId));
+    await Open("宇宙エレベーター拠点", elevatorPos, 9, 9, 0.4f, $"space-elevator-cargo-row-{chipId.AsPrimitive()}");
+    await Capture("space-elevator-cargo-list");
+    await p.ClickUi($"space-elevator-cargo-row-{chipId.AsPrimitive()}");
+    await p.Until(() => Detail().SelectedCargoItemId == chipId && Shown("space-elevator-status") && Text("space-elevator-status").Trim().Length > 0, 15f, "ICチップLv1 を選び（サーバー）、状態文が出た");
     p.Note($"宇宙エレベーターの状態文={Text("space-elevator-status")} server={Detail().Status}");
     await Capture("space-elevator");
-    var cableId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"));
     var cablesPerElevator = ((SpaceElevatorBaseBlockParam)elevator.BlockMasterElement.BlockParam).CablesPerElevator;
     await p.RunOnServer("ケーブル1便を軌道へ到着させる", () => ServerContext.GetService<IOrbitalArrivalService>().Arrive(cableId, cablesPerElevator));
     await p.UntilUiElement("space-elevator-connect", 10f);

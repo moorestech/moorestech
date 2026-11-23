@@ -11,6 +11,7 @@ using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Tests.Module.TestMod;
 using Tests.Util.EnergySystem;
+using Tests.Util.OrbitalCargo;
 using UnityEngine;
 
 namespace Tests.Util.Rocket
@@ -41,6 +42,8 @@ namespace Tests.Util.Rocket
             return new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)pad.BlockMasterElement.BlockParam);
         }
 
+        // 資材だけを入れる。未選択の台は受け取らないので、呼ぶ前に積荷を選んでおく
+        // Insert only the materials; an unselected pad accepts nothing, so select a cargo first
         public static void FillMaterials(IBlock pad)
         {
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
@@ -49,8 +52,11 @@ namespace Tests.Util.Rocket
             inventory.InsertItem(ForUnitTestItemId.RocketComputerId, 1);
         }
 
-        public static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)
+        // 積荷を選び（選び直しの返却は枠に残す）、1便ぶんの資材と積荷を入れる
+        // Select the cargo (reselection leftovers stay in their slots), then insert one launch of materials and payload
+        public static void SelectCargoAndFillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)
         {
+            OrbitalCargoTestUtil.SelectCargo(pad, payloadItemId);
             FillMaterials(pad);
             pad.GetComponent<IOpenableBlockInventoryComponent>().InsertItem(payloadItemId, payloadCount);
         }

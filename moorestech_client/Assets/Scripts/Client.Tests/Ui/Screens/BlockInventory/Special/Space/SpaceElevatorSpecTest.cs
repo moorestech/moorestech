@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
 
             simulate.Click(Find<Button>(view, "space-elevator-connect"));
             CollectionAssert.AreEqual(new[] { "space_elevator.connect" }, Commands.Issued);
-            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.Climbing, true, 1000, 0f)));
+            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.Climbing, true, 1000, 0f)), false);
             Assert.IsTrue(IsShown(Find<VisualElement>(view, "space-elevator-progress")));
             Assert.IsFalse(IsShown(Find<Button>(view, "space-elevator-connect")));
         }
@@ -76,10 +76,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
         [Test]
         public void 取得待ちから接続可能へ移る()
         {
-            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent())));
-            view.Render(Slots(false), SpecialBlockDetailViewModel.Empty);
+            var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
+            view.Render(Slots(false), SpecialBlockDetailViewModel.Empty, false);
             Assert.IsTrue(IsShown(Find<Label>(view, "space-elevator-loading")));
-            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(Unconnected(SpaceElevatorBaseStatus.ReadyToConnect)));
+            view.Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(Unconnected(SpaceElevatorBaseStatus.ReadyToConnect)), false);
             Assert.IsFalse(IsShown(Find<Label>(view, "space-elevator-loading")));
             Assert.IsTrue(Find<Button>(view, "space-elevator-connect").enabledSelf);
         }
@@ -88,7 +88,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Space
         [Test]
         public void 並べ替えた入口と出口の添字を描画と押下に使う()
         {
-            var reordered = new SpaceElevatorDetail(new[] { 2 }, new[] { 1, 0 }, Array.Empty<InletSlotBinding>(), false, 1000, 1000, 0f, SpaceElevatorBaseStatus.ReadyToConnect);
+            var reordered = new SpaceElevatorDetail(new[] { 2 }, new[] { 1, 0 }, Array.Empty<InletSlotBinding>(), false, 1000, 1000, 0f, SpaceElevatorBaseStatus.ReadyToConnect, SpecialDetailSamples.SpaceElevator(SpaceElevatorBaseStatus.ReadyToConnect, false, 1000, 0f).Cargo);
             var view = Render(Slots(false), SpecialDetailSamples.ElevatorWithNetwork(reordered));
             Assert.AreEqual(new[] { "space-elevator-input-grid-slot-2" }, FrameIds(view, "space-elevator-input-grid"));
             Assert.AreEqual(new[] { "space-elevator-output-grid-slot-1", "space-elevator-output-grid-slot-0" }, FrameIds(view, "space-elevator-output-grid"));

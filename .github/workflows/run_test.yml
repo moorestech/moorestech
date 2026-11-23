@@ -75,6 +75,16 @@ jobs:
           fetch-depth: 1
           path: moorestech
 
+      # Unity の版は ProjectVersion.txt だけを正にし、Library キャッシュのキーはここから取る（版上げで旧版の Library を復元させないため）
+      # ProjectVersion.txt is the only source of the Unity version; Library cache keys read it here so an upgrade never restores an old-version Library
+      - name: Read Unity version.
+        id: unity_version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^m_EditorVersion: //p' moorestech/moorestech_client/ProjectSettings/ProjectVersion.txt | tr -d '\r')
+          if [ -z "$version" ]; then echo "::error::m_EditorVersion not found in moorestech/moorestech_client/ProjectSettings/ProjectVersion.txt"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       # 実測で決めたfilterを一箇所から解決し、matrixと除外集合の乖離を防ぐ。
       # Resolve measured filters from one source so the matrix and exclusion sets cannot drift apart.
       - name: Resolve Unity test shard.
@@ -121,9 +131,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
-          key: Library_Test_client-${{ github.sha }}
+          key: Library_Test_client-${{ steps.unity_version.outputs.version }}-${{ github.sha }}
           restore-keys: |
-            Library_Test_client-
+            Library_Test_client-${{ steps.unity_version.outputs.version }}-
 
       # 打ち切りに達したかを後続stepが根拠付きで判定できるよう、テスト開始時刻をepoch秒で残す。
       # Record the test start time in epoch seconds so a later step can decide on evidence whether the cutoff was reached.
@@ -138,9 +148,9 @@ jobs:
       - name: Run Unity Test - ${{ matrix.shard }}
         id: unity_test
         continue-on-error: true
-        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
-        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
-        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        # 上流がv4タグを動かしCIが全滅したため、SHAへ固定する。v4.3.2 はUnity 6.6が要る共有メモリ（--shm-size=1025m）をコンテナへ渡す
+        # Pinned to a SHA because an upstream v4 tag move broke all CI; v4.3.2 gives the container the shared memory Unity 6.6 needs (--shm-size=1025m)
+        uses: game-ci/unity-test-runner@fa6ced25861c16ef56187828c43f76d00df43a23 # v4.3.2
         # 起動boot中にEditorのメインスレッドが固着する既知のflake（moorestech-7gsc）を、jobのtimeoutより先に打ち切る。
         # Cut off the known main-thread freeze during boot (moorestech-7gsc) before the job-level timeout fires.
         # jobのtimeoutは打ち切りをcancelledにして ci-auto-rerun の発火条件（failure / timed_out）を素通りするが、stepのtimeoutはfailureになるため後続の判定stepが拾える（ADR 0063）。
@@ -158,7 +168,9 @@ jobs:
           projectPath: moorestech/moorestech_client/
           githubToken: ${{ github.token }}
           checkName: Test Results - ${{ matrix.shard }}
-          unityVersion: 6000.3.8f1
+          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
+          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          containerRegistryImageVersion: 4
           testMode: editmode
           customParameters: >-
             ${{ steps.shard.outputs.use_assembly_filter == 'true' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}

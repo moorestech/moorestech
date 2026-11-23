@@ -4,8 +4,8 @@ using Response = Server.Protocol.PacketResponse.GetCleanRoomYieldInfoProtocol.Re
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     抽選の中身の応答を役割ごとのビューへ読む唯一の口。判別子と違う役割の欄や、率の無い種別に付いた確定済み抽選は食い違いとして読めない扱いにする
-    ///     The only reader turning a draw-detail response into per-role views; fields of another role, or a fixed draw on a kind without rates, are mismatches and unreadable
+    ///     抽選の中身の応答を役割ごとのビューへ読む唯一の口。必要な入れ子の欠けや壊れた改善の一覧は読めない扱いにする
+    ///     The only reader turning a draw-detail response into per-role views; missing required nested odds and broken improvement lists are unreadable
     /// </summary>
     public static class CleanRoomYieldResponseReader
     {
@@ -16,23 +16,20 @@ namespace Server.Protocol.PacketResponse
             switch (kind)
             {
                 case CleanRoomYieldResponseKind.NoRole:
-                    if (HasPendingDraw()) return WarnMismatchedPending();
                     view = CleanRoomYieldNoRoleView.Instance;
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.NotOperable:
-                    if (HasPendingDraw()) return WarnMismatchedPending();
                     view = CleanRoomYieldNotOperableView.Instance;
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.LayerExposure:
-                    if (response.LayerExposure == null) return WarnMissingNested();
-                    if (response.PendingDicing != null) return WarnMismatchedPending();
-                    view = new CleanRoomYieldLayerExposureView(response.LayerExposure, response.PendingLayerExposure);
+                    if (response.LayerExposureOdds == null) return WarnMissingNested();
+                    if (!CleanRoomYieldImprovementMessagePack.AreReadable(response.Improvements, 0)) return WarnBrokenImprovements();
+                    view = new CleanRoomYieldLayerExposureView(response.LayerExposureOdds, response.Improvements);
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.Dicing:
-                    if (response.Dicing == null || response.Dicing.LevelRates == null) return WarnMissingNested();
-                    if (response.PendingDicing != null && response.PendingDicing.LevelRates == null) return WarnMissingNested();
-                    if (response.PendingLayerExposure != null) return WarnMismatchedPending();
-                    view = new CleanRoomYieldDicingView(response.Dicing, response.PendingDicing);
+                    if (response.DicingOdds == null || response.DicingOdds.LevelRates == null) return WarnMissingNested();
+                    if (!CleanRoomYieldImprovementMessagePack.AreReadable(response.Improvements, response.DicingOdds.LevelRates.Length)) return WarnBrokenImprovements();
+                    view = new CleanRoomYieldDicingView(response.DicingOdds, response.Improvements);
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.BlockNotFound:
                     return BlockInfoReadResult.BlockNotFound;
@@ -45,11 +42,6 @@ namespace Server.Protocol.PacketResponse
 
             #region Internal
 
-            bool HasPendingDraw()
-            {
-                return response.PendingLayerExposure != null || response.PendingDicing != null;
-            }
-
             // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて再試行する）
             // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and retries)
             BlockInfoReadResult WarnMissingNested()
@@ -58,9 +50,9 @@ namespace Server.Protocol.PacketResponse
                 return BlockInfoReadResult.Unreadable;
             }
 
-            BlockInfoReadResult WarnMismatchedPending()
+            BlockInfoReadResult WarnBrokenImprovements()
             {
-                Debug.LogWarning($"[GetCleanRoomYieldInfo] {kind} response carries a fixed draw of another role; treating it as unreadable");
+                Debug.LogWarning($"[GetCleanRoomYieldInfo] {kind} response has broken improvements; treating it as unreadable");
                 return BlockInfoReadResult.Unreadable;
             }
 

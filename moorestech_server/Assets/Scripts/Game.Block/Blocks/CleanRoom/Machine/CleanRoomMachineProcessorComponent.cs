@@ -40,10 +40,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // This decorator owns the chip-process draws and the current room effect; only the effect read view leaves the processor (read by B6)
         private readonly CleanRoomYieldDrawDecorator _yieldDrawDecorator;
         public ICleanRoomEffectLookup CleanRoomEffectLookup => _yieldDrawDecorator;
-        // 出力待ちの確定結果は待機ステートが持ち、抽選の中身の表示（D02）が確定時の率を読む
-        // The idle state owns the realization waiting for output; the draw-detail display (D02) reads its fixed rates
+        // 出力待ちの確定結果は待機ステートが持つ。外から読むのはセーブだけ（画面は今の条件の1組だけを出す）
+        // The idle state owns the realization waiting for output; only the save reads it from outside (the screen shows only the current set)
         private readonly IdleMachineProcessState _idleState;
-        internal IMachinePendingRealizationReader PendingRealizationReader => _idleState;
 
         private readonly HaltedMachineProcessState _haltedState;
 

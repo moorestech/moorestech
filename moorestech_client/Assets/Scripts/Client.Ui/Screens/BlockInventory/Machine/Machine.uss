@@ -59,3 +59,9 @@
 .machine-module-band-wrap {
     padding-top: var(--mantine-spacing-xs);
 }
+
+/* 各言語の改善方法をボタン面に収める */
+/* Fit the localized improvement action within its button face */
+#clean-room-yield-improvement-open {
+    --panel-action-button-width: auto;
+}

@@ -31,7 +31,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
     public class SpaceElevatorConnectActionTest
     {
         [UnityTest]
-        public IEnumerator RegisteredActionUsesOpenCoordinatesAndReturnsAllThreeResults()
+        public IEnumerator RegisteredActionSelectsCargoBeforeConnectingAtOpenCoordinates()
         {
             EnterPlayModeUtil();
             // PlayMode遷移はUnityTest直下に置く
@@ -94,20 +94,41 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 var toaster = new RecordingUiCommandResultToaster();
                 var commands = new SpecialBlockCommands(resolver.Resolve<IBlockInventoryPanelSource>(), resolver.Resolve<ISpecialBlockRequestSender>(), resolver.Resolve<PlayerGrabModel>(), toaster);
-                var insufficient = await Connect(commands, toaster);
-                AssertRejected(insufficient, UiCommandRejectReason.SpecialBlockRequestFailed, "insufficient_cable");
                 var param = (SpaceElevatorBaseBlockParam)master.BlockParam;
+
+                // 積荷を選ぶとケーブル不足の判定へ進む
+                // Selecting cargo advances the connection to the cable check
+                var connectReportCount = toaster.Reports.Count;
+                commands.ConnectSpaceElevator();
+                var notSelected = await ReadCommandResult(toaster, connectReportCount, SpecialBlockCommands.ConnectSpaceElevatorCommandName);
+                AssertRejected(notSelected, UiCommandRejectReason.SpecialBlockRequestFailed, "connect_cargo_not_selected");
+                var payload = MasterHolder.ItemMaster.GetItemId(param.CarriedPayloadItemGuids[0]);
+                await SpaceElevatorServerTestState.UnlockPayloadAsync(payload);
+                var selectReportCount = toaster.Reports.Count;
+                commands.SelectOrbitalCargo(payload);
+                var selected = await ReadCommandResult(toaster, selectReportCount, SpecialBlockCommands.SelectOrbitalCargoCommandName);
+                Assert.IsInstanceOf<UiCommandAccepted>(selected, (selected as UiCommandRejected)?.ToLogText());
+                var selectedState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
+                Assert.AreEqual(payload, selectedState.TargetSelectedCargo, "選択は開いた拠点の座標と実体へ届く");
+                var insufficientReportCount = toaster.Reports.Count;
+                commands.ConnectSpaceElevator();
+                var insufficient = await ReadCommandResult(toaster, insufficientReportCount, SpecialBlockCommands.ConnectSpaceElevatorCommandName);
+                AssertRejected(insufficient, UiCommandRejectReason.SpecialBlockRequestFailed, "insufficient_cable");
                 var insufficientState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(0, insufficientState.PoolAmount);
                 Assert.IsFalse(insufficientState.TargetConnected);
                 var supplied = await SpaceElevatorServerTestState.SupplyCableAsync(param);
-                var connected = await Connect(commands, toaster);
+                var connectedReportCount = toaster.Reports.Count;
+                commands.ConnectSpaceElevator();
+                var connected = await ReadCommandResult(toaster, connectedReportCount, SpecialBlockCommands.ConnectSpaceElevatorCommandName);
                 Assert.IsInstanceOf<UiCommandAccepted>(connected, (connected as UiCommandRejected)?.ToLogText());
                 var connectedState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.IsTrue(connectedState.TargetConnected);
                 Assert.IsFalse(connectedState.DecoyConnected, "request used the decoy coordinates");
                 Assert.AreEqual(supplied - param.CablesPerElevator, connectedState.PoolAmount);
-                var already = await Connect(commands, toaster);
+                var alreadyReportCount = toaster.Reports.Count;
+                commands.ConnectSpaceElevator();
+                var already = await ReadCommandResult(toaster, alreadyReportCount, SpecialBlockCommands.ConnectSpaceElevatorCommandName);
                 AssertRejected(already, UiCommandRejectReason.SpecialBlockCommandStale, "already_connected");
                 var alreadyState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
                 Assert.AreEqual(connectedState.PoolAmount, alreadyState.PoolAmount);
@@ -125,15 +146,13 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Directory.Delete(directory, true);
             }
 
-            // 接続を送り、トーストの係へ結果が届くまで待つ
-            // Send a connect and wait until its result reaches the toaster
-            async UniTask<UiCommandResult> Connect(SpecialBlockCommands commands, RecordingUiCommandResultToaster toaster)
+            // 件数・コマンド名を検証し、送信結果を返す
+            // Verify the report count and command name, then return the result
+            async UniTask<UiCommandResult> ReadCommandResult(RecordingUiCommandResultToaster toaster, int before, string commandName)
             {
-                var before = toaster.Reports.Count;
-                commands.ConnectSpaceElevator();
                 for (var i = 0; i < 50 && toaster.Reports.Count == before; i++) await UniTask.Delay(100);
-                Assert.AreEqual(before + 1, toaster.Reports.Count, "the connect result never reached the toaster");
-                Assert.AreEqual(SpecialBlockCommands.ConnectSpaceElevatorCommandName, toaster.Reports[before].CommandName);
+                Assert.AreEqual(before + 1, toaster.Reports.Count, $"the {commandName} result never reached the toaster");
+                Assert.AreEqual(commandName, toaster.Reports[before].CommandName);
                 return toaster.Reports[before].Result;
             }
 

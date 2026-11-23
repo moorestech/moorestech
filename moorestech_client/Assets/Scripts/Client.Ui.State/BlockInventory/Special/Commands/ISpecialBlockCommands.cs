@@ -1,4 +1,5 @@
 using Client.Ui.State.BlockInventory.Logic.Special;
+using Core.Master;
 
 namespace Client.Ui.State.BlockInventory.Special.Commands
 {
@@ -13,5 +14,6 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         void SetElectricToGearMode(int modeIndex);
         void ConnectSpaceElevator();
         void SendRocketCommand(RocketCommand command);
+        void SelectOrbitalCargo(ItemId payloadItemId);
     }
 }

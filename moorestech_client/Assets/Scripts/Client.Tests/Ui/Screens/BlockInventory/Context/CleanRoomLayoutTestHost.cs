@@ -37,9 +37,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
         // 清浄機の面。大型でないことを先に確かめる
         // The purifier panel; asserts non-large first like Web openBlock
-        protected BlockInventoryTestShell OpenAirFilterPanel(int filterCount)
+        protected BlockInventoryTestShell OpenAirFilterPanel()
         {
-            ContextModel.Set(Room(filterCount));
+            ContextModel.Set(AirFilterRoom());
             var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", new SlotItem(FirstItem, 5));
             var shell = OpenShell(panel);
             Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName), "air filter panel is not large");
@@ -55,18 +55,18 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             simulate.FrameUpdate();
         }
 
-        // 部屋の中の大型機械。負なら部屋なし
-        // The large interior machine; negative filterCount means no room
-        protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount)
+        // 部屋の中の大型機械。inRoom が偽なら部屋なし
+        // The large interior machine; no room when inRoom is false
+        protected BlockInventoryTestShell OpenCleanRoomMachine(bool inRoom)
         {
-            var shell = OpenCleanRoomMachine(filterCount, new MachineSlotLayout(2, 1, 1), true);
+            var shell = OpenCleanRoomMachine(inRoom, new MachineSlotLayout(2, 1, 1), true);
             Assert.IsTrue(shell.View.ClassListContains(BlockInventoryView.LargeClassName), "machine panel is large");
             return shell;
         }
 
         // 枠数とレシピ有無を指定する室内機械
         // The interior machine with the given slot layout and recipe presence
-        protected BlockInventoryTestShell OpenCleanRoomMachine(int filterCount, MachineSlotLayout layout, bool withRecipes)
+        protected BlockInventoryTestShell OpenCleanRoomMachine(bool inRoom, MachineSlotLayout layout, bool withRecipes)
         {
             var slots = Enumerable.Repeat(new SlotItem(new ItemId(0), 0), layout.Input + layout.Output + layout.Module).ToArray();
             var selection = withRecipes ? MachineRecipeSelection.Selected(MachineTestDetails.RecipeA) : MachineRecipeSelection.Unselected;
@@ -76,7 +76,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var catalog = withRecipes ? MachineTestDetails.Catalog(MachineTestDetails.RecipeA, MachineTestDetails.RecipeB) : MachineRecipeCatalog.Empty;
             var viewModel = MachineSectionViewModelBuilder.Build(panel, detail, slots, fluids, catalog, 1);
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(viewModel));
-            if (0 <= filterCount) ContextModel.Set(Room(filterCount));
+            if (inRoom) ContextModel.Set(MachineRoom());
             return OpenShell(panel);
         }
 
@@ -86,22 +86,33 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // Plug machine, context factories and rule, as production
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
-            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), OsCursor);
-            var context = new ContextSectionFactory(Content, ContextModel, MachineModel);
+            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), OsCursor, ImprovementCommands);
+            var context = new ContextSectionFactory(Content, ContextModel, MachineModel, OsCursor, ImprovementCommands);
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), rule, machine, context);
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             return shell;
         }
 
-        // filterCount 台の密閉済みの部屋
-        // A sealed room with filterCount purifiers
-        public static BlockContextViewModel Room(int filterCount)
+        // 室内機械から見た密閉済みの部屋（部屋クラスの1行）
+        // A sealed room as an interior machine sees it (the room-class line)
+        public static BlockContextViewModel MachineRoom()
         {
-            var filters = Enumerable.Range(0, filterCount).Select(_ => new CleanRoomAirFilter(1, 5, 0.5)).ToArray();
-            var room = new CleanRoomSummary(CleanRoomHeadline.Class("ISO 5"), 0.8, filters);
+            return Room(CleanRoomSummary.ForMachine(CleanRoomHeadline.Class("C")));
+        }
+
+        // 清浄機から見た密閉済みの部屋（台数つきの見出し・台数・この清浄機の3行）
+        // A sealed room as a purifier sees it (headline with units, count and own status)
+        public static BlockContextViewModel AirFilterRoom()
+        {
+            var status = CleanRoomAirFilterRoomStatus.WithUnitsToNextClass(6, 1, 1, 0.5, "B", 5);
+            return Room(CleanRoomSummary.ForAirFilter(CleanRoomHeadline.Class("C"), status));
+        }
+
+        private static BlockContextViewModel Room(CleanRoomSummary room)
+        {
             var entry = SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(room, CleanRoomHaltReason.None));
-            return new BlockContextViewModel(entry, SectionContent<CleanRoomYieldFetched>.Absent, SectionContent<MachineInputStall>.Absent);
+            return new BlockContextViewModel(entry, SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent);
         }
 
         // Web expectReachableInScroll

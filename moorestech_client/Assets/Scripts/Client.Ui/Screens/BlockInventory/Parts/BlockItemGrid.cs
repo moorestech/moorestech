@@ -53,10 +53,19 @@ namespace Client.Ui.Screens.BlockInventory.Parts
 
         public void Render(IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<int> slotIndices)
         {
+            var contents = new List<ItemSlotContent>(slotIndices.Count);
+            foreach (var index in slotIndices) contents.Add(SlotItemContent.From(_content, BlockSlotIndexReader.Read(itemSlots, index, nameof(BlockItemGrid), _testId), false));
+            RenderContents(slotIndices, contents);
+        }
+
+        // 中身を呼び手が組む枠（透かし・所持/必要つき）。contents は slotIndices と同じ並び
+        // Slots whose content the caller builds (ghosts, held/required); contents follow slotIndices
+        public void RenderContents(IReadOnlyList<int> slotIndices, IReadOnlyList<ItemSlotContent> contents)
+        {
             // 並ぶ枠の番号が変わったときだけ作り直し、同じなら中身だけ差し替える
             // Rebuild only when the slot indices change; otherwise just swap contents
             if (_slots.ClearIfKeysChanged(slotIndices)) Rebuild(slotIndices);
-            for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(SlotItemContent.From(_content, BlockSlotIndexReader.Read(itemSlots, _slots.KeyAt(i), nameof(BlockItemGrid), _testId), false));
+            for (var i = 0; i < _slots.Count; i++) _slots.RowAt(i).SetContent(contents[i]);
             ApplyColumns();
 
             #region Internal

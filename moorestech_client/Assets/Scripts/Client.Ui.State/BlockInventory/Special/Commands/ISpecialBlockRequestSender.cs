@@ -40,5 +40,6 @@ namespace Client.Ui.State.BlockInventory.Special.Commands
         UniTask<SpecialBlockRequestOutcome> SetElectricToGearMode(Vector3Int position, int modeIndex);
         UniTask<SpecialBlockRequestOutcome> ConnectSpaceElevator(Vector3Int position, BlockInstanceId instanceId);
         UniTask<SpecialBlockRequestOutcome> SendRocketCommand(Vector3Int position, RocketCommand command, BlockInstanceId instanceId);
+        UniTask<SpecialBlockRequestOutcome> SelectOrbitalCargo(Vector3Int position, BlockInstanceId instanceId, ItemId payloadItemId);
     }
 }

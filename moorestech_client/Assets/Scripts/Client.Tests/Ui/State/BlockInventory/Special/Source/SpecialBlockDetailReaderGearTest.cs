@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Tests.Ui.State.BlockInventory.Family;
@@ -77,7 +78,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Source
             var state = new GearToElectricGeneratorBlockStateDetail(true, new RPM(120f), new Torque(100f), new ElectricPower(72f), GearToElectricGenerationState.Generating);
             var block = _harness.CreateBlock(Vector3Int.zero, master, (GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey, state));
 
-            var detail = SpecialBlockDetailReader.Read(block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), out _);
+            var detail = SpecialBlockDetailReader.Read(block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), Array.Empty<ItemId>(), out _);
 
             Assert.IsTrue(detail.TryGetGearToElectric(out var generator));
             Assert.AreEqual(100.0, generator.MaxGeneratedPower, 0.001);
@@ -88,7 +89,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special.Source
         private SpecialBlockDetailViewModel Read(BlockMasterElement master, GearStateDetail gear, out string anomaly)
         {
             var block = _harness.CreateBlock(Vector3Int.zero, master, (GearStateDetail.BlockStateDetailKey, gear));
-            return SpecialBlockDetailReader.Read(block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), out anomaly);
+            return SpecialBlockDetailReader.Read(block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), Array.Empty<ItemId>(), out anomaly);
         }
     }
 }

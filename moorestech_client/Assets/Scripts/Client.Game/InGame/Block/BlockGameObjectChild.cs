@@ -114,7 +114,6 @@ namespace Client.Game.InGame.Block
             var reason = response.Success ? (LocalizationKey?)null : GetReason(response.FailureReason);
             if (!response.Success)
             {
-                Debug.Log($"[Delete] block rejected: {key} reason={response.FailureReason}");
                 _removeDeniedReason = reason;
                 _removeDeniedReasonUntil = Time.time + RemoveDeniedReasonDisplaySeconds;
             }

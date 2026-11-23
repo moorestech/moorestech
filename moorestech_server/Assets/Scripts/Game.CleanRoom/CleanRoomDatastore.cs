@@ -28,6 +28,9 @@ namespace Game.CleanRoom
         private readonly CleanRoomAirFilterServingService _airFilterServingService = new();
         private readonly IWorldBlockDatastore _world;
         private readonly List<double> _requiredAirChangeRates;
+        // クラス判定と台数計算が共有する必要換気回数
+        // Required air change rates shared by class decisions and unit counting
+        public IReadOnlyList<double> RequiredAirChangeRates => _requiredAirChangeRates;
         private readonly List<IDisposable> _subscriptions = new();
 
         public CleanRoomDatastore(IWorldBlockDatastore worldBlockDatastore)

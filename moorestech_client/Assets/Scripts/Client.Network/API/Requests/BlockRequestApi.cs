@@ -79,6 +79,15 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponseWithReason<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
         }
 
+        // 発射台・拠点の積荷を選ぶ。結果の表示はブロック状態の更新で行う
+        // Select a launch pad's or base's cargo; the result is shown through the block state update
+        public async UniTask<(OrbitalCargoSelectionProtocol.OrbitalCargoSelectionResponse response, PacketWaitCompletionReason reason)> SendOrbitalCargoSelection(
+            Vector3Int position, ItemId payloadItemId, BlockInstanceId expectedInstanceId, CancellationToken ct)
+        {
+            var request = new OrbitalCargoSelectionProtocol.OrbitalCargoSelectionRequest(position, expectedInstanceId, payloadItemId);
+            return await _packetExchangeManager.GetPacketResponseWithReason<OrbitalCargoSelectionProtocol.OrbitalCargoSelectionResponse>(request, ct);
+        }
+
         // BP Create/GetAll/Deleteを1メソッドで統合
         // Blueprint request (single endpoint for Create / GetAll / Delete)
         public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)

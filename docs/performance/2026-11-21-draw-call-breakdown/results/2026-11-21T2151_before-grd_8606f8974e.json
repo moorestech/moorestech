@@ -1,0 +1,1029 @@
+{
+  "label": "before-grd",
+  "commit": "8606f8974e16c1ea826790741ccfd0e00d1ba828",
+  "trackedChangesOnHost": 1,
+  "baselineWorld": "2026-10-22-world_1",
+  "environment": {
+    "unityVersion": "6000.3.8f1",
+    "codeOptimization": "Debug",
+    "quality": "High",
+    "vSyncCount": 1,
+    "targetFrameRate": 60,
+    "cameraPixels": "1920x1080",
+    "gpu": "NVIDIA GeForce RTX 3060 Ti",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "editorWindowMinimized": false,
+    "editorWindowForeground": true,
+    "userIdleSeconds": 96
+  },
+  "scene": {
+    "renderers": 216041,
+    "gameObjects": 314573,
+    "frameCount": 1166
+  },
+  "playerSpot": "player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409",
+  "fps": [
+    {
+      "frames": 147,
+      "seconds": 10.539,
+      "fps": 13.948,
+      "frameMsAvg": 71.696
+    },
+    {
+      "frames": 142,
+      "seconds": 10.428,
+      "fps": 13.617,
+      "frameMsAvg": 73.436
+    }
+  ],
+  "profiler": [
+    {
+      "frames": 71,
+      "frameMs": {
+        "avg": 79.545,
+        "p50": 75.082,
+        "p95": 108.891,
+        "max": 142.753
+      },
+      "markers": {
+        "PlayerLoop": {
+          "totalMs": 67.723,
+          "selfMs": 0.001,
+          "calls": 3.0
+        },
+        "RenderPlayModeViewCameras": {
+          "totalMs": 38.146,
+          "selfMs": 0.071,
+          "calls": 1.0
+        },
+        "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": {
+          "totalMs": 14.593,
+          "selfMs": 7.807,
+          "calls": 72.2
+        },
+        "RenderLoop.DrawSRPBatcher": {
+          "totalMs": 13.251,
+          "selfMs": 3.861,
+          "calls": 82.0
+        },
+        "WaitForJobGroupID": {
+          "totalMs": 11.918,
+          "selfMs": 1.135,
+          "calls": 24.9
+        },
+        "EditorLoop": {
+          "totalMs": 10.776,
+          "selfMs": 10.776,
+          "calls": 4.0
+        },
+        "SRPBatcher.Flush": {
+          "totalMs": 10.2,
+          "selfMs": 10.2,
+          "calls": 237.0
+        },
+        "UniTaskLoopRunnerYieldUpdate": {
+          "totalMs": 6.669,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        "PacketExchange.DispatchReceivedPackets": {
+          "totalMs": 6.661,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        "PacketExchange.RouteEvent": {
+          "totalMs": 6.515,
+          "selfMs": 0.723,
+          "calls": 4.1
+        },
+        "Update.ScriptRunBehaviourUpdate": {
+          "totalMs": 6.007,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        "BehaviourUpdate": {
+          "totalMs": 6.006,
+          "selfMs": 1.217,
+          "calls": 1.0
+        },
+        "Idle": {
+          "totalMs": 4.803,
+          "selfMs": 4.803,
+          "calls": 11.8
+        },
+        "Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]": {
+          "totalMs": 4.228,
+          "selfMs": 4.228,
+          "calls": 1893.0
+        },
+        "QueuePrepareIntegrateMainThreadObjects": {
+          "totalMs": 3.9,
+          "selfMs": 3.9,
+          "calls": 2.0
+        },
+        "ExecuteRenderQueueJob": {
+          "totalMs": 3.708,
+          "selfMs": 3.654,
+          "calls": 2.0
+        },
+        "BlockState.Deserialize": {
+          "totalMs": 2.531,
+          "selfMs": 2.394,
+          "calls": 1.0
+        },
+        "PostLateUpdate.UpdateAllSkinnedMeshes": {
+          "totalMs": 2.352,
+          "selfMs": 0.046,
+          "calls": 1.0
+        },
+        "MeshSkinning.Update": {
+          "totalMs": 2.306,
+          "selfMs": 0.876,
+          "calls": 1.0
+        },
+        "RenderLoop.CleanupNodeQueue": {
+          "totalMs": 1.996,
+          "selfMs": 1.996,
+          "calls": 50.0
+        },
+        "FixedUpdate.PhysicsFixedUpdate": {
+          "totalMs": 1.859,
+          "selfMs": 0.004,
+          "calls": 3.9
+        },
+        "BlockState.Processor.ElectricWireStateChangeProcessor": {
+          "totalMs": 1.534,
+          "selfMs": 1.436,
+          "calls": 185.3
+        },
+        "PostLateUpdate.UpdateAllRenderers": {
+          "totalMs": 1.333,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        "MeshSkinning.SkinOnGPU": {
+          "totalMs": 1.24,
+          "selfMs": 0.783,
+          "calls": 1.0
+        },
+        "SRPBRender.ApplyShader": {
+          "totalMs": 1.198,
+          "selfMs": 1.162,
+          "calls": 200.0
+        },
+        "Profiler.FlushMemoryCounters": {
+          "totalMs": 0.851,
+          "selfMs": 0.848,
+          "calls": 1.0
+        },
+        "BlockState.Processor.CommonMachineBlockStateChangeProcessor": {
+          "totalMs": 0.749,
+          "selfMs": 0.722,
+          "calls": 197.9
+        },
+        "UpdateRendererBoundingVolumes": {
+          "totalMs": 0.648,
+          "selfMs": 0.648,
+          "calls": 3.6
+        },
+        "BlockState.Processor.GearStateChangeProcessor": {
+          "totalMs": 0.616,
+          "selfMs": 0.601,
+          "calls": 303.8
+        },
+        "GC.Alloc": {
+          "totalMs": 0.355,
+          "selfMs": 0.355,
+          "calls": 8342.8
+        },
+        "BlockState.Processor.GearBeltConveyorStateChangeProcessor": {
+          "totalMs": 0.257,
+          "selfMs": 0.25,
+          "calls": 143.3
+        },
+        "PacketExchange.Deserialize.EventStream": {
+          "totalMs": 0.122,
+          "selfMs": 0.121,
+          "calls": 4.1
+        },
+        "BlockState.Processor.SteamEngineEffectStateChangeProcessor": {
+          "totalMs": 0.103,
+          "selfMs": 0.1,
+          "calls": 52.6
+        },
+        "PacketExchange.ReadPacketHeader": {
+          "totalMs": 0.018,
+          "selfMs": 0.018,
+          "calls": 4.1
+        }
+      }
+    },
+    {
+      "frames": 70,
+      "frameMs": {
+        "avg": 78.08,
+        "p50": 74.975,
+        "p95": 92.534,
+        "max": 141.132
+      },
+      "markers": {
+        "PlayerLoop": {
+          "totalMs": 66.972,
+          "selfMs": 0.001,
+          "calls": 3.0
+        },
+        "RenderPlayModeViewCameras": {
+          "totalMs": 37.582,
+          "selfMs": 0.07,
+          "calls": 1.0
+        },
+        "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": {
+          "totalMs": 14.183,
+          "selfMs": 7.635,
+          "calls": 72.0
+        },
+        "RenderLoop.DrawSRPBatcher": {
+          "totalMs": 13.219,
+          "selfMs": 3.861,
+          "calls": 82.0
+        },
+        "WaitForJobGroupID": {
+          "totalMs": 12.02,
+          "selfMs": 1.268,
+          "calls": 25.1
+        },
+        "SRPBatcher.Flush": {
+          "totalMs": 10.184,
+          "selfMs": 10.184,
+          "calls": 237.0
+        },
+        "EditorLoop": {
+          "totalMs": 10.067,
+          "selfMs": 10.067,
+          "calls": 4.0
+        },
+        "UniTaskLoopRunnerYieldUpdate": {
+          "totalMs": 6.435,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        "PacketExchange.DispatchReceivedPackets": {
+          "totalMs": 6.426,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        "PacketExchange.RouteEvent": {
+          "totalMs": 6.312,
+          "selfMs": 0.753,
+          "calls": 4.1
+        },
+        "Update.ScriptRunBehaviourUpdate": {
+          "totalMs": 6.083,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        "BehaviourUpdate": {
+          "totalMs": 6.081,
+          "selfMs": 1.227,
+          "calls": 1.0
+        },
+        "Idle": {
+          "totalMs": 4.988,
+          "selfMs": 4.988,
+          "calls": 11.8
+        },
+        "Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::GearStateChangeProcessor.Update() [Invoke]": {
+          "totalMs": 4.255,
+          "selfMs": 4.255,
+          "calls": 1893.0
+        },
+        "QueuePrepareIntegrateMainThreadObjects": {
+          "totalMs": 3.778,
+          "selfMs": 3.778,
+          "calls": 2.0
+        },
+        "ExecuteRenderQueueJob": {
+          "totalMs": 3.574,
+          "selfMs": 3.522,
+          "calls": 1.9
+        },
+        "BlockState.Deserialize": {
+          "totalMs": 2.425,
+          "selfMs": 2.284,
+          "calls": 1.0
+        },
+        "PostLateUpdate.UpdateAllSkinnedMeshes": {
+          "totalMs": 2.346,
+          "selfMs": 0.047,
+          "calls": 1.0
+        },
+        "MeshSkinning.Update": {
+          "totalMs": 2.299,
+          "selfMs": 0.896,
+          "calls": 1.0
+        },
+        "RenderLoop.CleanupNodeQueue": {
+          "totalMs": 2.003,
+          "selfMs": 2.003,
+          "calls": 50.0
+        },
+        "FixedUpdate.PhysicsFixedUpdate": {
+          "totalMs": 1.947,
+          "selfMs": 0.004,
+          "calls": 3.9
+        },
+        "BlockState.Processor.ElectricWireStateChangeProcessor": {
+          "totalMs": 1.405,
+          "selfMs": 1.311,
+          "calls": 184.4
+        },
+        "PostLateUpdate.UpdateAllRenderers": {
+          "totalMs": 1.335,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        "MeshSkinning.SkinOnGPU": {
+          "totalMs": 1.216,
+          "selfMs": 0.776,
+          "calls": 1.0
+        },
+        "SRPBRender.ApplyShader": {
+          "totalMs": 1.216,
+          "selfMs": 1.179,
+          "calls": 200.0
+        },
+        "Profiler.FlushMemoryCounters": {
+          "totalMs": 0.862,
+          "selfMs": 0.861,
+          "calls": 1.0
+        },
+        "BlockState.Processor.CommonMachineBlockStateChangeProcessor": {
+          "totalMs": 0.736,
+          "selfMs": 0.71,
+          "calls": 204.4
+        },
+        "UpdateRendererBoundingVolumes": {
+          "totalMs": 0.632,
+          "selfMs": 0.632,
+          "calls": 3.3
+        },
+        "BlockState.Processor.GearStateChangeProcessor": {
+          "totalMs": 0.622,
+          "selfMs": 0.607,
+          "calls": 320.8
+        },
+        "GC.Alloc": {
+          "totalMs": 0.352,
+          "selfMs": 0.352,
+          "calls": 8464.2
+        },
+        "BlockState.Processor.GearBeltConveyorStateChangeProcessor": {
+          "totalMs": 0.273,
+          "selfMs": 0.266,
+          "calls": 154.9
+        },
+        "BlockState.Processor.SteamEngineEffectStateChangeProcessor": {
+          "totalMs": 0.095,
+          "selfMs": 0.092,
+          "calls": 52.1
+        },
+        "PacketExchange.Deserialize.EventStream": {
+          "totalMs": 0.09,
+          "selfMs": 0.088,
+          "calls": 4.1
+        },
+        "PacketExchange.ReadPacketHeader": {
+          "totalMs": 0.019,
+          "selfMs": 0.019,
+          "calls": 4.1
+        }
+      }
+    }
+  ],
+  "windows": [
+    {
+      "cycle": 1,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.791,
+          "frames": 92,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 35.969,
+          "frames": 92,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.391,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60290.533,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60255.533,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19127.663,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744405.478,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 70.689,
+          "frames": 92,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 92,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "shadows",
+      "state": "cond=shadows renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=0/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 26.329,
+          "frames": 104,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 27.572,
+          "frames": 104,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 450.048,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 40767.356,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 40750.519,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 0.0,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 13831112.048,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 60.539,
+          "frames": 104,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 104,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "ssao",
+      "state": "cond=ssao renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.155,
+          "frames": 89,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 35.321,
+          "frames": 89,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 492.787,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 59609.753,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 59575.146,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 18911.719,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18533753.933,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 70.443,
+          "frames": 89,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 89,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "outlines",
+      "state": "cond=outlines renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 35.794,
+          "frames": 85,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 37.053,
+          "frames": 85,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.4,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60289.071,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60254.071,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19128.518,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744387.847,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 74.604,
+          "frames": 85,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 85,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "camtex",
+      "state": "cond=camtex renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:Off,Off/MainCamera:Off,Off/SkitCamera:Off,Off",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.393,
+          "frames": 87,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 35.55,
+          "frames": 87,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 497.391,
+          "frames": 87,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60290.011,
+          "frames": 87,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60255.011,
+          "frames": 87,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19131.494,
+          "frames": 87,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744410.23,
+          "frames": 87,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 72.918,
+          "frames": 87,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 87,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.295,
+          "frames": 92,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 35.455,
+          "frames": 92,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.391,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60291.163,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60256.163,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19128.543,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744413.043,
+          "frames": 92,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 73.095,
+          "frames": 92,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 92,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 35.784,
+          "frames": 89,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 36.997,
+          "frames": 89,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.416,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60287.899,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60252.899,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19127.247,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744373.629,
+          "frames": 89,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 72.131,
+          "frames": 89,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 89,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "shadows",
+      "state": "cond=shadows renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=0/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 26.332,
+          "frames": 104,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 27.595,
+          "frames": 104,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 454.394,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 41161.298,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 41144.298,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 0.0,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 13965372.635,
+          "frames": 104,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 60.767,
+          "frames": 104,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 104,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "ssao",
+      "state": "cond=ssao renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.894,
+          "frames": 88,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 36.099,
+          "frames": 88,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.398,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60290.443,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60255.443,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19128.466,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744404.341,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 72.844,
+          "frames": 88,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 88,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "outlines",
+      "state": "cond=outlines renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.15,
+          "frames": 88,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 35.315,
+          "frames": 88,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 498.398,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60287.455,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60252.455,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19126.943,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18744368.477,
+          "frames": 88,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 71.453,
+          "frames": 88,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 88,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "camtex",
+      "state": "cond=camtex renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:Off,Off/MainCamera:Off,Off/SkitCamera:Off,Off",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 35.873,
+          "frames": 85,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 37.104,
+          "frames": 85,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 491.565,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 59581.647,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 59547.059,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 18906.647,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18523898.659,
+          "frames": 85,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 73.282,
+          "frames": 85,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 85,
+          "unit": "ms"
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "cond": "base",
+      "state": "cond=base renderer=UniversalRenderer features=ScreenSpaceAmbientOcclusion(Clone):True/OutlinePass(Clone):True/UiSrgbComposite(Clone):True shadowLights=4/4 cams=Debug Cinematic Camera:UsePipelineSettings,UsePipelineSettings/MainCamera:UsePipelineSettings,UsePipelineSettings/SkitCamera:UsePipelineSettings,UsePipelineSettings",
+      "render": {
+        "Inl_UniversalRenderTotal": {
+          "avg": 34.369,
+          "frames": 90,
+          "unit": "ms"
+        },
+        "RenderPlayModeViewCameras": {
+          "avg": 35.54,
+          "frames": 90,
+          "unit": "ms"
+        },
+        "SetPass Calls Count": {
+          "avg": 507.544,
+          "frames": 90,
+          "unit": "count"
+        },
+        "Draw Calls Count": {
+          "avg": 60315.0,
+          "frames": 90,
+          "unit": "count"
+        },
+        "Batches Count": {
+          "avg": 60280.0,
+          "frames": 90,
+          "unit": "count"
+        },
+        "Shadow Casters Count": {
+          "avg": 19129.778,
+          "frames": 90,
+          "unit": "count"
+        },
+        "Triangles Count": {
+          "avg": 18979193.178,
+          "frames": 90,
+          "unit": "count"
+        },
+        "Main Thread": {
+          "avg": 69.785,
+          "frames": 90,
+          "unit": "ms"
+        },
+        "Render Thread": {
+          "avg": 0.0,
+          "frames": 90,
+          "unit": "ms"
+        }
+      }
+    }
+  ]
+}

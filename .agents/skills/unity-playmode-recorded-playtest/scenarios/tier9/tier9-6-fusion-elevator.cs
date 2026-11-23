@@ -60,8 +60,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     var reactor = await p.PlaceBlockDirect("核融合炉", reactorPos, BlockDirection.North);
     await Refuel();
     await WaitPlaced(reactorPos);
-    await OpenBlock(reactorPos, 9.5f);
-    await p.UntilUiElement("generator-section", 15f);
+    await OpenBlock(reactorPos, 9.5f, "generator-section");
     await p.UntilUiElement("generator-fluid-slots", 15f);
     await p.Screenshot("01-fusion-reactor-operating");
     await CloseUi();
@@ -81,14 +80,15 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     p.Assert(wired.Count == 2 && wired.All(w => w), "炉と拠点を電線でつないだ");
     var elevatorObject = await WaitPlaced(elevatorPos);
 
-    // ケーブルが無いと接続できず理由が出る
-    // Without cables the base cannot connect and shows why
-    await OpenBlock(elevatorPos, 4.5f);
-    await p.UntilUiElement("space-elevator-section", 15f);
-    await p.Until(() => Detail().Status == SpaceElevatorBaseStatus.InsufficientCable, 10f, "サーバーがケーブル不足と判定した");
+    // 未選択の拠点を開くと積荷の一覧が出る。ICチップLv1 の行を押して選ぶと、ケーブルが無いので接続できず理由が出る（ADR 0106 の 7「選んでから接続」）
+    // Opening the unselected base shows the cargo list; after pressing the IC chip Lv1 row the base cannot connect without cables and shows why (ADR 0106 §7)
+    var cargoRow = $"space-elevator-cargo-row-{payloadId.AsPrimitive()}";
+    await OpenBlock(elevatorPos, 4.5f, cargoRow);
+    await p.Screenshot("02a-elevator-cargo-list");
+    await p.ClickUi(cargoRow);
+    await p.Until(() => Detail().SelectedCargoItemId == payloadId && Detail().Status == SpaceElevatorBaseStatus.InsufficientCable, 10f, "ICチップLv1 を選び、サーバーがケーブル不足と判定した");
     await p.UntilUiElement("space-elevator-status", 15f);
     await p.Screenshot("02-elevator-not-enough-cable");
-
     // ケーブル1便の軌道到着でプールを満たし、接続する（本物の打ち上げは段4で確かめた）
     // Fill the pool with one cable launch arriving in orbit, then connect (the real launch was covered in stage 4)
     var cablesPerElevator = ((SpaceElevatorBaseBlockParam)elevator.BlockMasterElement.BlockParam).CablesPerElevator;
@@ -136,8 +136,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         await UniTask.Delay(1000);
     }
     await p.Until(Delivered, 0f, $"昇り切って出口に計算データ{expected}個が出た");
-    await OpenBlock(elevatorPos, 4.5f);
-    await p.UntilUiElement("space-elevator-output-grid", 10f);
+    await OpenBlock(elevatorPos, 4.5f, "space-elevator-output-grid");
     await p.Screenshot("06-elevator-delivered");
     await CloseUi();
 
@@ -180,10 +179,10 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         return blockObject;
     }
 
-    async UniTask OpenBlock(Vector3Int origin, float faceCenterOffsetX)
+    async UniTask OpenBlock(Vector3Int origin, float faceCenterOffsetX, string shownTestId)
     {
-        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開く（cleanroom-room-usability と同じ手順）
-        // F reaches 2 m, so land 1 m south of the south face and open it by aiming at the face with the Alt cursor (same as cleanroom-room-usability)
+        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開き、本文の要素 shownTestId が出るまで待つ（cleanroom-room-usability と同じ手順）
+        // F reaches 2 m, so land 1 m south of the south face, open it by aiming at the face with the Alt cursor and wait for the body element shownTestId (same as cleanroom-room-usability)
         p.WarpPlayer(new Vector3(origin.x + faceCenterOffsetX, 32.5f, origin.z - 1f));
         await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
         SemanticInput.KeyDown(Key.LeftAlt);
@@ -191,7 +190,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement(shownTestId, 15f);
     }
 
     async UniTask CloseUi() { await p.ClickUi("block-inventory-close"); await p.WaitUiState(UIStateEnum.GameScreen, 10f); }

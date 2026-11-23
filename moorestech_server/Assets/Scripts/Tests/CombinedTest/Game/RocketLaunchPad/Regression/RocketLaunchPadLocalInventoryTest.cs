@@ -1,3 +1,4 @@
+using Tests.Util.OrbitalCargo;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Inventory;
@@ -29,6 +30,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var pad = restore
                 ? RocketLaunchPadSaveTestUtil.Load(RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.AwaitingBuildCommand))
                 : RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+            OrbitalCargoTestUtil.SelectCargo(pad, ForUnitTestItemId.SatellitePayloadId);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             var slots = (OpenableInventoryItemDataStoreService)ReadField(processor, "_slots");
@@ -40,6 +42,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var networkChanges = 0;
             using var subscription = worldEvents.OnInventoryUpdated.Subscribe(_ => networkChanges++);
             var other = RocketLaunchPadTestUtil.PlacePoweredPad(new Vector3Int(20, 0, 0), 100);
+            OrbitalCargoTestUtil.SelectCargo(other, ForUnitTestItemId.SatellitePayloadId);
             other.GetComponent<IOpenableBlockInventoryComponent>().InsertItem(fuel);
             processed.SetValue(sequence, generation.GetValue(sequence));
 

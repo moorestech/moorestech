@@ -1,5 +1,5 @@
-// 出荷マスタ全体で起動し、専用機2種（精密切断機・EUV）の見た目を撮り、EUV のトランジスタ設置は抽選欄なし・露光は失敗率・精密切断機のダイシングは品質Tierとレベル別割合を出すことを確かめる
-// Boot on the full shipped master, shoot the two machine kinds (precision cutter, EUV) and confirm EUV transistor placement has no draw section, exposure shows its fail rate and the cutter's dicing shows quality tier and level shares
+// 出荷マスタ全体で起動し、専用機2種（精密切断機・EUV）の見た目を撮り、EUV のトランジスタ設置は確率の欄なし・露光は失敗の割合・ダイシングは出力の個数とLv別と失敗の最終の割合を出し、「失敗率の改善方法」のモーダルが開くことを確かめる
+// Boot on the full shipped master, shoot the two machine kinds (precision cutter, EUV) and confirm EUV transistor placement has no odds section, exposure shows its failure share, dicing shows output count, level and failure final shares, and the improvement modal opens
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +46,6 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
 
     // 床のパネルを敷き、専用機4台（切断・EUV のトランジスタ設置用と露光用・ダイシング）を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
     // Lay the panel floor, line up four machines (cutter, two EUVs for transistor and exposure, dicing) and shoot their looks (after the placement effect) before the walls go up
-    p.Note("専用機4台（精密切断機2・EUV 2）を1列に置き、見た目を撮る");
     await Slab(32);
     var machines = new IBlock[machineNames.Length];
     for (var i = 0; i < machineNames.Length; i++) machines[i] = await Place(machineNames[i], new Vector3Int(2 + i * 4, 33, 6));
@@ -79,8 +78,8 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     // Step inside and check and shoot the draw rows in the three machine UIs
     p.Note("EUV(トランジスタ設置)・EUV(露光)・精密切断機(ダイシング)の機械UIを開き、抽選欄を確かめる");
     await CheckNoYieldUi(machines[1], "02-euv-transistor-no-role");
-    await CheckYieldUi(machines[2], "03-euv-yield", new[] { "clean-room-yield-layer-fail-rate" });
-    await CheckYieldUi(machines[3], "04-dicing-yield", new[] { "clean-room-yield-quality-tier", "clean-room-yield-die-loss-rate", "clean-room-yield-level-rate-1", "clean-room-yield-level-rate-2", "clean-room-yield-failed-rate" });
+    await CheckYieldUi(machines[2], "03-euv-yield", new[] { "clean-room-yield-failed-rate" }, false);
+    await CheckYieldUi(machines[3], "04-dicing-yield", new[] { "clean-room-yield-output-count", "clean-room-yield-level-rate-1", "clean-room-yield-failed-rate" }, true);
 
     #region Internal
     IEnumerable<Guid> WithPrerequisites(Guid target)
@@ -136,14 +135,14 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         await p.RunOnServer($"{block.BlockMasterElement.Name} のレシピを選ぶ", () => result = selector.SetSelectedRecipe(recipe, overflow));
         p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe -> {firstOutputName}");
     }
-    async UniTask CheckYieldUi(IBlock machine, string screenshotName, string[] rowTestIds)
+    async UniTask CheckYieldUi(IBlock machine, string screenshotName, string[] rowTestIds, bool checksImprovementModal)
     {
-        // 抽選欄と行を待ち、行の表示文字列を記録して撮り、Tab で閉じる
-        // Wait for the section and rows, log each row's text, shoot, close with Tab
+        // 確率の欄と行を待ち、行の表示文字列を記録して撮り、求めれば改善方法のモーダルを開いて閉じ、Tab で閉じる
+        // Wait for the section and rows, log each row's text, shoot, open and close the improvement modal when asked, close with Tab
         await OpenMachineUi(machine);
-        await p.UntilUiElement("clean-room-yield-section", 10f);
-        foreach (var rowTestId in rowTestIds) { await p.UntilUiElement(rowTestId, 10f); p.Note($"{rowTestId}: {(await PlaytestUiElementOps.FindUi(rowTestId)).Text}"); }
+        foreach (var rowTestId in rowTestIds) { await PlaytestUiElementOps.WaitUiTextContains(rowTestId, "", 10f); p.Note($"{rowTestId}: {(await PlaytestUiElementOps.FindUi(rowTestId)).Text}"); }
         await p.Screenshot(screenshotName);
+        if (checksImprovementModal) await p.CheckCleanRoomYieldImprovementModal($"{screenshotName}-improvement-modal");
         await p.PressKey(Key.Tab);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }

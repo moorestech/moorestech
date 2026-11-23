@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void DiskMigrationPreservesUpstreamStateAndReloadsConnectedPool(int version, bool hasLaunched)
         {
             var (_, original) = CreateServer();
-            PlaceBase(Vector3Int.zero);
+            PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId,
                 new Vector3Int(10, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest));
             chest.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.ItemId2, 7);
@@ -132,7 +132,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         {
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
             var expected = pool.Amount + 50;
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             // 合図が必要な初発射と、履歴復元後の自動発射を同じtick入口で進める
             // Advance both the first commanded launch and automatic launches after history restoration through ticks

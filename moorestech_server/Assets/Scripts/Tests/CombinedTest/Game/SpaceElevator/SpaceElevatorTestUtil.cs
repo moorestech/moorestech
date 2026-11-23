@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
+using Tests.Util.OrbitalCargo;
 using Core.Update;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
@@ -31,7 +33,16 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
-        public static IBlock PlaceBase(Vector3Int position)
+        // 積荷を選んだ拠点を置く。選ばない拠点が要るテストは PlaceUnselectedBase を使う
+        // Place a base with its cargo selected; tests that need an unselected base use PlaceUnselectedBase
+        public static IBlock PlaceBase(Vector3Int position, ItemId selectedCargo)
+        {
+            var block = PlaceUnselectedBase(position);
+            OrbitalCargoTestUtil.SelectCargo(block, selectedCargo);
+            return block;
+        }
+
+        public static IBlock PlaceUnselectedBase(Vector3Int position)
         {
             Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestSpaceElevatorBase, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block));
             return block;
@@ -57,17 +68,17 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             for (var launched = 0; launched < count; launched += 50) orbital.Arrive(ForUnitTestItemId.TestElevatorCable, 50);
         }
 
-        public static IBlock SetupConnected(float power)
+        public static IBlock SetupConnected(float power, ItemId selectedCargo)
         {
             CreateServer();
-            return PlaceConnectedBase(power);
+            return PlaceConnectedBase(power, selectedCargo);
         }
 
-        // 電力とケーブルを与え接続済みにした拠点を置く
-        // Place a base that is powered, supplied with cables and already connected
-        public static IBlock PlaceConnectedBase(float power)
+        // 電力とケーブルを与え、積荷を選んで接続済みにした拠点を置く
+        // Place a base that is powered, supplied with cables, has its cargo selected and is already connected
+        public static IBlock PlaceConnectedBase(float power, ItemId selectedCargo)
         {
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, selectedCargo);
             PowerBase(elevatorBase, Vector3Int.zero, power);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);

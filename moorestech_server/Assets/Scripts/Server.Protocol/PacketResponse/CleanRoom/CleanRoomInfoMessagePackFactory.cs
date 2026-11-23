@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Game.CleanRoom.Info;
 using Game.CleanRoom.Util;
-using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -28,17 +25,25 @@ namespace Server.Protocol.PacketResponse
 
             static CleanRoomSummaryMessagePack CreateSummary(CleanRoomRoomSummary room)
             {
-                var filters = room.AirFilters.Select(filter => new CleanRoomAirFilterMessagePack(
-                    new Vector3IntMessagePack(filter.Position),
-                    filter.Status.PowerRatio,
-                    filter.Status.RemovalVolumePerSecond,
-                    filter.Status.FilterItemCount,
-                    filter.Status.CurrentFilterRemainingRatio)).ToList();
+                var queriedAirFilter = CreateQueriedAirFilter(room.QueriedFrom);
                 return room.Class switch
                 {
-                    CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirChangeRate, room.Volume, filters),
-                    CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.AirChangeRate, room.Volume, filters),
+                    CleanRoomClassifiedStanding classified => CleanRoomSummaryMessagePack.CreateClassified(classified.ClassName, classified.ThresholdIndex, room.AirFilterCount, room.StoppedAirFilterCount, queriedAirFilter),
+                    CleanRoomOutStanding _ => CleanRoomSummaryMessagePack.CreateOut(room.AirFilterCount, room.StoppedAirFilterCount, queriedAirFilter),
                     _ => throw new ArgumentOutOfRangeException(nameof(room.Class), room.Class.GetType().Name, "未対応のクラス種別 / Unsupported class standing"),
+                };
+            }
+
+            // 照会の出どころと次のクラスの見通しを、照会した清浄機の1欄へ写す
+            // Map the query source and next-class outlook onto the single queried-purifier field
+            static CleanRoomQueriedAirFilterMessagePack CreateQueriedAirFilter(CleanRoomQueriedFrom queriedFrom)
+            {
+                return queriedFrom switch
+                {
+                    CleanRoomQueriedFromAirFilter { NextClass: CleanRoomUnitsToNextClassOutlook units } airFilter => CleanRoomQueriedAirFilterMessagePack.CreateAirFilterWithUnits(airFilter.Status.PowerRatio, airFilter.Status.CurrentFilterRemainingRatio, units.NextClassName, units.Units),
+                    CleanRoomQueriedFromAirFilter { NextClass: CleanRoomNoUnitsToNextClassOutlook } airFilter => CleanRoomQueriedAirFilterMessagePack.CreateAirFilter(airFilter.Status.PowerRatio, airFilter.Status.CurrentFilterRemainingRatio),
+                    CleanRoomQueriedFromNonAirFilter _ => CleanRoomQueriedAirFilterMessagePack.CreateNotAirFilter(),
+                    _ => throw new ArgumentOutOfRangeException(nameof(queriedFrom), queriedFrom.GetType().Name, "未対応の照会の出どころ / Unsupported query source"),
                 };
             }
 

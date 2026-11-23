@@ -112,7 +112,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void ReturnedPayloadIsDiscardedWithErrorWhenInletAndOutletAreFull()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = Inventory(elevatorBase);
             var inletMax = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestElevatorSatellite);
             var outletMax = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestElevatorReward);
@@ -134,7 +134,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void ReturnedPayloadOverflowingSameItemInletGoesToOutlet()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = Inventory(elevatorBase);
             var max = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestElevatorBulkPayload);
             inventory.SetItem(0, ForUnitTestItemId.TestElevatorBulkPayload, max - 1);
@@ -153,7 +153,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         private static JObject CreateSaveWithForeignItemInInlet()
         {
             var (_, provider) = CreateServer();
-            Inventory(PlaceBase(Vector3Int.zero)).SetItem(0, ForUnitTestItemId.ItemId2, 1);
+            Inventory(PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite)).SetItem(0, ForUnitTestItemId.ItemId2, 1);
             return JObject.Parse(provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
         }
 

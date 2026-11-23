@@ -1,15 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Tests.Ui.State.BlockInventory.Family;
 using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special;
 using Client.Ui.State.Items;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -44,16 +49,36 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 宇宙エレベーターの詳細は在庫を開けたパネルでだけ出る(BlockInventoryPanelError error, bool expected)
         {
             var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestSpaceElevatorBase);
-            var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing)));
+            var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing, null, null)));
             // 追跡ブロックの個体 ID（既定値）とパネルの個体 ID をそろえ、違いを Error だけにする
             // Match the panel's instance ID to the tracked block's (default) so only Error differs
             var panel = new OpenBlockInventoryPanel(master.BlockType, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), error);
-            var model = new SpecialBlockDetailModel(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel)), _harness.Tracker, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+            var model = new SpecialBlockDetailModel(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel)), _harness.Tracker, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FakeUnlockedOrbitalCargoSource());
             model.Initialize();
 
             _harness.Track(block);
 
             Assert.AreEqual(expected, model.Current.Value.TryGetSpaceElevator(out _));
+        }
+
+        [Test]
+        public void 積荷の解放が変わると発射台の一覧が組み直される()
+        {
+            var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId);
+            var layout = new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)master.BlockParam);
+            var block = _harness.CreateBlock(Vector3Int.zero, master, (RocketLaunchPadStateDetail.BlockStateDetailKey, new RocketLaunchPadStateDetail(RocketLaunchPadPhase.Idle, RocketLaunchPadWaitReason.CargoNotSelected, 0f, null, null)));
+            var panel = new OpenBlockInventoryPanel(master.BlockType, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var unlocked = new FakeUnlockedOrbitalCargoSource();
+            var model = new SpecialBlockDetailModel(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel)), _harness.Tracker, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), unlocked);
+            model.Initialize();
+            _harness.Track(block);
+            Assert.IsTrue(model.Current.Value.TryGetRocketLaunchPad(out var before));
+            CollectionAssert.IsEmpty(before.Cargo.SelectableChoices);
+
+            var payload = layout.RequirementAt(layout.PayloadSlots[0]).ItemId;
+            unlocked.Unlocked.Value = new HashSet<ItemId> { payload };
+            Assert.IsTrue(model.Current.Value.TryGetRocketLaunchPad(out var after));
+            CollectionAssert.AreEqual(new[] { payload }, after.Cargo.SelectableChoices.Select(choice => choice.PayloadItemId).ToArray());
         }
     }
 }

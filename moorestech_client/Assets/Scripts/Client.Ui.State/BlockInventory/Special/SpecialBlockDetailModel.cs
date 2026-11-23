@@ -1,6 +1,7 @@
 using Client.Game.InGame.BeltTransport;
 using Client.Ui.State.BlockDetail;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Diagnostics;
 using Client.Ui.State.BlockInventory.Special.Source;
@@ -21,18 +22,20 @@ namespace Client.Ui.State.BlockInventory.Special
         private readonly OpenBlockDetailTracker _tracker;
         private readonly BlockNetworkInfoCache _networkCache;
         private readonly BeltTransportClientCache _beltCache;
+        private readonly IUnlockedOrbitalCargoSource _cargoSource;
         private readonly ReactiveProperty<SpecialBlockDetailViewModel> _current = new(SpecialBlockDetailViewModel.Empty);
         private readonly AnomalyReportGate _mismatchGate = new("[SpecialBlockDetailModel] ", "", LogType.Warning);
         private readonly AnomalyReportGate _gearAnomalyGate = new("[SpecialBlockDetailModel] ", "; gear rows are omitted", LogType.Error);
 
         public IReadOnlyReactiveProperty<SpecialBlockDetailViewModel> Current => _current;
 
-        public SpecialBlockDetailModel(IBlockInventoryPanelSource panels, OpenBlockDetailTracker tracker, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache)
+        public SpecialBlockDetailModel(IBlockInventoryPanelSource panels, OpenBlockDetailTracker tracker, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, IUnlockedOrbitalCargoSource cargoSource)
         {
             _panels = panels;
             _tracker = tracker;
             _networkCache = networkCache;
             _beltCache = beltCache;
+            _cargoSource = cargoSource;
         }
 
         public void Initialize()
@@ -44,6 +47,9 @@ namespace Client.Ui.State.BlockInventory.Special
             _tracker.OnTrackedBlockStateChanged.Subscribe(_ => Rebuild());
             _networkCache.OnUpdated.Subscribe(_ => Rebuild());
             _beltCache.ExitStatistics.OnWindowAdvanced.Where(_ => _tracker.TrackedBlock?.BlockMasterElement.BlockParam is IBeltSpeedParam).Subscribe(_ => Rebuild());
+            // 積荷の解放で発射台・拠点の一覧が変わる
+            // Cargo unlocks change the launch pad and elevator base lists
+            _cargoSource.UnlockedPayloadItemIds.Subscribe(_ => Rebuild());
             Rebuild();
 
             #region Internal
@@ -66,7 +72,7 @@ namespace Client.Ui.State.BlockInventory.Special
                     _current.Value = SpecialBlockDetailViewModel.Empty;
                     return;
                 }
-                _current.Value = SpecialBlockDetailReader.Read(block, _networkCache, _beltCache, out var gearAnomaly);
+                _current.Value = SpecialBlockDetailReader.Read(block, _networkCache, _beltCache, _cargoSource.UnlockedPayloadItemIds.Value, out var gearAnomaly);
                 // 歯車のマスタの食い違いは、同じ間は 1 回だけ出す（状態更新のたびに組み直すので連打しない）
                 // Report the gear master mismatch once while it persists (rebuilt on every state update, so no spam)
                 _gearAnomalyGate.Observe(gearAnomaly);

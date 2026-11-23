@@ -9,6 +9,7 @@ using Client.Ui.Screens.BlockInventory.Parts;
 using Client.Ui.State.BlockInventory.Fluid;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.Recipe.Source;
 using Client.Ui.State.SkitPresence;
 using Client.Ui.State.SlotCommands;
@@ -45,10 +46,11 @@ namespace Client.Starter.Registration
             // The pointer position stream is read by the screen pointer (InputSystemUiScreenPointer)
             builder.Register<InputSystemPointerPositionStream>(Lifetime.Singleton);
 
-            // ブロックインベントリの共有サービス: パネルの状態・遷移要求・スロット操作の型付きコマンド・ブロックの枠の並び・解放済み機械レシピ（S4 の各レーンが ctor で受ける）
-            // Block-inventory shared services: panel state, transition requests, typed slot commands, block slot grids and unlocked machine recipes (taken by the S4 lanes' ctors)
+            // ブロックインベントリの共有サービス: パネルの状態・遷移要求・スロット操作の型付きコマンド・ブロックの枠の並び・解放済み機械レシピ・解放済みの積荷（S4 の各レーンが ctor で受ける）
+            // Block-inventory shared services: panel state, transition requests, typed slot commands, block slot grids, unlocked machine recipes and unlocked cargo kinds (taken by the S4 lanes' ctors)
             builder.RegisterEntryPoint<BlockInventoryPanelModel>().As<IBlockInventoryPanelSource>();
             builder.RegisterEntryPoint<UnlockedMachineRecipeSource>().AsSelf();
+            builder.RegisterEntryPoint<UnlockedOrbitalCargoSource>().As<IUnlockedOrbitalCargoSource>();
             builder.Register<SubInventoryRawSlots>(Lifetime.Singleton).As<IRawSubInventorySlots>();
             builder.Register<BlockSlotReader>(Lifetime.Singleton);
             builder.Register<LocalBlockInventoryOperations>(Lifetime.Singleton).As<IBlockInventoryOperations>();
