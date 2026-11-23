@@ -1,5 +1,8 @@
+using Client.Game.InGame.UI.UIState;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Client.Playtest.Operations.Ui
 {
@@ -41,6 +44,32 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.DelayFrame(2, cancellationToken: p.CancellationToken);
             }
             p.Assert(true, "改善方法のモーダルが閉じるボタンで閉じる");
+        }
+
+        // 開いている機械の画面でモーダルを開き、ESC 1回で両方閉じることを見る
+        // Open the modal on the machine screen and check one ESC closes both
+        public static async UniTask CheckCleanRoomYieldImprovementModalClosesOnEscape(this PlaytestDriver p)
+        {
+            await OpenModal(p);
+            await p.PressKey(Key.Escape);
+            await p.WaitUiState(UIStateEnum.GameScreen, WaitSeconds);
+            p.Assert(!(await PlaytestUiElementOps.FindUi("modal")).IsFound, "ESC 1回で改善方法のモーダルと機械の画面が閉じる");
+        }
+
+        // 開いている機械の画面でモーダルを開き、機械から離れて画面が閉じるとモーダルも閉じることを見る
+        // Open the modal on the machine screen and check walking away closes it with the screen
+        public static async UniTask CheckCleanRoomYieldImprovementModalClosesOnLeaving(this PlaytestDriver p, Vector3 awayPosition)
+        {
+            await OpenModal(p);
+            p.WarpPlayer(awayPosition);
+            await p.WaitUiState(UIStateEnum.GameScreen, WaitSeconds);
+            p.Assert(!(await PlaytestUiElementOps.FindUi("modal")).IsFound, "機械から離れると改善方法のモーダルも閉じる");
+        }
+
+        private static async UniTask OpenModal(PlaytestDriver p)
+        {
+            await p.ClickUi("clean-room-yield-improvement-open");
+            await p.UntilUiElement("modal", WaitSeconds);
         }
     }
 }

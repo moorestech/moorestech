@@ -1,5 +1,6 @@
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Modal;
+using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.State.Modal;
 using UniRx;
 using UnityEngine.UIElements;
@@ -17,14 +18,16 @@ namespace Client.Ui.Screens.Modal
         private readonly ModalRequestService _service;
         private readonly IModalCommands _commands;
         private readonly IUiOsCursor _osCursor;
+        private readonly StageScaleSource _stageScale;
         private string _shownRequestId;
 
-        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, IUiOsCursor osCursor)
+        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, IUiOsCursor osCursor, StageScaleSource stageScale)
         {
             _host = host;
             _service = service;
             _commands = commands;
             _osCursor = osCursor;
+            _stageScale = stageScale;
         }
 
         public void Initialize()
@@ -55,7 +58,7 @@ namespace Client.Ui.Screens.Modal
         // Requests with rows use the information panel; the rest use the confirm or input dialog
         private VisualElement CreateView(ModalRequest request)
         {
-            if (request.Rows.Count > 0) return new ModalTableView(request, _commands, _host.OnBackdropClicked, _osCursor);
+            if (request.Rows.Count > 0) return new ModalTableView(request, _commands, _host.OnBackdropClicked, _osCursor, _stageScale);
             return new ModalView(request, _commands, _host.OnBackdropClicked);
         }
     }

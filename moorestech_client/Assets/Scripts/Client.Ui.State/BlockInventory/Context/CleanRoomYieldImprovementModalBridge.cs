@@ -47,6 +47,8 @@ namespace Client.Ui.State.BlockInventory.Context
         // When ESC or distance leaves the machine screen, cancel only the request opened here (never another modal)
         public void CloseUnlessMachineScreen(UIStateEnum state)
         {
+            // 画面の開閉でなくモーダルの寿命で、OnStateChanged の中では UiRoutingState が未更新のことがあるので UIStateEnum を読む（A-248）
+            // This is the modal's lifetime, not screen visibility, and UiRoutingState may be stale inside OnStateChanged, so read UIStateEnum (A-248)
             // silent-ok: 機械の画面に居る間と未表示のときは閉じるものが無い / CleanRoomYieldImprovementModalBridgeTest が見る
             if (state == UIStateEnum.SubInventory || _openedRequestId == null) return;
 

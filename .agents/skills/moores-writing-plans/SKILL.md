@@ -216,7 +216,7 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
 
 ## Execution Handoff
 
-moores-grill-with-docs §1.7 の対象外の小さな変更は、plan 文書・設計検査・反証検査を省き、新規セッションも subagent も起動せず、このセッションで実装してレビューと PR まで進める（小さな変更を渡すと、引き継ぎの手間と別プロセスの負担が実装より大きくなるため）。
+moores-grill-with-docs §1.7 の対象外の小さな変更は、新規セッションを起動せず、このセッションで実装する（小さな変更を渡すと、引き継ぎの手間が実装より大きくなるため）。
 
 それ以外の実装は**新規の Codex セッションでのmoores-subagent-driven-development**に固定する（起動・SDD・最終レビューまで Codex ホストで回す。SDD は moores-subagent-driven-development の `references/runtime-codex.md`、moores-code-review は `references/codex-host.md` の Codex 手順に従う）。このセッションで実行方法の選択肢を提示せず、新規セッションを起動して開始プロンプトを送る（起動手段が無ければ出力する）（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
 

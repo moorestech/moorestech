@@ -42,10 +42,11 @@ namespace Client.Tests.Ui.Screens.Modal
             // 入力の規則は本番と同じく層の根に付ける（前例 GameTextFieldTest）
             // Attach the input rules at the layer root as in production (precedent GameTextFieldTest)
             GameUiInputRules.Attach(_layer);
-            var host = new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(StageScale)));
+            var stageScale = new StageScaleSource(new ReactiveProperty<float>(StageScale));
+            var host = new UiModalHost(stageScale);
             host.Mount(_layer);
             _service = new ModalRequestService();
-            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
+            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), stageScale).Initialize();
             simulate.FrameUpdate();
         }
 

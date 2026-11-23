@@ -90,6 +90,8 @@
   - 原因: 実測（証拠: PlayMode シナリオ improvement-modal-esc-repro のログ `before state=SubInventory modal=True` → `after state=GameScreen modal=True`。入力は InputSystem への注入）
 - このモーダルの面は、レシピ詳細と同じ `GamePanel` の Craft 枠にする。設計図の名前入力モーダルは今の見た目のまま残す。
   - 出所: ユーザー裁定 2026-11-23 原文「そもそもデザインスタイルが他のインベントリ等で使われているUIじゃなく、本当に酷い」→ 選択「レシピ詳細と同じ枠」
+- 題は本文の文字として置き（モーダルに題の罫線を付けない規約のため）、閉じるは機械の画面と同じ副次アクションのボタンで右に置く。
+  - 出所: agent前提（visual-vocabulary §3・`PanelActionButton` の前例）
 - モーダルの中身に表を載せられるようにする（今の `ModalRequest` は文字だけ）。UI 規約のホワイトリストに無い表現が要る場合は、実装より先に `.agents/skills/ref-uitk-design/` の `visual-vocabulary.md` へこの裁定を引用して足す。
   - 出所: agent前提（ref-uitk-design の規約）
 
