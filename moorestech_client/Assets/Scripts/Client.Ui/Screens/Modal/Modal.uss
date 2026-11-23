@@ -1,14 +1,14 @@
 /* web: web@6248097123/src/features/modal/ModalHost.tsx の Text mb="lg"・TextInput mb="lg"。枠・題・本文の余白・幕は DialogFrame と UiModalHost（C3-b）が持つ */
 /* web: Text mb="lg" and TextInput mb="lg" in web@6248097123/src/features/modal/ModalHost.tsx; frame, title, body padding and backdrop belong to DialogFrame and UiModalHost (C3-b) */
-.modal-view {
+.modal-dialog-view {
     flex-direction: column;
 }
 
-.modal-view__message {
+.modal-dialog-view__message {
     margin-bottom: var(--mantine-spacing-lg);
 }
 
-.modal-view__input {
+.modal-dialog-view__input {
     margin-bottom: var(--mantine-spacing-lg);
 }
 

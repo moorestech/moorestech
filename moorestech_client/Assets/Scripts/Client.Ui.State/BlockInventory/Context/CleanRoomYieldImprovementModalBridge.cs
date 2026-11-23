@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 「失敗率の改善方法」のモーダルを、押した時点の中身で開き（開いている間は更新しない）、機械の画面を離れたら閉じる
-    /// Opens the improvement modal with the contents at press time (no updates while open) and closes it when the machine screen is left
+    /// 改善方法モーダルを押下時点の中身で開く（開中は更新しない）
+    /// Opens the improvement modal with press-time contents (no updates while open)
     /// </summary>
     public sealed class CleanRoomYieldImprovementModalBridge : ICleanRoomYieldImprovementCommands
     {
@@ -43,8 +43,8 @@ namespace Client.Ui.State.BlockInventory.Context
             response.Forget();
         }
 
-        // ESC や距離で機械の画面を離れたら、自分が開いた要求だけを取り消す（他のモーダルは閉じない）
-        // When ESC or distance leaves the machine screen, cancel only the request opened here (never another modal)
+        // 機械の画面を離れたら自分の要求だけ取り消す
+        // On leaving the machine screen, cancel only our own request
         public void CloseUnlessMachineScreen(UIStateEnum state)
         {
             // 画面の開閉でなくモーダルの寿命で、OnStateChanged の中では UiRoutingState が未更新のことがあるので UIStateEnum を読む（A-248）

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Ui.State.Modal;
 using Cysharp.Threading.Tasks;
@@ -33,6 +34,13 @@ namespace Client.Tests.Ui.State.Modal
             Assert.AreEqual(UniTaskStatus.Succeeded, response.Status);
             Assert.AreEqual(ModalResult.Cancel, response.GetAwaiter().GetResult());
             Assert.IsNull(service.Pending);
+        }
+
+        [Test]
+        public void 空の行の表のモーダルは確認ダイアログへ落とさず拒む()
+        {
+            var service = new ModalRequestService();
+            Assert.Throws<ArgumentException>(() => service.RequestTableModal("t", "m", new List<ModalTableRow>(), "ok"));
         }
 
         [Test]

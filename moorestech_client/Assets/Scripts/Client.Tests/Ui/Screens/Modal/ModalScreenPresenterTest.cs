@@ -179,6 +179,24 @@ namespace Client.Tests.Ui.Screens.Modal
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
         }
 
+        [Test]
+        public void 行のある要求は表のモーダルで出す()
+        {
+            var rows = new[] { new ModalTableRow("部屋クラスを B に", "失敗 −13.1%") };
+            _service.RequestTableModal("失敗率の改善方法", "今: 失敗 50.5%", rows, "閉じる").response.Forget();
+            simulate.FrameUpdate();
+            Assert.IsTrue(Find<VisualElement>(_layer, "modal").ClassListContains("game-panel--craft"));
+            Assert.IsNotNull(Find<Label>(_layer, "modal-table-row-0-label"));
+        }
+
+        [Test]
+        public void 行の無い要求は表を作らない()
+        {
+            _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm).Forget();
+            simulate.FrameUpdate();
+            Assert.IsNull(_layer.Q<VisualElement>("modal-table"));
+        }
+
         private bool Shown()
         {
             // C3-b の UiModalHostTest.ScopeShown と同じ式

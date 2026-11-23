@@ -55,7 +55,11 @@ namespace Client.Ui.State.Modal
         // Show a modal listing label-and-values rows and return its own request id with the wait for the result (no input field)
         public (string requestId, UniTask<ModalResult> response) RequestTableModal(string title, string message, IReadOnlyList<ModalTableRow> rows, string buttonText)
         {
-            var (requestId, response) = RequestCore(title, message, buttonText, ModalVariant.Confirm, false, rows ?? throw new ArgumentNullException(nameof(rows)));
+            // 空の行は表のモーダルにならず確認ダイアログへ黙って落ちるので入口で拒む
+            // Empty rows would silently fall back to the confirm dialog, so reject them at the entrance
+            if (rows == null) throw new ArgumentNullException(nameof(rows));
+            if (rows.Count == 0) throw new ArgumentException("表のモーダルには1行以上が要る / A table modal needs at least one row", nameof(rows));
+            var (requestId, response) = RequestCore(title, message, buttonText, ModalVariant.Confirm, false, rows);
             return (requestId, ResultOnly());
 
             #region Internal

@@ -15,8 +15,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Modal
 {
     /// <summary>
-    /// 項目名と値の行を見せるモーダル。面はレシピ詳細と同じ Craft 枠で、題の罫線は付けない（visual-vocabulary §3）
-    /// A modal showing label-and-values rows; its face is the recipe viewer's Craft frame, without title rules (visual-vocabulary §3)
+    /// 項目名と値の行を見せるモーダル
+    /// - 面はレシピ詳細と同じ Craft 枠
+    /// - 題の罫線なし（visual-vocabulary §3）
+    /// A modal showing label-and-values rows
+    /// - Face is the recipe viewer's Craft frame
+    /// - No title rules (visual-vocabulary §3)
     /// </summary>
     public sealed class ModalTableView : VisualElement
     {
@@ -35,8 +39,8 @@ namespace Client.Ui.Screens.Modal
             _stageScale = stageScale;
             AddToClassList("modal-table-view");
 
-            // 題・今の値・改善の行・閉じるを Craft 枠の中へ縦に積む
-            // Stack the title, current values, improvement rows and close inside the Craft frame
+            // Craft 枠へ縦に積む
+            // Stack vertically inside the Craft frame
             var panel = new GamePanel("modal", GamePanelFrame.Craft);
             panel.Add(TextLabel("modal-title", request.Title, UiTypographyClass.TitleOrder4, "modal-table-view__title"));
             panel.Add(TextLabel("modal-message", request.Message, UiTypographyClass.TextSm, "modal-table-view__message"));
@@ -70,8 +74,8 @@ namespace Client.Ui.Screens.Modal
 
             VisualElement CreateActions()
             {
-                // 閉じるは機械の画面と同じ副次アクションのボタンで右に置く
-                // Close uses the machine screen's secondary action button, aligned right
+                // 閉じるは副次ボタンで右へ
+                // Close is a secondary button, aligned right
                 var actions = new VisualElement { pickingMode = PickingMode.Ignore };
                 actions.AddToClassList("modal-table-view__actions");
                 var button = new PanelActionButton("modal-button", UiText.FromVerbatim(request.ButtonText), osCursor);

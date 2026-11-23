@@ -46,8 +46,8 @@ namespace Client.Playtest.Operations.Ui
             p.Assert(true, "改善方法のモーダルが閉じるボタンで閉じる");
         }
 
-        // 開いている機械の画面でモーダルを開き、ESC 1回で両方閉じることを見る
-        // Open the modal on the machine screen and check one ESC closes both
+        // ESC 1回で画面とモーダルが閉じるか見る
+        // Check one ESC closes the screen and the modal
         public static async UniTask CheckCleanRoomYieldImprovementModalClosesOnEscape(this PlaytestDriver p)
         {
             await OpenModal(p);
@@ -56,8 +56,8 @@ namespace Client.Playtest.Operations.Ui
             p.Assert(!(await PlaytestUiElementOps.FindUi("modal")).IsFound, "ESC 1回で改善方法のモーダルと機械の画面が閉じる");
         }
 
-        // 開いている機械の画面でモーダルを開き、機械から離れて画面が閉じるとモーダルも閉じることを見る
-        // Open the modal on the machine screen and check walking away closes it with the screen
+        // 機械から離れて画面と共にモーダルが閉じるか見る
+        // Check walking away closes the modal with the screen
         public static async UniTask CheckCleanRoomYieldImprovementModalClosesOnLeaving(this PlaytestDriver p, Vector3 awayPosition)
         {
             await OpenModal(p);

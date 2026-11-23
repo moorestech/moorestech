@@ -59,14 +59,6 @@ namespace Client.Tests.Ui.Screens.Modal
         }
 
         [Test]
-        public void 行の無い要求は表を作らない()
-        {
-            var view = Mount(new ModalView(ModalRequestSamples.Confirm(), new RecordingModalCommands(), Observable.Never<Unit>()));
-            simulate.FrameUpdate();
-            Assert.IsNull(view.Q<VisualElement>("modal-table"));
-        }
-
-        [Test]
         public void 表のモーダルのボタンは確認として返る()
         {
             var commands = new RecordingModalCommands();

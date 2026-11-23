@@ -5,8 +5,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// UI の状態の変化を「失敗率の改善方法」のモーダルへ渡し、機械の画面と一緒に閉じさせる
-    /// Passes UI state changes to the improvement modal so it closes together with the machine screen
+    /// 機械の画面と一緒に改善方法モーダルを閉じる
+    /// Closes the improvement modal together with the machine screen
     /// </summary>
     public sealed class CleanRoomYieldImprovementModalCloser : IInitializable
     {
