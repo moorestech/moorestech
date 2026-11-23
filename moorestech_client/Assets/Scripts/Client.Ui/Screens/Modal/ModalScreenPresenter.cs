@@ -1,6 +1,8 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.State.Modal;
 using UniRx;
+using UnityEngine.UIElements;
 using VContainer.Unity;
 
 namespace Client.Ui.Screens.Modal
@@ -14,13 +16,15 @@ namespace Client.Ui.Screens.Modal
         private readonly UiModalHost _host;
         private readonly ModalRequestService _service;
         private readonly IModalCommands _commands;
+        private readonly IUiOsCursor _osCursor;
         private string _shownRequestId;
 
-        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands)
+        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, IUiOsCursor osCursor)
         {
             _host = host;
             _service = service;
             _commands = commands;
+            _osCursor = osCursor;
         }
 
         public void Initialize()
@@ -44,7 +48,15 @@ namespace Client.Ui.Screens.Modal
             // silent-ok: 同じ要求の通知の重なりは描き直さない（入力中の文を守る） / 新しい要求は ID が変わるので ModalScreenPresenterTest「新しい要求は…」が見る
             if (pending.Id == _shownRequestId) return;
             _shownRequestId = pending.Id;
-            _host.Show(new ModalView(pending, _commands, _host.OnBackdropClicked));
+            _host.Show(CreateView(pending));
+        }
+
+        // 行のある要求は情報を見せるパネル、それ以外は確認・入力のダイアログ
+        // Requests with rows use the information panel; the rest use the confirm or input dialog
+        private VisualElement CreateView(ModalRequest request)
+        {
+            if (request.Rows.Count > 0) return new ModalTableView(request, _commands, _host.OnBackdropClicked, _osCursor);
+            return new ModalView(request, _commands, _host.OnBackdropClicked);
         }
     }
 }

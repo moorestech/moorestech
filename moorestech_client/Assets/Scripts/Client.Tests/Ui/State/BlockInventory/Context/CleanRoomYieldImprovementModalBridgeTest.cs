@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
@@ -77,6 +78,41 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             LogAssert.Expect(LogType.Warning, "[CleanRoomYieldImprovementModalBridge] open ignored: the tracked machine has no improvement rows now");
             _bridge.Open();
             Assert.IsNull(_modal.Pending);
+        }
+
+        [Test]
+        public void 機械の画面を離れると開いたモーダルを閉じる()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+
+            _bridge.CloseUnlessMachineScreen(UIStateEnum.GameScreen);
+
+            Assert.IsNull(_modal.Pending);
+        }
+
+        [Test]
+        public void 機械の画面に居る間は閉じない()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+
+            _bridge.CloseUnlessMachineScreen(UIStateEnum.SubInventory);
+
+            Assert.IsNotNull(_modal.Pending);
+        }
+
+        [Test]
+        public void 機械の画面を離れても別のモーダルは閉じない()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+            _modal.RequestInputModal("別の要求", "本文", "保存");
+            var other = _modal.Pending;
+
+            _bridge.CloseUnlessMachineScreen(UIStateEnum.GameScreen);
+
+            Assert.AreEqual(other.Id, _modal.Pending.Id);
         }
 
         // ADR 0105 §4 の形の例（ダイシング300個・Lv2は7.2%・Lv1は失敗との差し引き）

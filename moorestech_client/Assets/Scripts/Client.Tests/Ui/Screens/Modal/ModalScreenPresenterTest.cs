@@ -1,6 +1,9 @@
+using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Input;
+using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Screens.Modal;
@@ -42,7 +45,7 @@ namespace Client.Tests.Ui.Screens.Modal
             var host = new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(StageScale)));
             host.Mount(_layer);
             _service = new ModalRequestService();
-            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster)).Initialize();
+            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             simulate.FrameUpdate();
         }
 

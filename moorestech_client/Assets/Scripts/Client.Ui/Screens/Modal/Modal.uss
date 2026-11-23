@@ -12,12 +12,30 @@
     margin-bottom: var(--mantine-spacing-lg);
 }
 
-/* 項目名と値の行（visual-vocabulary §3）。表の下は本文と同じ余白、値の行は md だけ字下げする */
-/* Label-and-values rows (visual-vocabulary §3); the table keeps the message's bottom gap and values indent by md */
-.modal-view__table {
+/* 項目名と値の行のモーダル（visual-vocabulary §3）。面は GamePanel の Craft 枠、幅は確認モーダルと同じ */
+/* The label-and-values modal (visual-vocabulary §3); the face is GamePanel's Craft frame and the width matches the confirm modal */
+.modal-table-view {
+    width: var(--modal-size);
+}
+
+.modal-table-view__title {
+    margin-bottom: var(--mantine-spacing-sm);
+}
+
+.modal-table-view__message {
+    margin-bottom: var(--mantine-spacing-md);
+    color: var(--text-muted);
+}
+
+.modal-table-view__table {
     margin-bottom: var(--mantine-spacing-lg);
 }
 
-.modal-view__table-values {
+.modal-table-view__row-values {
     margin-left: var(--mantine-spacing-md);
+}
+
+.modal-table-view__actions {
+    flex-direction: row;
+    justify-content: flex-end;
 }
