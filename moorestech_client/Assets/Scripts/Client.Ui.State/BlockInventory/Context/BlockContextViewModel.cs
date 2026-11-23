@@ -11,16 +11,16 @@ namespace Client.Ui.State.BlockInventory.Context
     {
         public static readonly BlockContextViewModel None = new(
             SectionContent<CleanRoomFetchedDetail>.Absent,
-            SectionContent<CleanRoomYieldFetched>.Absent,
+            SectionContent<CleanRoomYieldOdds>.Absent,
             SectionContent<MachineInputStall>.Absent);
 
         public SectionContent<CleanRoomFetchedDetail> CleanRoom { get; }
-        public SectionContent<CleanRoomYieldFetched> CleanRoomYield { get; }
+        public SectionContent<CleanRoomYieldOdds> CleanRoomYield { get; }
         public SectionContent<MachineInputStall> MachineInputStall { get; }
 
         public bool HasAny => !CleanRoom.IsAbsent || !CleanRoomYield.IsAbsent || !MachineInputStall.IsAbsent;
 
-        public BlockContextViewModel(SectionContent<CleanRoomFetchedDetail> cleanRoom, SectionContent<CleanRoomYieldFetched> cleanRoomYield, SectionContent<MachineInputStall> machineInputStall)
+        public BlockContextViewModel(SectionContent<CleanRoomFetchedDetail> cleanRoom, SectionContent<CleanRoomYieldOdds> cleanRoomYield, SectionContent<MachineInputStall> machineInputStall)
         {
             CleanRoom = cleanRoom;
             CleanRoomYield = cleanRoomYield;

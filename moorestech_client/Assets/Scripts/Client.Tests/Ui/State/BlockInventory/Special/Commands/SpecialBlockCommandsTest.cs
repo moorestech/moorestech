@@ -136,6 +136,32 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(BlockInventoryPanelState.Closed, sent));
         }
 
+        [TestCase(BlockMasterElement.BlockTypeConst.RocketLaunchPad)]
+        [TestCase(BlockMasterElement.BlockTypeConst.SpaceElevatorBase)]
+        public void 積荷の選択は開いた発射台か拠点の座標と実体で送り成功は受理になる(string blockType)
+        {
+            Open(blockType);
+            _commands.SelectOrbitalCargo(new ItemId(10));
+            CollectionAssert.AreEqual(new[] { $"cargo {Position} 77 10" }, _sender.Sent);
+            Assert.IsInstanceOf<UiCommandAccepted>(LastReported(SpecialBlockCommands.SelectOrbitalCargoCommandName));
+        }
+
+        [Test]
+        public void 積荷の選択はほかの種類のブロックへ送らずサーバーの拒否はコードつきの失敗になる()
+        {
+            Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            _commands.SelectOrbitalCargo(new ItemId(10));
+            Assert.AreEqual(UiCommandRejectReason.BlockTypeMismatch, ((UiCommandRejected)LastReported(SpecialBlockCommands.SelectOrbitalCargoCommandName)).Reason);
+            CollectionAssert.IsEmpty(_sender.Sent);
+
+            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
+            _sender.SetNextOutcome(SpecialBlockRequestOutcome.Failed("cargo_select_locked"));
+            _commands.SelectOrbitalCargo(new ItemId(10));
+            var rejected = (UiCommandRejected)LastReported(SpecialBlockCommands.SelectOrbitalCargoCommandName);
+            Assert.AreEqual(UiCommandRejectReason.SpecialBlockRequestFailed, rejected.Reason);
+            Assert.AreEqual("cargo_select_locked", rejected.ToWireCode());
+        }
+
         // 最後にトーストへ渡った結果（名前も確かめる）
         // The last result handed to the toaster, checking its command name too
         private UiCommandResult LastReported(string expectedCommandName)

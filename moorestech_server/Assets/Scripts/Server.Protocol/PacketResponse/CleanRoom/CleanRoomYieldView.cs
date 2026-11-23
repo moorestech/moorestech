@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
@@ -33,31 +35,29 @@ namespace Server.Protocol.PacketResponse
 
     public sealed class CleanRoomYieldLayerExposureView : CleanRoomYieldView
     {
-        public LayerExposureYieldMessagePack LayerExposure { get; }
+        // 画面に出す最終の内訳と、失敗率の改善方法の行（並べる順。空ならボタンを出さない）
+        // Final odds for the screen and the improvement rows in display order (empty means no button)
+        public LayerExposureOddsMessagePack Odds { get; }
+        public IReadOnlyList<CleanRoomYieldImprovementMessagePack> Improvements { get; }
 
-        // 出力待ちの確定済み抽選に使った値。待っていなければ null
-        // Values of the fixed draw waiting for output; null when nothing waits
-        public LayerExposureYieldMessagePack PendingDraw { get; }
-
-        public CleanRoomYieldLayerExposureView(LayerExposureYieldMessagePack layerExposure, LayerExposureYieldMessagePack pendingDraw)
+        public CleanRoomYieldLayerExposureView(LayerExposureOddsMessagePack odds, IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements)
         {
-            LayerExposure = layerExposure;
-            PendingDraw = pendingDraw;
+            Odds = odds;
+            Improvements = improvements;
         }
     }
 
     public sealed class CleanRoomYieldDicingView : CleanRoomYieldView
     {
-        public DicingYieldMessagePack Dicing { get; }
+        // 画面に出す最終の内訳と、失敗率の改善方法の行（並べる順。空ならボタンを出さない）
+        // Final odds for the screen and the improvement rows in display order (empty means no button)
+        public DicingOddsMessagePack Odds { get; }
+        public IReadOnlyList<CleanRoomYieldImprovementMessagePack> Improvements { get; }
 
-        // 出力待ちの確定済み抽選に使った値。待っていなければ null
-        // Values of the fixed draw waiting for output; null when nothing waits
-        public DicingYieldMessagePack PendingDraw { get; }
-
-        public CleanRoomYieldDicingView(DicingYieldMessagePack dicing, DicingYieldMessagePack pendingDraw)
+        public CleanRoomYieldDicingView(DicingOddsMessagePack odds, IReadOnlyList<CleanRoomYieldImprovementMessagePack> improvements)
         {
-            Dicing = dicing;
-            PendingDraw = pendingDraw;
+            Odds = odds;
+            Improvements = improvements;
         }
     }
 }

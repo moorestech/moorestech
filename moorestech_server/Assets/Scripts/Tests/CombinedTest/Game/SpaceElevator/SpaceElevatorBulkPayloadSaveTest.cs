@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 一便ぶんの積荷を昇降中にセーブしてロードすると続きから昇り一便ぶんの成果が出る()
         {
             var (_, provider) = CreateServer();
-            var elevatorBase = PlaceConnectedBase(100f);
+            var elevatorBase = PlaceConnectedBase(100f, ForUnitTestItemId.TestElevatorBulkPayload);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorBulkPayload, 3);
             RunSeconds(1);
             var json = provider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 撤去すると昇降中の一便ぶんと入口の端数がプレイヤーへ返る()
         {
             var (packet, provider) = CreateServer();
-            var elevatorBase = PlaceConnectedBase(100f);
+            var elevatorBase = PlaceConnectedBase(100f, ForUnitTestItemId.TestElevatorBulkPayload);
             Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorBulkPayload, 4);
             RunSeconds(0.5);
             Assert.AreEqual(3, elevatorBase.GetComponent<SpaceElevatorClimberComponent>().GetRefundItems()[0].Count);
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 一便に足りない個数の積荷が昇降中でロードされたら昇降を取り消して入口へ戻す()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorBulkPayload);
             var shortPayload = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorBulkPayload, 2);
             var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(shortPayload), RemainingClimbSeconds = 1 };
 
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 一便より多い個数の積荷が昇降中でロードされたら一便ぶんだけ昇らせ余りを入口へ戻す()
         {
             CreateServer();
-            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var elevatorBase = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorBulkPayload);
             var excess = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorBulkPayload, 5);
             var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(excess), RemainingClimbSeconds = 1 };
 

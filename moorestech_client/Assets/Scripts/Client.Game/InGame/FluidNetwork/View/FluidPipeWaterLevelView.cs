@@ -9,6 +9,9 @@ namespace Client.Game.InGame.FluidNetwork.View
         private static readonly int WaterLevelProperty = Shader.PropertyToID("_WaterLevel");
         [SerializeField] private Transform waterLevelTransform;
         [SerializeField] private MeshRenderer meshRenderer;
+        // meshRenderer のうち水の材質の枠。窓と同じ Renderer にまとめたパイプでは窓の後ろの枠になる
+        // The water's material slot on meshRenderer; on pipes that share the renderer with the window it is the slot after the window
+        [SerializeField] private int waterMaterialIndex;
 
         private float _waterLevel;
         private Material _waterLevelMaterial;
@@ -17,8 +20,10 @@ namespace Client.Game.InGame.FluidNetwork.View
         {
             if (meshRenderer == null) return;
 
-            _waterLevelMaterial = Instantiate(meshRenderer.sharedMaterial);
-            meshRenderer.sharedMaterial = _waterLevelMaterial;
+            var materials = meshRenderer.sharedMaterials;
+            _waterLevelMaterial = Instantiate(materials[waterMaterialIndex]);
+            materials[waterMaterialIndex] = _waterLevelMaterial;
+            meshRenderer.sharedMaterials = materials;
 
             // Start前に届いた水位があればそれを、無ければ空を表示する
             // Show a level that arrived before Start, otherwise show empty
@@ -42,7 +47,10 @@ namespace Client.Game.InGame.FluidNetwork.View
             waterLevelTransform.localPosition = new Vector3(0.5f, (_waterLevel + 0.5f) * 0.5f, 0.5f);
             waterLevelTransform.localScale = new Vector3(Mathf.Sqrt(1 - Mathf.Pow(_waterLevel * 2 - 1, 2)) * 0.5f, 1, 1);
 
-            meshRenderer.sharedMaterial.SetFloat(WaterLevelProperty, _waterLevel);
+            // 実行中は複製した材質へ書く。Edit mode のインスペクタのシミュレーションだけ共有材質の枠へ書く
+            // At runtime write to the cloned material; only the edit-mode inspector simulation writes to the shared slot
+            var waterMaterial = _waterLevelMaterial != null ? _waterLevelMaterial : meshRenderer.sharedMaterials[waterMaterialIndex];
+            waterMaterial.SetFloat(WaterLevelProperty, _waterLevel);
         }
 
         #if UNITY_EDITOR

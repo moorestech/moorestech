@@ -1,6 +1,9 @@
 /* 文字の既定。フォントは Latin→JP→KR のフォールバック、CJK のロケールは JP を先頭にする（plan.md §3.10）。合成の太字は使わない */
 /* Text defaults; fonts fall back Latin→JP→KR and CJK locales lead with JP (plan.md §3.10); no synthetic bold */
 :root {
+    /* Unity 6.6 の既定 advanced は <space> の印を無視し行末の約物を詰められないので、文字組みの前提の standard に固定する（設計書 A-223・A-225） */
+    /* Unity 6.6 defaults to advanced, which ignores <space> tags and cannot trim line-end punctuation, so pin the standard generator the typography relies on (design A-223, A-225) */
+    -unity-text-generator: standard;
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatin%20SDF.asset");
     font-size: 14px;
     color: var(--text-default);

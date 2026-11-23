@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
                 Assert.AreEqual(4, processor.GetRefundItems().Count);
                 Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             });
-            var elevator = SpaceElevatorTestUtil.PlaceBase(new Vector3Int(20, 0, 0));
+            var elevator = SpaceElevatorTestUtil.PlaceBase(new Vector3Int(20, 0, 0), ForUnitTestItemId.TestElevatorSatellite);
             var connect = new ConnectEntry(elevator);
             ServerContext.GetService<TickEndPacketQueue>().Enqueue(connect);
             GameUpdater.UpdateOneTick();
@@ -186,7 +186,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
         private static IBlock Prepare()
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             Assert.AreEqual(RocketLaunchPadCommandResult.Accepted, processor.RequestBuild());

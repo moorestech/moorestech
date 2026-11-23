@@ -2,8 +2,8 @@
 # Linuxは既存のEditMode Test(ubuntuランナー)が実質カバーしているため対象に含めない。
 # Per PR, check only whether scripts compile per platform, without building a player (ADR 0028).
 # Linux is omitted because the existing EditMode Test already runs on an ubuntu runner.
-# 生成側のcache-warm.yml(warm-server-compile)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
-# The job definition is duplicated with the producer cache-warm.yml (warm-server-compile); change matrix, unityVersion, and the cache path/key/restore-keys in both
+# 生成側のcache-warm.yml(warm-server-compile)とジョブ定義が重複している。matrix・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
+# The job definition is duplicated with the producer cache-warm.yml (warm-server-compile); change matrix and the cache path/key/restore-keys in both
 name: Platform Compile Check
 
 on:
@@ -36,6 +36,16 @@ jobs:
         with:
           submodules: recursive
 
+      # Unity の版は ProjectVersion.txt だけを正にし、Library キャッシュのキーはここから取る（版上げで旧版の Library を復元させないため）
+      # ProjectVersion.txt is the only source of the Unity version; Library cache keys read it here so an upgrade never restores an old-version Library
+      - name: Read Unity version.
+        id: unity_version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^m_EditorVersion: //p' moorestech_server/ProjectSettings/ProjectVersion.txt | tr -d '\r')
+          if [ -z "$version" ]; then echo "::error::m_EditorVersion not found in moorestech_server/ProjectSettings/ProjectVersion.txt"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       # PF固有アセットの再インポートを避けるためターゲットごとにLibraryを分けて復元する
       # Restore a separate Library per target so platform-specific assets are not reimported
       # 保存はmasterのcache-warm.ymlだけが行う（PR側で焼くと10GB枠を食い潰すため。裁定 2026-08-22）
@@ -43,9 +53,9 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: moorestech_server/Library
-          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
+          key: Library_compile_server_${{ steps.unity_version.outputs.version }}_${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
-            Library_compile_server_${{ matrix.target }}-
+            Library_compile_server_${{ steps.unity_version.outputs.version }}_${{ matrix.target }}-
 
       # buildMethodはプレイヤービルドをせず終了するため、実質「そのdefineでコンパイルが通るか」の検査になる
       # The buildMethod exits without building a player, so this effectively checks compilation under those defines
@@ -58,7 +68,9 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.3.8f1
+          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
+          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          containerRegistryImageVersion: 4
           buildMethod: Server.Editor.PlatformCompileCheck.RunFromGithubAction
           targetPlatform: ${{ matrix.target }}
           allowDirtyBuild: true

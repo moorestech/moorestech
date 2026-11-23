@@ -1,5 +1,5 @@
-// シナリオ: 密閉部屋に満電の清浄機を置き、クラスが付く・フィルターが12秒に1個減る・UIに濃度が無く換気回数が出る・壁を外すとクラスが外れて減らなくなる、を確かめる
-// Scenario: a fully powered purifier in a sealed room gets a class, uses one filter per 12 s, shows air changes but no concentration in its UI, and stops using filters once a wall is removed
+// シナリオ: 密閉部屋に満電の清浄機を置き、クラスが付く・フィルターが出荷マスタの寿命ごとに1個減る・壁を外すとクラスが外れて減らなくなり部屋欄からクラスと台数が消える、を確かめる（密閉時の清浄機の画面は cleanroom/cleanroom-purifier-units-to-next-class.cs）
+// Scenario: a fully powered purifier in a sealed room gets a class, uses one filter per lifetime in the shipped master, and once a wall is removed stops using filters with class and count gone from the room section (the sealed purifier screen is covered by cleanroom/cleanroom-purifier-units-to-next-class.cs)
 using System;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.UIState;
@@ -20,6 +20,7 @@ using Game.CleanRoom.Util;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Fluid;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -35,7 +36,7 @@ InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBe
 SemanticInput.EnsureDevices();
 InputSystem.EnableDevice(Keyboard.current);
 InputSystem.EnableDevice(Mouse.current);
-return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestRunOptions { Record = true }, async p =>
+return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 400f }, async p =>
 {
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 15f, "GameScreenに到達");
@@ -89,32 +90,17 @@ return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestR
     p.WarpPlayer(outsidePosition);
     await p.Screenshot("01-sealed-room");
     #endregion
-    #region (2) フィルターが12秒に1個減る / One filter per 12 seconds
+    #region (2) マスタの寿命で1個減る / One filter per configured lifetime
     await Refuel();
     var start = await ReadPurifier();
-    p.Note($"計測開始: フィルター{start.Count}個 残量{start.Remaining:P0} 電力{start.Power:P0} 在室={start.Serving} tick={start.Tick}");
-    var first = await WaitFilterDrop(start.Count, 20f);
-    var second = await WaitFilterDrop(first.Count, 20f);
-    var third = await WaitFilterDrop(second.Count, 20f);
-    foreach (var (from, to) in new[] { (first, second), (second, third) })
-    {
-        var gameSeconds = GameUpdater.TicksToSeconds((uint)(to.Tick - from.Tick));
-        var realSeconds = to.RealTime - from.RealTime;
-        p.Assert(11.5 <= gameSeconds && gameSeconds <= 12.5 && to.Power == 1d, $"フィルター{from.Count}→{to.Count}個の間隔 ゲーム{gameSeconds:F2}秒(tick差{to.Tick - from.Tick}) 実時間{realSeconds:F2}秒 電力{to.Power:P0}");
-    }
-    #endregion
-    #region (4) 清浄機UIに濃度が無く換気回数が出る / Purifier UI shows air changes and no concentration
-    await Refuel();
-    await OpenPurifierUi();
-    await p.UntilUiElement("clean-room-air", 10f);
-    await p.UntilUiElement("clean-room-air-filter-0", 10f);
-    var sealedSection = (await PlaytestUiElementOps.FindUi("clean-room-section")).Text;
-    var airLine = (await PlaytestUiElementOps.FindUi("clean-room-air")).Text;
-    p.Note($"部屋欄(密閉時): {sealedSection.Replace("\n", " | ")}");
-    p.Assert(!ContainsConcentration(sealedSection), $"部屋欄に濃度の表示が無い(本文={sealedSection.Replace("\n", " | ")})");
-    p.Assert(airLine.Contains("換気") || airLine.Contains("Air change"), $"換気回数の行が出ている(行={airLine})");
-    await p.Screenshot("02-purifier-ui-sealed");
-    await CloseUi();
+    var filterParam = (CleanRoomAirFilterBlockParam)MasterHolder.BlockMaster.GetBlockMaster(purifierBlock.BlockId).BlockParam;
+    var lifetimeSeconds = (float)filterParam.FilterLifeSeconds;
+    var first = await WaitFilterDrop(start.Count, start.Tick, lifetimeSeconds + 20f);
+    var second = await WaitFilterDrop(first.Count, first.Tick, lifetimeSeconds + 20f);
+    var gameSeconds = GameUpdater.TicksToSeconds((uint)(second.Tick - first.Tick));
+    var realSeconds = second.RealTime - first.RealTime;
+    p.Assert(first.Count == start.Count - 1 && second.Count == first.Count - 1, $"フィルターが一度に1個ずつ減る({start.Count}→{first.Count}→{second.Count})");
+    p.Assert(Math.Abs(gameSeconds - lifetimeSeconds) <= 0.5 && second.Power == 1d, $"フィルター{first.Count}→{second.Count}個の間隔 ゲーム{gameSeconds:F2}秒 (マスタ{lifetimeSeconds:F2}秒) 実時間{realSeconds:F2}秒 電力{second.Power:P0}");
     #endregion
     #region (3) 壁を外すとクラスが外れフィルターが減らない / Removing a wall drops the class and stops filter use
     await Refuel();
@@ -129,10 +115,10 @@ return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestR
     p.Assert(after.Power == 1d, $"壁を外した後も満電のまま(電力{after.Power:P0})");
     p.Assert(after.Count == breached.Count && after.Remaining == breached.Remaining, $"壁を外した後15秒でフィルターが減らず残量も進まない({breached.Count}個/{breached.Remaining:P2}→{after.Count}個/{after.Remaining:P2})");
     await OpenPurifierUi();
-    await p.UntilUiElement("clean-room-headline", 10f);
+    await PlaytestUiElementOps.WaitUiTextContains("clean-room-headline", "", 10f);
     var breachedSection = (await PlaytestUiElementOps.FindUi("clean-room-section")).Text;
     p.Note($"部屋欄(壁を外した後): {breachedSection.Replace("\n", " | ")}");
-    p.Assert(!(await PlaytestUiElementOps.FindUi("clean-room-air")).IsFound && !breachedSection.Contains("部屋のクラス") && !breachedSection.Contains("Room class"), "壁を外した後の部屋欄にクラスと換気回数が出ない");
+    p.Assert(!(await PlaytestUiElementOps.FindUi("clean-room-air-filter-count")).IsFound && !breachedSection.Contains("クラス") && !breachedSection.Contains("Class"), "壁を外した後の部屋欄にクラスと清浄機の台数が出ない");
     await p.Screenshot("03-purifier-ui-breached");
     await CloseUi();
     p.WarpPlayer(outsidePosition);
@@ -152,7 +138,7 @@ return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestR
         result.Item6 = Time.realtimeSinceStartup;
         return result;
     }
-    async UniTask<(int Count, double Remaining, double Power, bool Serving, ulong Tick, float RealTime)> WaitFilterDrop(int fromCount, float timeoutSeconds)
+    async UniTask<(int Count, double Remaining, double Power, bool Serving, ulong Tick, float RealTime)> WaitFilterDrop(int fromCount, ulong lastRefuelTick, float timeoutSeconds)
     {
         var wait = p.BeginWait(timeoutSeconds, $"フィルターが{fromCount}個から1個減る");
         while (true)
@@ -163,6 +149,13 @@ return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestR
                 wait.Complete();
                 p.Note($"フィルター{fromCount}→{state.Count}個 tick={state.Tick} 実時間={state.RealTime:F2}s 電力{state.Power:P0}");
                 return state;
+            }
+            // 出荷マスタの寿命はタンク1杯より長いので計測中も給油する
+            // Top up during measurement because the shipped filter outlasts one tank
+            if (GameUpdater.SecondsToTicks(40) <= state.Tick - lastRefuelTick)
+            {
+                await Refuel();
+                lastRefuelTick = state.Tick;
             }
             wait.CheckTimeout($"count={state.Count} remaining={state.Remaining:F3} power={state.Power:F2} serving={state.Serving}");
             await UniTask.Yield();
@@ -200,8 +193,7 @@ return PlaytestRunner.Run("cleanroom-purifier-filter-consumption", new PlaytestR
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilUiElement("clean-room-section", 10f);
+        await PlaytestUiElementOps.WaitUiTextContains("clean-room-section", "", 10f);
     }
     async UniTask CloseUi() { await p.PressKey(Key.Tab); await p.WaitUiState(UIStateEnum.GameScreen, 10f); }
-    bool ContainsConcentration(string text) => text.Contains("濃度") || text.Contains("不純物") || text.Contains("oncentration") || text.Contains("ppm");
 });

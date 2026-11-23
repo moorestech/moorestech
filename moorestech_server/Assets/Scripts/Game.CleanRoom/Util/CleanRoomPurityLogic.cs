@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Game.Block.Interface.Component;
 
 namespace Game.CleanRoom.Util
 {
@@ -33,6 +35,31 @@ namespace Game.CleanRoom.Util
             // どの行も満たさなければ Out（行数）を返す
             // Return Out (the row count) when no row is satisfied
             return requiredAirChangeRates.Count;
+        }
+
+        // 今の除去量に新しく置く台を1台ずつ足し、一つ上の行へ昇格する最小台数を数える
+        // Add new units one at a time and count the fewest that promote to the next better row
+        public static bool TryCountUnitsToPromote(int currentIndex, double removalVolumePerSecond, int volume, double unitRemovalVolumePerSecond, int unitCellCount, IReadOnlyList<double> requiredAirChangeRates, out int units)
+        {
+            // セルを占めない台は数え終わらないため、形の契約違反として止める
+            // A unit taking no cells would never end the count, so reject the broken shape contract
+            if (unitCellCount <= 0) throw new ArgumentOutOfRangeException(nameof(unitCellCount), unitCellCount, "清浄機は1セル以上を占める / A purifier occupies at least one cell");
+
+            units = 0;
+            if (!CleanRoomClassYield.TryGetPromotionTargetIndex(currentIndex, out var targetIndex)) return false;
+
+            // クラス判定と同じ関数へ渡し、昇格倍率を含む同じしきい値で判定する
+            // Use the class decision function so the promotion margin and threshold stay identical
+            for (var count = 1; count * unitCellCount < volume; count++)
+            {
+                var remainingVolume = volume - count * unitCellCount;
+                var airChangeRate = AirChangeRate(removalVolumePerSecond + count * unitRemovalVolumePerSecond, remainingVolume);
+                if (targetIndex < DecideThresholdIndex(currentIndex, airChangeRate, requiredAirChangeRates)) continue;
+                units = count;
+                return true;
+            }
+
+            return false;
         }
     }
 }

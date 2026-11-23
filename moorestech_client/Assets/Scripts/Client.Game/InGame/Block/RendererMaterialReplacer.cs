@@ -16,11 +16,14 @@ namespace Client.Game.InGame.Block
         private readonly List<string> _ignoreGameObjectPathKeyWords = new() { "/VFX/" };
         private readonly Renderer _renderer;
         private readonly Material[] _originalMaterials = Array.Empty<Material>();
+        // 置き換えずに今の材質を残す枠。置換材質の配列ではこの枠を null にしておく
+        // Slots that keep their current material; replacement arrays hold null in these slots
+        private readonly bool[] _keptMaterialSlots = Array.Empty<bool>();
         private readonly Dictionary<Material, Material[]> _replacedMaterialsBySource = new();
         private Material[] _currentReplacedMaterials = Array.Empty<Material>();
         private Material _currentSourceMaterial;
 
-        public RendererMaterialReplacer(Renderer renderer)
+        public RendererMaterialReplacer(Renderer renderer, IReadOnlyList<int> keptMaterialSlots)
         {
             var path = renderer.gameObject.GetFullPath();
             foreach (var keyWord in _ignoreGameObjectPathKeyWords)
@@ -31,6 +34,8 @@ namespace Client.Game.InGame.Block
 
             _renderer = renderer;
             _originalMaterials = renderer.sharedMaterials;
+            _keptMaterialSlots = new bool[_originalMaterials.Length];
+            foreach (var slot in keptMaterialSlots) _keptMaterialSlots[slot] = true;
         }
 
         public void CopyAndSetMaterial(Material placeMaterial)
@@ -49,17 +54,25 @@ namespace Client.Game.InGame.Block
             // Cache replacement materials per source material and reuse them
             _currentSourceMaterial = placeMaterial;
             _currentReplacedMaterials = GetOrCreateReplacedMaterials(placeMaterial);
-            _renderer.materials = _currentReplacedMaterials;
+            _renderer.materials = WithKeptMaterials(_currentReplacedMaterials);
         }
 
         public void SetPlaceMaterialProperty(string propertyName, float value)
         {
-            foreach (var material in _currentReplacedMaterials) material.SetFloat(propertyName, value);
+            foreach (var material in _currentReplacedMaterials)
+            {
+                if (material == null) continue;
+                material.SetFloat(propertyName, value);
+            }
         }
 
         public void SetColor(string propertyName, Color color)
         {
-            foreach (var material in _currentReplacedMaterials) material.SetColor(propertyName, color);
+            foreach (var material in _currentReplacedMaterials)
+            {
+                if (material == null) continue;
+                material.SetColor(propertyName, color);
+            }
         }
 
         public void ResetMaterial()
@@ -71,7 +84,7 @@ namespace Client.Game.InGame.Block
             // Restore original materials while keeping cached replacements
             _currentSourceMaterial = null;
             _currentReplacedMaterials = Array.Empty<Material>();
-            _renderer.materials = _originalMaterials;
+            _renderer.materials = WithKeptMaterials(_originalMaterials);
         }
 
         public void DestroyMaterial()
@@ -82,6 +95,7 @@ namespace Client.Game.InGame.Block
             {
                 foreach (var material in pair.Value)
                 {
+                    if (material == null) continue;
                     DestroyCachedMaterial(material);
                 }
             }
@@ -103,6 +117,7 @@ namespace Client.Game.InGame.Block
             replacedMaterials = new Material[_originalMaterials.Length];
             for (var i = 0; i < _originalMaterials.Length; i++)
             {
+                if (_keptMaterialSlots[i]) continue;
                 replacedMaterials[i] = new Material(placeMaterial);
             }
             CopyOriginalMaterialAppearance(replacedMaterials);
@@ -119,6 +134,7 @@ namespace Client.Game.InGame.Block
                 // 空マテリアルスロット（ParticleSystemのTrail未設定等）は写す見た目が無い
                 // An empty material slot (an unset ParticleSystem trail and the like) has no appearance to copy
                 if (originalMaterial == null) continue;
+                if (_keptMaterialSlots[i]) continue;
 
                 var replacedMaterial = replacedMaterials[i];
                 replacedMaterial.mainTexture = originalMaterial.mainTexture;
@@ -126,6 +142,19 @@ namespace Client.Game.InGame.Block
                 replacedMaterial.mainTextureScale = originalMaterial.mainTextureScale;
                 replacedMaterial.color = originalMaterial.color;
             }
+        }
+
+        // 残す枠には、その時点で付いている材質（水位表示が複製した材質など）を入れる
+        // Kept slots take the material attached at that moment (such as one the water-level view cloned)
+        private Material[] WithKeptMaterials(Material[] materials)
+        {
+            var currentMaterials = _renderer.sharedMaterials;
+            var result = (Material[])materials.Clone();
+            for (var i = 0; i < _keptMaterialSlots.Length; i++)
+            {
+                if (_keptMaterialSlots[i]) result[i] = currentMaterials[i];
+            }
+            return result;
         }
 
         private static void DestroyCachedMaterial(Material material)

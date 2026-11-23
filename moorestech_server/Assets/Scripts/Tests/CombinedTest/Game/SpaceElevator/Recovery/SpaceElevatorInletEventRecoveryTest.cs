@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void LoadedUnsupportedInletRemovalPublishesWithoutAnotherPull(bool returnedCargo, int ticksBeforeRemoval)
         {
             var (_, provider) = CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
             var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void UnsupportedInletAppearanceAndRemovalBothPublish()
         {
             var (_, provider) = CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
             GameUpdater.UpdateOneTick();

@@ -1,4 +1,4 @@
-﻿using Cinemachine;
+﻿using Unity.Cinemachine;
 using Client.Common;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Game.InGame.GraphicsQuality.Appliers;

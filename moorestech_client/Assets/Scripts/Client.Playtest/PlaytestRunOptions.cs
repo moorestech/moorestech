@@ -7,6 +7,7 @@ namespace Client.Playtest
     public class PlaytestRunOptions
     {
         public bool Record;
+        public bool RecordResolutionChanges;
         public float ReadyTimeoutSeconds = 180f;
         public float ScenarioTimeoutSeconds = 300f;
     }

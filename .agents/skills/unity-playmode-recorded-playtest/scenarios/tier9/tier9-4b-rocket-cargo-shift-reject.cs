@@ -1,5 +1,5 @@
-// 材料充足・積荷空の発射台で、所持ケーブルのShift+クリックがケーブル枠へ一括移動し、受け付けない枠への通常配置は拒否後に持物・積荷表示がサーバーと一致することを確かめる
-// On a pad with full materials and empty cargo, Shift-click moves held cables into the cable slot, and a plain drop on a refusing slot leaves the local view equal to the server after the rejection
+// グラフェンケーブルを選んだ、材料充足・積荷空の発射台で、所持ケーブルのShift+クリックがケーブル枠へ一括移動し、受け付けない枠への通常配置は拒否後に持物・積荷表示がサーバーと一致することを確かめる
+// On a pad with graphene cable selected, full materials and empty cargo, Shift-click moves held cables into the cable slot, and a plain drop on a refusing slot leaves the local view equal to the server after the rejection
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
@@ -17,6 +17,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -48,13 +49,23 @@ return PlaytestRunner.Run("tier9-4b-rocket-cargo-shift-reject", new PlaytestRunO
     var pad = await p.PlaceBlockDirect("ロケット発射台", padPos, BlockDirection.North);
     var param = (RocketLaunchPadBlockParam)pad.BlockMasterElement.BlockParam;
     var padInventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-    await p.RunOnServer("材料をマスタ量だけ積む", () => { foreach (var m in param.LaunchMaterials) padInventory.InsertItem(MasterHolder.ItemMaster.GetItemId(m.ItemGuid), m.Count); });
+    // 未選択の発射台は何も受け取らないので、先にグラフェンケーブルを解放して積荷に選ぶ（ADR 0106 の 2。主題は Shift なので選択はサーバーで直接）
+    // An unselected pad accepts nothing, so unlock graphene cable and select it first (ADR 0106 §2; the subject is Shift, so select on the server directly)
     var cableId = PlaytestItemOps.ResolveItemId("グラフェンケーブル");
+    var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
+    var selection = OrbitalCargoSelectionResult.Locked;
+    await p.RunOnServer("グラフェンケーブルを解放し、発射台の積荷に選ぶ", () =>
+    {
+        ServerContext.GetService<IGameUnlockStateDataController>().UnlockItem(cableId);
+        var refund = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+        selection = pad.GetComponent<IOrbitalCargoSelectorComponent>().SelectCargo(cableId, refund);
+    });
+    p.Assert(selection == OrbitalCargoSelectionResult.Success, $"グラフェンケーブルを選んだ result={selection}");
+    await p.RunOnServer("材料をマスタ量だけ積む", () => { foreach (var m in param.LaunchMaterials) padInventory.InsertItem(MasterHolder.ItemMaster.GetItemId(m.ItemGuid), m.Count); });
     var plateId = PlaytestItemOps.ResolveItemId("鋼鉄板");
     await p.GiveItemDirect("グラフェンケーブル", 1000);
     await p.GiveItemDirect("鋼鉄板", 10);
     var local = ClientDIContext.DIContainer.DIContainerResolver.Resolve<LocalPlayerInventoryController>();
-    var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
     var padObject = await p.WaitBlockGameObject(padPos);
     await p.Until(() => !padObject.IsPlayingPlaceAnimation, 30f, "発射台の設置演出が終わった");
     var cableSlot = -1;
@@ -82,19 +93,20 @@ return PlaytestRunner.Run("tier9-4b-rocket-cargo-shift-reject", new PlaytestRunO
     AssertLocalMatches(afterShift, "Shift後");
     await p.Screenshot("02-after-shift");
 
-    // 受け付けない積荷枠へ鋼鉄板を通常配置すると拒否され、表示はサーバーの在庫へ戻る
-    // A plain drop of steel plates on a refusing cargo slot is rejected and the view returns to the server stock
-    // 1段目のずれ（未修正時にslot3へ残る幻表示）と独立させるため、積荷2枠目を使う
-    // Use the second cargo slot so this step stays independent of any step-1 drift (phantom stack left at slot 3 when unfixed)
-    var refusingSlot = param.LaunchMaterials.Length + 1;
-    p.Note($"鋼鉄板を掴み、受け付けない積荷枠slot{refusingSlot}へ置く");
+    // 受け付けない枠へ鋼鉄板を通常配置すると拒否され、表示はサーバーの在庫へ戻る
+    // A plain drop of steel plates on a refusing slot is rejected and the view returns to the server stock
+    // 選んだ後の画面は資材と選んだ積荷の枠だけを出すので、筐体素材の入った資材の1枠目を使う（選んでいない積荷の枠は画面に無い）
+    // The selected screen shows only materials and the selected payload slot, so use the first material slot holding hull material (unselected payload slots are not on screen)
+    var refusingSlot = 0;
+    var heldBefore = afterShift.Pad[refusingSlot];
+    p.Note($"鋼鉄板を掴み、受け付けない資材枠slot{refusingSlot}（{heldBefore.Id}x{heldBefore.Count}）へ置く");
     await p.ClickUi("main-slot-" + plateSlot);
     await p.WaitSeconds(0.5f);
-    await p.ClickUi("rocket-launch-pad-payload-slots-slot-" + refusingSlot);
+    await p.ClickUi("rocket-launch-pad-material-slots-slot-" + refusingSlot);
     await p.WaitSeconds(1.5f);
     var afterReject = await ReadServer();
     p.Note($"拒否後 server grab={afterReject.Grab} pad={Dump(afterReject.Pad)} / local grab={local.GrabInventory} pad={Dump(LocalPad())}");
-    p.Assert(afterReject.Pad[refusingSlot].Count == 0, "サーバーは受け付けない枠へ書き込んでいない");
+    p.Assert(afterReject.Pad[refusingSlot].Id == heldBefore.Id && afterReject.Pad[refusingSlot].Count == heldBefore.Count, "サーバーは受け付けない枠を書き換えていない");
     p.Assert(local.GrabInventory.Id == afterReject.Grab.Id && local.GrabInventory.Count == afterReject.Grab.Count, $"拒否後の掴み表示がサーバーと一致: local={local.GrabInventory} server={afterReject.Grab}");
     AssertLocalMatches(afterReject, "拒否後");
     await p.Screenshot("03-after-reject");

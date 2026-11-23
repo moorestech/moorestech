@@ -38,14 +38,14 @@ namespace Client.Ui.Screens.BlockInventory.Machine
         public IObservable<Unit> OnChangeRecipeRequested => _header.OnPressed;
         public IObservable<Guid> OnRecipeRowPressed => _selectionList.OnRowPressed;
 
-        public MachineSectionView(bool fillsPanelHeight, GameContentPresentation content, IBlockSlotCommands commands, IUiOsCursor osCursor, IMachineRecipeSelectCommand selectCommand)
+        public MachineSectionView(bool fillsPanelHeight, GameContentPresentation content, IBlockSlotCommands commands, IUiOsCursor osCursor, IMachineRecipeSelectCommand selectCommand, ICleanRoomYieldImprovementCommands improvementCommands)
         {
             // 枠の押下とレシピ行の押下は View が直接コマンドへ渡す（設計書 §4.2 A-8・D-33。Presenter は中継しない）
             // Slot and recipe-row presses go straight from the view to the commands (design §4.2 A-8, D-33; no presenter relay)
             _selectCommand = selectCommand;
             _root.pickingMode = PickingMode.Ignore;
             _inventoryContent.pickingMode = PickingMode.Ignore;
-            _context = new BlockContextSectionsView(content);
+            _context = new BlockContextSectionsView(content, osCursor, improvementCommands);
             _header = new SelectedRecipeHeader(content, osCursor);
             _body = new MachineInventoryBody(content, commands);
             _selectionList = new MachineRecipeSelectionList(content, osCursor);

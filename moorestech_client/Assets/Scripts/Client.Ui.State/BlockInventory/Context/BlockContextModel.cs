@@ -73,12 +73,12 @@ namespace Client.Ui.State.BlockInventory.Context
                 return roomEntry;
             }
 
-            SectionContent<CleanRoomYieldFetched> Yield()
+            SectionContent<CleanRoomYieldOdds> Yield()
             {
                 if (_cache.CleanRoomTarget != CleanRoomDetailTarget.Machine)
                 {
                     _yieldAnomalyGate.Observe(null);
-                    return SectionContent<CleanRoomYieldFetched>.Absent;
+                    return SectionContent<CleanRoomYieldOdds>.Absent;
                 }
                 var fetchState = _cache.GetCleanRoomYield(out var view);
                 var yieldEntry = ContextViewConversion.Yield(fetchState, view, out var anomaly);

@@ -40,6 +40,9 @@ var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
 // AddWater (a local function) reads these, so declare the pipe and water-level references outside try
 FluidPipeWaterLevelView waterLevelView = null;
 MeshRenderer renderer = null;
+// 窓と同じ Renderer にまとめたパイプでは、水の材質は窓の後ろの枠にある
+// On pipes sharing the renderer with the window, the water material sits in the slot after the window
+var waterMaterialIndex = 0;
 FluidPipeComponent pipe = null;
 var networkWater = 0.0;
 var networkPipes = 1;
@@ -74,9 +77,10 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, "パイプ設置アニメ完了");
         waterLevelView = view.GetComponentInChildren<FluidPipeWaterLevelView>();
         renderer = (MeshRenderer)typeof(FluidPipeWaterLevelView).GetField("meshRenderer", viewFlags).GetValue(waterLevelView);
+        waterMaterialIndex = (int)typeof(FluidPipeWaterLevelView).GetField("waterMaterialIndex", viewFlags).GetValue(waterLevelView);
         p.Assert(typeof(FluidPipeWaterLevelView).GetMethod("Update", viewFlags) == null, "水位ViewにUpdate無し");
         pipe = block.GetComponent<FluidPipeComponent>();
-        p.Note($"[PIPE] before UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, waterLevelView={waterLevelView.GetInstanceID()}, renderer={renderer.GetInstanceID()}, origin={origin}");
+        p.Note($"[PIPE] before UI: block={block.BlockInstanceId}, view={view.GetEntityId()}, waterLevelView={waterLevelView.GetEntityId()}, renderer={renderer.GetEntityId()}, origin={origin}");
         await AddWater(neighborPositions[0], 200.0);
         await p.Screenshot("01-medium-game");
         p.Note("Escapeからトップ4ボタンを確認して画質設定を開く");
@@ -115,7 +119,7 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         // Change water on the same receiver without resetting quality or replacing it
         p.Assert(object.ReferenceEquals(p.GetBlock(origin), block) && object.ReferenceEquals(await p.WaitBlockGameObject(origin), view), "UI切替前後で同一サーバーブロックとView");
         p.Assert(view.GetComponentInChildren<FluidPipeWaterLevelView>() == waterLevelView && (MeshRenderer)typeof(FluidPipeWaterLevelView).GetField("meshRenderer", viewFlags).GetValue(waterLevelView) == renderer, "UI切替前後で同一水位ViewとRenderer");
-        p.Note($"[PIPE] after UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, waterLevelView={waterLevelView.GetInstanceID()}, renderer={renderer.GetInstanceID()}");
+        p.Note($"[PIPE] after UI: block={block.BlockInstanceId}, view={view.GetEntityId()}, waterLevelView={waterLevelView.GetEntityId()}, renderer={renderer.GetEntityId()}");
         await AddWater(neighborPositions[1], 450.0);
         await AddWater(neighborPositions[2], 500.0);
         p.Assert(!GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out _) && !Camera.main.GetUniversalAdditionalCameraData().renderShadows, "水位確認完了まで影オフのカスタムを維持");
@@ -155,9 +159,9 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         var capacity = FluidUnits.ToAmount(pipe.CapacityUnits);
         var expected = (float)(networkWater / (capacity * networkPipes));
         p.Note($"隣のパイプ{neighborPosition}に水{added}を足す: 網 {networkWater}/{capacity * networkPipes}, 期待水位 {expected:F3}");
-        await p.Until(() => Mathf.Abs((float)(pipe.Amount / capacity) - expected) < 0.01f && Mathf.Abs(renderer.sharedMaterial.GetFloat("_WaterLevel") - expected) < 0.02f, 15f, $"水位到達 {expected:F3}");
+        await p.Until(() => Mathf.Abs((float)(pipe.Amount / capacity) - expected) < 0.01f && Mathf.Abs(renderer.sharedMaterials[waterMaterialIndex].GetFloat("_WaterLevel") - expected) < 0.02f, 15f, $"水位到達 {expected:F3}");
         p.Assert(Mathf.Abs(waterLevelView.DebugWaterLevel - expected) < 0.02f, $"水位View {waterLevelView.DebugWaterLevel:F3}, server={pipe.Amount:F1}/{capacity}");
-        p.Assert(Mathf.Abs(renderer.sharedMaterial.GetFloat("_WaterLevel") - expected) < 0.02f, $"水位実測 {renderer.sharedMaterial.GetFloat("_WaterLevel"):F3}, server={pipe.Amount:F1}/{capacity}");
+        p.Assert(Mathf.Abs(renderer.sharedMaterials[waterMaterialIndex].GetFloat("_WaterLevel") - expected) < 0.02f, $"水位実測 {renderer.sharedMaterials[waterMaterialIndex].GetFloat("_WaterLevel"):F3}, server={pipe.Amount:F1}/{capacity}");
         p.Assert(renderer.enabled && renderer.gameObject.activeInHierarchy && renderer.isVisible, "同じパイプの水位Rendererが可視");
         await p.Screenshot($"water-{expected * 100:F0}pct");
         await p.WaitSeconds(0.5f);

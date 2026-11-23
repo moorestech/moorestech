@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 到着通知の失敗では衛星とセーブを保持し再試行で一度だけ成果を出す()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
             var satellite = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1);
             var save = new SpaceElevatorClimberSaveJsonObject
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 出口待ちと成果の事前確認は到着を通知しない()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void UnchangedIdleTicksDoNotPublishDirectState(bool connected, bool satellite, bool atTop, SpaceElevatorBaseStatus status)
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100f);
             if (connected)
             {
@@ -141,7 +141,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void SuccessfulArrivalAutomaticallyStartsTheNextSatellite()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100f);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
@@ -166,7 +166,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 無給電では進まず接続待ちと衛星待ちは電力を要求しない()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var climber = block.GetComponent<SpaceElevatorClimberComponent>();
             var electric = block.GetComponent<SpaceElevatorBaseElectricComponent>();
             Assert.AreEqual(0, electric.RequestEnergy.AsPrimitive());

@@ -92,7 +92,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         {
             // Web の gap=sm と同じ
             // Web MachineSection.tsx:61-67 Stack gap=sm; the same after restacking the context
-            ContextModel.Set(Context.CleanRoomLayoutTestHost.Room(2));
+            ContextModel.Set(Context.CleanRoomLayoutTestHost.MachineRoom());
             var root = MountSection(Fixtures.Machine(MachineRecipeSelection.Selected(RecipeA), false, Fixtures.ItemRecipe(RecipeA, 5, SecondItem, FirstItem)), false).Root;
             ClickCenter(root, "machine-selected-recipe");
             Assert.IsNotNull(Find<VisualElement>(root, MachineRecipeSelectionList.ListTestid).parent.parent.Q("clean-room-section"));

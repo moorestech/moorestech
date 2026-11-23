@@ -45,7 +45,9 @@ namespace Game.CleanRoom.Util
             return CleanRoomPurityLogic.AirChangeRate(SumRemovalVolume(entries), room.Volume);
         }
 
-        private static double SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)
+        // 今の稼働状態での除去体積の合計。換気回数と、次のクラスまでの台数が共有する
+        // Total removal volume in the current operating state, shared by the air change rate and the units to the next class
+        public static double SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)
         {
             var removalVolume = 0d;
             foreach (var entry in entries) removalVolume += entry.Filter.RemovalVolumePerSecond;

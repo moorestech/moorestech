@@ -4,15 +4,17 @@ using Core.Master;
 
 namespace Client.Ui.State.BlockInventory.Special.Details
 {
-    // 方向 1 つのモードとフィルタ枠（空の枠は EmptyItemId）
-    // One direction's mode and filter slots; an empty slot is EmptyItemId
+    // 方向 1 つの入口から見た側・モード・フィルタ枠（空の枠は EmptyItemId）
+    // One direction's side seen from the entry, mode and filter slots; an empty slot is EmptyItemId
     public readonly struct FilterSplitterDirectionDetail
     {
+        public FilterSplitterOutputSide Side { get; }
         public FilterSplitterMode Mode { get; }
         public IReadOnlyList<ItemId> FilterItemIds { get; }
 
-        public FilterSplitterDirectionDetail(FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)
+        public FilterSplitterDirectionDetail(FilterSplitterOutputSide side, FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)
         {
+            Side = side;
             Mode = mode;
             FilterItemIds = filterItemIds;
         }

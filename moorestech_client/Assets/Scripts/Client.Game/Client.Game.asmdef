@@ -41,7 +41,7 @@
         "Client.Input",
         "Client.Localization",
         "Client.Network",
-        "Cinemachine",
+        "Unity.Cinemachine",
         "UniRx",
         "UniTask",
         "Unity.TextMeshPro",

@@ -5,6 +5,7 @@ using Game.Block.Interface.Component;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using FailureReason = Server.Protocol.PacketResponse.RocketLaunchPadCommandProtocol.RocketLaunchPadCommandFailureReason;
+using CargoFailure = Server.Protocol.PacketResponse.OrbitalCargoSelectionProtocol.OrbitalCargoSelectionFailureReason;
 
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
@@ -25,6 +26,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [TestCase(SpaceElevatorConnectResult.Connected, SpecialBlockRequestOutcomeKind.Accepted, "")]
         [TestCase(SpaceElevatorConnectResult.AlreadyConnected, SpecialBlockRequestOutcomeKind.Stale, "already_connected")]
         [TestCase(SpaceElevatorConnectResult.InsufficientCable, SpecialBlockRequestOutcomeKind.Failed, "insufficient_cable")]
+        [TestCase(SpaceElevatorConnectResult.CargoNotSelected, SpecialBlockRequestOutcomeKind.Failed, "connect_cargo_not_selected")]
         [TestCase(SpaceElevatorConnectResult.InstanceMismatch, SpecialBlockRequestOutcomeKind.Failed, "connect_instance_mismatch")]
         public void 接続の結果を写す(SpaceElevatorConnectResult result, SpecialBlockRequestOutcomeKind kind, string wire)
         {
@@ -46,6 +48,31 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
                 var stale = reason is FailureReason.NotAwaitingBuildCommand or FailureReason.NotAwaitingLaunchCommand;
                 Assert.AreEqual(stale ? SpecialBlockRequestOutcomeKind.Stale : SpecialBlockRequestOutcomeKind.Failed, outcome.Kind, reason.ToString());
             }
+        }
+
+        [Test]
+        public void 積荷を選んでいない合図の拒否は失敗のコードになる()
+        {
+            // 未選択は古い操作ではなく、選べば通る失敗として出す
+            // Not-selected is a failure the player fixes by selecting, not a stale command
+            var outcome = SpecialBlockResponseCodes.FromRocketFailure(FailureReason.CargoNotSelected);
+            Assert.AreEqual(SpecialBlockRequestOutcomeKind.Failed, outcome.Kind);
+            Assert.AreEqual("rocket_command_cargo_not_selected", outcome.WireCode);
+        }
+
+        [Test]
+        public void 積荷の選択の拒否はどの理由も専用のコードを持つ失敗になる()
+        {
+            foreach (CargoFailure reason in Enum.GetValues(typeof(CargoFailure)))
+            {
+                // None は成功応答のみなので除外
+                // None only appears on success, so it is excluded
+                if (reason == CargoFailure.None) continue;
+                var outcome = SpecialBlockResponseCodes.FromCargoSelectionFailure(reason);
+                StringAssert.StartsWith("cargo_select_", outcome.WireCode, reason.ToString());
+                Assert.AreEqual(SpecialBlockRequestOutcomeKind.Failed, outcome.Kind, reason.ToString());
+            }
+            Assert.AreEqual("cargo_select_locked", SpecialBlockResponseCodes.FromCargoSelectionFailure(CargoFailure.Locked).WireCode);
         }
     }
 }

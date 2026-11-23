@@ -1,3 +1,4 @@
+using Game.Block.Blocks.OrbitalCargo;
 using System.Linq;
 using Core.Inventory;
 using Core.Item;
@@ -27,7 +28,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 空きの後ろに同種があれば確認で原本を変えず全成果を格納する()
         {
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var outputs = ServerContext.GetService<IOrbitalArrivalService>().PreviewArrivalOutputs(ForUnitTestItemId.TestElevatorSatellite, 1);
             var arrival = new FixedArrival(outputs);
             var inventory = CreateInventory(block, arrival);
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [TestCase(false)]
         public void 同属性だけを既存スタックに加算する(bool matchingMetadata)
         {
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             var existing = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 5).SetMeta("quality", new TestMeta1());
             var incoming = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 5)
                 .SetMeta("quality", matchingMetadata ? (ItemStackMetaData)new TestMeta1() : new TestMeta2());
@@ -86,7 +87,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 同種の残容量を使い切ってから余りを空きへ置く()
         {
             var outputs = new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 5) };
-            var inventory = CreateInventory(PlaceBase(Vector3Int.zero), new FixedArrival(outputs));
+            var inventory = CreateInventory(PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite), new FixedArrival(outputs));
             inventory.SetItem(2, ForUnitTestItemId.TestElevatorReward, 8);
 
             // 既存8へ2を加え、残り3だけが空きへ入る
@@ -102,7 +103,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 複数成果が入る配置なら開始前に誤って出口待ちに入らない()
         {
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100f);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
@@ -129,7 +130,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 昇降中に複数成果が入る配置になれば頂上で誤って出口待ちに入らない()
         {
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100f);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
@@ -156,7 +157,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var param = (SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam;
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, block.BlockPositionInfo);
             return new SpaceElevatorBaseInventoryComponent(block.BlockInstanceId, param,
-                new ConnectingInventoryListPriorityInsertItemService(block.BlockInstanceId, connector), arrival);
+                new ConnectingInventoryListPriorityInsertItemService(block.BlockInstanceId, connector), arrival, new OrbitalCargoSelectionState());
         }
 
         private sealed class FixedArrival : IOrbitalArrivalService

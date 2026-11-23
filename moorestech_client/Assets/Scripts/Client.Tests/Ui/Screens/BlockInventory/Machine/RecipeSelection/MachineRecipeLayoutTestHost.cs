@@ -82,12 +82,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
             // Plug machine and context factories and the large rule, as the real GameUi
             var rule = new RecipeMachineLargePanelRule(MachineModel);
             rule.Initialize();
-            var factory = new MachineSectionFactory(MachineModel, ContextModel, Commands, content, RecipeSelect, OsCursor);
+            var factory = new MachineSectionFactory(MachineModel, ContextModel, Commands, content, RecipeSelect, OsCursor, ImprovementCommands);
 
             // 外殻は閉じたまま先に載り、値は既に届く
             // The shell mounts closed first and the machine value is already there on open
             var panelState = new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryPanelState.Closed);
-            Shell = BlockInventoryTestShell.Create(this, panelState, rule, factory, new ContextSectionFactory(content, ContextModel, MachineModel));
+            Shell = BlockInventoryTestShell.Create(this, panelState, rule, factory, new ContextSectionFactory(content, ContextModel, MachineModel, OsCursor, ImprovementCommands));
             Settle();
             if (machine != null) MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(machine));
             panelState.Value = panel;

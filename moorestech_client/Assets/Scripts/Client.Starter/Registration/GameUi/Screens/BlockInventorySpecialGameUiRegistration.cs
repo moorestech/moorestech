@@ -2,8 +2,10 @@ using Client.Input.ArrowKeys;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
 using Client.Ui.State.BlockInventory.Special;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Commands;
 using Client.Ui.State.BlockInventory.Special.Source;
 using VContainer;
@@ -29,6 +31,10 @@ namespace Client.Starter.Registration.GameUi.Screens
             builder.Register<InputSystemArrowKeyStream>(Lifetime.Singleton).As<IHorizontalArrowKeySource>();
             builder.Register<SpecialViewKit>(Lifetime.Singleton);
             builder.Register<SpecialPresenters>(Lifetime.Singleton);
+
+            // 積荷を選ぶ発射台・拠点は一覧に高さが要るので大型パネル（前例 RecipeMachineLargePanelRule の登録）
+            // Cargo-selecting pads and bases need list height, so they use the large panel (precedent: RecipeMachineLargePanelRule's registration)
+            builder.Register<OrbitalCargoLargePanelRule>(Lifetime.Singleton).As<IBlockInventoryLargePanelRule>();
 
             // S4-alpha の拡張口 (1)・(2)・(3) への差し込み
             // Plug-ins to S4-alpha's extension ports (1), (2) and (3)

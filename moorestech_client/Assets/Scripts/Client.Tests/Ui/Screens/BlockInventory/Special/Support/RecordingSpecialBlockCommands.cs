@@ -1,6 +1,7 @@
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.State.BlockInventory.Logic.Special;
 using Client.Ui.State.BlockInventory.Special.Commands;
+using Core.Master;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 {
@@ -15,5 +16,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         public void SetElectricToGearMode(int modeIndex) => Record($"electric_to_gear.set_output_mode {modeIndex}");
         public void ConnectSpaceElevator() => Record("space_elevator.connect");
         public void SendRocketCommand(RocketCommand command) => Record($"rocket_launch_pad.command {command}");
+        public void SelectOrbitalCargo(ItemId payloadItemId) => Record($"orbital_cargo.select {payloadItemId.AsPrimitive()}");
     }
 }

@@ -82,6 +82,22 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _allowQualityModule || module.EffectAxis != ModuleMasterElement.EffectAxisConst.Quality;
         }
 
+        // そのモジュールをあと1個、効く形で入れられるか
+        // Whether one more of the module fits effectively
+        public bool CanAcceptOneMore(ModuleMasterElement module)
+        {
+            if (!IsModuleEffective(module)) return false;
+            var incoming = ServerContext.ItemStackFactory.Create(module.ItemGuid, 1);
+            foreach (var stack in ModuleSlot)
+            {
+                // 実挿入と同じ加算でアイテム上限・属性も照合し、装着枠には書き戻さない
+                // Preview the insertion addition with its item limit and metadata without writing to the slot
+                if (stack.Count >= GetSlotStackLimit() || MachineSubInventoryReplaceUtil.IsSwap(stack, incoming)) continue;
+                if (stack.AddItem(incoming).RemainderItemStack.Count == 0) return true;
+            }
+            return false;
+        }
+
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);

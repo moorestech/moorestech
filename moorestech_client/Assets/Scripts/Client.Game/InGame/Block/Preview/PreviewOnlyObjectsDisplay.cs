@@ -6,17 +6,14 @@ namespace Client.Game.InGame.Block.Preview
     /// </summary>
     public enum PreviewOnlyObjectsDisplay
     {
-        // 非アクティブ（当たり判定も無し）
-        // Inactive, no colliders either
+        // 非アクティブ
+        // Inactive
         Hidden,
-        // 設置アニメ中は当たり判定のみ
-        // Keep only colliders during placement animation
-        CollidersOnly,
         // 距離に関係なく描画（デバッグのホバー）
         // Rendered regardless of distance (debug hover)
         Rendered,
-        // 当たり判定は有効のまま、プレイヤー半径内だけ描画（設置モード）
-        // Colliders stay active, rendered only within the player radius (build mode)
+        // プレイヤー半径内だけ有効にして描画（設置モード）
+        // Active and rendered only within the player radius (build mode)
         RenderedWithinPlayerRadius,
     }
 }

@@ -11,3 +11,13 @@
 .modal-view__input {
     margin-bottom: var(--mantine-spacing-lg);
 }
+
+/* 項目名と値の行（visual-vocabulary §3）。表の下は本文と同じ余白、値の行は md だけ字下げする */
+/* Label-and-values rows (visual-vocabulary §3); the table keeps the message's bottom gap and values indent by md */
+.modal-view__table {
+    margin-bottom: var(--mantine-spacing-lg);
+}
+
+.modal-view__table-values {
+    margin-left: var(--mantine-spacing-md);
+}

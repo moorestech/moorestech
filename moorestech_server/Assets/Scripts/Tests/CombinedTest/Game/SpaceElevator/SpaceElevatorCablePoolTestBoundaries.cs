@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.Util.OrbitalCargo;
 using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -91,6 +92,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(SpaceElevatorConnectResult.NotSpaceElevatorBase, service.Connect(chest));
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestSpaceElevatorBase, new Vector3Int(10, 0, 0),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block));
+            OrbitalCargoTestUtil.SelectCargo(block, ForUnitTestItemId.TestElevatorSatellite);
 
             LogAssert.Expect(LogType.Log, new Regex("InsufficientCable.*instance=" + block.BlockInstanceId.AsPrimitive()));
             Assert.AreEqual(SpaceElevatorConnectResult.InsufficientCable, service.Connect(block));

@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
     // Converts between the save shape and stage types; broken values are rejected before building a stage and fall back to idle with a warning
     internal static class RocketLaunchPadSaveConverter
     {
-        public static RocketLaunchPadSaveJsonObject Capture(RocketLaunchPadStage stage, int nextPayloadIndex, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
+        public static RocketLaunchPadSaveJsonObject Capture(RocketLaunchPadStage stage, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
         {
             var cargo = stage is LoadedRocketStage loaded ? loaded.Cargo : new RocketCargo(ServerContext.ItemStackFactory.CreatEmpty(), new List<IItemStack>());
             var items = slots.InventoryItems;
@@ -27,7 +27,6 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
                 RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicksOf()),
                 CargoPayload = new ItemStackSaveJsonObject(cargo.Payload),
                 CargoMaterials = cargo.Materials.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-                NextPayloadIndex = nextPayloadIndex,
                 InputItems = items.Take(layout.OutputSlotStart).Where(item => 0 < item.Count).Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputItems = items.Skip(layout.OutputSlotStart).Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };

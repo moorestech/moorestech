@@ -29,7 +29,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using VContainer;
 
-return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 600f }, async p =>
+return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 600f }, async p =>
 {
     // 1. 入力・平地・日本語（Windows の PlayerPrefs は前の録画の言語が残るので撮る前に当てる）
     // 1. Input, flat ground and Japanese (Windows PlayerPrefs keep the last run's language, so apply it before shooting)
@@ -92,8 +92,10 @@ return PlaytestRunner.Run("uitk-s5-retake-blocks", new PlaytestRunOptions { Reco
         // 6. Space elevator base (Japanese status text; R12)
         var elevatorPos = new Vector3Int(4, 32, -20);
         await Place("宇宙エレベーター拠点", elevatorPos);
-        await Open("宇宙エレベーター拠点", elevatorPos, 9, 9, 0.4f, "space-elevator-status");
-        p.Note($"宇宙エレベーターの状態文={Text("space-elevator-status")}");
+        // 置いたばかりの拠点は未選択なので、開くと積荷の一覧と状態文（積荷を選んでいない）が出る
+        // A freshly placed base is unselected, so opening it shows the cargo list and the status line (no cargo selected)
+        await Open("宇宙エレベーター拠点", elevatorPos, 9, 9, 0.4f, "space-elevator-cargo-status");
+        p.Note($"宇宙エレベーターの状態文={Text("space-elevator-cargo-status")}");
         await ShootBoth("4-block-spaceElevator");
         await Close();
 

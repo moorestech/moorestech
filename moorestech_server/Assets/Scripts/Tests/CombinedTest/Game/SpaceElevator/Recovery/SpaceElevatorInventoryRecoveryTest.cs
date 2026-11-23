@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void SortProtocolPreservesEverySlotRole(int satellites)
         {
             var (_, provider) = CreateServer();
-            var inventory = PlaceBase(Vector3Int.zero).GetComponent<SpaceElevatorBaseInventoryComponent>();
+            var inventory = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite).GetComponent<SpaceElevatorBaseInventoryComponent>();
             inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, satellites);
             inventory.SetItem(1, ForUnitTestItemId.TestElevatorReward, 5);
             var before = inventory.InventoryItems.ToArray();
@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void StackResearchResumesBeforeStartAndAtTopWithoutInventoryMutation(bool atTop)
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             PowerBase(block, Vector3Int.zero, 100f);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void UnsupportedInletIsVisibleImmediatelyAndAfterInventoryChange()
         {
             CreateServer();
-            var block = PlaceBase(Vector3Int.zero);
+            var block = PlaceBase(Vector3Int.zero, ForUnitTestItemId.TestElevatorSatellite);
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
             var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();

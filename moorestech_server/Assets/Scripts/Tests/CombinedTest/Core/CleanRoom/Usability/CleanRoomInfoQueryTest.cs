@@ -19,14 +19,14 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             GameUpdater.UpdateOneTick();
             var query = new CleanRoomInfoQuery(datastore, ServerContext.WorldBlockDatastore);
 
-            // 室内の清浄機から引くと、清浄機1台（座標・フィルター5個・残量満タン）を持つ内寸27-1=26の部屋が返る
-            // Querying the purifier inside returns the 27-1=26 room holding one purifier (position, 5 filters, full life)
+            // 室内の清浄機から引くと、清浄機1台の部屋と、その清浄機自身の状態（フィルター5個・残量満タン）が返る
+            // Querying the purifier inside returns a one-purifier room and that purifier's own state (5 filters, full life)
             var room = AsEnclosed(query.Query(filter)).Room;
-            Assert.AreEqual(26, room.Volume);
-            Assert.AreEqual(1, room.AirFilters.Count);
-            Assert.AreEqual(new Vector3Int(1, 1, 1), room.AirFilters[0].Position);
-            Assert.AreEqual(5, room.AirFilters[0].Status.FilterItemCount);
-            Assert.AreEqual(1d, room.AirFilters[0].Status.CurrentFilterRemainingRatio, 1e-9);
+            Assert.AreEqual(1, room.AirFilterCount);
+            Assert.IsInstanceOf<CleanRoomQueriedFromAirFilter>(room.QueriedFrom);
+            var ownStatus = ((CleanRoomQueriedFromAirFilter)room.QueriedFrom).Status;
+            Assert.AreEqual(5, ownStatus.FilterItemCount);
+            Assert.AreEqual(1d, ownStatus.CurrentFilterRemainingRatio, 1e-9);
 
             // 検出直後の部屋は Out から始まるので、クラスは Out の型になる
             // A freshly detected room starts at Out, so its class is the Out type

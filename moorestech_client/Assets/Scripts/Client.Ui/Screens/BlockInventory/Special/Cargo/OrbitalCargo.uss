@@ -1,0 +1,57 @@
+.orbital-cargo-host {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.orbital-cargo-pane {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.orbital-cargo-pane--fill-panel-height {
+    flex-grow: 1;
+}
+
+.orbital-cargo-pane--fill-panel-height > .orbital-cargo-list,
+.orbital-cargo-pane--fill-panel-height > .orbital-cargo-pane__scroll {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.orbital-cargo-list {
+    --recipe-list-gap: var(--machine-recipe-row-gap);
+    --recipe-row-padding-block: 5.6px;
+    --recipe-slot-size-max: 32px;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.orbital-cargo-row {
+    min-width: 0;
+}
+
+.orbital-cargo-row__name {
+    height: var(--recipe-info-text-size);
+    margin: 0 0 4px 0;
+    color: var(--text-muted);
+    font-size: var(--recipe-info-text-size);
+    padding: 0 var(--recipe-row-padding-inline);
+    -unity-text-align: lower-left;
+    translate: 0 18.1%;
+}
+
+.orbital-cargo-row__outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    border-width: 1px;
+    border-color: var(--select-cyan);
+}
+
+.orbital-cargo-row--selected > .orbital-cargo-row__outline {
+    display: flex;
+}

@@ -27,7 +27,7 @@ namespace Client.Ui.Foundation.Composite
             if (compositeShader == null) throw new System.InvalidOperationException("[UiSrgbCompositeFeature] compositeShader is not assigned on the URP renderer data");
             _material = CoreUtils.CreateEngineMaterial(compositeShader);
             _capturePass = new UiSrgbWorldColorCapturePass();
-            _pass = new UiSrgbCompositePass(_material, _capturePass);
+            _pass = new UiSrgbCompositePass(_material);
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -46,7 +46,6 @@ namespace Client.Ui.Foundation.Composite
 
         protected override void Dispose(bool disposing)
         {
-            _pass?.Dispose();
             CoreUtils.Destroy(_material);
         }
     }

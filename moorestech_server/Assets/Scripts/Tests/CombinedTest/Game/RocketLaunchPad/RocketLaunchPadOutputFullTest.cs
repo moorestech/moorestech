@@ -1,3 +1,4 @@
+using Tests.Util.OrbitalCargo;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
@@ -33,7 +34,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         {
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 2);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 2);
             RocketLaunchPadTestUtil.FillMaterials(pad);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Idle, 40));
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
             pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             var before = inventory.InventoryItems.ToArray();
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
@@ -84,7 +85,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             GameUpdater.RunFrames(5);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
@@ -97,17 +98,16 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
-            pad.GetComponent<IOpenableBlockInventoryComponent>().InsertItem(ForUnitTestItemId.CablePayloadId, 5);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.CablePayloadId, 5);
             var arrivals = new List<OrbitalArrival>();
             using var subscription = ServerContext.GetService<IOrbitalArrivalService>().OnOrbitalArrival.Subscribe(arrivals.Add);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
             Assert.AreEqual(ForUnitTestItemId.CablePayloadId, arrivals.Single().PayloadItemId);
 
-            // 成果なしの便だけを飛ばし、残った衛星は満杯の出力口を待つ
-            // Fly only the output-free cargo and leave the satellite waiting for output space
-            RocketLaunchPadTestUtil.FillMaterials(pad);
+            // 成果のある衛星へ選び直すと、満杯の出力口を待つ
+            // After reselecting the output-bearing satellite, the pad waits for output space
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Idle, 40));
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).WaitReason);
         }
@@ -117,6 +117,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.right, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var chest);
+            OrbitalCargoTestUtil.SelectCargo(pad, ForUnitTestItemId.SatellitePayloadId);
             RocketLaunchPadTestUtil.FillMaterials(pad);
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 75);
             GameUpdater.RunFrames(1);
@@ -131,7 +132,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 打ち上げ直前に出力口が埋まったら発射を待たせる()
         {
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            RocketLaunchPadTestUtil.SelectCargoAndFillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             processor.RequestBuild();

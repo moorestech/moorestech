@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Ui.State.BlockDetail.CleanRoom;
 using Client.Ui.State.BlockInventory.Common;
@@ -11,8 +10,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 部屋の照会を入力型へ写す
-    /// Maps the room query onto L0-s4b's input type, as the Web host's CleanRoomDetailDtoBuilder
+    /// 部屋の照会を照会元（室内機械／清浄機）ごとに入力型へ写す
+    /// Maps the room query onto the input type per query source (interior machine or purifier)
     /// 未知の型・値は異常の文面を返し、ログは呼び手の AnomalyReportGate が継続中 1 回だけ出す
     /// An unknown view or value returns the anomaly text, logged once while it persists by the caller's AnomalyReportGate
     /// </summary>
@@ -27,8 +26,8 @@ namespace Client.Ui.State.BlockInventory.Context
 
             // 未取得は取得状態の 1 行
             // Not fetched yields the fetch-state line for any target, in the Web host's order
-            if (fetchState != BlockInfoFetchState.Fetched) return Convert(fetchState, view, CleanRoomHaltReason.None, out anomaly);
-            if (target == CleanRoomDetailTarget.AirFilter) return Convert(fetchState, view, CleanRoomHaltReason.None, out anomaly);
+            if (fetchState != BlockInfoFetchState.Fetched) return Convert(target, fetchState, view, CleanRoomHaltReason.None, out anomaly);
+            if (target == CleanRoomDetailTarget.AirFilter) return Convert(target, fetchState, view, CleanRoomHaltReason.None, out anomaly);
 
             // 室内機械の停止理由は状態詳細から
             // A fetched interior machine's halt reason comes from its state detail; no entry until present
@@ -40,17 +39,17 @@ namespace Client.Ui.State.BlockInventory.Context
                 return SectionContent<CleanRoomFetchedDetail>.Absent;
             }
             if (!TryGetHaltReason(operability.Operability, out var haltReason, out anomaly)) return SectionContent<CleanRoomFetchedDetail>.Absent;
-            return Convert(fetchState, view, haltReason, out anomaly);
+            return Convert(target, fetchState, view, haltReason, out anomaly);
         }
 
-        private static SectionContent<CleanRoomFetchedDetail> Convert(BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason, out string anomaly)
+        private static SectionContent<CleanRoomFetchedDetail> Convert(CleanRoomDetailTarget target, BlockInfoFetchState fetchState, CleanRoomInfoView view, CleanRoomHaltReason haltReason, out string anomaly)
         {
             anomaly = null;
             if (fetchState != BlockInfoFetchState.Fetched) return SectionContent<CleanRoomFetchedDetail>.Unavailable(fetchState);
             switch (view)
             {
                 case CleanRoomEnclosedView enclosed:
-                    return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(Room(enclosed.Room), haltReason));
+                    return EnclosedRoom(enclosed.Room, out anomaly);
                 case CleanRoomNotEnclosedView notEnclosed:
                     return Leak(notEnclosed.Leak, out anomaly);
             }
@@ -61,6 +60,28 @@ namespace Client.Ui.State.BlockInventory.Context
             return SectionContent<CleanRoomFetchedDetail>.Absent;
 
             #region Internal
+
+            SectionContent<CleanRoomFetchedDetail> EnclosedRoom(CleanRoomSummaryMessagePack room, out string roomAnomaly)
+            {
+                roomAnomaly = null;
+                var headline = room.TryGetClass(out var className, out _) ? CleanRoomHeadline.Class(className) : CleanRoomHeadline.ClassOut;
+
+                // 室内機械は部屋クラスだけを読む（ADR 0105 §1）
+                // An interior machine reads only the room class (ADR 0105 §1)
+                if (target == CleanRoomDetailTarget.Machine) return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForMachine(headline), haltReason));
+
+                // 清浄機の照会は自分の状態を必ず持つ。無ければ欄を出さず開発者へ知らせる（D-6）
+                // A purifier query always carries its own status; without it hide the entry and tell developers (D-6)
+                if (!room.QueriedAirFilter.TryGetStatus(out var powerRatio, out var filterRemainingRatio))
+                {
+                    roomAnomaly = "[CleanRoomViewConversion] air-filter room query carries no queried air-filter status";
+                    return SectionContent<CleanRoomFetchedDetail>.Absent;
+                }
+                var status = room.QueriedAirFilter.TryGetUnitsToNextClass(out var nextClassName, out var units)
+                    ? CleanRoomAirFilterRoomStatus.WithUnitsToNextClass(room.AirFilterCount, room.StoppedAirFilterCount, powerRatio, filterRemainingRatio, nextClassName, units)
+                    : CleanRoomAirFilterRoomStatus.WithoutUnitsToNextClass(room.AirFilterCount, room.StoppedAirFilterCount, powerRatio, filterRemainingRatio);
+                return SectionContent<CleanRoomFetchedDetail>.Present(CleanRoomFetchedDetail.Enclosed(CleanRoomSummary.ForAirFilter(headline, status), haltReason));
+            }
 
             SectionContent<CleanRoomFetchedDetail> Leak(CleanRoomLeakView leak, out string leakAnomaly)
             {
@@ -78,14 +99,6 @@ namespace Client.Ui.State.BlockInventory.Context
                 }
                 leakAnomaly = $"[CleanRoomViewConversion] unsupported leak kind: {leak.GetType().Name}";
                 return SectionContent<CleanRoomFetchedDetail>.Absent;
-            }
-
-            static CleanRoomSummary Room(CleanRoomSummaryMessagePack room)
-            {
-                var filters = new List<CleanRoomAirFilter>();
-                foreach (var filter in room.AirFilters) filters.Add(new CleanRoomAirFilter(filter.PowerRatio, filter.FilterItemCount, filter.FilterRemainingRatio));
-                var headline = room.TryGetClass(out var className, out _) ? CleanRoomHeadline.Class(className) : CleanRoomHeadline.ClassOut;
-                return new CleanRoomSummary(headline, room.AirChangeRate, filters);
             }
 
             #endregion

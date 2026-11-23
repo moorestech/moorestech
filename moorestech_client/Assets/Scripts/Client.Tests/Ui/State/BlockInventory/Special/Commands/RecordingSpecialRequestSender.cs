@@ -28,6 +28,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public UniTask<SpecialBlockRequestOutcome> SetElectricToGearMode(Vector3Int position, int modeIndex) => Record($"electric_to_gear {position} {modeIndex}");
         public UniTask<SpecialBlockRequestOutcome> ConnectSpaceElevator(Vector3Int position, BlockInstanceId instanceId) => Record($"connect {position} {instanceId.AsPrimitive()}");
         public UniTask<SpecialBlockRequestOutcome> SendRocketCommand(Vector3Int position, RocketCommand command, BlockInstanceId instanceId) => Record($"rocket {position} {command} {instanceId.AsPrimitive()}");
+        public UniTask<SpecialBlockRequestOutcome> SelectOrbitalCargo(Vector3Int position, BlockInstanceId instanceId, ItemId payloadItemId) => Record($"cargo {position} {instanceId.AsPrimitive()} {payloadItemId.AsPrimitive()}");
 
         private UniTask<SpecialBlockRequestOutcome> Record(string line)
         {

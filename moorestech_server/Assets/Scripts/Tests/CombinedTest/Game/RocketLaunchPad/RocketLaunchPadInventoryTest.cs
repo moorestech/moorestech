@@ -1,3 +1,4 @@
+using Tests.Util.OrbitalCargo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +42,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             (_packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var added = ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.RocketLaunchPadId, Position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             Assert.IsTrue(added);
+            OrbitalCargoTestUtil.SelectCargo(block, ForUnitTestItemId.SatellitePayloadId);
             _blockInventory = block.GetComponent<IBlockInventory>();
             _inventory = block.GetComponent<IOpenableBlockInventoryComponent>();
             _layout = new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId).BlockParam);

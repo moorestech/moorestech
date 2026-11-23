@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Client.Localization;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
@@ -7,8 +6,8 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 {
     /// <summary>
-    /// 部屋欄の各行のキーと引数を作る。赤（不足）は稼働を妨げている行だけに付ける（Web cleanRoomLogic.ts の写し）
-    /// Builds keys and params for each room row; red (insufficient) marks only rows that block operation (port of Web cleanRoomLogic.ts)
+    /// 部屋欄の各行のキーと引数を作る。赤（不足）は稼働を妨げている行だけに付ける
+    /// Builds keys and params for each room row; red (insufficient) marks only rows that block operation
     /// </summary>
     public static class CleanRoomLogic
     {
@@ -37,31 +36,73 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 
             CleanRoomDisplay EnclosedRows(CleanRoomSummary room, CleanRoomHaltReason haltReason)
             {
-                // 清浄機ごとの行。番号は 1 始まり、割合は四捨五入した百分率
-                // One row per purifier, numbered from 1, ratios as rounded percentages
-                var filters = new List<UiText>();
-                for (var i = 0; i < room.AirFilters.Count; i++)
-                {
-                    var filter = room.AirFilters[i];
-                    filters.Add(new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomFilter, new[]
-                    {
-                        new LocalizationTextParam("index", UiNumberFormat.Integer(i + 1)),
-                        new LocalizationTextParam("power", RoundedPercent(filter.PowerRatio)),
-                        new LocalizationTextParam("count", UiNumberFormat.Integer(filter.FilterItemCount)),
-                        new LocalizationTextParam("remaining", RoundedPercent(filter.FilterRemainingRatio)),
-                    }));
-                }
+                // Out の判定はサーバーが決めた見出しの種別だけで行う
+                // Out is read only from the server-decided headline kind
+                var isOut = room.Headline is ClassOutCleanRoomHeadline;
 
-                // 見出しはサーバーが決めた種別から選ぶ（Out の判定をここで持たない）
-                // Pick the headline from the server-decided kind; no Out decision is made here
-                var headline = room.Headline is ClassCleanRoomHeadline classHeadline
-                    ? Line(LocalizationKeys.Ui.BlockInventory.CleanRoomClass, "className", classHeadline.ClassName)
-                    : new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut);
-                var air = new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomAir, new[]
+                switch (room)
                 {
-                    new LocalizationTextParam("airChangeRate", UiNumberFormat.Fixed(room.AirChangeRate, 3)),
+                    // 室内機械は部屋クラスの1行だけ（ADR 0105 §1）
+                    // An interior machine shows only the room-class line (ADR 0105 §1)
+                    case MachineCleanRoomSummary _:
+                        return new HeadlineOnlyCleanRoomDisplay(MachineHeadline(room.Headline), isOut, haltReason);
+
+                    // 清浄機は台数つきの見出し・台数・この清浄機の3行（ADR 0105 §5）
+                    // A purifier shows the headline with units, the count and its own status (ADR 0105 §5)
+                    case AirFilterCleanRoomSummary airFilterRoom:
+                        var airFilter = airFilterRoom.AirFilter;
+                        return new AirFilterCleanRoomDisplay(PurifierHeadline(room.Headline, airFilter), isOut, CountLine(airFilter), QueriedLine(airFilter), haltReason);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(room), room.GetType().Name, null);
+                }
+            }
+
+            UiText MachineHeadline(CleanRoomHeadline headline)
+            {
+                if (headline is ClassCleanRoomHeadline classHeadline) return Line(LocalizationKeys.Ui.BlockInventory.CleanRoomClass, "className", classHeadline.ClassName);
+                return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut);
+            }
+
+            // 台数で次のクラスへ届くときだけ「あとN台」を添える
+            // Add "N more" only when units reach the next class
+            UiText PurifierHeadline(CleanRoomHeadline headline, CleanRoomAirFilterRoomStatus airFilter)
+            {
+                var hasUnits = airFilter.TryGetUnitsToNextClass(out var nextClassName, out var units);
+                if (headline is ClassCleanRoomHeadline classHeadline)
+                {
+                    if (!hasUnits) return Line(LocalizationKeys.Ui.BlockInventory.CleanRoomPurifierClass, "className", classHeadline.ClassName);
+                    return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomPurifierClassUnitsToNext, new[] { new LocalizationTextParam("className", classHeadline.ClassName), NextClassParam(nextClassName), UnitsParam(units) });
+                }
+                if (!hasUnits) return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut);
+                return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomPurifierClassOutUnitsToNext, new[] { NextClassParam(nextClassName), UnitsParam(units) });
+            }
+
+            LocalizationTextParam NextClassParam(string nextClassName)
+            {
+                return new LocalizationTextParam("nextClassName", nextClassName);
+            }
+
+            LocalizationTextParam UnitsParam(int units)
+            {
+                return new LocalizationTextParam("units", UiNumberFormat.Integer(units));
+            }
+
+            // 止まった清浄機があるときだけ「うちN台」を添える。稼働を妨げる行ではないので赤にしない
+            // Add "N stopped" only when some are stopped; it does not block operation, so it is not red
+            UiText CountLine(CleanRoomAirFilterRoomStatus airFilter)
+            {
+                var count = new LocalizationTextParam("count", UiNumberFormat.Integer(airFilter.AirFilterCount));
+                if (airFilter.StoppedAirFilterCount == 0) return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomAirFilterCount, new[] { count });
+                return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomAirFilterCountStopped, new[] { count, new LocalizationTextParam("stopped", UiNumberFormat.Integer(airFilter.StoppedAirFilterCount)) });
+            }
+
+            UiText QueriedLine(CleanRoomAirFilterRoomStatus airFilter)
+            {
+                return new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomQueriedAirFilter, new[]
+                {
+                    new LocalizationTextParam("power", RoundedPercent(airFilter.PowerRatio)),
+                    new LocalizationTextParam("remaining", RoundedPercent(airFilter.FilterRemainingRatio)),
                 });
-                return new EnclosedCleanRoomDisplay(headline, room.Headline is ClassOutCleanRoomHeadline, air, filters, haltReason);
             }
 
             // 0..1 の割合を四捨五入した整数の百分率にする（Web の Math.round(x * 100)）

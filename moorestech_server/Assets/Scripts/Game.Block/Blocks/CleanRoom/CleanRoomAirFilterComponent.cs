@@ -29,6 +29,10 @@ namespace Game.Block.Blocks.CleanRoom
         // Effective removal volume = base x power ratio x filter presence
         public double RemovalVolumePerSecond => _removalVolumePerSecond * PowerRatio * (HasFilterItem ? 1 : 0);
 
+        // 電力割合・フィルター有無を掛ける前のマスタ基本値
+        // The master's base value before power ratio and filter presence
+        public double RatedRemovalVolumePerSecond => _removalVolumePerSecond;
+
         public readonly OpenableInventoryItemDataStoreService FilterSlot;
 
         private readonly float _requiredPower;

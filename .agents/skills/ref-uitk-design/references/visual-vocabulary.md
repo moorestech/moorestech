@@ -31,6 +31,7 @@
 - 題の行の右端の副次アクションは `GamePanel.SetTitleAction` の置き場だけ。本文の先頭や末尾へ置かない
 - ポーズ・設定・バグ報告・トースト・モーダル・チャレンジの画面は `DialogFrame` 等のダイアログの枠を使う。面を `GamePanel` に統一しない
 - モーダルは中央に置き、幕は宿主 `UiModalHost`（`Foundation/Modal/`）の 1 枚だけ（画面の幕と二重にしない）。確認・入力の定型モーダルは `Screens/Modal/` の `ModalScreenPresenter`・`ModalView` を通す
+- モーダルの本文の下に項目ごとの値を並べるときは、要求の `ModalRequest.Rows`（`ModalTableRow` の項目名と値）で載せ、`ModalView` が「項目名の行と、その下に字下げした値の行」の2行1組で描く。罫線・列そろえの表・セルの枠は作らない。使い手は「失敗率の改善方法」のモーダル（ADR 0105 §4。ユーザー裁定 2026-11-19「上げるとどうなるかは別UIでボタンで見せるようにして…差分を見せて」・2026-11-20「B. 小窓が重なる」「モーダルのほうがわかりやすい」）
 
 ## 4. スロットとグリッド
 - アイテム・ブロック・液体の 1 マスは `Components/Slots` の部品だけ（`ItemSlot`・`BlockSlot`・`FluidSlot`・`FluidAmountSlot`・素の枠は `SlotFrame`）。並べるのは `SlotGrid`（既定 9 列）。例外は常時 HUD（ホットバー・装備 HUD。1 列の固定長）とレシピ行（`RecipeRow`）

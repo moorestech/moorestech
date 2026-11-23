@@ -25,7 +25,7 @@ namespace Game.CleanRoom.Info
         {
             // 自分が属する部屋を引く
             // Resolve the room the block belongs to
-            if (_datastore.TryGetCleanRoom(block, out var room)) return new CleanRoomEnclosedInfo(CleanRoomRoomSummary.Create(room, _world));
+            if (_datastore.TryGetCleanRoom(block, out var room)) return new CleanRoomEnclosedInfo(CleanRoomRoomSummary.Create(room, _world, block, _datastore.RequiredAirChangeRates));
 
             // 部屋が無ければ漏れ箇所を探して返す
             // Without a room, probe for the openings

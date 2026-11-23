@@ -1,0 +1,8 @@
+== after 784bb70d16
+state=PlaceBlock
+{"steps":300,"totalMs":104.7,"meanMs":0.349,"p50":0.148,"p90":0.799,"p99":3.458,"max":3.723,"from":"(565.7, 83.4, 546.7)","direction":"(0.67, 0.00, 0.74)"}
+49fbb72f77 Merge remote-tracking branch 'origin/master' into docs/placement-aim-cell-traversal
+== before 49fbb72f77
+state=PlaceBlock
+{"steps":300,"totalMs":80.3,"meanMs":0.268,"p50":0.134,"p90":0.515,"p99":2.355,"max":3.046,"from":"(565.7, 83.4, 546.7)","direction":"(0.67, 0.00, 0.74)"}
+784bb70d16 perf(preview): 設置モードのプレビュー専用部品を描画するプレイヤー半径内だけ有効にし、状態が変わらないブロックには指示を出さない（ADR 0101）
