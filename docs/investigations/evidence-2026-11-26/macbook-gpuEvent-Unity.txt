@@ -1,0 +1,44 @@
+=== gpuEvent-Unity-2026-11-25-1203307.ips
+{"bug_type":"284","timestamp":"2026-11-25 12:03:30.00 +0900","os_version":"macOS 26.5.2 (25F84)","roots_installed":0,"incident_id":"AA615376-49E9-47C1-A35F-79BE75E15CD0"}
+{
+  "bug_type" : "284",
+  "roots_installed" : 0,
+  "process_name" : "Unity",
+  "registers" : {},
+  "timestamp" : 1795575810,
+  "analysis" : {"fw_power_state":0,"fw_ta_substate":{"slot0":0,"slot1":0},"fw_power_boost_controller":9,"bif0_fault":{"pm_protect":false,"is_read":true,"sideband":79,"level":0,"requestor":97,"address":1107059867776},"guilty_dm":1,"fw_power_controller_in_charge":9,"fw_cl_state":{"slot0":0,"slot1":0,"slot2":0},"fw_perf_state_lo":13,"fw_ta_state":{"slot0":0,"slot1":0},"signature":561,"fw_power_substate":0,"command_buffer_trace_id":1649959421,"fw_perf_state_select":0,"restart_reason":3,"fw_3d_state":{"slot0":0,"slot1":0,"slot2":0},"fw_gpc_perf_state":13,"fw_perf_state_hi":13,"fw_power_limit_controller":15,"restart_reason_desc":"BIF0 page fault"}
+}
+
+=== gpuEvent-Unity-2026-11-25-155501.ips
+{"bug_type":"284","timestamp":"2026-11-25 15:55:01.00 +0900","os_version":"macOS 26.5.2 (25F84)","roots_installed":0,"incident_id":"CC3896AC-44A0-4032-A258-3EFD6ECB1BF6"}
+{
+  "roots_installed" : 0,
+  "bug_type" : "284",
+  "process_name" : "Unity",
+  "registers" : {},
+  "timestamp" : 1795589701,
+  "analysis" : {"fw_power_state":0,"fw_ta_substate":{"slot0":0,"slot1":0},"fw_power_boost_controller":0,"bif0_fault":{"pm_protect":false,"is_read":true,"sideband":79,"level":0,"requestor":49,"address":1107145195648},"guilty_dm":2,"fw_power_controller_in_charge":0,"fw_cl_state":{"slot0":0,"slot1":0,"slot2":0},"fw_perf_state_lo":13,"fw_ta_state":{"slot0":0,"slot1":0},"signature":562,"fw_power_substate":0,"command_buffer_trace_id":678035004,"fw_perf_state_select":0,"restart_reason":3,"fw_3d_state":{"slot0":0,"slot1":0,"slot2":0},"fw_gpc_perf_state":13,"fw_perf_state_hi":13,"fw_power_limit_controller":15,"restart_reason_desc":"BIF0 page fault"}
+}
+
+=== gpuEvent-Unity-2026-11-25-160712.ips
+{"bug_type":"284","timestamp":"2026-11-25 16:07:12.00 +0900","os_version":"macOS 26.5.2 (25F84)","roots_installed":0,"incident_id":"E78AC90C-8CCD-42F0-8B10-D2613D59ECFC"}
+{
+  "bug_type" : "284",
+  "roots_installed" : 0,
+  "process_name" : "Unity",
+  "registers" : {},
+  "timestamp" : 1795590432,
+  "analysis" : {"fw_power_state":0,"fw_ta_substate":{"slot0":0,"slot1":0},"fw_power_boost_controller":0,"bif0_fault":{"pm_protect":false,"is_read":true,"sideband":79,"level":0,"requestor":97,"address":1107141099648},"guilty_dm":1,"fw_power_controller_in_charge":0,"fw_cl_state":{"slot0":0,"slot1":0,"slot2":0},"fw_perf_state_lo":13,"fw_ta_state":{"slot0":0,"slot1":0},"signature":561,"fw_power_substate":0,"command_buffer_trace_id":731773367,"fw_perf_state_select":0,"restart_reason":3,"fw_3d_state":{"slot0":0,"slot1":0,"slot2":0},"fw_gpc_perf_state":13,"fw_perf_state_hi":13,"fw_power_limit_controller":15,"restart_reason_desc":"BIF0 page fault"}
+}
+
+=== gpuEvent-Unity-2026-11-25-160728.ips
+{"bug_type":"284","timestamp":"2026-11-25 16:07:28.00 +0900","os_version":"macOS 26.5.2 (25F84)","roots_installed":0,"incident_id":"BC1D8FD2-45A7-4275-A5AF-D3D95C0C4B3D"}
+{
+  "roots_installed" : 0,
+  "bug_type" : "284",
+  "process_name" : "Unity",
+  "registers" : {},
+  "timestamp" : 1795590448,
+  "analysis" : {"fw_power_state":0,"fw_ta_substate":{"slot0":0,"slot1":0},"fw_power_boost_controller":11,"bif0_fault":{"pm_protect":false,"is_read":true,"sideband":79,"level":2,"requestor":1,"address":0},"guilty_dm":1,"fw_power_controller_in_charge":11,"fw_cl_state":{"slot0":0,"slot1":0,"slot2":0},"fw_perf_state_lo":3,"fw_ta_state":{"slot0":0,"slot1":0},"signature":561,"fw_power_substate":0,"command_buffer_trace_id":731794268,"fw_perf_state_select":0,"restart_reason":3,"fw_3d_state":{"slot0":0,"slot1":0,"slot2":0},"fw_gpc_perf_state":3,"fw_perf_state_hi":3,"fw_power_limit_controller":15,"restart_reason_desc":"BIF0 page fault"}
+}
+

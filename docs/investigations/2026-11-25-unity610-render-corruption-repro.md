@@ -29,6 +29,10 @@
 
 ### MacBook だけで出る手がかり
 
+- **MacBook では Unity が GPU の page fault を起こし、GPU が再起動している。** macOS の診断記録 `/Library/Logs/DiagnosticReports/gpuEvent-Unity-*.ips` が 11/25 の 12:03・15:55・16:07・16:07 の 4 件あり、すべて `restart_reason_desc: "BIF0 page fault"`（GPU が対応付けの無いアドレスを読んだ。`is_read: true`）。15:55 前後はユーザーが操作中だった（powerd の user active が連続）。Mac mini には Unity の gpuEvent が 1 件も無い（今回メモリ圧迫まで回した後も 0 件）。写しは [evidence-2026-11-26/macbook-gpuEvent-Unity.txt](evidence-2026-11-26/macbook-gpuEvent-Unity.txt)。
+- Unity が認識する GPU の機能は両機で同じ（Apple GPU Family 9、MSL 3.0、Mac GPU Family 2）。Unity 側は同じ描画経路を通っていて、違うのは GPU とドライバだと考えられる（推測）。
+- Mac mini で Metal の API 検証とシェーダー検証（`MTL_DEBUG_LAYER=1`・`MTL_SHADER_VALIDATION=1`）を有効にして起動し、Play を約 1 分回したところ、範囲外読み込みや失敗アサーションの報告は 0 件だった（メモリ圧迫で自動停止したため短い）。
+- GPU の page fault の時刻に、メモリ枯渇を示すシステムログは見つからなかった。12:03 は Editor 起動から間もない。メモリ枯渇が条件という仮説には反する材料。
 - `Ran out of Graphics Ring Buffer space` は、MacBook の本体のログで Play 1 回ごとにほぼ 1 回（Game ビュー最大化の描画中、`ScriptableRenderContext.Submit`）。ユーザー作の `~/moorestech-copy` のログにも 1 回。Mac mini の通常の起動では 0 回。
 - Mac mini でも `-gfx-ring-buffer-size 1` で起動すると同じ警告が出たが、撮影した 6 枚に崩れは無かった（短時間で、メモリ上限で止めたため判定は弱い）。
 - MacBook の複製の Editor が Play 中に止まり、GPU への投入（カーネル内の `IOGPUCommandQueueSubmitCommandBuffers`）と読み戻し（`waitUntilCompleted`）で 25 分以上待ち続けた。GPU 使用率は 0%、システムログに GPU エラーは無し。このとき 52GB の Unity が 2 本、32GB の機械で動いていたので、メモリ不足との切り分けはできていない。
@@ -49,7 +53,7 @@
 
 ### 未検証の仮説
 
-MacBook で、Profiler の記録によってメモリが枯渇した状態のときに GPU 側のデータが壊れる（推測）。確かめるには、MacBook で Profiler ウィンドウを閉じ、Editor を起動し直してから、いつもどおり遊んで崩れるかを見る。ユーザーの Editor が 55GB を抱えたままでは、MacBook で別の Editor を安全に動かせないため、今回は実行していない。
+本命: Unity 6000.6.10f1 の Metal 描画が、M5 の GPU で不正なアドレスを読む（page fault の記録あり）。対応付けのある範囲で不正に読めば巨大な三角形や文字化けになり、対応の無い範囲なら GPU 再起動になる（推測）。対抗: Profiler の記録によるメモリ枯渇で GPU 側のデータが壊れる（page fault の時刻に枯渇の記録が無く、弱まった）。確かめるには、MacBook で Profiler ウィンドウを閉じ、Editor を起動し直してから、いつもどおり遊んで崩れるかを見る。ユーザーの Editor が 55GB を抱えたままでは、MacBook で別の Editor を安全に動かせないため、今回は実行していない。
 
 ## 症状（ユーザー録画より）
 
