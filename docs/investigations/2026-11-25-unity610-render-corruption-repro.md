@@ -8,6 +8,41 @@
 
 ユーザーの録画（2026-11-24 15:59、world_1）にある巨大な黒白の三角形と髪の伸びを、Mac mini（M4）でも MacBook（M5）でも再現できなかった。再現できないため、どの修正案も効いたかどうかを判定できない。調査はここで打ち切った。
 
+## 第3回の追加調査（2026-11-26 未明）
+
+**崩れは今回も再現できなかった。代わりに、Play 中に Editor のメモリが際限なく増える現象と、その主な原因を実測で特定した。崩れとの因果は未検証。**
+
+### Play 中のメモリ急増（両機で再現）
+
+| 条件 | Play 開始後の Editor の footprint |
+|---|---|
+| Mac mini・素の worktree（804edc2953）・Profiler ウィンドウが開いて記録中 | 30秒 7GB → 90秒 21GB → 3分 31GB（上限で停止） |
+| Mac mini・素の worktree・Profiler ウィンドウを閉じ記録を止める | 2分で 15GB に達し、以後 4 分間横ばい（Unity の確保は 6.3GB で一定） |
+| Mac mini・MacBook の中身をそろえた worktree・Profiler 記録中・上限なし | 約4分で 62GB。macOS の「アプリケーションメモリが不足」が出て cmux が一時停止された |
+| MacBook・本体の丸ごと複製・Profiler 記録中 | 30秒 18GB → 60秒 23GB（上限で停止）。別の回は 34 分で 52GB |
+| MacBook・ユーザーの Editor（12時間起動） | 52〜55GB（うち 50GB は圧縮・スワップ）。macOS のメモリ不足ダイアログが出て、Chrome・Slack・cmux などが一時停止されていた |
+
+- 増えている最中のスタックは、Profiler ウィンドウが記録フレームを解析する処理（`profiling::ProfilerFrameDataDeserializer`）が確保の大半を占めた。
+- Profiler ウィンドウは `UserSettings/Layouts`（Library を消しても残る、git worktree には付いてこない）と、マシン共通の既定レイアウトの両方に入っていた。MacBook の本体の `UserSettings/Layouts/CurrentMaximizeLayout.dwlt` にもある。
+- Profiler を閉じても 15〜19GB 使うため、32GB の機械では Play だけで余裕がほぼ無い。
+
+### MacBook だけで出る手がかり
+
+- `Ran out of Graphics Ring Buffer space` は、MacBook の本体のログで Play 1 回ごとにほぼ 1 回（Game ビュー最大化の描画中、`ScriptableRenderContext.Submit`）。ユーザー作の `~/moorestech-copy` のログにも 1 回。Mac mini の通常の起動では 0 回。
+- Mac mini でも `-gfx-ring-buffer-size 1` で起動すると同じ警告が出たが、撮影した 6 枚に崩れは無かった（短時間で、メモリ上限で止めたため判定は弱い）。
+- MacBook の複製の Editor が Play 中に止まり、GPU への投入（カーネル内の `IOGPUCommandQueueSubmitCommandBuffers`）と読み戻し（`waitUntilCompleted`）で 25 分以上待ち続けた。GPU 使用率は 0%、システムログに GPU エラーは無し。このとき 52GB の Unity が 2 本、32GB の機械で動いていたので、メモリ不足との切り分けはできていない。
+
+### 除外できたもの
+
+- client-private の TerrainData（`GeneratedTerrains`）: Play 中の Terrain は 0 個で、メモリにも描画にも関与していない。
+- 動的バッチング: URP の全画質設定で `m_SupportsDynamicBatching: 0`。
+- Metal の `invalid return type 'Mtl_VertexOut'`（lilToon の IDMask 頂点シェーダー）: 両機のログに出るため識別子にならない。
+- MagicaCloth が描画を壊す経路: メッシュを毎フレーム書き換えるのは上着 1 個だけで、髪は対象外。電線と Editor の文字は説明できない（Fable の読解）。
+
+### 未検証の仮説
+
+MacBook で、Profiler の記録によってメモリが枯渇した状態のときに GPU 側のデータが壊れる（推測）。確かめるには、MacBook で Profiler ウィンドウを閉じ、Editor を起動し直してから、いつもどおり遊んで崩れるかを見る。ユーザーの Editor が 55GB を抱えたままでは、MacBook で別の Editor を安全に動かせないため、今回は実行していない。
+
 ## 症状（ユーザー録画より）
 
 | 項目 | 内容 |
@@ -46,7 +81,8 @@
 
 ## 注意（やってはいけないこと）
 
-- `-gfx-ring-buffer-size 1` で Unity を起動すると、メモリを 37GB まで使って他のアプリが止まった。小さい値で試さない。
+- `-gfx-ring-buffer-size 1` で Unity を起動すると、メモリを 37GB まで使って他のアプリが止まった。小さい値で試さない（第3回でこの注意を読まずに再実行し、Mac mini でメモリ不足ダイアログを再び出した）。
+- Profiler ウィンドウを開いたまま Play に入らない。数分で数十 GB に膨らみ、macOS が他のアプリを一時停止する。自動の検証では Play の前に `ProfilerWindow` を閉じ `ProfilerDriver.enabled = false` にし、Editor の footprint に上限（Mac mini では 16GB）を付けて監視する。
 - MacBook で長時間の自動操作をするときは、画面のスリープを止める（`caffeinate -u -d`）。止めないと Unity が固まる。
 
 ## 参照先
