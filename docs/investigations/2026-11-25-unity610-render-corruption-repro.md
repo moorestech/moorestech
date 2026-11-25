@@ -17,14 +17,15 @@
 | 条件 | Play 開始後の Editor の footprint |
 |---|---|
 | Mac mini・素の worktree（804edc2953）・Profiler ウィンドウが開いて記録中 | 30秒 7GB → 90秒 21GB → 3分 31GB（上限で停止） |
-| Mac mini・素の worktree・Profiler ウィンドウを閉じ記録を止める | 2分で 15GB に達し、以後 4 分間横ばい（Unity の確保は 6.3GB で一定） |
+| Mac mini・素の worktree・Profiler ウィンドウを閉じ記録を止める | 2分半で 15GB に達し、以後約6分間横ばい（Unity の確保は 6.3GB で一定）。1回だけの計測 |
+| Mac mini・MacBook の中身をそろえた worktree・記録は止めたがウィンドウは開いたまま | 3分で 24GB（上限で停止）。この中身で横ばいになるかは未確認 |
 | Mac mini・MacBook の中身をそろえた worktree・Profiler 記録中・上限なし | 約4分で 62GB。macOS の「アプリケーションメモリが不足」が出て cmux が一時停止された |
 | MacBook・本体の丸ごと複製・Profiler 記録中 | 30秒 18GB → 60秒 23GB（上限で停止）。別の回は 34 分で 52GB |
 | MacBook・ユーザーの Editor（12時間起動） | 52〜55GB（うち 50GB は圧縮・スワップ）。macOS のメモリ不足ダイアログが出て、Chrome・Slack・cmux などが一時停止されていた |
 
-- 増えている最中のスタックは、Profiler ウィンドウが記録フレームを解析する処理（`profiling::ProfilerFrameDataDeserializer`）が確保の大半を占めた。
+- 増えている最中のスタックは、Profiler ウィンドウが記録フレームを解析する処理（`profiling::ProfilerFrameDataDeserializer`）が確保の大半を占めた（Mac mini で sample）。MacBook の複製の停止中の sample にも同じ解析処理と Profiler の書き出しスレッドがあった。
 - Profiler ウィンドウは `UserSettings/Layouts`（Library を消しても残る、git worktree には付いてこない）と、マシン共通の既定レイアウトの両方に入っていた。MacBook の本体の `UserSettings/Layouts/CurrentMaximizeLayout.dwlt` にもある。
-- Profiler を閉じても 15〜19GB 使うため、32GB の機械では Play だけで余裕がほぼ無い。
+- Profiler を閉じた素の worktree でも 15GB 使う。MacBook の中身をそろえた場合に Profiler を閉じてどこまで増えるかは測れていない（`-gfx-ring-buffer-size 1` の回は 19GB だったが、この起動条件自体がメモリを増やすため参考にならない）。
 
 ### MacBook だけで出る手がかり
 
@@ -34,10 +35,17 @@
 
 ### 除外できたもの
 
-- client-private の TerrainData（`GeneratedTerrains`）: Play 中の Terrain は 0 個で、メモリにも描画にも関与していない。
 - 動的バッチング: URP の全画質設定で `m_SupportsDynamicBatching: 0`。
 - Metal の `invalid return type 'Mtl_VertexOut'`（lilToon の IDMask 頂点シェーダー）: 両機のログに出るため識別子にならない。
-- MagicaCloth が描画を壊す経路: メッシュを毎フレーム書き換えるのは上着 1 個だけで、髪は対象外。電線と Editor の文字は説明できない（Fable の読解）。
+
+### 説明できていないもの
+
+- client-private の TerrainData（`GeneratedTerrains`）: Mac mini の mirror の Play 中は Terrain コンポーネントが 0 個だった。一方、地形の prefab は MainGame から有効な状態で参照されており、前回の調査でも `Environment/Terrain` があった。食い違いの理由は調べていない。
+- MagicaCloth: メッシュを毎フレーム書き換えるのは上着 1 個だけで、髪は対象外という読解（Fable、未検証）。単独では電線と Editor の文字を説明できないが、上着の書き換えが引き金という仮説は残る。
+
+### 崩れの確認がどれだけ薄いか
+
+今回、崩れの有無を画面で確かめたのは、MacBook の複製で 8 枚（録画と別の場所、Game ビュー最大化なし）と、Mac mini で 6 枚（`-gfx-ring-buffer-size 1`）だけ。「再現しなかった」は弱い根拠でしかない。
 
 ### 未検証の仮説
 
