@@ -8,7 +8,7 @@ System.Threading.ThreadHelper:ThreadStart ()
 
 (Filename: G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/Loop/ServerGameUpdater.cs Line: 54)
 
-[ServerGameUpdater] tick縺・93ms驕・ｌ縺溘◆繧∝叙繧頑綾縺輔★蛻ｻ縺ｿ逶ｴ縺励∪縺・/ Tick fell 293ms behind; re-anchoring instead of catching up
+[ServerGameUpdater] tickが293ms遅れたため取り戻さず刻み直します / Tick fell 293ms behind; re-anchoring instead of catching up
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
