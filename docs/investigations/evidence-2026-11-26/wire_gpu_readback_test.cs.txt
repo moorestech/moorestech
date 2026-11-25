@@ -1,0 +1,39 @@
+var scene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.DefaultGameObjects, UnityEditor.SceneManagement.NewSceneMode.Single);
+var mat = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Material>("Assets/Asset/Block/Materials/GearChainLine.mat");
+var rnd = new System.Random(1);
+var meshes = new System.Collections.Generic.List<UnityEngine.Mesh>();
+for (int i = 0; i < 541; i++) {
+  var s = new UnityEngine.Vector3((float)rnd.NextDouble()*40-20, 5, (float)rnd.NextDouble()*40+5);
+  var e = s + new UnityEngine.Vector3((float)rnd.NextDouble()*10-5, (float)rnd.NextDouble()*2-1, (float)rnd.NextDouble()*10-5);
+  var cols = new System.Collections.Generic.List<(UnityEngine.Vector3, UnityEngine.Vector3, float)>();
+  var m = Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire.CatenaryWireMeshBuilder.Build(s, e, cols);
+  m.vertexBufferTarget |= UnityEngine.GraphicsBuffer.Target.Raw;
+  meshes.Add(m);
+  var go = new UnityEngine.GameObject("wire"+i);
+  go.AddComponent<UnityEngine.MeshFilter>().sharedMesh = m;
+  go.AddComponent<UnityEngine.MeshRenderer>().sharedMaterial = mat;
+}
+var cam = UnityEngine.Camera.main;
+var rt = new UnityEngine.RenderTexture(1280, 720, 24);
+cam.targetTexture = rt;
+cam.clearFlags = UnityEngine.CameraClearFlags.SolidColor; cam.backgroundColor = UnityEngine.Color.black;
+cam.transform.position = new UnityEngine.Vector3(0, 5, -10); cam.transform.LookAt(new UnityEngine.Vector3(0, 5, 25));
+for (int f = 0; f < 60; f++) cam.Render();
+UnityEngine.RenderTexture.active = rt; var tex = new UnityEngine.Texture2D(1280, 720, UnityEngine.TextureFormat.RGBA32, false); tex.ReadPixels(new UnityEngine.Rect(0,0,1280,720),0,0); tex.Apply(); UnityEngine.RenderTexture.active = null;
+int lit = 0; foreach (var c in tex.GetPixels32()) if (c.r+c.g+c.b > 30) lit++;
+// GPU readback vs CPU
+int mism = 0, checkedMeshes = 0; string first = "";
+foreach (var m in meshes) {
+  var cpu = m.vertices; int stride = m.GetVertexBufferStride(0); int posOff = m.GetVertexAttributeOffset(UnityEngine.Rendering.VertexAttribute.Position);
+  using (var gb = m.GetVertexBuffer(0)) {
+    var raw = new byte[gb.count * gb.stride]; gb.GetData(raw);
+    for (int v = 0; v < cpu.Length; v++) {
+      float x = System.BitConverter.ToSingle(raw, v*stride+posOff), y = System.BitConverter.ToSingle(raw, v*stride+posOff+4), z = System.BitConverter.ToSingle(raw, v*stride+posOff+8);
+      if (UnityEngine.Mathf.Abs(x-cpu[v].x)+UnityEngine.Mathf.Abs(y-cpu[v].y)+UnityEngine.Mathf.Abs(z-cpu[v].z) > 1e-4f) { mism++; if (first=="") first = m.name+" v"+v; }
+    }
+  }
+  checkedMeshes++;
+}
+var attrs = string.Join(",", System.Linq.Enumerable.Select(meshes[0].GetVertexAttributes(), a => a.attribute.ToString()));
+cam.targetTexture = null; rt.Release();
+return "lit="+lit+" meshes="+checkedMeshes+" mismatch="+mism+" first="+first+" attrs="+attrs+" verts0="+meshes[0].vertexCount;
