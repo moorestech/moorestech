@@ -1,0 +1,31 @@
+start 12:32:28 gpu_base=9 prefs=0
+pid=61896
+"Result": "scene"
+play-ready 12:35:00
+"Result": "max"
+12:35:05 fp=24GB pr=2 gpu=9 ringbuf=0 "Result": "rec=False frames=0 alloc=10760"
+12:35:20 fp=25GB pr=2 gpu=9 ringbuf=0 "Result": "rec=False frames=0 alloc=11116"
+12:35:36 fp=26GB pr=2 gpu=9 ringbuf=0 "Result": "rec=False frames=0 alloc=11119"
+12:35:52 fp=26GB pr=2 gpu=9 ringbuf=0 "Result": "rec=False frames=0 alloc=11130"
+12:36:08 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11136"
+12:36:24 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11107"
+12:36:40 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11126"
+12:36:56 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11123"
+12:37:12 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11096"
+12:37:28 fp=25GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11103"
+12:37:44 fp=25GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11105"
+12:37:59 fp=25GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11112"
+12:38:16 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11122"
+12:38:32 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11131"
+12:38:48 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11064"
+12:39:04 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11044"
+start 12:56:53 gpu_base=9 prefs=0
+pid=76942
+"Result": "scene"
+play-ready 12:58:05
+"Result": "max"
+12:58:12 fp=23GB pr=2 gpu=9 ringbuf=0 "Result": "rec=False frames=0 alloc=10879"
+12:58:24 fp=25GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11193"
+12:58:36 fp=25GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11182"
+12:58:48 fp=25GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11171"
+12:59:00 fp=26GB pr=2 gpu=9 ringbuf=1 "Result": "rec=False frames=0 alloc=11162"

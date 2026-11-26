@@ -129,10 +129,23 @@
 - `ProfilerDriver.enabled = false` と全フレーム消去で、footprint は 53GB→35GB、圧迫レベルは 2→1 に戻った。**崩れは戻らなかった**（[停止後](evidence-2026-11-26/macbook-broken-1213-after-profiler-off.png)）。
 - ウィンドウ無しで記録が有効だった理由: MacBook の EditorPrefs に `Profiler.RememberLastRecordState = 1`・`ProfilerEnabled = 1` がある。以前の記録状態が残り、Play のたびにウィンドウ無しで記録が始まっていた（推測。プロジェクトのコードに記録を有効にする箇所は無い）。
 
-### この時点の見立て（推測）
+### 12:14 時点の見立て（推測。12:35 の A 回で否定された）
 
 1. Profiler の記録が既定でオンになっていて、Play 中に Editor のメモリが数十 GB まで増える。
 2. MacBook（32GB）のメモリとスワップが逼迫し、GPU が対応付けの無いアドレスを読んで再起動する。
 3. 再起動で GPU 側だけにあった資源（フォントのテクスチャ等）の中身が失われ、Unity は気づかずに描き続ける。頂点バッファは CPU と共有のメモリなので無事。崩れは Editor を再起動するまで残る。
 
 worktree で崩れないのは、ワールドの規模や Play の長さが違い、ここまで逼迫しないためと考えられる（未確認）。
+
+## 本体での比較（2026-11-26 12:32〜13:10、Claude が MacBook 本体の Editor をワールド写しで起動）
+
+| 回 | 条件 | 結果 |
+|---|---|---|
+| A | Profiler 記録オフ（`ProfilerEnabled=0`）、既定のリングバッファ | Play 開始から約 1 分でユーザーが崩れを確認。footprint 24〜26GB・圧迫レベル 2。**新しい gpuEvent 0 件**。`Ran out of Graphics Ring Buffer space` が 12:36:08 に 1 回 |
+| C・C2 | 記録オフ、`-gfx-ring-buffer-size 256` | 2 回とも Play 開始から約 20 秒で同じ警告。その後 Editor が無応答（CPU 140% で回り続ける） |
+
+- A により、**Profiler の記録も GPU の再起動も崩れの必須条件ではない**。崩れたすべての回で共通して出ているのは `Ran out of Graphics Ring Buffer space` だけ（Mac mini では既定設定で一度も出ていない）。
+- C の無応答時のスタック（[サンプル](evidence-2026-11-26/macbook-rb256-hang-mainthread-sample.txt)）: メインスレッドは `GfxDeviceClient::SetShadersMainThread` → `ThreadedStreamBuffer::HandleOutOfBufferToWriteTo` で書き込み先の空きを待ち、`UnityGfxDeviceWorker` は `ThreadedStreamBuffer::HandleOutOfBufferToReadFrom` で読み出し待ち。メインスレッドから描画スレッドへ命令を渡すリングバッファで、両側が待ち合ったまま進まない。
+- `-gfx-ring-buffer-size` の単位と既定値は公開文書に見当たらない（未確認）。
+- 見立て（推測）: Unity 6000.6.10f1 の `ThreadedStreamBuffer` が、1 回の書き込みが残り容量を超えたときの処理を誤る。既定サイズでは警告のあと命令列が壊れたまま描画スレッドに渡り、巨大な三角形・Editor の文字欠け・上着の消失になる。256 指定では同じ処理が待ち合いで固まる。各回のログは [macbook-ab-runs-log.txt](evidence-2026-11-26/macbook-ab-runs-log.txt)。
+- 確かめ方: 描画スレッドを使わない `-force-gfx-direct` で同じ条件を回し、崩れなければリングバッファが原因。
