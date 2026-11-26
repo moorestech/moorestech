@@ -15,6 +15,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         // Only TransformRotationInfo returns a value. Exposed on base for simulator compatibility
         public virtual Transform RotationTransform => null;
 
+        // シェーダーで回す部品か。trueならCPUでは回さない
+        // Whether the part is spun by the shader; when true the CPU leaves it alone
+        public virtual bool IsGpuDriven => false;
+
         // Transform回転はProcessorの更新停止だけで止まる
         // Transform rotation stops with processor updates
         public virtual void SetRotationEnabled(bool enabled) { }

@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BeltTransport.Network;
 using Client.Game.InGame.FluidNetwork.Network;
 using Client.Game.InGame.Block.GearRotation;
+using Client.Game.InGame.Block.GearRotation.Gpu;
 using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.Block.Preview.PlacementFrame;
@@ -121,6 +122,7 @@ namespace Client.Starter.Registration
             builder.Register<GearRotationCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<GearRotationCullingRegisterService>();
             builder.Register<GearRotationTicker>(Lifetime.Singleton).As<ITickable>();
+            builder.Register<GearRotationGpuUploader>(Lifetime.Singleton).As<ILateTickable>();
             builder.RegisterEntryPoint<RenderPipelineQualityApplier>();
             builder.RegisterEntryPoint<EffectsQualityApplier>();
             builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();

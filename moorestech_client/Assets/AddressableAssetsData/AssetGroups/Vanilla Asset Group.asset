@@ -960,6 +960,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 617482282beb018459d6531bb42ad7f7
+    m_Address: Vanilla/Rendering/GearRotationRenderSettings
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6257c3a1b698947b98372ecb51c9207d
     m_Address: Vanilla/Block/Util/BlockPreviewBoundingBox
     m_ReadOnly: 0

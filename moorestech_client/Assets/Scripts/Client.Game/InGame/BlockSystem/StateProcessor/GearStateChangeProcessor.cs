@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.GearRotation;
+using Client.Game.InGame.Block.GearRotation.Gpu;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -14,24 +15,49 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeReference, SubclassSelector] private List<RotationInfo> rotationInfos = new();
 
         private GearStateDetail _currentGearState;
+        // 表の行のキーにしたブロック原点。行を書いたときだけ値を持つ
+        // Block origin used as the table key; set only once a row has been written
+        private Vector3? _gpuBlockOrigin;
 
         public void Initialize(BlockGameObject blockGameObject) { }
 
         public void OnChangeState(BlockStateMessagePack blockState)
         {
             _currentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
+
+            // シェーダーで回す部品は、ブロック原点をキーにした表へ回転状態を書く
+            // Shader-spun parts get their rotation state written to the table keyed by block origin
+            if (HasRotationInfo(true))
+            {
+                _gpuBlockOrigin ??= GetComponentInParent<BlockGameObject>(true).transform.position;
+                GearRotationGpuTable.SetState(_gpuBlockOrigin.Value, _currentGearState.CurrentRpm, _currentGearState.IsClockwise, Time.time);
+            }
         }
 
-        // 回転は個別のUpdateではなくGearRotationTickerが一覧から進める。有効な間だけ一覧に載る
-        // Rotation is advanced by GearRotationTicker from the list rather than per-gear Update; listed only while enabled
+        // CPUで回す部品だけGearRotationTickerが一覧から進める。有効な間だけ一覧に載る
+        // GearRotationTicker advances only CPU-spun parts from the list; listed only while enabled
         private void OnEnable()
         {
-            GearRotationUpdateList.Add(this);
+            if (HasRotationInfo(false)) GearRotationUpdateList.Add(this);
         }
 
         private void OnDisable()
         {
             GearRotationUpdateList.Remove(this);
+        }
+
+        private void OnDestroy()
+        {
+            if (_gpuBlockOrigin.HasValue) GearRotationGpuTable.Remove(_gpuBlockOrigin.Value);
+        }
+
+        private bool HasRotationInfo(bool gpuDriven)
+        {
+            foreach (var rotationInfo in rotationInfos)
+            {
+                if (rotationInfo != null && rotationInfo.IsGpuDriven == gpuDriven) return true;
+            }
+            return false;
         }
 
         public void AdvanceRotation(float deltaTime)

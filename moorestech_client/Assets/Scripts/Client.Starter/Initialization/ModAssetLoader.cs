@@ -84,7 +84,8 @@ namespace Client.Starter.Initialization
             async UniTask LoadBlockAssets()
             {
                 // TODo この辺も必要な時に必要なだけロードする用にしたいなぁ
-                _blockContainer = await BlockGameObjectPrefabContainer.CreateAndLoadBlockGameObjectContainer(_missingBlockIdObject);
+                var postProcessPipeline = await BlockPrefabPostProcessorRegistration.CreateAsync();
+                _blockContainer = await BlockGameObjectPrefabContainer.CreateAndLoadBlockGameObjectContainer(_missingBlockIdObject, postProcessPipeline);
                 _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.BlockAssetsLoaded);
             }
 

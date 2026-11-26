@@ -11,6 +11,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private RotationAxis rotationAxis;
         [SerializeField] private Transform rotationTransform;
         [SerializeField] private float rotationSpeed = 1;
+        // ロード時の後処理でシェーダー回転へ移した部品。Instantiateで複製されるようシリアライズする
+        // Parts moved to shader rotation by the load-time post-process; serialized so Instantiate copies it
+        [SerializeField, HideInInspector] private bool gpuDriven;
 
         // 軸のワールド符号。ブロックは向きを決めて生成され以後回らず、回転パーツの入れ子も無いので、初回に1度だけ求める
         // World sign of the axis; blocks spawn with their final yaw and nested rotating parts do not exist, so it is computed once
@@ -18,6 +21,17 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [NonSerialized] private float _worldAxisSign;
 
         public override Transform RotationTransform => rotationTransform;
+        public override bool IsGpuDriven => gpuDriven;
+        public RotationAxis Axis => rotationAxis;
+        public bool IsAlwaysForward => directionMode == GearRotationDirectionMode.AlwaysForward;
+        // 反転の符号を含めた速さの倍率
+        // Speed multiplier including the reverse sign
+        public float SignedSpeedFactor => rotationSpeed * (isReverse ? -1f : 1f);
+
+        public void SetGpuDriven()
+        {
+            gpuDriven = true;
+        }
 
         public TransformRotationInfo()
         {
@@ -37,11 +51,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         public override void Rotate(GearStateDetail gearStateDetail, float deltaTime)
         {
             if (rotationTransform == null) return;
+            if (gpuDriven) return; // silent-ok: シェーダーが回す部品はTransformを回さない / GearRotationPrefabPostProcessorTestで確認する
 
             // RPMからこのフレームの回転角を計算し、方向符号を掛ける
             // Compute this frame's rotation angle from RPM and apply the direction sign
-            var angle = gearStateDetail.CurrentRpm / 60 * deltaTime * 360 * rotationSpeed;
-            angle *= isReverse ? -1 : 1;
+            var angle = gearStateDetail.CurrentRpm / 60 * deltaTime * 360 * SignedSpeedFactor;
 
             // 停止中やdeltaTime=0では書かない。Transformの変更通知が描画側の更新を起こすため
             // Skip writing when stopped or deltaTime is 0; a Transform change triggers renderer-side updates

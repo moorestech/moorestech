@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Common.Asset;
+using Client.Common.PrefabPostProcess;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
@@ -34,13 +35,13 @@ namespace Client.Game.InGame.Context
             _blockPrefabInfos = blockPrefabInfos;
         }
         
-        public static async UniTask<BlockGameObjectPrefabContainer> CreateAndLoadBlockGameObjectContainer(BlockGameObject missingBlockIdObject)
+        public static async UniTask<BlockGameObjectPrefabContainer> CreateAndLoadBlockGameObjectContainer(BlockGameObject missingBlockIdObject, PrefabPostProcessPipeline postProcessPipeline)
         {
             var blocks = new Dictionary<BlockId, BlockPrefabInfo>();
             var tasks = new List<UniTask<BlockPrefabInfo>>();
             foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
             {
-                tasks.Add(LoadBlockGameObject(blockId));
+                tasks.Add(LoadBlockGameObject(blockId, postProcessPipeline));
             }
             
             var results = await UniTask.WhenAll(tasks);
@@ -53,7 +54,7 @@ namespace Client.Game.InGame.Context
             return new BlockGameObjectPrefabContainer(missingBlockIdObject, blocks);
         }
         
-        private static async UniTask<BlockPrefabInfo> LoadBlockGameObject(BlockId blockId)
+        private static async UniTask<BlockPrefabInfo> LoadBlockGameObject(BlockId blockId, PrefabPostProcessPipeline postProcessPipeline)
         {
             var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var path = masterElement.BlockPrefabAddressablesPath;
@@ -71,7 +72,10 @@ namespace Client.Game.InGame.Context
                 return null;
             }
             
-            return new BlockPrefabInfo(blockId, blockAsset.Asset, masterElement);
+            // 後処理をかけた複製を以後のprefabとして使う。対象外なら読み込んだassetのまま
+            // Use the post-processed clone as the prefab from now on; untargeted prefabs stay as the loaded asset
+            var prefab = postProcessPipeline.Process(blockAsset.Asset);
+            return new BlockPrefabInfo(blockId, prefab, masterElement);
         }
         
         /// <summary>
