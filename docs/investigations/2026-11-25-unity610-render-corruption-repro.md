@@ -29,7 +29,7 @@
 
 ### MacBook だけで出る手がかり
 
-- **MacBook では Unity が GPU の page fault を起こし、GPU が再起動している。** macOS の診断記録 `/Library/Logs/DiagnosticReports/gpuEvent-Unity-*.ips` が 11/25 の 12:03・15:55・16:07・16:07 の 4 件あり、すべて `restart_reason_desc: "BIF0 page fault"`（GPU が対応付けの無いアドレスを読んだ。`is_read: true`）。どの Unity が起こしたか: 12:03 は `~/moorestech-copy` の Editor（11:56〜12:39 起動）、15:55・16:07・16:07 は本体の Editor（PID 1499、14:29 起動）。11/26 に Claude が MacBook で動かした実験は含まれない。11/23・11/24 の診断記録は残っているのに gpuEvent は無く、崩れを見た 11/23 10:45〜10:53・11/24 15:59 は GPU 再起動を伴っていない。page fault は崩れと同時に起きる事象の一つで、原因と決まったわけではない。15:55 前後はユーザーが操作中だった（powerd の user active が連続）。Mac mini には Unity の gpuEvent が 1 件も無い（今回メモリ圧迫まで回した後も 0 件）。写しは [evidence-2026-11-26/macbook-gpuEvent-Unity.txt](evidence-2026-11-26/macbook-gpuEvent-Unity.txt)。
+- **MacBook では Unity が GPU の page fault を起こし、GPU が再起動している。** macOS の診断記録 `/Library/Logs/DiagnosticReports/gpuEvent-Unity-*.ips` が 11/25 の 12:03・15:55・16:07・16:07 の 4 件あり、すべて `restart_reason_desc: "BIF0 page fault"`（GPU が対応付けの無いアドレスを読んだ。`is_read: true`）。どの Unity が起こしたか: 12:03 は `~/moorestech-copy` の Editor（11:56〜12:39 起動）、15:55・16:07・16:07 は本体の Editor（PID 1499、14:29 起動）。11/26 に Claude が MacBook で動かした実験は含まれない。**訂正（11/26 10:20）:** `/Library/Logs/DiagnosticReports/Retired/` に 11/23 10:43:25 の `gpuEvent-Unity`（同じ BIF0 page fault・`is_read: true`）があった。崩れを見た 11/23 10:45〜10:53 の 2 分前で、時刻が合う。11/24 15:59 の崩れについては gpuEvent が見つかっていない（古い報告が消されたかは不明）。Mac mini には `Retired` を含めて Unity の gpuEvent が 0 件。page fault が崩れの直前に起きた例が 1 件あるが、因果はまだ確かめていない。15:55 前後はユーザーが操作中だった（powerd の user active が連続）。Mac mini には Unity の gpuEvent が 1 件も無い（今回メモリ圧迫まで回した後も 0 件）。写しは [evidence-2026-11-26/macbook-gpuEvent-Unity.txt](evidence-2026-11-26/macbook-gpuEvent-Unity.txt)。
 - Unity が認識する GPU の機能は両機で同じ（Apple GPU Family 9、MSL 3.0、Mac GPU Family 2）。Unity 側は同じ描画経路を通っていて、違うのは GPU とドライバだと考えられる（推測）。
 - Mac mini で Metal の API 検証とシェーダー検証（`MTL_DEBUG_LAYER=1`・`MTL_SHADER_VALIDATION=1`）を有効にして起動し、Play を約 1 分回したところ、範囲外読み込みや失敗アサーションの報告は 0 件だった（メモリ圧迫で自動停止したため短い）。
 - 電線だけを切り出した試験（空のシーンに `CatenaryWireMeshBuilder` で 541 本、属性は Position・Normal のみ、`GearChainLine.mat`〈URP Lit〉で 60 回描画、Metal の API 検証・シェーダー検証あり）を Mac mini（M4）と MacBook（M5、本体の複製・Play なし）で回した。両機とも、描画あり（M5 で背景以外の画素 27,552）・検証の報告 0 件・GPU 側の頂点バッファ読み戻しと CPU 頂点の不一致 0・新しい gpuEvent 0。電線メッシュ単体では UV・接線の欠落による範囲外読み込みは起きない。ただし MacBook でも worktree では崩れないと報告されているので、弱い否定にとどまる。スクリプトは [evidence-2026-11-26/wire_gpu_readback_test.cs.txt](evidence-2026-11-26/wire_gpu_readback_test.cs.txt)。
@@ -54,7 +54,7 @@
 
 ### 未検証の仮説
 
-本命: Unity 6000.6.10f1 の Metal 描画が、M5 の GPU で不正なアドレスを読む（page fault の記録あり。ただし崩れの時刻と一致した記録は無い）。対応付けのある範囲で不正に読めば巨大な三角形や文字化けになり、対応の無い範囲なら GPU 再起動になる（推測）。対抗: Profiler の記録によるメモリ枯渇で GPU 側のデータが壊れる（page fault の時刻に枯渇の記録が無く、弱まった）。確かめるには、MacBook で Profiler ウィンドウを閉じ、Editor を起動し直してから、いつもどおり遊んで崩れるかを見る。ユーザーの Editor が 55GB を抱えたままでは、MacBook で別の Editor を安全に動かせないため、今回は実行していない。
+本命: Unity 6000.6.10f1 の Metal 描画が、M5 の GPU で不正なアドレスを読む（page fault の記録あり。11/23 は崩れの 2 分前に page fault）。対応付けのある範囲で不正に読めば巨大な三角形や文字化けになり、対応の無い範囲なら GPU 再起動になる（推測）。対抗: Profiler の記録によるメモリ枯渇で GPU 側のデータが壊れる（page fault の時刻に枯渇の記録が無く、弱まった）。確かめるには、MacBook で Profiler ウィンドウを閉じ、Editor を起動し直してから、いつもどおり遊んで崩れるかを見る。ユーザーの Editor が 55GB を抱えたままでは、MacBook で別の Editor を安全に動かせないため、今回は実行していない。
 
 ## 症状（ユーザー録画より）
 

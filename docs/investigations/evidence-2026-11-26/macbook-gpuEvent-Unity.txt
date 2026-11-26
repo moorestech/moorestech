@@ -42,3 +42,12 @@
   "analysis" : {"fw_power_state":0,"fw_ta_substate":{"slot0":0,"slot1":0},"fw_power_boost_controller":11,"bif0_fault":{"pm_protect":false,"is_read":true,"sideband":79,"level":2,"requestor":1,"address":0},"guilty_dm":1,"fw_power_controller_in_charge":11,"fw_cl_state":{"slot0":0,"slot1":0,"slot2":0},"fw_perf_state_lo":3,"fw_ta_state":{"slot0":0,"slot1":0},"signature":561,"fw_power_substate":0,"command_buffer_trace_id":731794268,"fw_perf_state_select":0,"restart_reason":3,"fw_3d_state":{"slot0":0,"slot1":0,"slot2":0},"fw_gpc_perf_state":3,"fw_perf_state_hi":3,"fw_power_limit_controller":15,"restart_reason_desc":"BIF0 page fault"}
 }
 
+{"bug_type":"284","timestamp":"2026-11-23 10:43:25.00 +0900","os_version":"macOS 26.5.2 (25F84)","roots_installed":0,"incident_id":"36AD5700-940D-45D5-843B-6895BD68A691"}
+{
+  "roots_installed" : 0,
+  "bug_type" : "284",
+  "process_name" : "Unity",
+  "registers" : {},
+  "timestamp" : 1795398205,
+  "analysis" : {"fw_power_state":0,"fw_ta_substate":{"slot0":0,"slot1":0},"fw_power_boost_controller":0,"bif0_fault":{"pm_protect":false,"is_read":true,"sideband":79,"level":0,"requestor":129,"address":1100228821120},"guilty_dm":2,"fw_power_controller_in_charge":0,"fw_cl_state":{"slot0":0,"slot1":0,"slot2":0},"fw_perf_state_lo":13,"fw_ta_state":{"slot0":0,"slot1":0},"signature":562,"fw_power_substate":0,"command_buffer_trace_id":63206498625,"fw_perf_state_select":0,"restart_reason":3,"fw_3d_state":{"slot0":0,"slot1":0,"slot2":0},"fw_gpc_perf_state":13,"fw_perf_state_hi":13,"fw_power_limit_controller":15,"restart_reason_desc":"BIF0 page fault"}
+}
