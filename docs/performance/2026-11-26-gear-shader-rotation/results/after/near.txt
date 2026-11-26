@@ -1,0 +1,9 @@
+screen=1920x1080 time=90.8
+gear belt conveyor(Clone) host=back gear (GearRotation) rpm=10 cw=False screen=(15,647) dist=22.7 row=True dps=-60 base=61.5
+metal_gear belt conveyor(Clone) host=back gear (GearRotation) rpm=20 cw=True screen=(200,17) dist=23.1 row=True dps=120 base=61.5
+gear belt conveyor(Clone) host=back gear (GearRotation) rpm=10 cw=False screen=(122,635) dist=23.1 row=True dps=-60 base=61.5
+gear belt conveyor(Clone) host=back gear (GearRotation) rpm=10 cw=False screen=(192,629) dist=23.2 row=True dps=-60 base=61.5
+metal_gear belt conveyor(Clone) host=back gear (GearRotation) rpm=20 cw=True screen=(268,42) dist=23.3 row=True dps=120 base=61.5
+gear belt conveyor(Clone) host=back gear (GearRotation) rpm=10 cw=False screen=(255,623) dist=23.4 row=True dps=-60 base=61.5
+metal_gear belt conveyor(Clone) host=back gear (GearRotation) rpm=20 cw=True screen=(331,64) dist=23.5 row=True dps=120 base=61.5
+gear belt conveyor(Clone) host=back gear (GearRotation) rpm=10 cw=False screen=(312,618) dist=23.5 row=True dps=-60 base=61.5

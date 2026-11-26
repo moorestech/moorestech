@@ -1,0 +1,1 @@
+back gear (GearRotation) block=GameSystem rpm=10 axis=Y speed=1 diff(t, t+0.25)=1267 diff(t, t again)=0 of 262144

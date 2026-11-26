@@ -1,0 +1,2 @@
+{"frames":147,"seconds":10.706,"fps":13.731,"frameMsAvg":72.829}
+{"frames":151,"seconds":10.608,"fps":14.235,"frameMsAvg":70.252}
