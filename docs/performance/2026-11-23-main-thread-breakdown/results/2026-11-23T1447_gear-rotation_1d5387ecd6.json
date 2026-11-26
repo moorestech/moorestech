@@ -1,0 +1,2875 @@
+{
+  "label": "gear-rotation",
+  "commit": "1d5387ecd6e0f5a4cc96c71551a92f9ff63aaf73",
+  "trackedChanges": 3,
+  "worldSaveSha256Prefix": "12b824162d21fd25",
+  "environment": {
+    "unityVersion": "6000.6.10f1",
+    "codeOptimization": "Debug",
+    "quality": "High",
+    "vSyncCount": 1,
+    "targetFrameRate": 60,
+    "cameraPixels": "1920x1080",
+    "gfx": "Metal",
+    "gpu": "Apple M3",
+    "cpu": "Apple M3",
+    "batchMode": false
+  },
+  "scene": {
+    "renderers": 216086,
+    "gameObjects": 314666,
+    "frameCount": 9104
+  },
+  "playerSpot": "player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409",
+  "fps": [
+    {
+      "frames": 111,
+      "seconds": 10.292,
+      "fps": 10.785,
+      "frameMsAvg": 92.718
+    },
+    {
+      "frames": 105,
+      "seconds": 10.169,
+      "fps": 10.326,
+      "frameMsAvg": 96.843
+    },
+    {
+      "frames": 105,
+      "seconds": 10.361,
+      "fps": 10.134,
+      "frameMsAvg": 98.676
+    }
+  ],
+  "render": [
+    {
+      "Inl_UniversalRenderTotal": {
+        "avg": 36.797,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "RenderPlayModeViewCameras": {
+        "avg": 37.338,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "SetPass Calls Count": {
+        "avg": 433.711,
+        "frames": 76,
+        "unit": "count"
+      },
+      "Draw Calls Count": {
+        "avg": 9854.355,
+        "frames": 76,
+        "unit": "count"
+      },
+      "Batches Count": {
+        "avg": 0.0,
+        "frames": 76,
+        "unit": "count"
+      },
+      "Shadow Casters Count": {
+        "avg": 2103.947,
+        "frames": 76,
+        "unit": "count"
+      },
+      "Triangles Count": {
+        "avg": 18555382.211,
+        "frames": 76,
+        "unit": "count"
+      },
+      "Main Thread": {
+        "avg": 89.287,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "Render Thread": {
+        "avg": 0.0,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "ft.cpuFrame": {
+        "avg": 90.487,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "ft.cpuMainThread": {
+        "avg": 69.12,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "ft.cpuRenderThread": {
+        "avg": 30.762,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "ft.cpuMainThreadPresentWait": {
+        "avg": 0.213,
+        "frames": 76,
+        "unit": "ms"
+      },
+      "ft.gpuFrame": {
+        "avg": 26.277,
+        "frames": 76,
+        "unit": "ms"
+      }
+    },
+    {
+      "Inl_UniversalRenderTotal": {
+        "avg": 38.005,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "RenderPlayModeViewCameras": {
+        "avg": 38.53,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "SetPass Calls Count": {
+        "avg": 439.5,
+        "frames": 72,
+        "unit": "count"
+      },
+      "Draw Calls Count": {
+        "avg": 9985.847,
+        "frames": 72,
+        "unit": "count"
+      },
+      "Batches Count": {
+        "avg": 0.0,
+        "frames": 72,
+        "unit": "count"
+      },
+      "Shadow Casters Count": {
+        "avg": 2132.0,
+        "frames": 72,
+        "unit": "count"
+      },
+      "Triangles Count": {
+        "avg": 18802783.667,
+        "frames": 72,
+        "unit": "count"
+      },
+      "Main Thread": {
+        "avg": 84.74,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "Render Thread": {
+        "avg": 0.0,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "ft.cpuFrame": {
+        "avg": 87.811,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "ft.cpuMainThread": {
+        "avg": 72.856,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "ft.cpuRenderThread": {
+        "avg": 31.283,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "ft.cpuMainThreadPresentWait": {
+        "avg": 0.235,
+        "frames": 72,
+        "unit": "ms"
+      },
+      "ft.gpuFrame": {
+        "avg": 27.142,
+        "frames": 72,
+        "unit": "ms"
+      }
+    },
+    {
+      "Inl_UniversalRenderTotal": {
+        "avg": 42.243,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "RenderPlayModeViewCameras": {
+        "avg": 42.776,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "SetPass Calls Count": {
+        "avg": 443.873,
+        "frames": 63,
+        "unit": "count"
+      },
+      "Draw Calls Count": {
+        "avg": 9998.317,
+        "frames": 63,
+        "unit": "count"
+      },
+      "Batches Count": {
+        "avg": 0.0,
+        "frames": 63,
+        "unit": "count"
+      },
+      "Shadow Casters Count": {
+        "avg": 2132.0,
+        "frames": 63,
+        "unit": "count"
+      },
+      "Triangles Count": {
+        "avg": 18989919.333,
+        "frames": 63,
+        "unit": "count"
+      },
+      "Main Thread": {
+        "avg": 97.159,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "Render Thread": {
+        "avg": 0.0,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "ft.cpuFrame": {
+        "avg": 101.126,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "ft.cpuMainThread": {
+        "avg": 81.463,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "ft.cpuRenderThread": {
+        "avg": 33.292,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "ft.cpuMainThreadPresentWait": {
+        "avg": 0.161,
+        "frames": 63,
+        "unit": "ms"
+      },
+      "ft.gpuFrame": {
+        "avg": 29.376,
+        "frames": 63,
+        "unit": "ms"
+      }
+    }
+  ],
+  "maintree": [
+    {
+      "frames": 20,
+      "main": [
+        {
+          "path": "EditorLoop",
+          "totalMs": 37.57,
+          "selfMs": 37.57,
+          "calls": 4.0
+        },
+        {
+          "path": "PlayerLoop",
+          "totalMs": 74.51,
+          "selfMs": 0.0,
+          "calls": 3.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras",
+          "totalMs": 32.014,
+          "selfMs": 0.128,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > DestroyCullResults",
+          "totalMs": 0.193,
+          "selfMs": 0.018,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > DestroyCullResults > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.174,
+          "selfMs": 0.174,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]",
+          "totalMs": 31.654,
+          "selfMs": 0.04,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal",
+          "totalMs": 31.613,
+          "selfMs": 0.036,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack",
+          "totalMs": 31.389,
+          "selfMs": 0.093,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit",
+          "totalMs": 20.919,
+          "selfMs": 0.066,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.156,
+          "selfMs": 0.156,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows",
+          "totalMs": 2.293,
+          "selfMs": 0.01,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > BeginRenderQueueExtraction",
+          "totalMs": 0.157,
+          "selfMs": 0.156,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction",
+          "totalMs": 1.968,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 1.222,
+          "selfMs": 1.222,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 0.742,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.711,
+          "selfMs": 0.011,
+          "calls": 16.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > afterCullingOutputReady.Invoke",
+          "totalMs": 0.128,
+          "selfMs": 0.128,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 7.652,
+          "selfMs": 0.08,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph",
+          "totalMs": 7.572,
+          "selfMs": 0.043,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > Draw Main Light Shadowmap",
+          "totalMs": 1.773,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > Draw Main Light Shadowmap > MainLightShadow",
+          "totalMs": 1.771,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawOpaqueObjects",
+          "totalMs": 2.268,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawOpaqueObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 2.266,
+          "selfMs": 0.006,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawScreenSpaceUI",
+          "totalMs": 0.243,
+          "selfMs": 0.022,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawScreenSpaceUI > GUI.Repaint",
+          "totalMs": 0.114,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawScreenSpaceUI > UI.RenderOverlays",
+          "totalMs": 0.108,
+          "selfMs": 0.019,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawTransparentObjects",
+          "totalMs": 2.961,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawTransparentObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 2.959,
+          "selfMs": 0.005,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID",
+          "totalMs": 10.744,
+          "selfMs": 0.419,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > AllocateBinsPerBatch (Burst)",
+          "totalMs": 1.089,
+          "selfMs": 1.089,
+          "calls": 1.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > CompactVisibilityMasksJob (Burst)",
+          "totalMs": 0.196,
+          "selfMs": 0.196,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > CullingJob (Burst)",
+          "totalMs": 7.233,
+          "selfMs": 7.233,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > DrawCommandOutputPerBatch (Burst)",
+          "totalMs": 1.208,
+          "selfMs": 1.208,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > Idle",
+          "totalMs": 0.519,
+          "selfMs": 0.519,
+          "calls": 1.5
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 10.261,
+          "selfMs": 0.121,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable",
+          "totalMs": 8.606,
+          "selfMs": 0.013,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene",
+          "totalMs": 3.897,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction",
+          "totalMs": 3.841,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 2.473,
+          "selfMs": 2.473,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 1.363,
+          "selfMs": 0.051,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters",
+          "totalMs": 0.461,
+          "selfMs": 0.024,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID",
+          "totalMs": 0.315,
+          "selfMs": 0.077,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.237,
+          "selfMs": 0.0,
+          "calls": 2.4
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling",
+          "totalMs": 3.826,
+          "selfMs": 0.058,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents",
+          "totalMs": 0.204,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents > afterCullingOutputReady.Invoke",
+          "totalMs": 0.126,
+          "selfMs": 0.126,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 2.785,
+          "selfMs": 0.082,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > GRD.CreateCullJobTree",
+          "totalMs": 0.168,
+          "selfMs": 0.168,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > JobHandle.Complete",
+          "totalMs": 2.535,
+          "selfMs": 0.001,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID",
+          "totalMs": 0.72,
+          "selfMs": 0.144,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.501,
+          "selfMs": 0.0,
+          "calls": 6.3
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains",
+          "totalMs": 0.389,
+          "selfMs": 0.009,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains > Terrain.Heightmap.RenderStep3",
+          "totalMs": 0.165,
+          "selfMs": 0.165,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable",
+          "totalMs": 0.243,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 0.228,
+          "selfMs": 0.043,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > GRD.CreateCullJobTree",
+          "totalMs": 0.185,
+          "selfMs": 0.185,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ExecuteRenderGraph",
+          "totalMs": 0.568,
+          "selfMs": 0.027,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ExecuteRenderGraph > Inl_VFX Process Camera",
+          "totalMs": 0.14,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_RecordRenderGraph",
+          "totalMs": 0.491,
+          "selfMs": 0.012,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_RecordRenderGraph > Inl_On Record Render Graph",
+          "totalMs": 0.478,
+          "selfMs": 0.408,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering",
+          "totalMs": 0.177,
+          "selfMs": 0.026,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete",
+          "totalMs": 0.119,
+          "selfMs": 0.007,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.112,
+          "selfMs": 0.021,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene",
+          "totalMs": 42.495,
+          "selfMs": 0.102,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > EarlyUpdate.RendererNotifyInvisible",
+          "totalMs": 0.133,
+          "selfMs": 0.133,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > EarlyUpdate.UpdateAsyncReadbackManager",
+          "totalMs": 0.461,
+          "selfMs": 0.008,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > EarlyUpdate.UpdateAsyncReadbackManager > UnityEngine.CoreModule.dll!UnityEngine.Rendering::AsyncGPUReadbackRequest.InvokeCallback() [Invoke]",
+          "totalMs": 0.453,
+          "selfMs": 0.453,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate",
+          "totalMs": 2.247,
+          "selfMs": 0.003,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage",
+          "totalMs": 0.533,
+          "selfMs": 0.001,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms",
+          "totalMs": 0.532,
+          "selfMs": 0.013,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms",
+          "totalMs": 0.185,
+          "selfMs": 0.0,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem",
+          "totalMs": 0.185,
+          "selfMs": 0.005,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem > WaitForJobGroupID",
+          "totalMs": 0.179,
+          "selfMs": 0.05,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.128,
+          "selfMs": 0.0,
+          "calls": 4.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob > TransformChangeSystem",
+          "totalMs": 0.127,
+          "selfMs": 0.127,
+          "calls": 4.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms",
+          "totalMs": 0.289,
+          "selfMs": 0.001,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem",
+          "totalMs": 0.288,
+          "selfMs": 0.012,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem > WaitForJobGroupID",
+          "totalMs": 0.276,
+          "selfMs": 0.106,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.168,
+          "selfMs": 0.0,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob > TransformChangeSystem",
+          "totalMs": 0.168,
+          "selfMs": 0.168,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage",
+          "totalMs": 1.686,
+          "selfMs": 0.001,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate",
+          "totalMs": 1.685,
+          "selfMs": 0.002,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate",
+          "totalMs": 1.683,
+          "selfMs": 0.372,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate > FinalizeUpdateTask",
+          "totalMs": 0.394,
+          "selfMs": 0.394,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate > Physics.FetchPhysXResults",
+          "totalMs": 0.672,
+          "selfMs": 0.006,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate > Physics.FetchPhysXResults > Physics.SwapPhysXBuffersJob",
+          "totalMs": 0.666,
+          "selfMs": 0.666,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer",
+          "totalMs": 4.188,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]",
+          "totalMs": 4.186,
+          "selfMs": 0.038,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update",
+          "totalMs": 4.149,
+          "selfMs": 0.053,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances",
+          "totalMs": 0.238,
+          "selfMs": 0.025,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances",
+          "totalMs": 0.207,
+          "selfMs": 0.007,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances > JobHandle.Complete",
+          "totalMs": 0.193,
+          "selfMs": 0.001,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.192,
+          "selfMs": 0.006,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances > JobHandle.Complete > WaitForJobGroupID > FindDrawInstancesJob (Burst)",
+          "totalMs": 0.186,
+          "selfMs": 0.186,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges",
+          "totalMs": 1.546,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms",
+          "totalMs": 1.461,
+          "selfMs": 0.004,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms",
+          "totalMs": 1.236,
+          "selfMs": 0.009,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > TransformChangeSystem",
+          "totalMs": 0.569,
+          "selfMs": 0.013,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > TransformChangeSystem > WaitForJobGroupID",
+          "totalMs": 0.556,
+          "selfMs": 0.162,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > WaitForJobGroupID",
+          "totalMs": 0.658,
+          "selfMs": 0.137,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.509,
+          "selfMs": 0.0,
+          "calls": 5.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > mscorlib.dll!System::Action`8.Invoke() [Invoke]",
+          "totalMs": 0.221,
+          "selfMs": 0.221,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessLODGroupTransformChanges",
+          "totalMs": 0.108,
+          "selfMs": 0.018,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges",
+          "totalMs": 0.915,
+          "selfMs": 0.001,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData",
+          "totalMs": 0.914,
+          "selfMs": 0.013,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData > UnityEngine.CoreModule.dll!UnityEngine.Rendering::GPUDrivenCallbacks.InvokeGPUDrivenRendererDataNativeCallback() [Invoke]",
+          "totalMs": 0.891,
+          "selfMs": 0.066,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData > UnityEngine.CoreModule.dll!UnityEngine.Rendering::GPUDrivenCallbacks.InvokeGPUDrivenRendererDataNativeCallback() [Invoke] > ProcessMeshRendererUpdateBatch",
+          "totalMs": 0.811,
+          "selfMs": 0.009,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData > UnityEngine.CoreModule.dll!UnityEngine.Rendering::GPUDrivenCallbacks.InvokeGPUDrivenRendererDataNativeCallback() [Invoke] > ProcessMeshRendererUpdateBatch > RegisterAndBuildBatches",
+          "totalMs": 0.66,
+          "selfMs": 0.0,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges",
+          "totalMs": 1.197,
+          "selfMs": 0.079,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch",
+          "totalMs": 1.11,
+          "selfMs": 0.021,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > DispatchProbeUpdateCommand",
+          "totalMs": 0.137,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > InterpolateProbesAndUpdateTetrahedronCache",
+          "totalMs": 0.196,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > InterpolateProbesAndUpdateTetrahedronCache > JobHandle.Complete",
+          "totalMs": 0.182,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > InterpolateProbesAndUpdateTetrahedronCache > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.179,
+          "selfMs": 0.027,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > QueryRendererInstances",
+          "totalMs": 0.112,
+          "selfMs": 0.022,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > UpdateTransformsAndProbes",
+          "totalMs": 0.542,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > UpdateTransformsAndProbes > JobHandle.Complete",
+          "totalMs": 0.528,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > UpdateTransformsAndProbes > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.526,
+          "selfMs": 0.047,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.MemoryFrameMaintenance",
+          "totalMs": 0.497,
+          "selfMs": 0.497,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases",
+          "totalMs": 0.204,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases",
+          "totalMs": 0.195,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches",
+          "totalMs": 0.194,
+          "selfMs": 0.008,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke]",
+          "totalMs": 0.175,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke] > Render",
+          "totalMs": 0.157,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke] > Render > ClipperRegistry.Cull",
+          "totalMs": 0.151,
+          "selfMs": 0.151,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels",
+          "totalMs": 0.151,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke]",
+          "totalMs": 0.149,
+          "selfMs": 0.023,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke] > GameUiPanelSettings.PrepareRepaint",
+          "totalMs": 0.126,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke] > GameUiPanelSettings.PrepareRepaint > UIElements.UpdateRenderData",
+          "totalMs": 0.117,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke] > GameUiPanelSettings.PrepareRepaint > UIElements.UpdateRenderData > RenderTreeManager.Process",
+          "totalMs": 0.116,
+          "selfMs": 0.042,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers",
+          "totalMs": 3.122,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes",
+          "totalMs": 3.008,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate",
+          "totalMs": 2.563,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID",
+          "totalMs": 2.561,
+          "selfMs": 0.244,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID > EngineJob",
+          "totalMs": 1.53,
+          "selfMs": 0.0,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID > EngineJob > UpdateRendererBoundingVolumes",
+          "totalMs": 1.529,
+          "selfMs": 1.529,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID > Idle",
+          "totalMs": 0.787,
+          "selfMs": 0.787,
+          "calls": 0.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > SkinnedMeshFinalizeUpdate",
+          "totalMs": 0.444,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > SkinnedMeshFinalizeUpdate > WaitForJobGroupID",
+          "totalMs": 0.443,
+          "selfMs": 0.163,
+          "calls": 0.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > SkinnedMeshFinalizeUpdate > WaitForJobGroupID > Idle",
+          "totalMs": 0.2,
+          "selfMs": 0.2,
+          "calls": 0.7
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes",
+          "totalMs": 3.481,
+          "selfMs": 0.051,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update",
+          "totalMs": 3.43,
+          "selfMs": 1.587,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > MeshSkinning.SkinOnGPU",
+          "totalMs": 1.427,
+          "selfMs": 1.032,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > MeshSkinning.SkinOnGPU > MeshSkinning.GPUBatchedSkin",
+          "totalMs": 0.395,
+          "selfMs": 0.186,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > MeshSkinning.SkinOnGPU > MeshSkinning.GPUBatchedSkin > Compute.Dispatch",
+          "totalMs": 0.209,
+          "selfMs": 0.209,
+          "calls": 815.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > WaitForJobGroupID",
+          "totalMs": 0.415,
+          "selfMs": 0.015,
+          "calls": 1.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.4,
+          "selfMs": 0.122,
+          "calls": 1.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > WaitForJobGroupID > EngineJob > MeshSkinning.CalcMatrices",
+          "totalMs": 0.278,
+          "selfMs": 0.278,
+          "calls": 1012.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate",
+          "totalMs": 0.66,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update",
+          "totalMs": 0.658,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > VFX.Prepare",
+          "totalMs": 0.218,
+          "selfMs": 0.072,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > VFX.Prepare > WaitForJobGroupID",
+          "totalMs": 0.142,
+          "selfMs": 0.057,
+          "calls": 0.7
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > VFX.ProcessCommandList",
+          "totalMs": 0.138,
+          "selfMs": 0.011,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > WaitForJobGroupID",
+          "totalMs": 0.21,
+          "selfMs": 0.09,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin",
+          "totalMs": 0.476,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame",
+          "totalMs": 0.205,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID",
+          "totalMs": 0.195,
+          "selfMs": 0.024,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.17,
+          "selfMs": 0.001,
+          "calls": 30.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID > EngineJob > Director.PrepareFrameJob",
+          "totalMs": 0.169,
+          "selfMs": 0.014,
+          "calls": 30.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID > EngineJob > Director.PrepareFrameJob > PlayableOutput.PrepareFrame",
+          "totalMs": 0.154,
+          "selfMs": 0.073,
+          "calls": 30.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame",
+          "totalMs": 0.27,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update",
+          "totalMs": 0.27,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update > Animators.PrepareFirstPass",
+          "totalMs": 0.118,
+          "selfMs": 0.118,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update > Animators.ProcessGraphJob",
+          "totalMs": 0.115,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update > Animators.ProcessGraphJob > WaitForJobGroupID",
+          "totalMs": 0.112,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd",
+          "totalMs": 0.394,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame",
+          "totalMs": 0.393,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update",
+          "totalMs": 0.393,
+          "selfMs": 0.014,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update > Animators.WriteJob",
+          "totalMs": 0.214,
+          "selfMs": 0.006,
+          "calls": 3.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update > Animators.WriteJob > WaitForJobGroupID",
+          "totalMs": 0.207,
+          "selfMs": 0.071,
+          "calls": 2.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update > Animators.WriteJob > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.125,
+          "selfMs": 0.003,
+          "calls": 2.6
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update > Animators.WriteJob > WaitForJobGroupID > EngineJob > Animator.WriteTransforms",
+          "totalMs": 0.122,
+          "selfMs": 0.122,
+          "calls": 74.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.ScriptRunBehaviourLateUpdate",
+          "totalMs": 0.23,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.ScriptRunBehaviourLateUpdate > LateBehaviourUpdate",
+          "totalMs": 0.23,
+          "selfMs": 0.013,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.ScriptRunBehaviourLateUpdate > LateBehaviourUpdate > Unity.Cinemachine.dll!Unity.Cinemachine::CinemachineBrain.LateUpdate() [Invoke]",
+          "totalMs": 0.121,
+          "selfMs": 0.108,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.UIElementsUpdatePanels",
+          "totalMs": 0.639,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.UIElementsUpdatePanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.UpdatePanels() [Invoke]",
+          "totalMs": 0.638,
+          "selfMs": 0.03,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.UIElementsUpdatePanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.UpdatePanels() [Invoke] > GameUiPanelSettings.TickScheduledActions",
+          "totalMs": 0.59,
+          "selfMs": 0.574,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels",
+          "totalMs": 0.549,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RenderOffscreenPanels() [Invoke]",
+          "totalMs": 0.548,
+          "selfMs": 0.026,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RenderOffscreenPanels() [Invoke] > GameUiPanelSettings.Render",
+          "totalMs": 0.521,
+          "selfMs": 0.022,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RenderOffscreenPanels() [Invoke] > GameUiPanelSettings.Render > UIR.DrawChain",
+          "totalMs": 0.5,
+          "selfMs": 0.477,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate",
+          "totalMs": 8.016,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]",
+          "totalMs": 8.016,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets",
+          "totalMs": 8.006,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.Deserialize.EventStream",
+          "totalMs": 0.122,
+          "selfMs": 0.12,
+          "calls": 5.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent",
+          "totalMs": 7.86,
+          "selfMs": 1.181,
+          "calls": 5.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Deserialize",
+          "totalMs": 2.839,
+          "selfMs": 2.689,
+          "calls": 1.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Deserialize > GC.Alloc",
+          "totalMs": 0.15,
+          "selfMs": 0.15,
+          "calls": 4048.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.CommonMachineBlockStateChangeProcessor",
+          "totalMs": 0.814,
+          "selfMs": 0.786,
+          "calls": 239.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.ElectricWireStateChangeProcessor",
+          "totalMs": 1.824,
+          "selfMs": 1.727,
+          "calls": 221.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.GearBeltConveyorStateChangeProcessor",
+          "totalMs": 0.365,
+          "selfMs": 0.358,
+          "calls": 184.7
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.GearStateChangeProcessor",
+          "totalMs": 0.723,
+          "selfMs": 0.706,
+          "calls": 385.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.SteamEngineEffectStateChangeProcessor",
+          "totalMs": 0.111,
+          "selfMs": 0.108,
+          "calls": 64.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate",
+          "totalMs": 0.872,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate > BehaviourUpdate",
+          "totalMs": 0.871,
+          "selfMs": 0.083,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate > BehaviourUpdate > Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::SteamEngineEffectStateChangeProcessor.Update() [Invoke]",
+          "totalMs": 0.231,
+          "selfMs": 0.231,
+          "calls": 73.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate > BehaviourUpdate > Client.Game.dll!Client.Game.InGame.UI.UIState::UIStateControl.Update() [Invoke]",
+          "totalMs": 0.188,
+          "selfMs": 0.176,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunDelayedDynamicFrameRate",
+          "totalMs": 0.186,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunDelayedDynamicFrameRate > CoroutinesDelayedCalls",
+          "totalMs": 0.185,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunDelayedDynamicFrameRate > CoroutinesDelayedCalls > Destroy",
+          "totalMs": 0.176,
+          "selfMs": 0.144,
+          "calls": 0.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate",
+          "totalMs": 14.696,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]",
+          "totalMs": 14.696,
+          "selfMs": 14.368,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > Instantiate",
+          "totalMs": 0.188,
+          "selfMs": 0.004,
+          "calls": 1.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > Instantiate > Instantiate.Produce",
+          "totalMs": 0.116,
+          "selfMs": 0.112,
+          "calls": 1.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > WaitForLastPresentation",
+          "totalMs": 0.606,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > WaitForLastPresentation > Semaphore.WaitForSignal",
+          "totalMs": 0.606,
+          "selfMs": 0.606,
+          "calls": 1.0
+        },
+        {
+          "path": "Profiler.FlushCounters",
+          "totalMs": 8.664,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "Profiler.FlushCounters > Profiler.CollectLegacyStats",
+          "totalMs": 0.142,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "Profiler.FlushCounters > Profiler.CollectLegacyStats > Profiler.CollectUIToolkitStats",
+          "totalMs": 0.117,
+          "selfMs": 0.117,
+          "calls": 1.0
+        },
+        {
+          "path": "Profiler.FlushCounters > Profiler.FlushMemoryCounters",
+          "totalMs": 8.509,
+          "selfMs": 8.509,
+          "calls": 1.0
+        }
+      ],
+      "selfTop": {
+        "EditorLoop": 37.57,
+        "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": 14.518,
+        "Profiler.FlushMemoryCounters": 8.509,
+        "CullingJob (Burst)": 7.233,
+        "QueuePrepareIntegrateMainThreadObjects": 3.695,
+        "Idle": 2.929,
+        "BlockState.Deserialize": 2.689,
+        "WaitForJobGroupID": 2.532,
+        "BuildDrawListsJob (Burst)": 2.497,
+        "SRPBatcher.Flush": 1.759,
+        "BlockState.Processor.ElectricWireStateChangeProcessor": 1.727,
+        "UpdateRendererBoundingVolumes": 1.608,
+        "MeshSkinning.Update": 1.587,
+        "ExecuteRenderQueueJob": 1.408,
+        "DrawCommandOutputPerBatch (Burst)": 1.208,
+        "PacketExchange.RouteEvent": 1.181,
+        "Semaphore.WaitForSignal": 1.101,
+        "AllocateBinsPerBatch (Burst)": 1.089,
+        "TransformChangeSystem": 1.058,
+        "MeshSkinning.SkinOnGPU": 1.032,
+        "SRPBRender.ApplyShader": 0.912,
+        "FindDrawInstancesJob (Burst)": 0.795,
+        "BlockState.Processor.CommonMachineBlockStateChangeProcessor": 0.786,
+        "RenderLoop.DrawSRPBatcher": 0.724,
+        "BlockState.Processor.GearStateChangeProcessor": 0.706,
+        "Physics.SwapPhysXBuffersJob": 0.666,
+        "GameUiPanelSettings.TickScheduledActions": 0.574,
+        "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.508,
+        "PostLateUpdate.MemoryFrameMaintenance": 0.497,
+        "UIR.DrawChain": 0.477,
+        "UnityEngine.CoreModule.dll!UnityEngine.Rendering::AsyncGPUReadbackRequest.InvokeCallback() [Invoke]": 0.453,
+        "StdRender.ApplyShader": 0.449,
+        "Inl_On Record Render Graph": 0.408,
+        "FinalizeUpdateTask": 0.394,
+        "GC.Alloc": 0.389,
+        "PxScene.simulate": 0.372,
+        "CullSceneDynamicObjects": 0.365,
+        "BlockState.Processor.GearBeltConveyorStateChangeProcessor": 0.358,
+        "GRD.CreateCullJobTree": 0.354,
+        "RenderLoop.CleanupNodeQueue": 0.331
+      }
+    },
+    {
+      "frames": 27,
+      "main": [
+        {
+          "path": "EditorLoop",
+          "totalMs": 14.076,
+          "selfMs": 14.076,
+          "calls": 4.0
+        },
+        {
+          "path": "PlayerLoop",
+          "totalMs": 79.726,
+          "selfMs": 0.001,
+          "calls": 3.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras",
+          "totalMs": 31.726,
+          "selfMs": 0.125,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > DestroyCullResults",
+          "totalMs": 0.227,
+          "selfMs": 0.02,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > DestroyCullResults > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.207,
+          "selfMs": 0.207,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke]",
+          "totalMs": 31.317,
+          "selfMs": 0.037,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal",
+          "totalMs": 31.281,
+          "selfMs": 0.034,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack",
+          "totalMs": 31.057,
+          "selfMs": 0.099,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit",
+          "totalMs": 21.516,
+          "selfMs": 0.061,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > RenderLoop.CleanupNodeQueue",
+          "totalMs": 0.143,
+          "selfMs": 0.143,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows",
+          "totalMs": 2.21,
+          "selfMs": 0.01,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > BeginRenderQueueExtraction",
+          "totalMs": 0.171,
+          "selfMs": 0.17,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction",
+          "totalMs": 1.857,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 1.2,
+          "selfMs": 1.2,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 0.653,
+          "selfMs": 0.009,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > EndRenderQueueExtraction > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.628,
+          "selfMs": 0.011,
+          "calls": 16.3
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > Shadows.PrepareDrawShadows > afterCullingOutputReady.Invoke",
+          "totalMs": 0.139,
+          "selfMs": 0.138,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 7.624,
+          "selfMs": 0.036,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph",
+          "totalMs": 7.588,
+          "selfMs": 0.042,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > Draw Main Light Shadowmap",
+          "totalMs": 1.34,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > Draw Main Light Shadowmap > MainLightShadow",
+          "totalMs": 1.338,
+          "selfMs": 0.006,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawOpaqueObjects",
+          "totalMs": 2.338,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawOpaqueObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 2.335,
+          "selfMs": 0.006,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawScreenSpaceUI",
+          "totalMs": 0.24,
+          "selfMs": 0.023,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawScreenSpaceUI > GUI.Repaint",
+          "totalMs": 0.11,
+          "selfMs": 0.016,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawScreenSpaceUI > UI.RenderOverlays",
+          "totalMs": 0.107,
+          "selfMs": 0.019,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawTransparentObjects",
+          "totalMs": 3.369,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > ExecuteRenderGraph > DrawTransparentObjects > RenderLoop.ScheduleDraw",
+          "totalMs": 3.368,
+          "selfMs": 0.004,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID",
+          "totalMs": 11.47,
+          "selfMs": 0.439,
+          "calls": 1.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > AllocateBinsPerBatch (Burst)",
+          "totalMs": 1.173,
+          "selfMs": 1.173,
+          "calls": 1.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > CompactVisibilityMasksJob (Burst)",
+          "totalMs": 0.214,
+          "selfMs": 0.214,
+          "calls": 1.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > CullingJob (Burst)",
+          "totalMs": 7.28,
+          "selfMs": 7.28,
+          "calls": 1.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > DrawCommandOutputPerBatch (Burst)",
+          "totalMs": 1.11,
+          "selfMs": 1.11,
+          "calls": 1.9
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_ScriptableRenderContext.Submit > WaitForJobGroupID > Idle",
+          "totalMs": 1.196,
+          "selfMs": 1.196,
+          "calls": 1.7
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera",
+          "totalMs": 9.335,
+          "selfMs": 0.123,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable",
+          "totalMs": 7.641,
+          "selfMs": 0.02,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene",
+          "totalMs": 3.366,
+          "selfMs": 0.018,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction",
+          "totalMs": 3.315,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > QueuePrepareIntegrateMainThreadObjects",
+          "totalMs": 2.089,
+          "selfMs": 2.089,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > CullResults.CreateSharedRendererScene > EndRenderQueueExtraction > WaitForJobGroupID",
+          "totalMs": 1.222,
+          "selfMs": 0.075,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters",
+          "totalMs": 0.434,
+          "selfMs": 0.022,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID",
+          "totalMs": 0.311,
+          "selfMs": 0.06,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > PrepareSceneCullingParameters > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.25,
+          "selfMs": 0.0,
+          "calls": 2.4
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling",
+          "totalMs": 3.407,
+          "selfMs": 0.051,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents",
+          "totalMs": 0.193,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > CullSendEvents > afterCullingOutputReady.Invoke",
+          "totalMs": 0.142,
+          "selfMs": 0.141,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 2.453,
+          "selfMs": 0.128,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > GRD.CreateCullJobTree",
+          "totalMs": 0.186,
+          "selfMs": 0.186,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > JobHandle.Complete",
+          "totalMs": 2.139,
+          "selfMs": 0.001,
+          "calls": 0.4
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID",
+          "totalMs": 0.656,
+          "selfMs": 0.115,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.422,
+          "selfMs": 0.0,
+          "calls": 6.3
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > SceneCulling > WaitForJobGroupID > Idle",
+          "totalMs": 0.117,
+          "selfMs": 0.117,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains",
+          "totalMs": 0.394,
+          "selfMs": 0.009,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullScriptable > TerrainManager.CullAllTerrains > Terrain.Heightmap.RenderStep3",
+          "totalMs": 0.18,
+          "selfMs": 0.18,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable",
+          "totalMs": 0.287,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke]",
+          "totalMs": 0.273,
+          "selfMs": 0.042,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > CullShadowCastersScriptable > UnityEngine.CoreModule.dll!UnityEngine.Rendering::BatchRendererGroup.InvokeOnPerformCulling() [Invoke] > GRD.CreateCullJobTree",
+          "totalMs": 0.231,
+          "selfMs": 0.231,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ExecuteRenderGraph",
+          "totalMs": 0.579,
+          "selfMs": 0.029,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ExecuteRenderGraph > Inl_Setup Forward Lights",
+          "totalMs": 0.101,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_ExecuteRenderGraph > Inl_VFX Process Camera",
+          "totalMs": 0.132,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_RecordRenderGraph",
+          "totalMs": 0.536,
+          "selfMs": 0.012,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderCameraStack > Inl_UniversalRenderPipeline.RenderSingleCameraInternal: MainCamera > Inl_RecordRenderGraph > Inl_On Record Render Graph",
+          "totalMs": 0.523,
+          "selfMs": 0.45,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering",
+          "totalMs": 0.18,
+          "selfMs": 0.026,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete",
+          "totalMs": 0.125,
+          "selfMs": 0.01,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > RenderPlayModeViewCameras > UnityEngine.CoreModule.dll!UnityEngine.Rendering::RenderPipelineManager.DoRenderLoop_Internal() [Invoke] > Inl_UniversalRenderTotal > Inl_RenderPipeline.EndContextRendering > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.115,
+          "selfMs": 0.02,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene",
+          "totalMs": 47.999,
+          "selfMs": 0.106,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > EarlyUpdate.RendererNotifyInvisible",
+          "totalMs": 0.146,
+          "selfMs": 0.146,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > EarlyUpdate.UpdateAsyncReadbackManager",
+          "totalMs": 1.561,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > EarlyUpdate.UpdateAsyncReadbackManager > UnityEngine.CoreModule.dll!UnityEngine.Rendering::AsyncGPUReadbackRequest.InvokeCallback() [Invoke]",
+          "totalMs": 1.556,
+          "selfMs": 1.556,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate",
+          "totalMs": 2.275,
+          "selfMs": 0.003,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage",
+          "totalMs": 0.577,
+          "selfMs": 0.001,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms",
+          "totalMs": 0.576,
+          "selfMs": 0.014,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms",
+          "totalMs": 0.188,
+          "selfMs": 0.0,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem",
+          "totalMs": 0.188,
+          "selfMs": 0.01,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem > WaitForJobGroupID",
+          "totalMs": 0.178,
+          "selfMs": 0.052,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.125,
+          "selfMs": 0.0,
+          "calls": 4.6
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedBodyTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob > TransformChangeSystem",
+          "totalMs": 0.125,
+          "selfMs": 0.125,
+          "calls": 4.6
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms",
+          "totalMs": 0.331,
+          "selfMs": 0.001,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem",
+          "totalMs": 0.329,
+          "selfMs": 0.012,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem > WaitForJobGroupID",
+          "totalMs": 0.317,
+          "selfMs": 0.078,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.236,
+          "selfMs": 0.0,
+          "calls": 2.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.PrepareSimulationStage > Physics.SyncTransforms > Physics.CalculateChangedColliderTransforms > TransformChangeSystem > WaitForJobGroupID > EngineJob > TransformChangeSystem",
+          "totalMs": 0.236,
+          "selfMs": 0.236,
+          "calls": 2.1
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage",
+          "totalMs": 1.668,
+          "selfMs": 0.001,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate",
+          "totalMs": 1.667,
+          "selfMs": 0.002,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate",
+          "totalMs": 1.665,
+          "selfMs": 0.328,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate > FinalizeUpdateTask",
+          "totalMs": 0.554,
+          "selfMs": 0.554,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate > Physics.FetchPhysXResults",
+          "totalMs": 0.533,
+          "selfMs": 0.006,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > FixedUpdate.PhysicsFixedUpdate > Physics.RunSimulationStage > Physics.Simulate > PxScene.simulate > Physics.FetchPhysXResults > Physics.SwapPhysXBuffersJob",
+          "totalMs": 0.527,
+          "selfMs": 0.527,
+          "calls": 4.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer",
+          "totalMs": 3.27,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]",
+          "totalMs": 3.268,
+          "selfMs": 0.039,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update",
+          "totalMs": 3.229,
+          "selfMs": 0.047,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances",
+          "totalMs": 0.122,
+          "selfMs": 0.008,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances",
+          "totalMs": 0.111,
+          "selfMs": 0.003,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances > JobHandle.Complete",
+          "totalMs": 0.106,
+          "selfMs": 0.001,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.106,
+          "selfMs": 0.004,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > DestroyMeshRendererInstances > DestroyDrawInstances > JobHandle.Complete > WaitForJobGroupID > FindDrawInstancesJob (Burst)",
+          "totalMs": 0.101,
+          "selfMs": 0.101,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges",
+          "totalMs": 1.549,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms",
+          "totalMs": 1.467,
+          "selfMs": 0.005,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms",
+          "totalMs": 1.38,
+          "selfMs": 0.01,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > TransformChangeSystem",
+          "totalMs": 0.679,
+          "selfMs": 0.016,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > TransformChangeSystem > WaitForJobGroupID",
+          "totalMs": 0.662,
+          "selfMs": 0.165,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > WaitForJobGroupID",
+          "totalMs": 0.691,
+          "selfMs": 0.143,
+          "calls": 2.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > FetchAllChanges > ObjectDispatcher.CollectInstancesAndTransforms > ObjectDispatcher.CollectInstancesAndTransforms > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.54,
+          "selfMs": 0.0,
+          "calls": 4.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessLODGroupTransformChanges",
+          "totalMs": 0.138,
+          "selfMs": 0.037,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessLODGroupTransformChanges > GPUDrivenProcessor.DispatchLODGroupData",
+          "totalMs": 0.101,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges",
+          "totalMs": 0.493,
+          "selfMs": 0.001,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData",
+          "totalMs": 0.492,
+          "selfMs": 0.027,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData > UnityEngine.CoreModule.dll!UnityEngine.Rendering::GPUDrivenCallbacks.InvokeGPUDrivenRendererDataNativeCallback() [Invoke]",
+          "totalMs": 0.456,
+          "selfMs": 0.068,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData > UnityEngine.CoreModule.dll!UnityEngine.Rendering::GPUDrivenCallbacks.InvokeGPUDrivenRendererDataNativeCallback() [Invoke] > ProcessMeshRendererUpdateBatch",
+          "totalMs": 0.377,
+          "selfMs": 0.008,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererChanges > GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData > UnityEngine.CoreModule.dll!UnityEngine.Rendering::GPUDrivenCallbacks.InvokeGPUDrivenRendererDataNativeCallback() [Invoke] > ProcessMeshRendererUpdateBatch > RegisterAndBuildBatches",
+          "totalMs": 0.239,
+          "selfMs": 0.0,
+          "calls": 0.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges",
+          "totalMs": 0.817,
+          "selfMs": 0.061,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch",
+          "totalMs": 0.748,
+          "selfMs": 0.024,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > DispatchProbeUpdateCommand",
+          "totalMs": 0.112,
+          "selfMs": 0.016,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > InterpolateProbesAndUpdateTetrahedronCache",
+          "totalMs": 0.132,
+          "selfMs": 0.015,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > InterpolateProbesAndUpdateTetrahedronCache > JobHandle.Complete",
+          "totalMs": 0.118,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > InterpolateProbesAndUpdateTetrahedronCache > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.115,
+          "selfMs": 0.02,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > QueryRendererInstances",
+          "totalMs": 0.136,
+          "selfMs": 0.018,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > QueryRendererInstances > JobHandle.Complete",
+          "totalMs": 0.118,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > QueryRendererInstances > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.115,
+          "selfMs": 0.031,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > UpdateTransformsAndProbes",
+          "totalMs": 0.275,
+          "selfMs": 0.017,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > UpdateTransformsAndProbes > JobHandle.Complete",
+          "totalMs": 0.258,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > GPUResidentDrawer > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > WorldProcessor.Update > ProcessMeshRendererTransformChanges > ProcessMeshRendererUpdateBatch > UpdateTransformsAndProbes > JobHandle.Complete > WaitForJobGroupID",
+          "totalMs": 0.255,
+          "selfMs": 0.04,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.MemoryFrameMaintenance",
+          "totalMs": 0.639,
+          "selfMs": 0.639,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases",
+          "totalMs": 0.216,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases",
+          "totalMs": 0.207,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches",
+          "totalMs": 0.206,
+          "selfMs": 0.023,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke]",
+          "totalMs": 0.171,
+          "selfMs": 0.009,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke] > Render",
+          "totalMs": 0.154,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.PlayerUpdateCanvases > UIEvents.WillRenderCanvases > UGUI.Rendering.UpdateBatches > UnityEngine.UIModule.dll!UnityEngine::Canvas.SendWillRenderCanvases() [Invoke] > Render > ClipperRegistry.Cull",
+          "totalMs": 0.149,
+          "selfMs": 0.149,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels",
+          "totalMs": 0.155,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke]",
+          "totalMs": 0.153,
+          "selfMs": 0.025,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke] > GameUiPanelSettings.PrepareRepaint",
+          "totalMs": 0.128,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke] > GameUiPanelSettings.PrepareRepaint > UIElements.UpdateRenderData",
+          "totalMs": 0.12,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UIElementsRepaintPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RepaintPanels() [Invoke] > GameUiPanelSettings.PrepareRepaint > UIElements.UpdateRenderData > RenderTreeManager.Process",
+          "totalMs": 0.118,
+          "selfMs": 0.045,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers",
+          "totalMs": 2.274,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes",
+          "totalMs": 2.189,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate",
+          "totalMs": 1.714,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID",
+          "totalMs": 1.712,
+          "selfMs": 0.24,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.919,
+          "selfMs": 0.0,
+          "calls": 2.4
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID > EngineJob > UpdateRendererBoundingVolumes",
+          "totalMs": 0.918,
+          "selfMs": 0.918,
+          "calls": 2.4
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > MeshRendererFinalizeUpdate > WaitForJobGroupID > Idle",
+          "totalMs": 0.553,
+          "selfMs": 0.553,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > SkinnedMeshFinalizeUpdate",
+          "totalMs": 0.474,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > SkinnedMeshFinalizeUpdate > WaitForJobGroupID",
+          "totalMs": 0.473,
+          "selfMs": 0.169,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllRenderers > FinalizeUpdateRendererBoundingVolumes > SkinnedMeshFinalizeUpdate > WaitForJobGroupID > Idle",
+          "totalMs": 0.262,
+          "selfMs": 0.262,
+          "calls": 0.7
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes",
+          "totalMs": 3.158,
+          "selfMs": 0.045,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update",
+          "totalMs": 3.113,
+          "selfMs": 1.144,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > MeshSkinning.SkinOnGPU",
+          "totalMs": 1.532,
+          "selfMs": 1.069,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > MeshSkinning.SkinOnGPU > MeshSkinning.GPUBatchedSkin",
+          "totalMs": 0.463,
+          "selfMs": 0.19,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > MeshSkinning.SkinOnGPU > MeshSkinning.GPUBatchedSkin > Compute.Dispatch",
+          "totalMs": 0.273,
+          "selfMs": 0.273,
+          "calls": 815.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > WaitForJobGroupID",
+          "totalMs": 0.437,
+          "selfMs": 0.027,
+          "calls": 1.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.41,
+          "selfMs": 0.126,
+          "calls": 1.8
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.UpdateAllSkinnedMeshes > MeshSkinning.Update > WaitForJobGroupID > EngineJob > MeshSkinning.CalcMatrices",
+          "totalMs": 0.281,
+          "selfMs": 0.281,
+          "calls": 1014.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate",
+          "totalMs": 0.626,
+          "selfMs": 0.002,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update",
+          "totalMs": 0.624,
+          "selfMs": 0.004,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > VFX.Prepare",
+          "totalMs": 0.214,
+          "selfMs": 0.074,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > VFX.Prepare > WaitForJobGroupID",
+          "totalMs": 0.136,
+          "selfMs": 0.055,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > VFX.ProcessCommandList",
+          "totalMs": 0.134,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > WaitForJobGroupID",
+          "totalMs": 0.182,
+          "selfMs": 0.074,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.108,
+          "selfMs": 0.003,
+          "calls": 51.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PostLateUpdate.VFXUpdate > VFX.Update > WaitForJobGroupID > EngineJob > VisualEffect.Update",
+          "totalMs": 0.105,
+          "selfMs": 0.088,
+          "calls": 51.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin",
+          "totalMs": 0.48,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame",
+          "totalMs": 0.213,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID",
+          "totalMs": 0.203,
+          "selfMs": 0.031,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID > EngineJob",
+          "totalMs": 0.167,
+          "selfMs": 0.002,
+          "calls": 33.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID > EngineJob > Director.PrepareFrameJob",
+          "totalMs": 0.166,
+          "selfMs": 0.018,
+          "calls": 33.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.PrepareFrame > WaitForJobGroupID > EngineJob > Director.PrepareFrameJob > PlayableOutput.PrepareFrame",
+          "totalMs": 0.148,
+          "selfMs": 0.071,
+          "calls": 33.2
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame",
+          "totalMs": 0.266,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update",
+          "totalMs": 0.266,
+          "selfMs": 0.007,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update > Animators.PrepareFirstPass",
+          "totalMs": 0.113,
+          "selfMs": 0.113,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update > Animators.ProcessGraphJob",
+          "totalMs": 0.12,
+          "selfMs": 0.003,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationBegin > Director.ProcessFrame > Animators.Update > Animators.ProcessGraphJob > WaitForJobGroupID",
+          "totalMs": 0.117,
+          "selfMs": 0.022,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd",
+          "totalMs": 0.413,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame",
+          "totalMs": 0.413,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update",
+          "totalMs": 0.412,
+          "selfMs": 0.01,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update > Animators.WriteJob",
+          "totalMs": 0.237,
+          "selfMs": 0.006,
+          "calls": 3.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.DirectorUpdateAnimationEnd > Director.ProcessFrame > Animators.Update > Animators.WriteJob > WaitForJobGroupID",
+          "totalMs": 0.231,
+          "selfMs": 0.12,
+          "calls": 2.7
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.ScriptRunBehaviourLateUpdate",
+          "totalMs": 0.215,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.ScriptRunBehaviourLateUpdate > LateBehaviourUpdate",
+          "totalMs": 0.215,
+          "selfMs": 0.011,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.ScriptRunBehaviourLateUpdate > LateBehaviourUpdate > Unity.Cinemachine.dll!Unity.Cinemachine::CinemachineBrain.LateUpdate() [Invoke]",
+          "totalMs": 0.122,
+          "selfMs": 0.109,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.UIElementsUpdatePanels",
+          "totalMs": 0.143,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > PreLateUpdate.UIElementsUpdatePanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.UpdatePanels() [Invoke]",
+          "totalMs": 0.141,
+          "selfMs": 0.033,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels",
+          "totalMs": 0.207,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RenderOffscreenPanels() [Invoke]",
+          "totalMs": 0.206,
+          "selfMs": 0.028,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RenderOffscreenPanels() [Invoke] > GameUiPanelSettings.Render",
+          "totalMs": 0.177,
+          "selfMs": 0.023,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UIEvents.UIElementsRenderOffscreenPanels > UnityEngine.UIElementsModule.dll!UnityEngine.UIElements::UIElementsRuntimeUtilityNative.RenderOffscreenPanels() [Invoke] > GameUiPanelSettings.Render > UIR.DrawChain",
+          "totalMs": 0.154,
+          "selfMs": 0.135,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate",
+          "totalMs": 8.113,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]",
+          "totalMs": 8.113,
+          "selfMs": 0.009,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets",
+          "totalMs": 8.105,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.Deserialize.EventStream",
+          "totalMs": 0.19,
+          "selfMs": 0.189,
+          "calls": 2.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent",
+          "totalMs": 7.897,
+          "selfMs": 0.681,
+          "calls": 2.3
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Deserialize",
+          "totalMs": 2.758,
+          "selfMs": 2.669,
+          "calls": 0.6
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.CommonMachineBlockStateChangeProcessor",
+          "totalMs": 0.711,
+          "selfMs": 0.696,
+          "calls": 109.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.ElectricWireStateChangeProcessor",
+          "totalMs": 2.639,
+          "selfMs": 2.576,
+          "calls": 103.7
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.GearBeltConveyorStateChangeProcessor",
+          "totalMs": 0.254,
+          "selfMs": 0.249,
+          "calls": 83.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > UniTaskLoopRunnerYieldUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > PacketExchange.DispatchReceivedPackets > PacketExchange.RouteEvent > BlockState.Processor.GearStateChangeProcessor",
+          "totalMs": 0.761,
+          "selfMs": 0.75,
+          "calls": 176.9
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate",
+          "totalMs": 0.793,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate > BehaviourUpdate",
+          "totalMs": 0.792,
+          "selfMs": 0.08,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate > BehaviourUpdate > Client.Game.dll!Client.Game.InGame.BlockSystem.StateProcessor::SteamEngineEffectStateChangeProcessor.Update() [Invoke]",
+          "totalMs": 0.219,
+          "selfMs": 0.219,
+          "calls": 73.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunBehaviourUpdate > BehaviourUpdate > Client.Game.dll!Client.Game.InGame.UI.UIState::UIStateControl.Update() [Invoke]",
+          "totalMs": 0.115,
+          "selfMs": 0.103,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunDelayedDynamicFrameRate",
+          "totalMs": 0.159,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunDelayedDynamicFrameRate > CoroutinesDelayedCalls",
+          "totalMs": 0.158,
+          "selfMs": 0.005,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > Update.ScriptRunDelayedDynamicFrameRate > CoroutinesDelayedCalls > Destroy",
+          "totalMs": 0.149,
+          "selfMs": 0.099,
+          "calls": 0.5
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate",
+          "totalMs": 22.411,
+          "selfMs": 0.0,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]",
+          "totalMs": 22.411,
+          "selfMs": 22.07,
+          "calls": 1.0
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > Instantiate",
+          "totalMs": 0.215,
+          "selfMs": 0.003,
+          "calls": 0.6
+        },
+        {
+          "path": "PlayerLoop > UpdateScene > VContainerUpdate > UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke] > Instantiate > Instantiate.Produce",
+          "totalMs": 0.128,
+          "selfMs": 0.126,
+          "calls": 0.6
+        },
+        {
+          "path": "Profiler.FlushCounters",
+          "totalMs": 8.944,
+          "selfMs": 0.001,
+          "calls": 1.0
+        },
+        {
+          "path": "Profiler.FlushCounters > Profiler.FlushMemoryCounters",
+          "totalMs": 8.893,
+          "selfMs": 8.893,
+          "calls": 1.0
+        }
+      ],
+      "selfTop": {
+        "UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]": 22.222,
+        "EditorLoop": 14.076,
+        "Profiler.FlushMemoryCounters": 8.893,
+        "CullingJob (Burst)": 7.28,
+        "QueuePrepareIntegrateMainThreadObjects": 3.288,
+        "Idle": 2.967,
+        "BlockState.Deserialize": 2.669,
+        "BlockState.Processor.ElectricWireStateChangeProcessor": 2.576,
+        "WaitForJobGroupID": 2.557,
+        "BuildDrawListsJob (Burst)": 2.108,
+        "SRPBatcher.Flush": 1.715,
+        "UnityEngine.CoreModule.dll!UnityEngine.Rendering::AsyncGPUReadbackRequest.InvokeCallback() [Invoke]": 1.556,
+        "TransformChangeSystem": 1.278,
+        "ExecuteRenderQueueJob": 1.196,
+        "AllocateBinsPerBatch (Burst)": 1.173,
+        "MeshSkinning.Update": 1.144,
+        "DrawCommandOutputPerBatch (Burst)": 1.11,
+        "MeshSkinning.SkinOnGPU": 1.069,
+        "Semaphore.WaitForSignal": 1.03,
+        "UpdateRendererBoundingVolumes": 0.961,
+        "SRPBRender.ApplyShader": 0.829,
+        "BlockState.Processor.GearStateChangeProcessor": 0.75,
+        "RenderLoop.DrawSRPBatcher": 0.723,
+        "BlockState.Processor.CommonMachineBlockStateChangeProcessor": 0.696,
+        "PacketExchange.RouteEvent": 0.681,
+        "PostLateUpdate.MemoryFrameMaintenance": 0.639,
+        "FinalizeUpdateTask": 0.554,
+        "ObjectDispatcher.CollectInstancesAndTransformsJob": 0.54,
+        "Physics.SwapPhysXBuffersJob": 0.527,
+        "StdRender.ApplyShader": 0.451,
+        "Inl_On Record Render Graph": 0.45,
+        "GRD.CreateCullJobTree": 0.418,
+        "RenderLoop.CleanupNodeQueue": 0.35,
+        "Compute.Dispatch": 0.343,
+        "CullSceneDynamicObjects": 0.33,
+        "PxScene.simulate": 0.328,
+        "FindDrawInstancesJob (Burst)": 0.302,
+        "RenderLoop.Draw": 0.301,
+        "MeshSkinning.CalcMatrices": 0.281,
+        "afterCullingOutputReady.Invoke": 0.28
+      }
+    },
+    {
+      "error": "no profiler frames"
+    }
+  ]
+}
