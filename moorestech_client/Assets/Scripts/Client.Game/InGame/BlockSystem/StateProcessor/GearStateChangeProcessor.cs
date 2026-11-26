@@ -27,10 +27,14 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
             // シェーダーで回す部品は、ブロック原点をキーにした表へ回転状態を書く
             // Shader-spun parts get their rotation state written to the table keyed by block origin
+            // 歯車の情報が無い状態はCPU回転と同じく止める(RPM 0)
+            // A state without gear details stops the spin (RPM 0), as the CPU rotation does
             if (HasRotationInfo(true))
             {
                 _gpuBlockOrigin ??= GetComponentInParent<BlockGameObject>(true).transform.position;
-                GearRotationGpuTable.SetState(_gpuBlockOrigin.Value, _currentGearState.CurrentRpm, _currentGearState.IsClockwise, Time.time);
+                var rpm = _currentGearState?.CurrentRpm ?? 0f;
+                var isClockwise = _currentGearState?.IsClockwise ?? true;
+                GearRotationGpuTable.SetState(_gpuBlockOrigin.Value, rpm, isClockwise, Time.time);
             }
         }
 
