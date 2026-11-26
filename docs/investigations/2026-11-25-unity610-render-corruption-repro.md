@@ -107,3 +107,32 @@
 | 前回の調査 | [2026-11-23-electric-wire-render-corruption.md](2026-11-23-electric-wire-render-corruption.md) |
 | GRD 有効化 | 35b4f8e9fb（PR #1700） |
 | 電線メッシュの生成 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/ElectricWire/CatenaryWireMeshBuilder.cs` |
+
+## 崩れた瞬間の実測（2026-11-26 12:10〜12:14、ユーザーの MacBook の本体 Editor）
+
+ユーザーが「壊れた」と知らせた直後に、崩れた状態のまま読んだ値。
+
+| 項目 | 値 |
+|---|---|
+| Editor 起動 | 12:02:14（崩れまで約 8 分） |
+| GPU 再起動（gpuEvent-Unity, BIF0 page fault） | 12:10:36・12:10:50 の 2 回 |
+| Editor の phys_footprint | 53GB |
+| スワップ | 24.6GB 中 23.6GB 使用、メモリ圧迫レベル 2 |
+| Profiler ウィンドウ | 0 個（開いていない） |
+| `ProfilerDriver.enabled` | True、1,999 フレーム記録中 |
+| Unity の確保量 | totalAlloc 33.6GB・reserved 51.7GB・GPU ドライバ 7.6GB |
+| Editor.log | `Ran out of Graphics Ring Buffer space`（MaximizedHostView の Game ビュー描画中） |
+
+- Game ビュー（[崩れ](evidence-2026-11-26/macbook-broken-1212-game.png)）: ツールバーの「Game」「Display 1」・解像度の文字が消え、「Stats」が「tats」になる。ゲーム画面に白い筋と黒い大きな影。
+- メッシュ 1,500 個（電線 5 本を含む）の GPU 頂点バッファを読み戻すと、CPU の頂点と全件一致。頂点バッファの中身は壊れていない。
+- SkinnedMeshRenderer の GPU 出力と BakeMesh は 1〜3 ずれたが、座標の基準の違いの可能性があり、崩れていない環境で同じ比較をしていないので判断保留。
+- `ProfilerDriver.enabled = false` と全フレーム消去で、footprint は 53GB→35GB、圧迫レベルは 2→1 に戻った。**崩れは戻らなかった**（[停止後](evidence-2026-11-26/macbook-broken-1213-after-profiler-off.png)）。
+- ウィンドウ無しで記録が有効だった理由: MacBook の EditorPrefs に `Profiler.RememberLastRecordState = 1`・`ProfilerEnabled = 1` がある。以前の記録状態が残り、Play のたびにウィンドウ無しで記録が始まっていた（推測。プロジェクトのコードに記録を有効にする箇所は無い）。
+
+### この時点の見立て（推測）
+
+1. Profiler の記録が既定でオンになっていて、Play 中に Editor のメモリが数十 GB まで増える。
+2. MacBook（32GB）のメモリとスワップが逼迫し、GPU が対応付けの無いアドレスを読んで再起動する。
+3. 再起動で GPU 側だけにあった資源（フォントのテクスチャ等）の中身が失われ、Unity は気づかずに描き続ける。頂点バッファは CPU と共有のメモリなので無事。崩れは Editor を再起動するまで残る。
+
+worktree で崩れないのは、ワールドの規模や Play の長さが違い、ここまで逼迫しないためと考えられる（未確認）。
