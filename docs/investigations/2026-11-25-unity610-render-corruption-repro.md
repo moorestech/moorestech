@@ -144,7 +144,7 @@ worktree で崩れないのは、ワールドの規模や Play の長さが違�
 | A | Profiler 記録オフ（`ProfilerEnabled=0`）、既定のリングバッファ | Play 開始から約 1 分でユーザーが崩れを確認。footprint 24〜26GB・圧迫レベル 2。**新しい gpuEvent 0 件**。`Ran out of Graphics Ring Buffer space` が 12:36:08 に 1 回 |
 | C・C2 | 記録オフ、`-gfx-ring-buffer-size 256` | 2 回とも Play 開始から約 20 秒で同じ警告。その後 Editor が無応答（CPU 140% で回り続ける） |
 
-- A により、**Profiler の記録も GPU の再起動も崩れの必須条件ではない**。崩れたすべての回で共通して出ているのは `Ran out of Graphics Ring Buffer space` だけ（Mac mini では既定設定で一度も出ていない）。
+- A により、**Profiler の記録も GPU の再起動も崩れの必須条件ではない**。崩れたすべての回で共通して出ているのは `Ran out of Graphics Ring Buffer space` だけ（この時点では Mac mini で一度も出ていないと書いたが誤り。安全装置で Play 前に止めていただけで、後の節のとおり Mac mini でも出る）。
 - C の無応答時のスタック（[サンプル](evidence-2026-11-26/macbook-rb256-hang-mainthread-sample.txt)）: メインスレッドは `GfxDeviceClient::SetShadersMainThread` → `ThreadedStreamBuffer::HandleOutOfBufferToWriteTo` で書き込み先の空きを待ち、`UnityGfxDeviceWorker` は `ThreadedStreamBuffer::HandleOutOfBufferToReadFrom` で読み出し待ち。メインスレッドから描画スレッドへ命令を渡すリングバッファで、両側が待ち合ったまま進まない。
 - `-gfx-ring-buffer-size` の単位と既定値は公開文書に見当たらない（未確認）。
 - 見立て（推測）: Unity 6000.6.10f1 の `ThreadedStreamBuffer` が、1 回の書き込みが残り容量を超えたときの処理を誤る。既定サイズでは警告のあと命令列が壊れたまま描画スレッドに渡り、巨大な三角形・Editor の文字欠け・上着の消失になる。256 指定では同じ処理が待ち合いで固まる。各回のログは [macbook-ab-runs-log.txt](evidence-2026-11-26/macbook-ab-runs-log.txt)。
@@ -155,7 +155,7 @@ worktree で崩れないのは、ワールドの規模や Play の長さが違�
 | 回 | 条件 | リングバッファ警告 | 画面 |
 |---|---|---|---|
 | D | 記録オフ・`-force-gfx-direct`（描画スレッドを使わない） | 4 分で 0 回 | 9 枚とも正常（上着あり・三角形なし） |
-| A2 | 記録オフ・既定（A と同じ） | Play 開始から約 1 分で 1 回 | 警告後の 2 枚で空に巨大な白い三角形 |
+| A2 | 記録オフ・既定（A と同じ） | Play 開始から約 1 分で 1 回 | 警告後の 2 枚で空に大きな白い領域（Claude が画像から読み取ったもの。ユーザーの目視確認は未）|
 
 同じ位置・同じ向きの比較: [左が既定（A2）、右が `-force-gfx-direct`（D）](evidence-2026-11-26/macbook-default-vs-gfxdirect.jpg)。一覧は [A2](evidence-2026-11-26/macbook-A2-default-sheet.jpg)・[D](evidence-2026-11-26/macbook-D-gfxdirect-sheet.jpg)。メモリ（24〜26GB）と圧迫レベル（2）はどの回も同じ。
 
@@ -163,7 +163,7 @@ worktree で崩れないのは、ワールドの規模や Play の長さが違�
 
 未確認:
 - 1 回の書き込みでバッファをあふれさせている描画（メインスレッドは `SetShadersMainThread` でシェーダーの状態を書く途中で止まっていた。プロパティの大きいマテリアルが候補。推測）。
-- Mac mini で警告が出ない理由（同じワールド・同じ版で一度も出ていない）。
+- Mac mini で警告が出ない理由 → 解決済み。安全装置で止めていただけだった。なお「同じワールド・同じ版」という記述は誤りで、当時の Mac mini はワールドもデバッグ設定も MacBook と違っていた（末尾の節）。
 - `-force-gfx-direct` の回はまだ 1 回だけ。
 
 ## Mac mini での確認（2026-11-26 13:42〜14:05、macbook-mirror・Profiler オフ・メモリ上限は圧迫レベル 4 か 28GB）
@@ -172,7 +172,44 @@ worktree で崩れないのは、ワールドの規模や Play の長さが違�
 |---|---|---|---|
 | M1 | 既定・ミラーのワールド | Play 開始から約 1 分で 1 回 | 撮った 9 枚に崩れは写っていない |
 | M2 | `-force-gfx-direct`・同じワールド | 4 分で 0 回 | 正常 |
-| M3 | 既定・MacBook のワールド写し | — | ワールドが読めず（チェック柄の地面だけ）。比較に使えない。master の版の違いと推測 |
+| M3 | 既定・MacBook のワールド写し | — | チェック柄の地面だけが写った。比較に使えない。原因は master の版ではなく、プレイヤーが端末ごとに別人扱いになり、工場から遠い初期地点に新規プレイヤーとして出ていたこと（セーブの `players.entries[].identity` が `device:…`。ワールドの 21,587 ブロックは読めていた）|
 
 - **Mac mini でも、既定設定で Play を続ければ同じ警告は出る。** これまでの Mac mini の実験はすべて、ゲーム画面に届く前に安全装置（16GB または圧迫レベル 2）で止めていたため、警告まで届いていなかった。
-- 同じ向きの比較（[M1 と M2](evidence-2026-11-26/macmini-default-vs-gfxdirect.jpg)）では差が無い。Mac mini では警告のあとも、撮影できる範囲では崩れが見えていない。崩れが出るのは警告で壊れた命令がたまたま画面に残る描画だったときで、M5 で目立つ理由は未確認（推測）。
+- 同じ向きの比較（[M1 と M2](evidence-2026-11-26/macmini-default-vs-gfxdirect.jpg)）では差が無い。Mac mini では警告のあとも、撮影できる範囲では崩れが見えていない。**この M1・M2 は MacBook と条件が揃っていなかった**（場面・ワールド・デバッグ設定・言語・画素数が別）ので、「Mac mini では崩れない」根拠にはならない。条件を揃えた再試験は次の節。
+
+## 条件を揃えた Mac mini の再試験（2026-11-26 16:20〜16:41）
+
+ユーザーの指摘（「同じ環境を作っていないのに、なぜ再現していないと言えるのか」）を受けて、MacBook と Mac mini の違いを実物で洗い出し、揃えられるものを揃えてやり直した。
+
+### 違いの一覧
+
+| 項目 | MacBook（崩れる側） | それまでの Mac mini（M1〜M4） | 再試験での扱い |
+|---|---|---|---|
+| コード（HEAD） | 804edc2953 | 同じ | 同じ |
+| 非公開アセット | 8a75a3da8e・未コミット差分も同じ | 同じ | 同じ |
+| コンパイル済みアセンブリ数 | 526 | 526 | 同じ |
+| macOS | 26.5.2 | 26.5.2 | 同じ |
+| メモリ | 32GB | 32GB | 同じ |
+| デバッグ設定 `cache/*.json` | あり（環境種別 2・飛行モード・列車の自動走行・FPS 上限 60） | **ファイルが無く全部既定値** | MacBook の 3 ファイルを写した |
+| ワールド | 21,587 ブロック・プレイヤーは線路と高架のある場所 | 18,951 ブロックの古い写し・別の場所 | MacBook の写しを使い、プレイヤー 1 番の端末 ID だけ Mac mini に付け替えた |
+| ゲームデータ（master） | 34ab2b2a59 + 未コミット 2 ファイル | da69d773fc | 34ab2b2a59 + 同じ差分の写しを `DebugServerDirectory` で指定 |
+| 追跡ファイルの未コミット差分 | フォント 3 個ほか | 別のフォント 3 個ほか | MacBook の差分を当てた |
+| `UserSettings`（レイアウトほか） | — | 別物 | MacBook のものを写した |
+| UI の言語（PlayerPrefs） | 日本語 | 英語 | R2 で日本語にした（終了後に英語へ戻した） |
+| Game ビューの画素数 | 3600×1874（Retina） | 1800×852 | 固定解像度 3600×1874 を指定（終了後に削除） |
+| 判定に使う画像 | — | Unity 内から撮った画像のみ | 実画面を `screencapture` で 10〜15 秒ごとに撮影 |
+| Editor の設定（EditorPrefs） | 778 項目 | 145 項目 | **揃えていない**。差のうち描画に関わる名前の項目は Profiler 関連だけ（MacBook の A・A2 でも記録はオフ） |
+| ディスプレイ | 内蔵 Retina 3024×1964 + 外部 1080p | 1080p 1 枚 | **揃えられない** |
+| チップ | M5 | M4 | **揃えられない** |
+
+### 結果（合否の基準は実行前に決めた: 警告後に実画面の 1 枚でも三角形・文字の欠け・上着の消失・タイル状の乱れが写れば再現）
+
+| 回 | 条件 | リングバッファ警告 | 実画面 24 枚（6 分） |
+|---|---|---|---|
+| R1 | 上の表のとおり・UI 英語 | Play 開始から約 1 分で 1 回 | すべて正常 |
+| R2 | R1 + UI 日本語 | 約 1 分で 1 回 | すべて正常 |
+
+- 同じ位置・同じ向きの比較: [左が MacBook の A2、右が Mac mini の R1](evidence-2026-11-26/macmini-aligned-vs-macbook.jpg)。MacBook には空に大きな白い領域があり、Mac mini には無い。実画面の一覧は [R1](evidence-2026-11-26/macmini-aligned-R1-screen-sheet.jpg)・[R2 前半](evidence-2026-11-26/macmini-aligned-R2-screen-sheet1.jpg)・[R2 後半](evidence-2026-11-26/macmini-aligned-R2-screen-sheet2.jpg)、ログは [macmini-aligned-runs-log.txt](evidence-2026-11-26/macmini-aligned-runs-log.txt)。
+- 言えること: **揃えられる条件を揃えても、Mac mini では 6 分 × 2 回で崩れは出なかった。警告は MacBook と同じ時期に出る。** 残る違いはチップ・ディスプレイ構成・Editor の設定の一部。
+- 言えないこと: 「Mac mini では崩れない」。回数は 2 回、長さは 6 分、ユーザーの普段の操作（建築・UI を開く）はしていない。
+- 副産物（推測）: MacBook の作業コピー（worktree）で崩れなかったのは、`cache/` が git 管理外で、新しい作業コピーではデバッグ設定が全部既定値になり、別の環境・別の場面で動いていたためかもしれない。MacBook 側で `cache/` を外して崩れが消えるかを見れば、原因をデバッグ設定の 4 項目まで絞れる。未実施。
