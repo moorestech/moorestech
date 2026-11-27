@@ -34,8 +34,8 @@ namespace Client.Ui.State.BlockInventory.Context
                 return;
             }
 
-            // 機械の画面の寿命を渡すので、画面が閉じればこのモーダルも閉じる。閉じるのは寿命と閉じるボタンだけなので持ち手は持たない
-            // Passing the machine screen's lifetime closes this modal with the screen; only the lifetime and the close button close it, so the handle is not kept
+            // 機械の画面の寿命を渡すので、画面が閉じればこのモーダルも閉じる。他に閉じるのはモーダル側の操作（閉じるボタン・幕）だけなので持ち手は持たない
+            // Passing the machine screen's lifetime closes this modal with the screen; otherwise only the modal's own controls (close button, backdrop) close it, so the handle is not kept
             _modalService.RequestTableModal(
                 Localize.Get(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldImprovementOpen),
                 content.Message,
