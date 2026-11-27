@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Ui.State.Modal;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -17,22 +18,22 @@ namespace Client.Tests.Ui.State.Modal
         {
             var service = new ModalRequestService();
             var rows = new List<ModalTableRow> { new("部屋クラスを B に", "失敗 −13.1%") };
-            var (requestId, response) = service.RequestTableModal("失敗率の改善方法", "今: 失敗 50.5%", rows, "閉じる");
+            var request = service.RequestTableModal("失敗率の改善方法", "今: 失敗 50.5%", rows, "閉じる", CancellationToken.None);
 
             // 入力欄の無い確認の形で、行は要求のまま載る
             // A confirm-style request without input; rows ride along unchanged
-            Assert.AreEqual(requestId, service.Pending.Id);
+            Assert.AreEqual(request.RequestId, service.Pending.Id);
             Assert.IsFalse(service.Pending.RequiresInput);
             Assert.AreEqual(ModalVariant.Confirm, service.Pending.Variant);
             Assert.AreEqual(1, service.Pending.Rows.Count);
             Assert.AreEqual("部屋クラスを B に", service.Pending.Rows[0].Label);
             Assert.AreEqual("失敗 −13.1%", service.Pending.Rows[0].Values);
 
-            // 応答で結果だけが返る
-            // The reply resolves the result only
-            Assert.IsTrue(service.Respond(requestId, ModalResult.Cancel, null));
-            Assert.AreEqual(UniTaskStatus.Succeeded, response.Status);
-            Assert.AreEqual(ModalResult.Cancel, response.GetAwaiter().GetResult());
+            // 応答で結果が返る
+            // The reply resolves the result
+            Assert.IsTrue(service.Respond(request.RequestId, ModalResult.Cancel, null));
+            Assert.AreEqual(UniTaskStatus.Succeeded, request.Response.Status);
+            Assert.AreEqual(ModalResult.Cancel, request.Response.GetAwaiter().GetResult().result);
             Assert.IsNull(service.Pending);
         }
 
@@ -40,17 +41,17 @@ namespace Client.Tests.Ui.State.Modal
         public void 空の行の表のモーダルは確認ダイアログへ落とさず拒む()
         {
             var service = new ModalRequestService();
-            Assert.Throws<ArgumentException>(() => service.RequestTableModal("t", "m", new List<ModalTableRow>(), "ok"));
+            Assert.Throws<ArgumentException>(() => service.RequestTableModal("t", "m", new List<ModalTableRow>(), "ok", CancellationToken.None));
         }
 
         [Test]
         public void 確認と入力のモーダルは行を空で載せる()
         {
             var service = new ModalRequestService();
-            service.RequestModal("t", "m", "ok", ModalVariant.Confirm).Forget();
+            service.RequestModal("t", "m", "ok", ModalVariant.Confirm, CancellationToken.None);
             Assert.AreEqual(0, service.Pending.Rows.Count);
 
-            service.RequestInputModal("t", "m", "ok");
+            service.RequestInputModal("t", "m", "ok", CancellationToken.None);
             Assert.AreEqual(0, service.Pending.Rows.Count);
         }
     }

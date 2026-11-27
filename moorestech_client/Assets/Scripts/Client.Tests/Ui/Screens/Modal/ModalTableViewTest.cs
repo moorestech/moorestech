@@ -1,7 +1,6 @@
 using Client.Tests.Ui.Screens.GrabOverlay;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Foundation.Input.OsCursor;
-using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Screens.Modal;
 using Client.Ui.State.Modal;
 using NUnit.Framework;
@@ -16,7 +15,6 @@ namespace Client.Tests.Ui.Screens.Modal
     /// </summary>
     public class ModalTableViewTest : ScreenTestHost
     {
-        private const float StageScale = 1.5f;
 
         [Test]
         public void 表の行は本文とボタンの間に項目名の行と字下げした値の行で描く()
@@ -52,10 +50,6 @@ namespace Client.Tests.Ui.Screens.Modal
             var panel = Find<VisualElement>(view, "modal");
             Assert.IsTrue(panel.ClassListContains("game-panel--craft"));
             Assert.IsFalse(panel.ClassListContains("game-panel--titled"));
-
-            // 実画面 px の宿主の中でも、インベントリと同じ舞台の倍率で出す
-            // Even inside the real-screen-px host, it uses the inventory's stage scale
-            Assert.AreEqual(StageScale, view.style.scale.value.value.x, 0.001f);
         }
 
         [Test]
@@ -71,9 +65,34 @@ namespace Client.Tests.Ui.Screens.Modal
             Assert.AreEqual(ModalResult.Confirm, commands.Responses[0].Result);
         }
 
+        [Test]
+        public void 幕を押すと取り消しとして返り_外した後の押下は返さない()
+        {
+            var commands = new RecordingModalCommands();
+            var backdropClicked = new Subject<Unit>();
+            var view = Mount(TableView(commands, backdropClicked));
+            simulate.FrameUpdate();
+            backdropClicked.OnNext(Unit.Default);
+
+            Assert.AreEqual(1, commands.Responses.Count);
+            Assert.AreEqual("t1", commands.Responses[0].RequestId);
+            Assert.AreEqual(ModalResult.Cancel, commands.Responses[0].Result);
+
+            // 画面から外れた後の幕の押下は、もう自分の要求ではないので返さない
+            // Backdrop presses after detaching are no longer for this request, so nothing is returned
+            view.RemoveFromHierarchy();
+            backdropClicked.OnNext(Unit.Default);
+            Assert.AreEqual(1, commands.Responses.Count);
+        }
+
         private static ModalTableView TableView(RecordingModalCommands commands)
         {
-            return new ModalTableView(ModalRequestSamples.Table(), commands, Observable.Never<Unit>(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), new StageScaleSource(new ReactiveProperty<float>(StageScale)));
+            return TableView(commands, Observable.Never<Unit>());
+        }
+
+        private static ModalTableView TableView(RecordingModalCommands commands, System.IObservable<Unit> backdropClicked)
+        {
+            return new ModalTableView(ModalRequestSamples.Table(), commands, backdropClicked, new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)));
         }
     }
 }

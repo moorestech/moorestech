@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Hotbar;
 using Client.Playtest.Operations;
@@ -62,7 +63,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui.Stage3
         {
             // 入力付きモーダルの見え方を検査
             // Check how the input modal shows
-            var (_, response) = modalService.RequestInputModal("t", "m", "OK");
+            var response = modalService.RequestInputModal("t", "m", "OK", CancellationToken.None).Response;
             await WaitModalCount(root, 1);
             var modal = Stage4ScreenSetProbe.VisibleByName(root, Stage3ExpectedSurfaces.Modal);
             Assert.AreEqual(1, modal.Count, $"モーダルが {modal.Count} 個見えている");

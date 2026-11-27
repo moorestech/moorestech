@@ -1,4 +1,5 @@
 using Client.Tests.Ui.Screens.GrabOverlay;
+using System.Threading;
 using Client.Input;
 using Client.Tests.Ui.TestDoubles;
 using Client.Ui.Components.Controls;
@@ -46,7 +47,7 @@ namespace Client.Tests.Ui.Screens.Modal
             var host = new UiModalHost(stageScale);
             host.Mount(_layer);
             _service = new ModalRequestService();
-            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), stageScale).Initialize();
+            new ModalScreenPresenter(host, _service, new ModalCommands(_service, Toaster), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f))).Initialize();
             simulate.FrameUpdate();
         }
 
@@ -61,14 +62,14 @@ namespace Client.Tests.Ui.Screens.Modal
         [Test]
         public void OKを押すと確定を返してモーダルが消える()
         {
-            var result = _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm);
+            var result = _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm, CancellationToken.None).Response;
             simulate.FrameUpdate();
             Assert.IsTrue(Shown());
 
             simulate.Click(Find<FormButton>(_layer, "modal-button").worldBound.center);
             simulate.FrameUpdate();
             Assert.AreEqual(UniTaskStatus.Succeeded, result.Status);
-            Assert.AreEqual(ModalResult.Confirm, result.GetAwaiter().GetResult());
+            Assert.AreEqual(ModalResult.Confirm, result.GetAwaiter().GetResult().result);
             Assert.IsNull(_service.Pending);
             Assert.IsFalse(Shown());
         }
@@ -77,7 +78,7 @@ namespace Client.Tests.Ui.Screens.Modal
         [Test]
         public void 幕の左上を押すと取消を返す()
         {
-            var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            var response = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None).Response;
             simulate.FrameUpdate();
             simulate.Click(new Vector2(_layer.worldBound.xMin + 5f, _layer.worldBound.yMin + 5f));
             simulate.FrameUpdate();
@@ -93,7 +94,7 @@ namespace Client.Tests.Ui.Screens.Modal
         {
             // 設計書 A-41: モーダルは Portal で倍率を掛けない。テストのパネルは倍率 1 なので舞台の倍率を掛けて実画面 px を見る
             // Design A-41: the modal is a Portal without scaling; the test panel has scale 1, so multiply by the stage scale for real-screen px
-            _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm).Forget();
+            _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm, CancellationToken.None);
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             var frame = Find<VisualElement>(_layer, "modal");
@@ -107,10 +108,10 @@ namespace Client.Tests.Ui.Screens.Modal
         {
             // Web は要求 ID を key にして入力をリセットする。UITK は要求ごとに View を作り直す（計画 D-13）
             // The Web resets input by keying on the request id; UITK rebuilds the view per request (plan D-13)
-            _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None);
             simulate.FrameUpdate();
             Find<TextField>(_layer, "modal-input").value = "前の名前";
-            _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None);
             simulate.FrameUpdate();
             Assert.AreEqual("", Find<TextField>(_layer, "modal-input").value);
             Assert.IsFalse(Find<FormButton>(_layer, "modal-button").enabledSelf);
@@ -121,7 +122,7 @@ namespace Client.Tests.Ui.Screens.Modal
         {
             // Web の Mantine と同じく ESC 1 回で閉じる。GameUiInputRules がフォーカスを外して消費し、その外れで View が取り消す（計画 D-11）
             // One ESC closes, as Mantine on the Web; GameUiInputRules drops focus and consumes it, and the view cancels on that blur (plan D-11)
-            var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            var response = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None).Response;
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Find<TextField>(_layer, "modal-input").value = "途中の名前";
@@ -140,7 +141,7 @@ namespace Client.Tests.Ui.Screens.Modal
         {
             // 変換中の ESC はワールド側へ渡さない印だけ立ち、外した印は立たない。同じフレームに FocusOut が出ても閉じない（設計判断 D4）
             // An ESC during composition sets only the world-side latch, not the blurred mark; a same-frame FocusOut must not close (design decision D4)
-            var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            var response = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None).Response;
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             UiInputExclusivity.ConsumeEscapeThisFrame();
@@ -154,7 +155,7 @@ namespace Client.Tests.Ui.Screens.Modal
         [Test]
         public void 入力欄の外を押してフォーカスが外れても閉じない()
         {
-            var (_, response) = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            var response = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None).Response;
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             simulate.Click(Find<Label>(_layer, "modal-message").worldBound.center);
@@ -166,14 +167,14 @@ namespace Client.Tests.Ui.Screens.Modal
         [Test]
         public void 入力欄にフォーカスがあるまま外から取り消されてもゲームのキー入力を止めたままにしない()
         {
-            // 右短押し・要求の差し替えはブリッジの CancelPendingRequest で閉じ、入力欄のフォーカスが外れる前に View が外れる
-            // Right short-press and request replacement close through the bridge's CancelPendingRequest, detaching the view before the field loses focus
-            _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存");
+            // 右短押しなどの状態側クローズはブリッジが持ち手を Dispose して閉じ、入力欄のフォーカスが外れる前に View が外れる
+            // State-side closes such as a right short-press dispose the bridge's handle, detaching the view before the field loses focus
+            var request = _service.RequestInputModal("ブループリント名", "ブループリントの名前を入力してください", "保存", CancellationToken.None);
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
 
-            _service.CancelPendingRequest();
+            request.Dispose();
             simulate.FrameUpdate();
             Assert.IsFalse(Shown());
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
@@ -183,18 +184,26 @@ namespace Client.Tests.Ui.Screens.Modal
         public void 行のある要求は表のモーダルで出す()
         {
             var rows = new[] { new ModalTableRow("部屋クラスを B に", "失敗 −13.1%") };
-            _service.RequestTableModal("失敗率の改善方法", "今: 失敗 50.5%", rows, "閉じる").response.Forget();
+            _service.RequestTableModal("失敗率の改善方法", "今: 失敗 50.5%", rows, "閉じる", CancellationToken.None);
             simulate.FrameUpdate();
             Assert.IsTrue(Find<VisualElement>(_layer, "modal").ClassListContains("game-panel--craft"));
             Assert.IsNotNull(Find<Label>(_layer, "modal-table-row-0-label"));
+
+            // 舞台の画面から開く表は、実画面 px の宿主の中でも開いた画面と同じ舞台の倍率で出す
+            // A table opened from a stage screen uses that screen's stage scale even inside the real-screen-px host
+            Assert.AreEqual(StageScale, _layer.Q(className: "modal-table-view").style.scale.value.value.x, 0.001f);
         }
 
         [Test]
         public void 行の無い要求は表を作らない()
         {
-            _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm).Forget();
+            _service.RequestModal("確認", "これは確認ダイアログです", "OK", ModalVariant.Confirm, CancellationToken.None);
             simulate.FrameUpdate();
             Assert.IsNull(_layer.Q<VisualElement>("modal-table"));
+
+            // 確認・入力のダイアログには舞台の倍率を掛けない（実画面 px のまま）
+            // Confirm and input dialogs take no stage scale (they stay in real-screen px)
+            Assert.AreEqual(StyleKeyword.Null, _layer.Q(className: "modal-dialog-view").style.scale.keyword);
         }
 
         private bool Shown()

@@ -76,7 +76,7 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 手順（詳細と Gotchas は codex-audit SKILL.md「未回答質問だけを出す二段階」）:
 
-1. **開始時に依頼文と調査から対象かを見積もる。対象外で始めて4問目が出たら、その時点で generate を起動する。generate はインタビュー開始時に裏で起動する**（数分かかるため、最初の質問を出す前に `run_in_background` で回しておく）。brief = 依頼原文の逐語 + 自分が調査で確認した既知事実（レイヤーマップ・関連 asmdef・既存前例のパスを含める）。`--cwd` には設計文書を含まない隔離 worktree（`git worktree add --detach <dir> HEAD`）を渡す。設計文書・自分の質問案は絶対に見せない（見せると質問生成がレビューに退化し、独立性が消える）
+1. **開始時に依頼文と調査から対象かを見積もる。対象なら generate をインタビュー開始時に裏で起動する**（数分かかるため、最初の質問を出す前に `run_in_background` で回しておく）。**対象外で始めて4問目が出たら、その時点で起動する。**brief = 依頼原文の逐語 + 自分が調査で確認した既知事実（レイヤーマップ・関連 asmdef・既存前例のパスを含める）。`--cwd` には設計文書を含まない隔離 worktree（`git worktree add --detach <dir> HEAD`）を渡す。設計文書・自分の質問案は絶対に見せない（見せると質問生成がレビューに退化し、独立性が消える）
 2. ADR を書き終えたら **裁定台帳**（`# | 質問 | ユーザーの回答`。ADR 出所欄の「ユーザー裁定」だけを転記、agent 前提は載せない）を作る
 3. **filter** を同 thread で実行し、台帳 + ADR + `CONTEXT.md` を見せて `answered` / `remaining` を受け取る。`answered` の対応表を ADR 出所欄と突き合わせ、誤消し込み（「文書に書いてある」だけで answered にしたもの）が無いか確認する
 4. `remaining` を grilling と同じ流儀で **1 問ずつ**ユーザーに聞き、回答を ADR へ「ユーザー裁定」として追記する（Codex 由来であることは記録しなくてよい。出所はあくまでユーザーの回答）

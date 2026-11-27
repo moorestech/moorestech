@@ -3,13 +3,11 @@ using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
-using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Modal.Logic;
 using Client.Ui.State.Text;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Modal
@@ -27,16 +25,13 @@ namespace Client.Ui.Screens.Modal
         private readonly ModalRequest _request;
         private readonly IModalCommands _commands;
         private readonly IObservable<Unit> _backdropClicked;
-        private readonly StageScaleSource _stageScale;
         private IDisposable _backdropSubscription;
-        private IDisposable _stageScaleSubscription;
 
-        public ModalTableView(ModalRequest request, IModalCommands commands, IObservable<Unit> backdropClicked, IUiOsCursor osCursor, StageScaleSource stageScale)
+        public ModalTableView(ModalRequest request, IModalCommands commands, IObservable<Unit> backdropClicked, IUiOsCursor osCursor)
         {
             _request = request;
             _commands = commands;
             _backdropClicked = backdropClicked;
-            _stageScale = stageScale;
             AddToClassList("modal-table-view");
 
             // Craft 枠へ縦に積む
@@ -48,8 +43,8 @@ namespace Client.Ui.Screens.Modal
             panel.Add(CreateActions());
             Add(panel);
 
-            // 幕の押下と舞台の倍率は載っている間だけ聞く
-            // Listen for backdrop presses and the stage scale only while attached
+            // 幕の押下は載っている間だけ聞く。大きさは宿主が舞台の倍率で決める
+            // Listen for backdrop presses only while attached; the host sizes this at the stage scale
             RegisterCallback<AttachToPanelEvent>(OnAttached);
             RegisterCallback<DetachFromPanelEvent>(OnDetached);
 
@@ -99,18 +94,12 @@ namespace Client.Ui.Screens.Modal
         private void OnAttached(AttachToPanelEvent evt)
         {
             _backdropSubscription = _backdropClicked.Subscribe(_ => _commands.Respond(ModalResponse.Cancel(_request)));
-
-            // 宿主は実画面 px なので、インベントリと同じ大きさになるよう舞台の倍率を掛け直す
-            // The host is in real-screen px, so reapply the stage scale to match the inventory's size
-            _stageScaleSubscription = _stageScale.Scale.Subscribe(scale => style.scale = new Scale(new Vector3(scale, scale, 1f)));
         }
 
         private void OnDetached(DetachFromPanelEvent evt)
         {
             _backdropSubscription?.Dispose();
             _backdropSubscription = null;
-            _stageScaleSubscription?.Dispose();
-            _stageScaleSubscription = null;
         }
     }
 }

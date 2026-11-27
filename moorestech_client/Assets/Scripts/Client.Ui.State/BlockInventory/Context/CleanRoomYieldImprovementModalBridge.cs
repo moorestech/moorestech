@@ -1,8 +1,7 @@
-using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
+using Client.Ui.State.BlockInventory.Panel.Lifetime;
 using Client.Ui.State.Modal;
-using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
@@ -16,12 +15,13 @@ namespace Client.Ui.State.BlockInventory.Context
     {
         private readonly IBlockContextModel _context;
         private readonly ModalRequestService _modalService;
-        private string _openedRequestId;
+        private readonly BlockInventoryScreenLifetime _screenLifetime;
 
-        public CleanRoomYieldImprovementModalBridge(IBlockContextModel context, ModalRequestService modalService)
+        public CleanRoomYieldImprovementModalBridge(IBlockContextModel context, ModalRequestService modalService, BlockInventoryScreenLifetime screenLifetime)
         {
             _context = context;
             _modalService = modalService;
+            _screenLifetime = screenLifetime;
         }
 
         public void Open()
@@ -34,28 +34,14 @@ namespace Client.Ui.State.BlockInventory.Context
                 return;
             }
 
-            var (requestId, response) = _modalService.RequestTableModal(
+            // 機械の画面の寿命を渡すので、画面が閉じればこのモーダルも閉じる。閉じるのは寿命と閉じるボタンだけなので持ち手は持たない
+            // Passing the machine screen's lifetime closes this modal with the screen; only the lifetime and the close button close it, so the handle is not kept
+            _modalService.RequestTableModal(
                 Localize.Get(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldImprovementOpen),
                 content.Message,
                 content.Rows,
-                Localize.Get(LocalizationKeys.Ui.Common.Close));
-            _openedRequestId = requestId;
-            response.Forget();
-        }
-
-        // 機械の画面を離れたら自分の要求だけ取り消す
-        // On leaving the machine screen, cancel only our own request
-        public void CloseUnlessMachineScreen(UIStateEnum state)
-        {
-            // 画面の開閉でなくモーダルの寿命で、OnStateChanged の中では UiRoutingState が未更新のことがあるので UIStateEnum を読む（A-248）
-            // This is the modal's lifetime, not screen visibility, and UiRoutingState may be stale inside OnStateChanged, so read UIStateEnum (A-248)
-            // silent-ok: 機械の画面に居る間と未表示のときは閉じるものが無い / CleanRoomYieldImprovementModalBridgeTest が見る
-            if (state == UIStateEnum.SubInventory || _openedRequestId == null) return;
-
-            // 応答済み・置き換え済みの ID は Respond が無視するので、そのまま渡してよい
-            // Respond ignores answered or replaced ids, so the id can be passed as is
-            _modalService.Respond(_openedRequestId, ModalResult.Cancel, null);
-            _openedRequestId = null;
+                Localize.Get(LocalizationKeys.Ui.Common.Close),
+                _screenLifetime.ShownToken);
         }
     }
 }

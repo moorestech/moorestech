@@ -19,6 +19,7 @@ namespace Client.Tests.Ui.Modal
         private const float StageScale = 1.5f;
         private const string ShownClass = "ui-modal-host--shown";
         private UiModalHost _host;
+        private ReactiveProperty<float> _stageScale;
         private VisualElement _layer;
 
         [SetUp]
@@ -31,9 +32,42 @@ namespace Client.Tests.Ui.Modal
             _layer.style.right = 0;
             _layer.style.bottom = 0;
             rootVisualElement.Add(_layer);
-            _host = new UiModalHost(new StageScaleSource(new ReactiveProperty<float>(StageScale)));
+            _stageScale = new ReactiveProperty<float>(StageScale);
+            _host = new UiModalHost(new StageScaleSource(_stageScale));
             _host.Mount(_layer);
             simulate.FrameUpdate();
+        }
+
+        [Test]
+        public void 舞台の倍率で載せた中身は舞台の倍率に追従し_外した後は追従しない()
+        {
+            var content = Box("modal-content-stage", 440, 232);
+            _host.ShowAtStageScale(content);
+            Assert.AreEqual(StageScale, content.style.scale.value.value.x, 0.001f);
+
+            // 画面の大きさが変わって舞台の倍率が変わると、載っている中身も同じ倍率になる
+            // When the stage scale changes with the screen size, the mounted contents follow
+            _stageScale.Value = 2f;
+            Assert.AreEqual(2f, content.style.scale.value.value.x, 0.001f);
+
+            // 外した中身はもう追従しない
+            // Detached contents no longer follow
+            _host.Hide();
+            _stageScale.Value = 1f;
+            Assert.AreEqual(2f, content.style.scale.value.value.x, 0.001f);
+        }
+
+        [Test]
+        public void 舞台の倍率の中身を普通の中身に差し替えると後の中身には倍率を掛けない()
+        {
+            var staged = Box("modal-content-stage", 440, 232);
+            var plain = Box("modal-content-plain", 440, 232);
+            _host.ShowAtStageScale(staged);
+            _host.Show(plain);
+            _stageScale.Value = 2f;
+
+            Assert.AreEqual(StyleKeyword.Null, plain.style.scale.keyword);
+            Assert.AreEqual(StageScale, staged.style.scale.value.value.x, 0.001f);
         }
 
         [Test]

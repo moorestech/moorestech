@@ -2,6 +2,7 @@ using Client.Ui.Screens.BlockInventory;
 using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Panel.Lifetime;
 using VContainer;
 using VContainer.Unity;
 
@@ -14,6 +15,9 @@ namespace Client.Starter.Registration.GameUi.Screens
         public static void Register(ContainerBuilder builder)
         {
             builder.RegisterEntryPoint<BlockInventoryPanelLayoutModel>().AsSelf();
+            // 画面が出ている間だけ生きるトークン（この画面から開くモーダルが一緒に閉じるために受ける）
+            // The token alive only while the screen is shown (taken by modals opened from this screen so they close with it)
+            builder.RegisterEntryPoint<BlockInventoryScreenLifetime>().AsSelf();
             builder.Register<BlockInventoryPanelCommands>(Lifetime.Singleton).As<IBlockInventoryPanelCommands>();
             builder.Register<SectionStackSlotRegistry>(Lifetime.Singleton);
             builder.Register<SectionStackBodyFactory>(Lifetime.Singleton);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Ui.State.Blueprint;
 using Client.Ui.State.Modal;
@@ -51,7 +52,7 @@ namespace Client.Tests.UIState.Models
             using var subscription = state.OnOpenChanged.Subscribe(openLog.Add);
 
             state.Open();
-            modal.CancelPendingRequest();
+            modal.Respond(modal.Pending.Id, ModalResult.Cancel, null);
 
             Assert.IsNull(modal.Pending);
             CollectionAssert.AreEqual(new[] { true, false }, openLog);
@@ -73,7 +74,7 @@ namespace Client.Tests.UIState.Models
             {
                 if (replaced || modal.Pending == null || !modal.Pending.RequiresInput) return;
                 replaced = true;
-                modal.RequestModal("replacing", "replacing", "OK", ModalVariant.Error).Forget();
+                modal.RequestModal("replacing", "replacing", "OK", ModalVariant.Error, CancellationToken.None);
             });
             state.Open();
 
@@ -81,6 +82,23 @@ namespace Client.Tests.UIState.Models
             Assert.IsNotNull(modal.Pending, "橋渡しが差し替えた側の要求IDを自分のものと取り違え、差し替えた要求を取り消した");
             Assert.IsFalse(modal.Pending.RequiresInput);
             CollectionAssert.DoesNotContain(openLog, false, "置き換えで BP 名入力が閉じた");
+        }
+
+        [Test]
+        public void 差し替えられた後にBP名入力を閉じても差し替えた要求は閉じない()
+        {
+            var state = new BlueprintNameInputState();
+            var modal = new ModalRequestService();
+            new BlueprintNameInputModalBridge(state, modal).Initialize();
+
+            // 名前入力のモーダルが別の要求に置き換えられた後で、状態側が閉じる
+            // The name-input modal is replaced by another request, then the state side closes
+            state.Open();
+            var other = modal.RequestModal("other", "other", "OK", ModalVariant.Error, CancellationToken.None);
+            state.Cancel();
+
+            Assert.IsNotNull(modal.Pending, "BP 名入力のクローズが、他の呼び手のモーダルまで閉じた");
+            Assert.AreEqual(other.RequestId, modal.Pending.Id);
         }
 
         [Test]
@@ -96,7 +114,7 @@ namespace Client.Tests.UIState.Models
             // A synchronous subscriber cancels the input modal the moment it appears
             using var canceller = modal.OnPendingChanged.Subscribe(_ =>
             {
-                if (modal.Pending != null && modal.Pending.RequiresInput) modal.CancelPendingRequest();
+                if (modal.Pending != null && modal.Pending.RequiresInput) modal.Respond(modal.Pending.Id, ModalResult.Cancel, null);
             });
             state.Open();
 

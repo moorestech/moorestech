@@ -1,9 +1,7 @@
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Modal;
-using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.State.Modal;
 using UniRx;
-using UnityEngine.UIElements;
 using VContainer.Unity;
 
 namespace Client.Ui.Screens.Modal
@@ -18,16 +16,14 @@ namespace Client.Ui.Screens.Modal
         private readonly ModalRequestService _service;
         private readonly IModalCommands _commands;
         private readonly IUiOsCursor _osCursor;
-        private readonly StageScaleSource _stageScale;
         private string _shownRequestId;
 
-        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, IUiOsCursor osCursor, StageScaleSource stageScale)
+        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, IUiOsCursor osCursor)
         {
             _host = host;
             _service = service;
             _commands = commands;
             _osCursor = osCursor;
-            _stageScale = stageScale;
         }
 
         public void Initialize()
@@ -51,19 +47,11 @@ namespace Client.Ui.Screens.Modal
             // silent-ok: 同じ要求の通知の重なりは描き直さない（入力中の文を守る） / 新しい要求は ID が変わるので ModalScreenPresenterTest「新しい要求は…」が見る
             if (pending.Id == _shownRequestId) return;
             _shownRequestId = pending.Id;
-            _host.Show(CreateView());
 
-            #region Internal
-
-            // 行のある要求は情報を見せるパネル、それ以外は確認・入力のダイアログ
-            // Requests with rows use the information panel; the rest use the confirm or input dialog
-            VisualElement CreateView()
-            {
-                if (0 < pending.Rows.Count) return new ModalTableView(pending, _commands, _host.OnBackdropClicked, _osCursor, _stageScale);
-                return new ModalDialogView(pending, _commands, _host.OnBackdropClicked);
-            }
-
-            #endregion
+            // 行のある要求は舞台の画面から開く情報パネルなので舞台の倍率で、それ以外は実画面 px の確認・入力ダイアログで出す
+            // Requests with rows are information panels opened from a stage screen, shown at the stage scale; the rest are confirm or input dialogs in real-screen px
+            if (0 < pending.Rows.Count) _host.ShowAtStageScale(new ModalTableView(pending, _commands, _host.OnBackdropClicked, _osCursor));
+            else _host.Show(new ModalDialogView(pending, _commands, _host.OnBackdropClicked));
         }
     }
 }
