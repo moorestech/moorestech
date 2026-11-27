@@ -18,7 +18,7 @@ COMMIT="${1:?usage: release-playtest.sh <commit>}"
 
 GIT_BIN="${GIT_BIN:-git}"
 MOORES_WT_BIN="${MOORES_WT_BIN:-moores-wt}"
-UNITY_BIN="${UNITY_BIN:-/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity}"
+UNITY_BIN="${UNITY_BIN:-/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/MacOS/Unity}"
 STEAMCMD_BIN="$SCRIPT_DIR/steam_auth/run.py"
 CODESIGN_BIN="${CODESIGN_BIN:-/usr/bin/codesign}"
 LIPO_BIN="${LIPO_BIN:-/usr/bin/lipo}"

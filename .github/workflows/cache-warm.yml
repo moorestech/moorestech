@@ -108,8 +108,8 @@ jobs:
         with:
           projectPath: moorestech/moorestech_client/
           githubToken: ${{ steps.generate_token.outputs.token }}
-          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
-          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          # unityci/editor の第4世代イメージ（タグ末尾 -4）を使う。Unity 版は ProjectVersion.txt から決まる
+          # Use the 4th-generation unityci/editor images (tag suffix -4); the Unity version comes from ProjectVersion.txt
           containerRegistryImageVersion: 4
           testMode: editmode
           customParameters: '-testFilter __cache_warm_matches_nothing__'
@@ -217,8 +217,8 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
-          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          # unityci/editor の第4世代イメージ（タグ末尾 -4）を使う。Unity 版は ProjectVersion.txt から決まる
+          # Use the 4th-generation unityci/editor images (tag suffix -4); the Unity version comes from ProjectVersion.txt
           containerRegistryImageVersion: 4
           buildMethod: Server.Editor.PlatformCompileCheck.RunFromGithubAction
           targetPlatform: ${{ matrix.target }}

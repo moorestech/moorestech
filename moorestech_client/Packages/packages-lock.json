@@ -58,11 +58,11 @@
       "hash": "341069f0d381c7665f11a42566dad6d255c0bf38"
     },
     "com.moorestech.dependency-tracer": {
-      "version": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages#6e9a3c9d2480010045b31d6b9013b8b499b7b117",
+      "version": "https://github.com/moorestech/DependencyTracer.git?path=Assets/DependencyTracerPackages#0da3e2168a0d1fbdace3b41b10fd446b07211cde",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "6e9a3c9d2480010045b31d6b9013b8b499b7b117"
+      "hash": "0da3e2168a0d1fbdace3b41b10fd446b07211cde"
     },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",

@@ -104,8 +104,8 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # Hub 4 は headless install が無く、Windows は Unity 6.6 のイメージで C ドライブが足りなくなるので、ビルド前に環境を整える
-      # Hub 4 has no headless install and the Unity 6.6 image can fill C: on Windows, so prepare the runner before building
+      # Hub 4 は headless install が無く、Windows は Unity のイメージで C ドライブが足りなくなるので、ビルド前に環境を整える
+      # Hub 4 has no headless install and the Unity image can fill C: on Windows, so prepare the runner before building
       - name: Install Unity Hub (macOS)
         if: runner.os == 'macOS'
         uses: ./.github/actions/install-unity-hub-mac
@@ -138,8 +138,8 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
-          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          # unityci/editor の第4世代イメージ（タグ末尾 -4）を使う。Unity 版は ProjectVersion.txt から決まる
+          # Use the 4th-generation unityci/editor images (tag suffix -4); the Unity version comes from ProjectVersion.txt
           containerRegistryImageVersion: 4
           buildMethod: ${{ matrix.platform.buildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
@@ -240,8 +240,8 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # Hub 4 は headless install が無く、Windows は Unity 6.6 のイメージで C ドライブが足りなくなるので、ビルド前に環境を整える
-      # Hub 4 has no headless install and the Unity 6.6 image can fill C: on Windows, so prepare the runner before building
+      # Hub 4 は headless install が無く、Windows は Unity のイメージで C ドライブが足りなくなるので、ビルド前に環境を整える
+      # Hub 4 has no headless install and the Unity image can fill C: on Windows, so prepare the runner before building
       - name: Install Unity Hub (macOS)
         if: runner.os == 'macOS'
         uses: ./.github/actions/install-unity-hub-mac
@@ -287,8 +287,8 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          # unityci/editor は 6000.6 系のイメージを第4世代（タグ末尾 -4）でしか出していない
-          # unityci/editor publishes 6000.6-series images only in the 4th generation (tag suffix -4)
+          # unityci/editor の第4世代イメージ（タグ末尾 -4）を使う。Unity 版は ProjectVersion.txt から決まる
+          # Use the 4th-generation unityci/editor images (tag suffix -4); the Unity version comes from ProjectVersion.txt
           containerRegistryImageVersion: 4
           buildMethod: ${{ matrix.platform.buildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
