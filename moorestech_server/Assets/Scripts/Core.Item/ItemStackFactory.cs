@@ -8,6 +8,7 @@ namespace Core.Item
 {
     public class ItemStackFactory : IItemStackFactory
     {
+        private static readonly Dictionary<string, ItemStackMetaData> EmptyMetaData = new();
         private readonly IItemStack _nullItem;
         
         public ItemStackFactory()
@@ -22,7 +23,7 @@ namespace Core.Item
             
             if (count < 1) return CreatEmpty();
             
-            metaData = metaData == null ? new Dictionary<string, ItemStackMetaData>() : new Dictionary<string, ItemStackMetaData>(metaData);
+            metaData = CopyMetaData(metaData);
             return new ItemStack(id, count, metaData);
         }
         
@@ -32,9 +33,18 @@ namespace Core.Item
             
             if (count < 1) return CreatEmpty();
             
-            metaData = metaData == null ? new Dictionary<string, ItemStackMetaData>() : new Dictionary<string, ItemStackMetaData>(metaData);
+            metaData = CopyMetaData(metaData);
             return new ItemStack(id, count, instanceId, metaData);
         }
+
+        // 属性の無いアイテムは空の辞書1個を共有する。ItemStackは辞書を書き換えず、SetMetaは必ず複製へ書く
+        // Items without metadata share one empty dictionary; ItemStack never mutates it, and SetMeta always writes to a copy
+        private static Dictionary<string, ItemStackMetaData> CopyMetaData(Dictionary<string, ItemStackMetaData> metaData)
+        {
+            if (metaData == null || metaData.Count == 0) return EmptyMetaData;
+            return new Dictionary<string, ItemStackMetaData>(metaData);
+        }
+
         public IItemStack Create(Guid itemGuid, int count, Dictionary<string, ItemStackMetaData> metaData = null)
         {
             if (count < 1) return CreatEmpty();

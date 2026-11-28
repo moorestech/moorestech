@@ -44,18 +44,19 @@ namespace Core.Item.Implementation
                 return new ItemProcessResult(newItem, factory.CreatEmpty());
             }
             
-            // アイテムが同じでない場合は追加できない
-            if (!Addable((ItemStack)receiveItemStack))
-            {
-                var newItem = factory.Create(Id, Count, _metaData);
-                return new ItemProcessResult(newItem, receiveItemStack);
-            }
+            // アイテムが同じでない場合は追加できない。何も変わらないので双方の個体をそのまま返す（詰まった搬出が毎tick試すため、ここで作り直すとGCを呼ぶ）
+            // A different item cannot be added; nothing changes, so both instances are returned as they are (blocked outputs retry every tick, and recreating here feeds the GC)
+            if (!Addable((ItemStack)receiveItemStack)) return new ItemProcessResult(this, receiveItemStack);
             
             
             // 有効なスタック同士でも合計はintを超えるため、上限分割までlongで保持する
             // Valid stacks can sum beyond int range, so keep the total as long until splitting at the limit
             var newCount = (long)receiveItemStack.Count + Count;
             var tmpStack = ItemStackLevelDataStore.Instance.GetMaxStack(Id);
+            
+            // 既に満杯なら1個も入らない。同じ理由で双方の個体をそのまま返す
+            // An already full stack takes nothing; for the same reason both instances are returned as they are
+            if (tmpStack <= Count) return new ItemProcessResult(this, receiveItemStack);
             
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
