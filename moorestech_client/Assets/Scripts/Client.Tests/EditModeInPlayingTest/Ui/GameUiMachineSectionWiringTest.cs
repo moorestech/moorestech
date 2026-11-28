@@ -138,8 +138,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             Assert.AreEqual(1, resolver.Resolve<IReadOnlyList<IBlockSlotRestrictionContributor>>().Count(c => c is MachineSlotRestrictionContributor), "枠の制限の寄与の登録が 1 本でない");
             Assert.IsInstanceOf<MachineRecipeSelectCommand>(resolver.Resolve<IMachineRecipeSelectCommand>());
 
-            // 各画面が要求する専用の本文と題の操作を本番 DI から引く
-            // Resolve each screen's required body and title action from production DI
+            // 本番DIで専用本文と題操作を照合
+            // Check dedicated bodies and title actions against production DI.
             var bodies = resolver.Resolve<IReadOnlyList<IBlockInventoryBodyFactory>>();
             var actions = resolver.Resolve<IReadOnlyList<IBlockInventoryTitleActionFactory>>();
             var screenFields = typeof(BlockMasterElement.BlockScreenConst).GetFields(BindingFlags.Public | BindingFlags.Static);

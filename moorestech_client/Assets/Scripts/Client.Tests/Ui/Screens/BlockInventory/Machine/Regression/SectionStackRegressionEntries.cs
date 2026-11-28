@@ -75,8 +75,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
 
         public static SectionStackRegressionEntry For(string entryType)
         {
-            // blockType は fixture の値そのまま（tank・UnregisteredBlock には汎用画面を指定する）
-            // blockType is the fixture's own value (tank and UnregisteredBlock specify the generic screen)
+            // 画面指定後も元のブロック型を保持
+            // Keep each fixture’s original block type when assigning its screen.
             return entryType switch
             {
                 "chest" => new SectionStackRegressionEntry(T.Chest, S.Chest, NoFluids()),

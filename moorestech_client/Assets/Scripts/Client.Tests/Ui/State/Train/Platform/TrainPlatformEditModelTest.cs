@@ -85,8 +85,8 @@ namespace Client.Tests.Ui.State.Train.Platform
             using var packets = new PlacementPacketCapture();
             try
             {
-                // 開いた座標を固定し、表示側のマスタだけを差し替える
-                // Keep the open position fixed and replace only the view's master
+                // 同じ座標で表示マスタだけ変更
+                // Change only the view’s master at the same position.
                 TestReflection.SetStaticProperty(typeof(ClientContext), nameof(ClientContext.VanillaApi), packets.Api);
                 var store = root.AddComponent<BlockGameObjectDataStore>();
                 var view = root.AddComponent<BlockGameObject>();
@@ -97,8 +97,8 @@ namespace Client.Tests.Ui.State.Train.Platform
                 TestReflection.SetField(state, "<CurrentSubInventorySource>k__BackingField", source);
                 var commands = new TrainBlockCommands(state);
 
-                // 実際に送った要求をサーバーで処理し、同じホームのモードを読む
-                // Process the actual request on the server and read that platform's mode
+                // 送信後のサーバー側ホームを確認
+                // Check the same platform after the server handles the transmitted request.
                 SetScreen(S.TrainPlatform);
                 Assert.AreEqual(TrainPlatformTransferComponent.TransferMode.LoadToTrain, transfer.Mode);
                 var pending = commands.SetTransferMode(TrainPlatformTransferMode.UnloadToPlatform);

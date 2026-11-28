@@ -21,8 +21,8 @@ namespace Tests.UnitTest.Core.Master.BlockScreen
             var fileName = new JsonFileName("blocks");
             var blocks = JObject.Parse(configs[0].JsonContents[fileName]);
 
-            // 元ファイルに触れず、先頭ブロックだけ未知の画面IDにする
-            // Set an unknown screen ID on the first block without modifying the source file
+            // メモリ上の先頭画面IDだけ未知値に
+            // Set only the first screen ID to an unknown value in memory.
             var firstBlock = blocks["data"].Children<JObject>().First();
             firstBlock["blockScreen"] = unknownScreen;
             configs[0].JsonContents[fileName] = blocks.ToString();

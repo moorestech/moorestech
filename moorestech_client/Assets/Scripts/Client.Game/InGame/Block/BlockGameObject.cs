@@ -75,8 +75,8 @@ namespace Client.Game.InGame.Block
                 child.Init(this);
                 DeleteTarget ??= child;
             }
-            // 画面IDが None でないブロックだけインタラクトを有効にする
-            // Enable interaction for blocks with a screen ID other than None
+            // None以外は操作可能
+            // Enable interaction for non-None screens.
             if (BlockScreens.IsOpenable(blockMasterElement))
             {
                 Interactable = gameObject.AddComponent<BlockInteractable>();

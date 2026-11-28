@@ -8,8 +8,10 @@ using Client.Ui.State.BlockInventory.SectionStack;
 namespace Client.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 標準の本文（固定順の区画の列）を ブロック画面IDの設定から組む
-    /// Builds the standard body (the fixed-order section list) from the block screen ID settings
+    /// ・画面IDから標準本文を構築
+    /// ・区画の順序は固定
+    /// Build the standard body from its screen ID.
+    /// Keep sections in fixed order.
     /// </summary>
     public sealed class SectionStackBodyFactory
     {

@@ -75,8 +75,8 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.IsNotEmpty(authoredColliders, "authored-collider block has no clickable collider");
                 AssertClickRaycastResolvesBlock(authoredBlock, authoredColliders);
 
-                // 実際に設置した二つのブロックで操作面の付与を確かめる
-                // Check interaction attachment on both spawned blocks
+                // 設置後の操作面の有無を比較
+                // Compare interaction on the two placed blocks.
                 Assert.AreEqual(BlockMasterElement.BlockScreenConst.None, bakedBlock.BlockMasterElement.BlockScreen);
                 Assert.IsNull(bakedBlock.Interactable, BakedColliderBlockName);
                 Assert.AreEqual(BlockMasterElement.BlockScreenConst.Machine, authoredBlock.BlockMasterElement.BlockScreen);
