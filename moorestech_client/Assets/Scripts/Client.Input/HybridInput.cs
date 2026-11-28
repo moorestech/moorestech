@@ -134,6 +134,7 @@ namespace Client.Input
                 KeyCode.LeftCommand => Key.LeftCommand,
                 KeyCode.LeftAlt => Key.LeftAlt,
                 KeyCode.Z => Key.Z,
+                KeyCode.Space => Key.Space,
                 _ => null,
             };
         }
