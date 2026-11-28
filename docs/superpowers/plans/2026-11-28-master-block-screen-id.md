@@ -16,7 +16,7 @@
 - R4. 変換は今の画面を変えない: `openable: false` → `None`。`openable: true` は blockType で `Chest→Chest`、`ElectricMachine/GearMachine/CleanRoomMachine→Machine`、`ElectricGenerator→ElectricGenerator`、`FuelGearGenerator/SimpleGearGenerator→FuelGearGenerator`、`GearToElectricGenerator→GearToElectricGenerator`、`ElectricMiner→ElectricMiner`、`GearMiner→GearMiner`、`ElectricPump/GearPump→Pump`、`CleanRoomAirFilter→CleanRoomAirFilter`、`FluidPipe→FluidPipe`、`FilterSplitter→FilterSplitter`、`ElectricToGearGenerator→ElectricToGearGenerator`、`TrainStation/TrainItemPlatform/TrainFluidPlatform→TrainPlatform`、`ElectricPole→ElectricPole`、`SpaceElevatorBase→SpaceElevatorBase`、`RocketLaunchPad→RocketLaunchPad`、それ以外→`Generic`。
 - R5. 開けるかの判定は `BlockScreen != BlockScreenConst.None`: クライアント `BlockGameObject` の `BlockInteractable` 付与、サーバー `InventoryRequestProtocol` の表示専用ブロックの成功応答。受け入れ: 既存の `RequestBlockInventoryTest` が通る。
 - R6. `BlockComponentRegistry.Resolve` と `SectionStackConfigTable.Resolve` はブロック画面IDを受け、未登録なら例外を投げる（共通画面への黙った縮退を消す）。`OpenBlockInventoryPanel` は `BlockScreen` を持ち、`Components` はそこから引く。受け入れ: `BlockComponentRegistryTest`・`SectionStackConfigTableTest` が新しいキーで通り、`None` 以外の全 `BlockScreenConst` が両表で解決できる（SectionStack 本文のIDだけ `SectionStackConfigTable` に載る）ことをテストが確かめる。
-- R7. 画面の都合で blockType を見ていた分岐を画面側へ移す: `OrbitalCargoLargePanelRule` は `Components.Body` が `RocketLaunchPad` か `SpaceElevator` かで決める。`TrainBlockCommands.SetTransferMode` は開いているパネルの `Components.Body` で決める。受け入れ: 既存テストが通る。
+- R7. 画面の都合で blockType を見ていた分岐を画面側へ移す: `OrbitalCargoLargePanelRule` は `Components.Body` が `RocketLaunchPad` か `SpaceElevator` かで決める。`TrainBlockCommands.SetTransferMode` は開いているブロックのマスタの `BlockScreen` から `BlockComponentRegistry.Resolve` で本文の種類を引いて決める（`TrainBlockCommands` はパネルではなく `SubInventoryState` を持つため）。受け入れ: 既存テストが通る。
 - R8. ブロックの機能を確かめる blockType 分岐は変えない（`SpecialBlockCommands`・`TrainBlockCommands` の駅名・`BlockSlotRestrictionInput.IsFixedInletBlockType`・`BlockNetworkInfoCache`・`TrainPlatformDetailReader`）。
 - R9. 画面の見た目は変わらない。受け入れ: unityプレイ録画テストで、木のチェスト・石窯・ベルトコンベア・直線歯車ベルトコンベア・フィルター分岐器・電柱を開き、今と同じ本文（チェストのグリッド・機械・搬送量パネル・分岐器の専用本文・電柱の専用本文）が出て、基本土台は開かない。
 - やらないこと: mod が独自の画面を登録する仕組み、見るだけの画面など新しい画面、状態による画面の切り替え、セーブ・通信形式の変更、`mooresmaster/mooresmaster.SandBox/schema/blocks.json`（生成器の試験用の別スキーマで、ゲームのマスタではない）の変更。
@@ -34,8 +34,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / 検証の public とテストの形を前例 RocketLaunchPadParamValidatorTest に揃えた。死活表で死ぬ操作なし
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱2・第3バケツ0 / プレイヤーに見える差の無い内部の形なので、すべて agent前提として判断記録に記載。開けるかの判定を1本化し、ADR 0109 の登録漏れの止め方を直した
 
 ---
 
@@ -49,15 +49,17 @@
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/InventoryRequestProtocol.cs:69`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockGameObject.cs:77-83`
+- Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/Screen/BlockScreens.cs`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/Screen/BlockScreenValidator.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Interact/BlockInteractableTest.cs:84-85`
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs:30`
 - Modify（コンパイルエラー駆動。`BlockMasterElement` の手書き ctor の `openable` 引数を `blockScreen` 文字列へ）: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Common/CommonBlockPlaceExistingBlockCauseTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Blueprint/Copy/BlueprintCopyRangeCounterTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Ground/PlacementGroundFollowStepTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Ground/Entry/FootprintGroundedRayEntryTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Common/CommonBlockPlaceRunCalculatorTest.cs`
-- Create: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/BlockScreenValidatorTest.cs`
+- Create: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/BlockScreen/BlockScreenValidatorTest.cs`
 - 別 repo: `moorestech_master` の `server/mods/moorestechAlphaMod_3/master/blocks.json`、`server_v4/mods/moorestechAlphaMod_4/master/blocks.json`、`server_v5/mods/moorestechAlphaMod_5/master/blocks.json`、`server_v6/mods/moorestechAlphaMod_6/master/blocks.json`、`server_v7/mods/moorestechAlphaMod_7/master/blocks.json`、`server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
 - Modify: `.moorestech-external-revisions.json`
 
 **Interfaces:**
-- Produces: `string BlockMasterElement.BlockScreen`、`BlockMasterElement.BlockScreenConst.None` ほか R1 の18定数（SourceGenerator 生成）。`public static bool BlockScreenValidator.IsKnownScreen(string blockScreen)`、`public static string BlockScreenValidator.Validate(Blocks blocks)`（エラー文。空なら正常）
+- Produces: `string BlockMasterElement.BlockScreen`、`BlockMasterElement.BlockScreenConst.None` ほか R1 の18定数（SourceGenerator 生成）。`public static bool BlockScreens.IsKnownScreen(string blockScreen)`、`public static bool BlockScreens.IsOpenable(BlockMasterElement block)`（`BlockScreen != None`。開けるかの判定はこれ1本）、`public static string BlockScreenValidator.Validate(Blocks blocks)`（エラー文。空なら正常）
 
 - [ ] **Step 1: スキーマを書き換える**
 
@@ -164,7 +166,7 @@ v8 の確かめ方（ピン 84ca888b 時点の blockType と openable の組み�
 
 - [ ] **Step 6: 検証を書く**
 
-`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/Screen/BlockScreenValidator.cs`:
+`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/Screen/BlockScreens.cs`:
 
 ```csharp
 using System.Collections.Generic;
@@ -175,10 +177,10 @@ using Mooresmaster.Model.BlocksModule;
 namespace Core.Master.Validator.Block.Screen
 {
     /// <summary>
-    /// ブロック画面IDがスキーマの選択肢にあるかを検証する（生成ローダーは enum の値を検査しないため）
-    /// Validates each block screen ID is a schema option (the generated loader does not check enum values)
+    /// ブロック画面IDの選択肢と「開けるか」の判定を1か所に持つ
+    /// Holds the block screen ID options and the "is openable" rule in one place
     /// </summary>
-    public static class BlockScreenValidator
+    public static class BlockScreens
     {
         // 選択肢の正はスキーマから生成された定数クラスだけ。ここで一覧を書き写さない
         // The generated const class is the only source of options; never copy the list here
@@ -192,12 +194,33 @@ namespace Core.Master.Validator.Block.Screen
             return KnownScreens.Contains(blockScreen);
         }
 
+        public static bool IsOpenable(BlockMasterElement block)
+        {
+            return block.BlockScreen != BlockMasterElement.BlockScreenConst.None;
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/Screen/BlockScreenValidator.cs`:
+
+```csharp
+using Mooresmaster.Model.BlocksModule;
+
+namespace Core.Master.Validator.Block.Screen
+{
+    /// <summary>
+    /// ブロック画面IDがスキーマの選択肢にあるかを検証する（生成ローダーは enum の値を検査しないため）
+    /// Validates each block screen ID is a schema option (the generated loader does not check enum values)
+    /// </summary>
+    public static class BlockScreenValidator
+    {
         public static string Validate(Blocks blocks)
         {
             var logs = string.Empty;
             foreach (var block in blocks.Data)
             {
-                if (!IsKnownScreen(block.BlockScreen)) logs += $"[BlockMaster] Block:{block.Name} has unknown blockScreen:{block.BlockScreen}\n";
+                if (!BlockScreens.IsKnownScreen(block.BlockScreen)) logs += $"[BlockMaster] Block:{block.Name} has unknown blockScreen:{block.BlockScreen}\n";
             }
             return logs;
         }
@@ -209,50 +232,82 @@ namespace Core.Master.Validator.Block.Screen
 
 - [ ] **Step 7: 開ける判定を替える**
 
-`InventoryRequestProtocol.cs:69` の `block.BlockMasterElement.Openable` を `block.BlockMasterElement.BlockScreen != BlockMasterElement.BlockScreenConst.None` に替える（`using Mooresmaster.Model.BlocksModule;` が無ければ足す）。
+`InventoryRequestProtocol.cs:69` の `block.BlockMasterElement.Openable` を `BlockScreens.IsOpenable(block.BlockMasterElement)` に替える（`using Core.Master.Validator.Block.Screen;` を足す。Server.Protocol の asmdef が Core.Master を参照していることを確かめる）。
 
 `BlockGameObject.cs:79` を次にする:
 
 ```csharp
             // 開けるブロック（画面IDが None でない）のみインタラクト面を初期化
             // Initialize the interact face only for openable blocks (screen ID other than None)
-            if (blockMasterElement.BlockScreen != BlockMasterElement.BlockScreenConst.None)
+            if (BlockScreens.IsOpenable(blockMasterElement))
 ```
+
+（`BlockGameObject.cs` に `using Core.Master.Validator.Block.Screen;` を足す。）
 
 - [ ] **Step 8: 手書き ctor を直しコンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
-コンパイルエラーの出た手書き `new BlockMasterElement(...)` の `openable` 位置の `bool` を `BlockMasterElement.BlockScreenConst.None` に替える（上の Files 節の5ファイル。他にも出ればそれも）。
+コンパイルエラーの出た手書き `new BlockMasterElement(...)` の `openable` 位置の `bool` を `BlockMasterElement.BlockScreenConst.None` に替える（上の Files 節の5ファイル。他にも出ればそれも）。`BlockInteractableTest.cs:84-85` の `FindMaster(...).Openable` は `BlockScreens.IsOpenable(FindMaster(...))` に替える（本番の判定と同じ1本を検証するため）。
 Expected: ErrorCount 0
 
 - [ ] **Step 9: 検証のテストを書く**
 
-`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/BlockScreenValidatorTest.cs`（ディレクトリが10ファイルを超えるならサブディレクトリ `Block/` に置く）:
+前例 `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/RocketLaunchPadParamValidatorTest.cs` と同じく、テスト用 blocks.json の JToken を書き換えて `BlockMasterUtil.Validate` を通す。`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/BlockScreen/BlockScreenValidatorTest.cs`:
 
 ```csharp
-using Core.Master.Validator.Block.Screen;
-using Mooresmaster.Model.BlocksModule;
+using System.IO;
+using System.Linq;
+using Core.Master;
+using Core.Master.Validator;
+using Mod.Config;
+using Mod.Loader;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 
-namespace Tests.UnitTest.Core.Master
+namespace Tests.UnitTest.Core.Master.BlockScreen
 {
     public class BlockScreenValidatorTest
     {
-        [Test]
-        public void スキーマの選択肢は既知でそれ以外は未知()
+        [TestCase("chest")]
+        [TestCase("true")]
+        [TestCase("")]
+        public void スキーマに無いブロック画面IDを止める(string unknownScreen)
         {
-            // 生成定数は既知、綴り違いと旧 openable 由来の値は未知
-            // Generated constants are known; misspellings and old openable-style values are not
-            Assert.IsTrue(BlockScreenValidator.IsKnownScreen(BlockMasterElement.BlockScreenConst.None));
-            Assert.IsTrue(BlockScreenValidator.IsKnownScreen(BlockMasterElement.BlockScreenConst.Chest));
-            Assert.IsTrue(BlockScreenValidator.IsKnownScreen(BlockMasterElement.BlockScreenConst.RocketLaunchPad));
-            Assert.IsFalse(BlockScreenValidator.IsKnownScreen("chest"));
-            Assert.IsFalse(BlockScreenValidator.IsKnownScreen("true"));
-            Assert.IsFalse(BlockScreenValidator.IsKnownScreen(""));
+            // 先頭のブロックの画面IDだけを未知の値にする
+            // Replace only the first block's screen ID with an unknown value
+            var blocksJToken = PrepareBlocksJson();
+            var firstBlock = blocksJToken["data"].Children<JObject>().First();
+            firstBlock["blockScreen"] = unknownScreen;
+
+            var isValid = BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs);
+
+            Assert.IsFalse(isValid);
+            StringAssert.Contains($"Block:{(string)firstBlock["name"]} has unknown blockScreen:{unknownScreen}", errorLogs);
+        }
+
+        [Test]
+        public void テストマスタのブロック画面IDは検証を通る()
+        {
+            var isValid = BlockMasterUtil.Validate(new BlockMaster(PrepareBlocksJson()).Blocks, out var errorLogs);
+
+            Assert.IsTrue(isValid, errorLogs);
+        }
+
+        private static JToken PrepareBlocksJson()
+        {
+            // 依存マスタ初期化しJTokenのみ変更
+            // Initialize dependency masters, then edit only the in-test JToken
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
+            return JToken.Parse(File.ReadAllText(blocksJsonPath));
         }
     }
 }
 ```
+
+`using` は前例の通りに置き、使わないものはコンパイルの警告を見て消す。
 
 - [ ] **Step 10: テストを回す**
 
@@ -393,7 +448,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 - [ ] **Step 4: 本文の組み立てをブロック画面IDで行う**
 
 `SectionStackBodyFactory.Create(string blockType, ...)` の引数名を `blockScreen` にし、`SectionStackConfigTable.Resolve(blockScreen)` で引く。XML コメントの「blockType の設定」を「ブロック画面IDの設定」に直す。
-`BlockInventoryPartRegistry.cs:43` と `:46` の `_sectionStack.Create(panel.BlockType, mount)` を `_sectionStack.Create(panel.BlockScreen, mount)` に、`:45` の警告文の `blockType={panel.BlockType}` を `blockScreen={panel.BlockScreen}` に替える。
+`BlockInventoryPartRegistry.cs:43` の `_sectionStack.Create(panel.BlockType, mount)` を `_sectionStack.Create(panel.BlockScreen, mount)` に替える。`:46`（専用本文の工場が登録されていないときの逃げ道）は `_sectionStack.Create(BlockMasterElement.BlockScreenConst.Generic, mount)` にし、`:45` の警告文の `blockType={panel.BlockType}` を `blockScreen={panel.BlockScreen}` に替える（専用本文のIDで `SectionStackConfigTable.Resolve` を呼ぶと例外になるため。警告と共通画面で描く今の挙動を保つ）。`using Mooresmaster.Model.BlocksModule;` を足す。
 
 - [ ] **Step 5: 画面の都合の分岐を本文の種類で決める**
 
@@ -541,3 +596,11 @@ git commit -m "ブロック画面IDで今と同じ画面が開くことを確か
 - `VanillaSchema/blocks.yml`: `openable` を消し必須の enum `blockScreen` を同じ位置に入れる（optional・default を付けない）。出所: ユーザー裁定 2026-11-27 選択「画面の指定にまとめる（推奨）」＋ agent前提（AGENTS.md「optional で吸収しない」）
 - `InventoryRequestProtocol.cs`: 表示専用ブロックの成功応答の条件を `Openable` から `BlockScreen != None` へ替えるだけ。応答の形・通信形式は変えない。出所: agent前提（ADR 0109 agent前提5）
 - `BlockScreenValidator.cs`・`BlockMasterUtil.cs`: 既存の `BlockMasterUtil.Validate` の連結に検証を1本足す形（前例: 同ファイルの `FilterSplitterParamValidator.Validate` など）。出所: agent前提（ADR 0109 agent前提3）
+- 開けるかの判定は `Core.Master/Validator/Block/Screen/BlockScreens.cs` の `IsOpenable` 1本にし、`BlockGameObject.cs`・`InventoryRequestProtocol.cs`・`BlockInteractableTest.cs` が使う。出所: agent前提（Phase 2.6 検査6〈弱〉: 同じ式が本番2か所とテストに出ていた）
+- `BlockComponentRegistry.Resolve` と `SectionStackConfigTable.Resolve` は失敗を例外1種で表し、型を分けない。出所: agent前提（Phase 2.6 5-A〈強〉。どちらの失敗も開発時の登録漏れで、プレイヤーに見える差が無い）
+- ブロック画面IDは C# の enum 型ではなく string ＋生成定数で扱う。出所: agent前提（Phase 2.6 5-I〈強〉。mooresmaster の生成器が enum を string と `*Const` で出すため。生成器の改修は範囲外）
+- `TrainBlockCommands.TryResolveOpenBlock` の false の理由（ブロック画面でない／GUID が取れない）は区別しない。出所: agent前提（Phase 2.6 5-C〈弱〉。既存の形を引き継ぎ、どちらも `BlockNotOpen` で返す）
+- 登録漏れの止め方: スキーマに無い値はマスタ読込（`BlockScreenValidator`）で起動時に止め、スキーマの選択肢にクライアントの画面が登録されていないことは `BlockScreenCoverageTest`（CI）で止める。開いた時の `Resolve` の例外は最後の網。ADR 0109 agent前提3 をこの形に直した。出所: agent前提（Phase 2.6 検査7〈強〉。選択肢もクライアントの表も同じビルドに入るコードなので、食い違いはビルドの検査で必ず見つかる）
+- `BlockScreens.IsKnownScreen` は `BlockScreenValidator` が別クラスから呼ぶので public にする。テストは前例 `RocketLaunchPadParamValidatorTest` と同じく JSON を書き換えて `BlockMasterUtil.Validate` を通す形にし、`Tests/UnitTest/Core/Master/BlockScreen/` に置く。出所: agent前提（配置検査の違反1件を修正）
+- `BlockInventoryPartRegistry` の「専用本文の工場が無いときは警告して共通画面で描く」逃げ道は残し、共通画面の設定は `Generic` で引く。出所: agent前提（配置検査の注目点。工場の登録漏れは本番では起きず、工場を登録しないテスト構成が通る道なので今の挙動を保つ）
+- 本番コードで生成定数クラスをリフレクションで列挙するのは `BlockScreens` が初めて（前例はテストのみ）。出所: agent前提（配置検査の注目点。生成器を改修しない判断の帰結。レビューの注目点として PR 本文に書く）
