@@ -322,6 +322,8 @@ namespace Tests.UnitTest.Core.Master.BlockScreen
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockScreenValidatorTest|RequestBlockInventoryTest|BlockMaster"`
 Expected: 全 PASS。続けて `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\."` でサーバーテスト全体を回し、このタスク前から落ちていたもの以外に失敗が無い（前からの失敗は `git stash` 前の master で同じテストを回して見比べ、報告に書く）。
 
+関連テストは全件成功した。サーバー全体は既存の `IgnoreCI` 広域マップ検証中に1,500秒で時間切れ。CIと同じカテゴリ除外で3,482件成功、2件スキップ。ファイル共有エラーの9件は変更前の `master` でも同一のテスト名と同一のエラーを再現した。全件の結果は未確認。
+
 - [x] **Step 11: コミットする**
 
 ```bash
@@ -552,7 +554,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
 
-- [ ] **Step 8: テストを回す**
+- [x] **Step 8: テストを回す**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockInventory|SectionStack|BlockComponentRegistry|BlockScreen|TrainPlatform|OrbitalCargo|SpecialBlockDetails"`
 Expected: 全 PASS
@@ -607,7 +609,7 @@ git commit -m "ブロック画面IDで今と同じ画面が開くことを確か
 
 ### Task 5: PR 作成とセッション終了可能状態
 
-- [ ] セッション終了可能状態にすること: pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。PR 本文には moorestech_master の PR の URL を書く。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 作成後 `moores-wt rm master-block-screen-id` で worktree と Editor を畳む。
+- [x] セッション終了可能状態にすること: pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。PR 本文には moorestech_master の PR の URL を書く。全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。PR 作成後 `moores-wt rm master-block-screen-id` で worktree と Editor を畳む。
 
 ---
 
