@@ -253,7 +253,7 @@ namespace Core.Master.Validator.Block.Screen
 
 （`BlockGameObject.cs` に `using Core.Master.Validator.Block.Screen;` を足す。）
 
-- [ ] **Step 8: 手書き ctor を直しコンパイルする**
+- [x] **Step 8: 手書き ctor を直しコンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 コンパイルエラーの出た手書き `new BlockMasterElement(...)` の `openable` 位置の `bool` を `BlockMasterElement.BlockScreenConst.None` に替える（上の Files 節の5ファイル。他にも出ればそれも）。`BlockInteractableTest.cs:84-85` の `FindMaster(...).Openable` は `BlockScreens.IsOpenable(FindMaster(...))` に替える（本番の判定と同じ1本を検証するため）。
@@ -528,7 +528,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 }
 ```
 
-- [ ] **Step 7: テスト補助関数と既存テストを直す**
+- [x] **Step 7: テスト補助関数と既存テストを直す**
 
 `BlockInventoryTestPanels.OfType` をブロック画面IDも受ける形にする:
 
@@ -589,7 +589,7 @@ git commit -m "ブロック画面の表をブロック画面IDで引き、未登
 
 各ブロックで `p.Screenshot("NN-<ブロック名>")` を撮る。testid は今の master のブランチで同じシナリオを `Record = false` で回して実在を確かめてから使う（推測の testid で書かない）。
 
-- [ ] **Step 2: 実行する**
+- [x] **Step 2: 実行する**
 
 unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で、調査は `Record = false`、最後の1回だけ `Record = true`。
 Expected: `result.json` の `Success: true`、Asserts 全通過。録画とスクショで今の master と同じ画面であることを目で確かめる。
