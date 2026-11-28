@@ -92,6 +92,7 @@ return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = t
             await p.AimAt(new Vector3(centerX, GroundY + aimHeight, BlockZ + 0.35f));
             await p.Until(() => HitsBlock(block), 5f, $"{name}に2m以内で照準が当たる");
             p.Assert(HitsBlock(block), $"{name}を2m以内で狙っている");
+            p.Assert(!UiPointerHitTest.IsPointerOverAnyUi(), $"{name}を狙うポインタがUIで遮られていない");
             await p.PressInteract();
             await p.WaitSeconds(0.5f);
         }
