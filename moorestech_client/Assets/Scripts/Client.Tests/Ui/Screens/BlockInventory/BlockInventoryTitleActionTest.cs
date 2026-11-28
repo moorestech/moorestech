@@ -91,7 +91,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
         private static BlockInventoryPanelState Panel(string blockType, BlockInventoryPanelError error)
         {
-            return new OpenBlockInventoryPanel(blockType, S.RocketLaunchPad, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), Array.Empty<SlotItem>(), error);
+            return BlockInventoryTestPanels.OpenBlock(blockType, S.RocketLaunchPad, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), Array.Empty<SlotItem>(), error);
         }
 
         private sealed class FakeTitleActionFactory : IBlockInventoryTitleActionFactory, IBlockInventoryPart

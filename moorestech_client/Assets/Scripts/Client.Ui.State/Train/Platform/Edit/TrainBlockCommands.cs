@@ -4,8 +4,6 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.Commands;
-using Core.Master;
-using Core.Master.Validator.Block.Screen;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
@@ -42,7 +40,8 @@ namespace Client.Ui.State.Train.Platform.Edit
             // 本文の種類はパネルと同じ登録表で判定する（blockType を並べない）
             // The body kind is judged by the same registry as the panel (no blockType list)
             if (!TryResolveOpenBlock(out var source, out var master)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
-            if (!BlockScreens.IsOpenable(master) || BlockComponentRegistry.Resolve(master.BlockScreen).Body != BlockInventoryBodyKind.TrainPlatform) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
+            if (!BlockComponentRegistry.TryResolveOpenable(master, out var components)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
+            if (components.Body != BlockInventoryBodyKind.TrainPlatform) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
 
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, TrainPlatformTransferModeConversion.ToServer(mode), CancellationToken.None);
             if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainPlatformModeFailed, response == null ? "no response" : response.FailureReason.ToString());
@@ -53,9 +52,7 @@ namespace Client.Ui.State.Train.Platform.Edit
         {
             master = null;
             source = _subInventoryState.CurrentSubInventorySource as BlockSubInventorySource;
-            if (source == null || !source.TryGetBlockIdentity(out var blockGuid, out _)) return false;
-            master = MasterHolder.BlockMaster.GetBlockMaster(blockGuid);
-            return true;
+            return source != null && source.TryGetBlockMaster(out master);
         }
     }
 }

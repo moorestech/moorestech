@@ -71,7 +71,7 @@ namespace Client.Ui.State.BlockInventory.Panel
         public Vector3Int Position { get; private set; }
         public BlockInventoryComponents Components { get; private set; }
 
-        internal OpenBlockInventoryPanel(string blockType, string blockScreen, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error) : base(itemSlots, error)
+        internal OpenBlockInventoryPanel(string blockType, string blockScreen, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error, BlockInventoryComponents components) : base(itemSlots, error)
         {
             BlockType = blockType;
             BlockScreen = blockScreen;
@@ -79,7 +79,7 @@ namespace Client.Ui.State.BlockInventory.Panel
             BlockId = blockId;
             BlockInstanceId = blockInstanceId;
             Position = position;
-            Components = BlockComponentRegistry.Resolve(blockScreen);
+            Components = components;
         }
 
         public override bool IsSamePanel(BlockInventoryPanelState other)

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
@@ -33,13 +32,14 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         public void 取得成功のブロックはエラー無しでスロットと構成を持つ()
         {
             var slots = new[] { new SlotItem(new ItemId(1), 7) };
-            var state = BlockInventoryPanelStateFactory.FromBlock(true, slots, _chest, new BlockInstanceId(1), new Vector3Int(1, 2, 3));
+            var master = BlockInventoryTestPanels.WithScreen(_chest, BlockMasterElement.BlockScreenConst.FilterSplitter);
+            var state = BlockInventoryPanelStateFactory.FromBlock(true, slots, master, new BlockInstanceId(1), new Vector3Int(1, 2, 3));
             var open = (OpenBlockInventoryPanel)state;
             Assert.AreEqual(BlockInventoryPanelError.None, open.Error);
             Assert.AreEqual(_chest.BlockGuid, open.BlockGuid);
             Assert.AreEqual(BlockMasterElement.BlockTypeConst.Chest, open.BlockType);
-            Assert.AreEqual(_chest.BlockScreen, open.BlockScreen);
-            Assert.AreEqual(BlockComponentRegistry.Resolve(open.BlockScreen).Body, open.Components.Body);
+            Assert.AreEqual(BlockMasterElement.BlockScreenConst.FilterSplitter, open.BlockScreen);
+            Assert.AreEqual(BlockInventoryBodyKind.FilterSplitter, open.Components.Body);
             Assert.AreEqual(7, open.ItemSlots[0].Count);
             Assert.AreEqual(new BlockInstanceId(1), open.BlockInstanceId);
         }
@@ -52,7 +52,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         }
 
         [Test]
-        public void 追跡している位置に画面のないブロックが来たらパネルは閉じる()
+        public void FromBlockは画面IDがNoneならClosedを返す()
         {
             var replacement = Array.Find(MasterHolder.BlockMaster.Blocks.Data, b => b.BlockScreen == BlockMasterElement.BlockScreenConst.None);
             var position = new Vector3Int(1, 2, 3);

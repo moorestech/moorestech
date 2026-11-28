@@ -52,7 +52,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             var block = _harness.CreateBlock(Vector3Int.zero, master, (SpaceElevatorBaseStateDetail.BlockStateDetailKey, new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing, null, null)));
             // 追跡ブロックの個体 ID（既定値）とパネルの個体 ID をそろえ、違いを Error だけにする
             // Match the panel's instance ID to the tracked block's (default) so only Error differs
-            var panel = new OpenBlockInventoryPanel(master.BlockType, master.BlockScreen, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), error);
+            var panel = BlockInventoryTestPanels.OpenBlock(master.BlockType, master.BlockScreen, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), error);
             var model = new SpecialBlockDetailModel(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel)), _harness.Tracker, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FakeUnlockedOrbitalCargoSource());
             model.Initialize();
 
@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId);
             var layout = new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)master.BlockParam);
             var block = _harness.CreateBlock(Vector3Int.zero, master, (RocketLaunchPadStateDetail.BlockStateDetailKey, new RocketLaunchPadStateDetail(RocketLaunchPadPhase.Idle, RocketLaunchPadWaitReason.CargoNotSelected, 0f, null, null)));
-            var panel = new OpenBlockInventoryPanel(master.BlockType, master.BlockScreen, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var panel = BlockInventoryTestPanels.OpenBlock(master.BlockType, master.BlockScreen, master.BlockGuid, default, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
             var unlocked = new FakeUnlockedOrbitalCargoSource();
             var model = new SpecialBlockDetailModel(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel)), _harness.Tracker, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), unlocked);
             model.Initialize();

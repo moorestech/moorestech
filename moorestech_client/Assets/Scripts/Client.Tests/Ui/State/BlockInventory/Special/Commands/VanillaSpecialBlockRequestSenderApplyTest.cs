@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
 
         private static OpenBlockInventoryPanel Panel(BlockInstanceId id)
         {
-            return new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, id, new Vector3Int(3, 0, 4), Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            return BlockInventoryTestPanels.OpenBlock(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, id, new Vector3Int(3, 0, 4), Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
         }
     }
 }

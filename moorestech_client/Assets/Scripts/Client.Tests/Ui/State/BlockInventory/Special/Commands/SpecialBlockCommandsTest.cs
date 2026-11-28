@@ -130,8 +130,8 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 送信後に開いているブロックが変わったら分配器の応答は当てない()
         {
             var sent = new BlockInstanceId(77);
-            var other = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, new BlockInstanceId(78), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
-            var same = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, sent, Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var other = BlockInventoryTestPanels.OpenBlock(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, new BlockInstanceId(78), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var same = BlockInventoryTestPanels.OpenBlock(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, sent, Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
             Assert.IsTrue(VanillaSpecialBlockRequestSender.IsStillOpen(same, sent));
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(other, sent));
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(BlockInventoryPanelState.Closed, sent));
@@ -181,7 +181,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
 
         private void Open(string blockType, string blockScreen)
         {
-            _open.Value = new OpenBlockInventoryPanel(blockType, blockScreen, Guid.Empty, default, new BlockInstanceId(77), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            _open.Value = BlockInventoryTestPanels.OpenBlock(blockType, blockScreen, Guid.Empty, default, new BlockInstanceId(77), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
         }
     }
 }

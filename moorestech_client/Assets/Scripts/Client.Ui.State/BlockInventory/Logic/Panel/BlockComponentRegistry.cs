@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Core.Master.Validator.Block.Screen;
+using Mooresmaster.Model.BlocksModule;
 using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Ui.State.BlockInventory.Logic.Panel
@@ -61,6 +63,19 @@ namespace Client.Ui.State.BlockInventory.Logic.Panel
             [S.SpaceElevatorBase] = Body(BlockInventoryBodyKind.SpaceElevator),
             [S.RocketLaunchPad] = new BlockInventoryComponents(BlockInventoryBodyKind.RocketLaunchPad, BlockInventoryTitleActionKind.RocketLaunchPadCommand),
         };
+
+        public static bool TryResolveOpenable(BlockMasterElement master, out BlockInventoryComponents components)
+        {
+            // None は閉じる通常状態。未登録の画面は Resolve が診断する
+            // None closes the panel normally, while Resolve diagnoses missing registrations
+            if (BlockScreens.IsOpenable(master))
+            {
+                components = Resolve(master.BlockScreen);
+                return true;
+            }
+            components = default;
+            return false;
+        }
 
         public static BlockInventoryComponents Resolve(string blockScreen)
         {

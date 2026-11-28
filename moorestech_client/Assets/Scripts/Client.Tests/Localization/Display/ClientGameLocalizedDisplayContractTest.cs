@@ -1,4 +1,4 @@
-using System;
+using Mooresmaster.Model.BlocksModule;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using NUnit.Framework;
 
@@ -7,21 +7,16 @@ namespace Client.Tests.Localization.Display
     public class ClientGameLocalizedDisplayContractTest
     {
         [Test]
-        public void BlockSubInventorySourceは表示名ではなくGuidを公開する()
+        public void BlockSubInventorySourceは現在のブロックマスタを取得できる()
         {
             var sourceType = typeof(BlockSubInventorySource);
 
-            // 撤去後は識別子を返せないため、現在のTry取得契約を検査する
-            // Check the current Try contract because a removed block has no identity to return
-            var identityMethod = sourceType.GetMethod(nameof(BlockSubInventorySource.TryGetBlockIdentity), new[] { typeof(Guid).MakeByRefType(), typeof(string).MakeByRefType() });
-            Assert.IsNotNull(identityMethod);
-            Assert.AreEqual(typeof(bool), identityMethod.ReturnType);
-            var parameters = identityMethod.GetParameters();
-            Assert.AreEqual(2, parameters.Length);
-            Assert.AreEqual(typeof(Guid).MakeByRefType(), parameters[0].ParameterType);
-            Assert.IsTrue(parameters[0].IsOut);
-            Assert.AreEqual(typeof(string).MakeByRefType(), parameters[1].ParameterType);
-            Assert.IsTrue(parameters[1].IsOut);
+            // 撤去済みの座標を識別できる取得契約を固定する
+            // Preserve the lookup contract that distinguishes a removed block
+            var method = sourceType.GetMethod(nameof(BlockSubInventorySource.TryGetBlockMaster), new[] { typeof(BlockMasterElement).MakeByRefType() });
+            Assert.IsNotNull(method);
+            Assert.AreEqual(typeof(bool), method.ReturnType);
+            Assert.IsTrue(method.GetParameters()[0].IsOut);
             Assert.IsNull(sourceType.GetProperty("BlockName"));
         }
     }

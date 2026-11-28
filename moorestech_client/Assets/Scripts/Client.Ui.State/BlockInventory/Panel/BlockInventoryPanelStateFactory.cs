@@ -4,7 +4,7 @@ using Client.Game.InGame.UI.Inventory.Train;
 using Client.Ui.State.Items;
 using Core.Item.Interface;
 using Core.Master;
-using Core.Master.Validator.Block.Screen;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
@@ -21,11 +21,11 @@ namespace Client.Ui.State.BlockInventory.Panel
         {
             // silent-ok: 追跡座標が画面を持たないブロックへ置き換わったら閉じる / プレイヤーにはパネルの閉鎖として見える
             // A replacement without a screen closes the panel at the tracked position
-            if (!BlockScreens.IsOpenable(master)) return BlockInventoryPanelState.Closed;
+            if (!BlockComponentRegistry.TryResolveOpenable(master, out var components)) return BlockInventoryPanelState.Closed;
 
             var error = fetchSucceeded ? BlockInventoryPanelError.None : BlockInventoryPanelError.OpenFailed;
             var blockId = MasterHolder.BlockMaster.GetBlockId(master.BlockGuid);
-            return new OpenBlockInventoryPanel(master.BlockType, master.BlockScreen, master.BlockGuid, blockId, blockInstanceId, position, itemSlots, error);
+            return new OpenBlockInventoryPanel(master.BlockType, master.BlockScreen, master.BlockGuid, blockId, blockInstanceId, position, itemSlots, error, components);
         }
 
         public static BlockInventoryPanelState FromTrain(long trainCarInstanceId, IReadOnlyList<SlotItem> itemSlots, TrainInventoryMessageType? lastOpenMessage)
