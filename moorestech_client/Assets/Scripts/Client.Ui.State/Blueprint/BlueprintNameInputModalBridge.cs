@@ -19,12 +19,19 @@ namespace Client.Ui.State.Blueprint
     {
         private readonly BlueprintNameInputState _state;
         private readonly ModalRequestService _modalService;
-        private ModalRequestHandle _openedRequest;
+        // 名前入力が開いている間だけ生きる寿命。出したモーダルはこの寿命で閉じる
+        // Lifetime that lasts only while the name input is open; the modal it raised closes with it
+        private CancellationTokenSource _openLifetime;
 
         public BlueprintNameInputModalBridge(BlueprintNameInputState state, ModalRequestService modalService)
         {
             _state = state;
             _modalService = modalService;
+
+            // 起動時は名前入力が閉じているので、終わった寿命から始める
+            // The name input is closed at startup, so begin with an ended lifetime
+            _openLifetime = new CancellationTokenSource();
+            _openLifetime.Cancel();
         }
 
         public void Initialize()
@@ -41,24 +48,29 @@ namespace Client.Ui.State.Blueprint
                     return;
                 }
 
-                // 状態側クローズ（確定/キャンセル/Disable）で自分の出したモーダルだけ畳む（解決済み・置き換え済みならno-op）
-                // State-side close (confirm/cancel/Disable) dismisses only our own modal (no-op when already resolved or replaced)
-                _openedRequest?.Dispose();
-                _openedRequest = null;
+                // 状態側クローズ（確定/キャンセル/Disable）で寿命を終え、自分の出したモーダルだけ畳む（解決済み・置き換え済みなら何も起きない）
+                // State-side close (confirm/cancel/Disable) ends the lifetime, dismissing only our own modal (nothing happens when already resolved or replaced)
+                _openLifetime.Cancel();
             }
 
             async UniTaskVoid RequestAndRespond()
             {
+                // 開くたびに新しい寿命を始め、要求より先に差し替える（通知の途中で同期に閉じられても、この寿命の取り消しが要求を閉じる）
+                // Start a fresh lifetime per open and swap it in before requesting, so a synchronous close inside the notification still closes the request by cancelling it
+                var previousLifetime = _openLifetime;
+                _openLifetime = new CancellationTokenSource();
+
                 // 要求時点の言語で文言を解決してpushし、要求IDは持ち手で受け取る（呼んだ後の Pending は同期購読者が差し替え得る）
                 // Resolve texts in the request-time language and push; take the id from the handle, as a synchronous subscriber may replace Pending after the call
-                // 名前入力はどの画面にも属さないので寿命は渡さず、閉じるときに自分の持ち手を Dispose する
-                // The name input belongs to no screen, so no lifetime is passed; its own handle is disposed on close
                 var request = _modalService.RequestInputModal(
                     Localize.Get(LocalizationKeys.Ui.Blueprint.NameModalTitle),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.NameModalMessage),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.NameModalConfirm),
-                    CancellationToken.None);
-                _openedRequest = request;
+                    _openLifetime.Token);
+
+                // 前の寿命は取り消さずに捨てる（開いたままの開き直しで取り消すと、置き換えでなく自分の取消と見なされ名前入力ごと閉じる）
+                // Drop the previous lifetime without cancelling; cancelling on a reopen-while-open would look like our own cancel and close the name input itself
+                previousLifetime.Dispose();
                 var (result, text) = await request.Response;
 
                 // 確定は空白のみを弾いて状態へ書き戻す（描き手の確定無効化と同じ規則 ModalLogic.HasConfirmableText の二重防御）

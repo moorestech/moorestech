@@ -121,5 +121,41 @@ namespace Client.Tests.UIState.Models
             Assert.IsNull(modal.Pending);
             CollectionAssert.Contains(openLog, false, "自分の要求が取り消されたのに BP 名入力が開いたまま残った");
         }
+
+        [Test]
+        public void 入力モーダルを出す通知の途中でBP名入力が閉じてもモーダルは残らない()
+        {
+            var state = new BlueprintNameInputState();
+            var modal = new ModalRequestService();
+            new BlueprintNameInputModalBridge(state, modal).Initialize();
+
+            // 入力モーダルが出た瞬間に、同期購読者が状態側を閉じる（橋渡しが要求の戻り値を受け取る前）
+            // A synchronous subscriber closes the state side the moment the input modal appears (before the bridge receives the request's return value)
+            using var closer = modal.OnPendingChanged.Subscribe(_ =>
+            {
+                if (modal.Pending != null && modal.Pending.RequiresInput) state.Close();
+            });
+            state.Open();
+
+            Assert.IsNull(modal.Pending, "通知の途中のクローズで入力モーダルが閉じずに残った");
+        }
+
+        [Test]
+        public void 閉じてから開き直した名前入力は前回の寿命に巻き込まれない()
+        {
+            var state = new BlueprintNameInputState();
+            var modal = new ModalRequestService();
+            new BlueprintNameInputModalBridge(state, modal).Initialize();
+
+            // 1回目を閉じた後の2回目は、新しい寿命で開いたまま残る
+            // The second open after closing the first stays open under a fresh lifetime
+            state.Open();
+            state.Cancel();
+            Assert.IsNull(modal.Pending);
+            state.Open();
+
+            Assert.IsNotNull(modal.Pending, "前回の終わった寿命で開き直しの入力モーダルが出なかった");
+            Assert.IsTrue(modal.Pending.RequiresInput);
+        }
     }
 }
