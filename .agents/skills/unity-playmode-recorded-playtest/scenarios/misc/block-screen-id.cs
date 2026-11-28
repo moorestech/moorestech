@@ -49,8 +49,8 @@ return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = t
     // 切替ボタンを押し、選択表示とサーバーから届く状態の両方を確認する
     // Click the mode button and verify both its selection and the state received from the server.
     var platform = await InteractWith("貨物プラットフォーム", 6, 7, 0.4f);
-    await CheckBody("貨物プラットフォーム", "train-platform-view", "07-貨物プラットフォーム");
     await p.Until(() => Mode() == TransferMode.LoadToTrain && IsSelected(LoadButton), 10f, "積み込みの表示と状態が揃う");
+    await CheckBody("貨物プラットフォーム", "train-platform-view", "07-貨物プラットフォーム");
     p.Assert(!IsSelected(UnloadButton), "初期状態では荷降ろしは未選択");
     await p.ClickUi(UnloadButton);
     await p.Until(() => Mode() == TransferMode.UnloadToPlatform && IsSelected(UnloadButton) && !IsSelected(LoadButton), 10f, "荷降ろしの表示と状態が揃う");
@@ -93,6 +93,7 @@ return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = t
             await p.Until(() => HitsBlock(block), 5f, $"{name}に2m以内で照準が当たる");
             p.Assert(HitsBlock(block), $"{name}を2m以内で狙っている");
             await p.PressInteract();
+            await p.WaitSeconds(0.5f);
         }
         finally
         {
