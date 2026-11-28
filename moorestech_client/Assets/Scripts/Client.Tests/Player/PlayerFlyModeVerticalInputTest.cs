@@ -12,8 +12,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.Player
 {
     /// <summary>
-    ///     フライ中の上下入力（Space上昇・C下降）を確認する
-    ///     Verifies the vertical input while flying (Space ascends, C descends)
+    ///     フライ中の上下入力（キーボードのSpace上昇・C下降、パッドは無効）を確認する
+    ///     Verifies the vertical input while flying (keyboard Space ascends, C descends, gamepad none)
     /// </summary>
     public class PlayerFlyModeVerticalInputTest : InputTestFixture
     {
@@ -94,6 +94,21 @@ namespace Client.Tests.Player
             Release(_keyboard.eKey);
             Press(_keyboard.qKey);
             _flyMode.ManualUpdate(2.0f);
+            Assert.AreEqual(0f, GetFlightMotion().ResolveVerticalVelocity(0f, 15f, false));
+        }
+
+        [Test]
+        public void フライ中のゲームパッド南ボタンは上昇入力にならない()
+        {
+            DebugParameters.SaveBool(DebugConst.FlyModeKey, true);
+            TapSpace(0.0f, 0.1f, 0.2f, 0.3f);
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+
+            // 南ボタンはジャンプとしては押下中だが、フライの上昇には使わない
+            // The south button is held as jump, yet it is not used for ascending in flight
+            Press(gamepad.buttonSouth);
+            _flyMode.ManualUpdate(1.0f);
+            Assert.IsTrue(InputManager.Player.Jump.GetKey);
             Assert.AreEqual(0f, GetFlightMotion().ResolveVerticalVelocity(0f, 15f, false));
         }
 
