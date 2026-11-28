@@ -567,12 +567,12 @@ git commit -m "ブロック画面の表をブロック画面IDで引き、未登
 ### Task 3: unityプレイ録画テストで画面が変わらないことを確かめる
 
 **Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/block-screen-id.cs`（execute-dynamic-code のスニペット形式。前例 `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/interact-key-unification.cs`）
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/block-screen-id/block-screen-id.cs`（execute-dynamic-code のスニペット形式。前例 `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/interact-key-unification.cs`）
 
 **Interfaces:**
 - Consumes: Task 1・2 の全変更、ピン更新済みのマスタ
 
-- [ ] **Step 1: シナリオを書く**
+- [x] **Step 1: シナリオを書く**
 
 `references/write-scenario.md` のテンプレートで、`SetupDebugEnvironment` → `SkipOpeningSkit` の後、プレイヤーの前 2m 以内に1つずつ `PlaceBlockDirect` で置き、照準を合わせて `PressInteract()` で開き、出た画面を確かめて閉じる。対象と確かめる内容:
 
@@ -594,10 +594,10 @@ git commit -m "ブロック画面の表をブロック画面IDで引き、未登
 unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で、調査は `Record = false`、最後の1回だけ `Record = true`。
 Expected: `result.json` の `Success: true`、Asserts 全通過。録画とスクショで今の master と同じ画面であることを目で確かめる。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/block-screen-id.cs
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/block-screen-id/block-screen-id.cs
 git commit -m "ブロック画面IDで今と同じ画面が開くことを確かめる録画シナリオを追加"
 ```
 
