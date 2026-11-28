@@ -1,4 +1,5 @@
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Text;
 using Game.Block.Interface;
 
@@ -25,7 +26,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         public UiText Unavailable { get; }
         private BlockInstanceId? BlockInstanceId { get; }
 
-        public bool IsFor(BlockInstanceId id) => BlockInstanceId is not { } instance || instance == id;
+        public bool IsFor(OpenBlockInventoryPanel panel) => BlockInstanceId is not { } instance || instance == panel.BlockInstanceId;
 
         public SpecialBlockDetailViewModel(ElectricToGearDetail electricToGear, GearToElectricDetail gearToElectric, GearDetail gear, BeltThroughputDetail belt, ElectricNetworkDetail electricNetwork, GearNetworkDetail gearNetwork, FilterSplitterDetail filterSplitter, RocketLaunchPadDetail rocketLaunchPad, SpaceElevatorDetail spaceElevator)
             : this(electricToGear, gearToElectric, gear, belt, electricNetwork, gearNetwork, filterSplitter, rocketLaunchPad, spaceElevator, null, null)

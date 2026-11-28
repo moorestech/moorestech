@@ -42,7 +42,8 @@ namespace Client.Ui.State.BlockInventory.Special.Source
         {
             var param = block.BlockMasterElement.BlockParam;
             UiText unavailable = null;
-            MissingFeature(BlockInventoryBodyKind.ElectricPole, BlockNetworkInfoCache.JoinsElectricNetwork(param));
+            if (!BlockNetworkInfoCache.JoinsElectricNetwork(param))
+                MissingFeature(BlockInventoryBodyKind.ElectricPole, LocalizationKeys.Ui.BlockInventory.ScreenRequiresElectricNetwork);
             var gearDetail = ReadGear(out gearAnomaly);
             return new SpecialBlockDetailViewModel(
                 ReadElectricToGear(), ReadGearToElectric(), gearDetail, BeltThroughputReader.Read(block, beltCache),
@@ -53,11 +54,11 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
             // 詳細を作れない機能だけを、割り当てられた本文の理由として返す
             // Report a missing feature only when it belongs to the assigned body
-            void MissingFeature(BlockInventoryBodyKind requiredBy, bool supported)
+            void MissingFeature(BlockInventoryBodyKind requiredBy, LocalizationKey message)
             {
-                if (body == requiredBy && !supported)
+                if (body == requiredBy)
                 {
-                    unavailable = new UiText(LocalizationKeys.Ui.BlockInventory.BlockInfoUnsupportedTarget)
+                    unavailable = new UiText(message)
                         .WithLeadingParam("target", $"{block.BlockMasterElement.Name} / {screenId}");
                 }
             }
@@ -66,7 +67,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             {
                 if (param is not ElectricToGearGeneratorBlockParam electricParam)
                 {
-                    MissingFeature(BlockInventoryBodyKind.ElectricToGear, false);
+                    MissingFeature(BlockInventoryBodyKind.ElectricToGear, LocalizationKeys.Ui.BlockInventory.ScreenRequiresElectricToGear);
                     return null;
                 }
                 var state = block.GetStateDetail<ElectricToGearGeneratorBlockStateDetail>(ElectricToGearGeneratorBlockStateDetail.BlockStateDetailKey);
@@ -120,7 +121,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
                 // silent-ok: 分岐器でないブロックは分岐器の詳細を持たない（キャッシュも分岐器のときだけ取りに行く。BlockNetworkInfoCache.Track） / 分岐器で出ないなら録画の分岐器の段で気づく
                 if (param is not FilterSplitterBlockParam splitterParam)
                 {
-                    MissingFeature(BlockInventoryBodyKind.FilterSplitter, false);
+                    MissingFeature(BlockInventoryBodyKind.FilterSplitter, LocalizationKeys.Ui.BlockInventory.ScreenRequiresItemFiltering);
                     return null;
                 }
 
@@ -133,7 +134,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             {
                 if (param is not RocketLaunchPadBlockParam rocketParam)
                 {
-                    MissingFeature(BlockInventoryBodyKind.RocketLaunchPad, false);
+                    MissingFeature(BlockInventoryBodyKind.RocketLaunchPad, LocalizationKeys.Ui.BlockInventory.ScreenRequiresRocketLaunch);
                     return null;
                 }
                 var state = block.GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
@@ -160,7 +161,7 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             {
                 if (param is not SpaceElevatorBaseBlockParam elevatorParam)
                 {
-                    MissingFeature(BlockInventoryBodyKind.SpaceElevator, false);
+                    MissingFeature(BlockInventoryBodyKind.SpaceElevator, LocalizationKeys.Ui.BlockInventory.ScreenRequiresSpaceElevator);
                     return null;
                 }
                 var state = block.GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
