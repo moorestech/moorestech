@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -17,7 +18,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using TransferMode = Game.Block.Blocks.TrainRail.TrainPlatformTransferComponent.TransferMode;
 
-PlaytestUiOps.PrepareBackgroundInput();
 return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 240f }, async p =>
 {
     const int GroundY = 32;
@@ -32,6 +32,7 @@ return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = t
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "ゲーム画面とカメラが有効");
     PlaytestSetup.SetMapObjectsVisible(false);
+    p.Note($"入力の疎通を確認する (focus={Application.isFocused}, keyboard={Keyboard.current.enabled}, mouse={Mouse.current.enabled})");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 10f);
     await p.UntilUiElement("inventory-sort", 10f);
@@ -102,9 +103,9 @@ return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = t
 
     bool HitsBlock(BlockGameObject block)
     {
-        return BlockClickDetectUtil.TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask | (1 << LayerConst.GroundLayer), BlockClickDetectUtil.AimRayDistance, out var hit)
+        return BlockClickDetectUtil.TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask, BlockClickDetectUtil.AimRayDistance, out var hit)
             && hit.collider.transform.IsChildOf(block.transform)
-            && Vector3.Distance(p.PlayerPosition, hit.point) <= 2f;
+            && Vector3.Distance(p.PlayerPosition, hit.point) <= InteractOverlap.InteractDistance;
     }
 
     async UniTask CheckBody(string name, string testId, string screenshot)
