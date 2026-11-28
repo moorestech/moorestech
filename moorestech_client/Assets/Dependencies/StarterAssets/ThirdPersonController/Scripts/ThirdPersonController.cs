@@ -306,8 +306,8 @@ namespace StarterAssets
 			// Delegate platform follow handling to the service
 			_platformFollowService.ApplyPlatformFollow(Grounded, GroundedOffset, GroundedRadius, GroundLayers);
 
-			// 飛行中の縦速度はQ/E入力、通常時は重力で積算した値
-			// Vertical speed comes from Q/E while flying, otherwise from integrated gravity
+			// 飛行中はSpace/C入力、通常は重力
+			// Vertical speed: Space/C while flying, else gravity
 			float verticalVelocity = _flightMotion.ResolveVerticalVelocity(_verticalVelocity, flightSpeed, _movementLocked);
 
 			// move the player
