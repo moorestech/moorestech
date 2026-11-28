@@ -24,7 +24,7 @@
 ## Global Constraints
 
 - 作業場所: `/Users/sakastudio/hermes-agent/data/worktrees/moorestech/master-block-screen-id`（ブランチ `feat/master-block-screen-id`）。Unity は `moores-wt status` で自分の Editor を確かめてから使う。Mac mini で同時に動かす Editor は1本まで。
-- master ピン: 現在 `.moorestech-external-revisions.json` の moorestech_master は `84ca888b3f8ef865f6f000c9a84a979a3ea254ac`。moores-wt が作ったピン worktree は `pin-4e5f167f`（古い）なので、moorestech_master 側の変更は `84ca888b` から切った作業ブランチで行う。
+- master ピン: 現在 `.moorestech-external-revisions.json` の moorestech_master は `84ca888b3f8ef865f6f000c9a84a979a3ea254ac`。moores-wt が作ったピン worktree は `pin-4e5f167f`（古い）。moorestech_master 側の変更は Task 1 Step 4 の土台の決め方に従う。
 - moorestech_master の変更は push して PR を作る（AGENTS.md「関連リポジトリ」）。本 repo のピンはその PR が指す push 済みコミットにする。
 - スキーマ編集は edit-schema スキルの手順に従う（SourceGenerator のトリガー方法を含む）。`Mooresmaster.Model.*` を手で書かない。
 - .cs を変えたら `uloop compile --project-path ./moorestech_client` を通す。テストは `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。
@@ -156,7 +156,7 @@ Expected: 2行の件数表示、assert 無し。`git grep -c '"openable"' -- '*b
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech_master
 git fetch origin
-git worktree add -b feat/master-block-screen-id /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/master-block-screen-id 84ca888b3f8ef865f6f000c9a84a979a3ea254ac
+git worktree add -b feat/master-block-screen-id /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/master-block-screen-id origin/master
 cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/master-block-screen-id
 python3 -I <scratchpad>/convert_block_screen.py server/mods/moorestechAlphaMod_3/master/blocks.json server_v4/mods/moorestechAlphaMod_4/master/blocks.json server_v5/mods/moorestechAlphaMod_5/master/blocks.json server_v6/mods/moorestechAlphaMod_6/master/blocks.json server_v7/mods/moorestechAlphaMod_7/master/blocks.json server_v8/mods/moorestechAlphaMod_8/master/blocks.json
 git grep -c '"openable"' -- '*.json'   # Expected: 出力なし
@@ -166,6 +166,8 @@ gh pr create --repo moorestech/moorestech_master --base master --title "blocks.j
 ```
 
 v8 の確かめ方（ピン 84ca888b 時点の blockType と openable の組み）: `None` になるのは openable:false の全ブロック（反証検査の空実行で15件。基本土台・ボイドパイプ・歯車チェーンポール・レール橋脚・ガソリンエンジン発電機・高圧電柱・広範囲電柱・クリーンルームの壁/ドア/アイテムハッチ/パイプコネクタなど）。`Generic` になるのは木の歯車（Gear）・木のシャフト（Shaft）・歯車ベルトコンベア系（GearBeltConveyor）・ベルトコンベア系（BeltConveyor）。核融合炉（ElectricGenerator, true）は `ElectricGenerator`。スクリプトが出した内訳を PR 本文に貼る。
+
+土台は moorestech_master の `origin/master` にする。2026-11-28 時点で、ピン `84ca888b` より後に blocks.json を変えたコミット `a6df8db`（ロケット発射台の搬入口・搬出口）が master にある。ピンから切ると、その後に足されたブロックが `openable` のまま残り、master への PR が衝突する。変換後に Step 10 のテストが `a6df8db` 由来の不一致（本 repo のコードがまだ追っていない master の変更）で落ちたら、その原因を報告に書いたうえで、土台を `84ca888b` に替えて切り直し、PR 本文に「master へ入れる前に origin/master を取り込み、スクリプトを再実行する」と書く。push の直前に `git fetch origin && git merge origin/master` を行い、スクリプトを再実行する（件数の assert が取り残しを拾う）。
 
 - [ ] **Step 5: ピンを更新する**
 
