@@ -61,6 +61,25 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             Assert.AreEqual(expected, model.Current.Value.TryGetSpaceElevator(out _));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 発射台画面の機能不足を状態の未着と区別する(bool hasLaunchPad)
+        {
+            var blockId = hasLaunchPad ? ForUnitTestModBlockId.RocketLaunchPadId : ForUnitTestModBlockId.ChestId;
+            var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var block = _harness.CreateBlock(Vector3Int.zero, master);
+            var screen = BlockMasterElement.BlockScreenConst.RocketLaunchPad;
+            var panel = BlockInventoryTestPanels.OpenBlock(master.BlockType, screen, master.BlockGuid, blockId, block.BlockInstanceId, Vector3Int.zero, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var model = new SpecialBlockDetailModel(new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel)), _harness.Tracker, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FakeUnlockedOrbitalCargoSource());
+            model.Initialize();
+            _harness.Track(block);
+
+            // どちらにも状態は未着だが、発射台の機能が無い方にだけ理由を出す
+            // Neither state has arrived; only the block without launch pad functionality gets a reason
+            Assert.IsFalse(model.Current.Value.TryGetRocketLaunchPad(out _));
+            Assert.AreEqual(!hasLaunchPad, model.Current.Value.Unavailable != null);
+        }
+
         [Test]
         public void 積荷の解放が変わると発射台の一覧が組み直される()
         {

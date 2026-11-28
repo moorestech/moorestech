@@ -1,6 +1,7 @@
 using System.Linq;
 using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.Components.Gauges;
 using Client.Ui.Components.Slots;
 using Client.Ui.Screens.BlockInventory.Context;
@@ -76,6 +77,44 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
             var arrow = row.Q<ProgressArrowGlyph>("machine-progress-arrow");
             Assert.AreEqual(input.layout.width, output.layout.width, PixelSnap);
             Assert.AreEqual(row.worldBound.center.x, arrow.worldBound.center.x, PixelSnap);
+        }
+
+        [Test]
+        public void チェスト指定の機械は通常画面とレシピ選択で実枠を一度ずつ出す()
+        {
+            var instance = MachineTestDetails.DefaultInstanceId;
+            var slots = Enumerable.Repeat(new SlotItem(FirstItem, 1), 3).ToArray();
+            var original = MachineTestDetails.Panel(instance, slots);
+            var panel = BlockInventoryTestPanels.OpenBlock(original.BlockType, Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst.Chest, original.BlockGuid, original.BlockId, instance, original.Position, slots, BlockInventoryPanelError.None);
+            var machine = new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor, ImprovementCommands);
+            var rule = new RecipeMachineLargePanelRule(MachineModel);
+            rule.Initialize();
+            var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), rule, machine);
+
+            UpdateMachine(MachineRecipeSelection.Selected(MachineTestDetails.RecipeA), 0.1f);
+            Assert.IsEmpty(Shown(shell.View, "chest-grid-slot-0"));
+            Assert.AreEqual(1, Shown(shell.View, "machine-process-row").Count);
+            Assert.AreEqual(1, Shown(shell.View, "machine-module-slots").Count);
+
+            // 選択一覧では機械の在庫が外れ、共通グリッドの実枠は残る
+            // In recipe selection the machine inventory is unmounted and the common grid keeps the real slots
+            UpdateMachine(MachineRecipeSelection.Unselected, 0.1f);
+            Assert.IsEmpty(Shown(shell.View, "machine-process-row"));
+            Assert.AreEqual(1, Shown(shell.View, "chest-grid-slot-0").Count);
+            Assert.AreEqual(1, Shown(shell.View, "chest-grid-slot-2").Count);
+            var originalSlot = shell.View.Q("chest-grid-slot-0");
+            UpdateMachine(MachineRecipeSelection.Unselected, 0.9f);
+            Assert.AreSame(originalSlot, shell.View.Q("chest-grid-slot-0"));
+
+            #region Internal
+
+            void UpdateMachine(MachineRecipeSelection selection, float progress)
+            {
+                var detail = MachineTestDetails.Detail(selection, MachineTestDetails.Unbound(new MachineSlotLayout(1, 1, 1)), progress);
+                SetMachine(MachineTestDetails.ViewModelFor(instance, detail, slots.Length, MachineTestDetails.Catalog(MachineTestDetails.RecipeA)));
+            }
+
+            #endregion
         }
 
         // 失敗時に祖先の高さと縮み方を並べる

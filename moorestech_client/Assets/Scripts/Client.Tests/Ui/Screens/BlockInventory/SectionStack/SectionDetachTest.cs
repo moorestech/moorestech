@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Tests.Ui.Screens.BlockInventory.Machine;
@@ -73,7 +74,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         {
             var opened = BlockInventoryTestPanels.ChestWithSlots(new SlotItem(new ItemId(1), 3));
             var panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(opened));
-            var section = new SectionStackItemGridSection(SectionStackConfigTable.Resolve(S.Chest).ItemGrid, BlockInventoryTestBodies.Grids(), panels);
+            var section = new SectionStackItemGridSection(SectionStackConfigTable.Resolve(S.Chest).ItemGrid, BlockInventoryTestBodies.Grids(), panels, Observable.Return<IReadOnlyList<int>>(System.Array.Empty<int>()));
 
             section.Attach((OpenBlockInventoryPanel)opened);
             Assert.IsTrue(section.IsApplicable.Value);

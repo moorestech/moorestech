@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 
         private void OpenTank(Texture2D fluidTexture, float? progress, params BlockFluidSlotState[] slots)
         {
-            var panel = BlockInventoryTestPanels.OpenBlock("Tank", S.FluidPipe, TankGuid, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), new SlotItem[0], BlockInventoryPanelError.None);
+            var panel = BlockInventoryTestPanels.OpenBlock("Tank", S.Generic, TankGuid, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), new SlotItem[0], BlockInventoryPanelError.None);
             _shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), Factories(ContentWith(fluidTexture)));
             SetFluids(progress, slots);
         }

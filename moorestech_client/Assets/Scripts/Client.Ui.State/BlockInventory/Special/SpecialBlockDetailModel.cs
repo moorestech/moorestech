@@ -72,7 +72,7 @@ namespace Client.Ui.State.BlockInventory.Special
                     _current.Value = SpecialBlockDetailViewModel.Empty;
                     return;
                 }
-                _current.Value = SpecialBlockDetailReader.Read(block, _networkCache, _beltCache, _cargoSource.UnlockedPayloadItemIds.Value, out var gearAnomaly);
+                _current.Value = SpecialBlockDetailReader.Read(block, _networkCache, _beltCache, _cargoSource.UnlockedPayloadItemIds.Value, open.Components.Body, open.BlockScreen, out var gearAnomaly);
                 // 歯車のマスタの食い違いは、同じ間は 1 回だけ出す（状態更新のたびに組み直すので連打しない）
                 // Report the gear master mismatch once while it persists (rebuilt on every state update, so no spam)
                 _gearAnomalyGate.Observe(gearAnomaly);

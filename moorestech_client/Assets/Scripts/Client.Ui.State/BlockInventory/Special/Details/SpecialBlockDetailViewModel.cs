@@ -1,4 +1,6 @@
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.Text;
+using Game.Block.Interface;
 
 namespace Client.Ui.State.BlockInventory.Special.Details
 {
@@ -20,8 +22,20 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         private readonly RocketLaunchPadDetail _rocketLaunchPad;
         private readonly SpaceElevatorDetail _spaceElevator;
 
+        public UiText Unavailable { get; }
+        private BlockInstanceId? BlockInstanceId { get; }
+
+        public bool IsFor(BlockInstanceId id) => BlockInstanceId is not { } instance || instance == id;
+
         public SpecialBlockDetailViewModel(ElectricToGearDetail electricToGear, GearToElectricDetail gearToElectric, GearDetail gear, BeltThroughputDetail belt, ElectricNetworkDetail electricNetwork, GearNetworkDetail gearNetwork, FilterSplitterDetail filterSplitter, RocketLaunchPadDetail rocketLaunchPad, SpaceElevatorDetail spaceElevator)
+            : this(electricToGear, gearToElectric, gear, belt, electricNetwork, gearNetwork, filterSplitter, rocketLaunchPad, spaceElevator, null, null)
         {
+        }
+
+        public SpecialBlockDetailViewModel(ElectricToGearDetail electricToGear, GearToElectricDetail gearToElectric, GearDetail gear, BeltThroughputDetail belt, ElectricNetworkDetail electricNetwork, GearNetworkDetail gearNetwork, FilterSplitterDetail filterSplitter, RocketLaunchPadDetail rocketLaunchPad, SpaceElevatorDetail spaceElevator, UiText unavailable, BlockInstanceId? blockInstanceId)
+        {
+            Unavailable = unavailable;
+            BlockInstanceId = blockInstanceId;
             _electricToGear = electricToGear;
             _gearToElectric = gearToElectric;
             _gear = gear;

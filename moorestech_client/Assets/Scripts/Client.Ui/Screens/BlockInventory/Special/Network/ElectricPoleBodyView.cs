@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Text;
 using System.Collections.Generic;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
@@ -14,6 +15,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
     /// </summary>
     public sealed class ElectricPoleBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
+        private readonly LocalizedLabel _unavailable = SpecialViewParts.Label("block-screen-unavailable", UiTypographyClass.TextMd, "block-inventory__error");
         private readonly ElectricNetworkSectionView _network = new();
         private readonly ElectricNetworkDetailSelector _networkSelector = new();
 
@@ -21,6 +23,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
         {
             name = "electric-pole-view";
             AddToClassList("electric-pole-view");
+            Add(_unavailable);
             Add(_network);
         }
 
@@ -30,6 +33,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Network
             // Sections never touch their own display, so the wrapping body decides with the selector and toggles it (Web ElectricNetworkSection returns null)
             var shows = _networkSelector.TryGet(detail, out var network);
             if (shows) _network.Render(itemSlots, network);
+            SpecialViewParts.RenderUnavailable(_unavailable, detail);
             UiDisplay.SetShown(_network, shows);
         }
     }
