@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR/../moorestech_server"
-UNITY_EDITOR="/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity"
+UNITY_EDITOR="/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/MacOS/Unity"
 BUILD_METHOD="BuildPipeline.LinuxDedicatedServerFromGithubAction"
 OUTPUT_DIR="$PROJECT_DIR/Output_DedicatedServer_StandaloneLinux64"
 LOG_FILE="$SCRIPT_DIR/build.log"

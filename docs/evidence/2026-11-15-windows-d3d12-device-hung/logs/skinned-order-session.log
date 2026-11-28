@@ -1,0 +1,19 @@
+02:07:29 open: opened Assets/Scenes/Game/MainMenu.unity
+02:07:40 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+02:08:46 steady renderers=217527
+02:08:46 exp: skinned off=4697 byType: 蒸気機関=2288, 電気汎用工作装置=1710, ガソリンエンジン発電機=374, 油井=287, ふいご付き精錬炉=38
+02:08:47 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+02:08:51 order: 蒸気機関 -> 電気汎用工作装置
+02:08:53 enabled skinned of 蒸気機関 count=2288 remaining=1
+02:09:28 status: FAIL {
+  "Success": false,
+  "Error": {
+    "ErrorCode": "UNITY_DISCONNECTED_AFTER_ACCEPT",
+    "Phase": "response_waiting",
+    "Message": "Unity disconnected after accepting the request.",
+    "Retryable": true,
+    "SafeToRetry": false,
+    "ProjectRoot": "G:\\GitHub\\moorestech\\moorestech_client",
+ 
+02:09:28 CRASH after: enabled skinned of 蒸気機関 count=2288 remaining=1
+02:09:28 gpu-errors: 5

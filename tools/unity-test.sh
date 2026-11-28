@@ -8,7 +8,7 @@
 #   isGui / -g / --gui        : GUIモードで起動（デフォルトはバッチモード）
 #   -t <seconds> / --timeout <seconds> : タイムアウト時間を秒数で指定
 
-UNITY="/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/MacOS/Unity"
 
 ###############################################################################
 # 引数パース

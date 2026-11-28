@@ -1,0 +1,35 @@
+01:56:00 unity ready
+01:56:01 open: opened Assets/Scenes/Game/MainMenu.unity
+01:56:13 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+01:57:20 steady renderers=217528
+01:57:20 exp: none
+01:57:20 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+01:58:04 after wait
+29215: d3d12: Device failed error (887a0006).
+29228: d3d12:     Starting DRED v1.2
+29229: d3d12:     DRED CommandList: noname
+29230: d3d12:     DRED CommandQueue: Graphics CommandQueue
+29231: d3d12:     DRED BreadCrumb count: 1
+29232: d3d12:     DRED BreadCrumb node id: 0
+29233: d3d12:     DRED BreadCrumb node contexts: 0
+29234: d3d12:     DRED Command History:
+29238: d3d12:     DRED CommandList: Internal DXGI CommandList (debug layer indirect)
+29239: d3d12:     DRED CommandQueue: Graphics CommandQueue
+29240: d3d12:     DRED BreadCrumb count: 1
+29241: d3d12:     DRED BreadCrumb node id: 1
+29242: d3d12:     DRED BreadCrumb node contexts: 0
+29243: d3d12:     DRED Command History:
+29247: d3d12:     DRED CommandList: noname
+29248: d3d12:     DRED CommandQueue: Graphics CommandQueue
+29249: d3d12:     DRED BreadCrumb count: 1
+29250: d3d12:     DRED BreadCrumb node id: 2
+29251: d3d12:     DRED BreadCrumb node contexts: 0
+29252: d3d12:     DRED Command History:
+29256: d3d12:     DRED CommandList: Internal DXGI CommandList (debug layer indirect)
+29257: d3d12:     DRED CommandQueue: Graphics CommandQueue
+29258: d3d12:     DRED BreadCrumb count: 1
+29259: d3d12:     DRED BreadCrumb node id: 3
+29260: d3d12:     DRED BreadCrumb node contexts: 0
+15: -force-d3d12-debug
+29238: d3d12:     DRED CommandList: Internal DXGI CommandList (debug layer indirect)
+29256: d3d12:     DRED CommandList: Internal DXGI CommandList (debug layer indirect)

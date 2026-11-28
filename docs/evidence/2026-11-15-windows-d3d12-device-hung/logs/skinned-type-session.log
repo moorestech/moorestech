@@ -1,0 +1,31 @@
+02:03:34 open: opened Assets/Scenes/Game/MainMenu.unity
+02:03:46 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+02:04:53 steady renderers=217528
+02:04:53 exp: skinned off=4697 byType: 蒸気機関=2288, 電気汎用工作装置=1710, ガソリンエンジン発電機=374, 油井=287, ふいご付き精錬炉=38
+02:04:54 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+02:04:58 stats:
+ふいご付き精錬炉: blocks=19 skinned=38 verts=35264 maxBones=6 maxBlendShapes=0 biggest=huigo.010:1760
+油井: blocks=7 skinned=287 verts=91140 maxBones=8 maxBlendShapes=0 biggest=Oil well.043:1904
+ガソリンエンジン発電機: blocks=11 skinned=374 verts=334675 maxBones=11 maxBlendShapes=0 biggest=Engine.172:3062
+電気汎用工作装置: blocks=90 skinned=1710 verts=982980 maxBones=22 maxBlendShapes=0 biggest=ベジエカーブ.010:3630
+蒸気機関: blocks=52 skinned=2288 verts=383812 maxBones=3 maxBlendShapes=0 biggest=円柱.027:1690
+quality=High skinWeights=TwoBones
+02:05:00 enabled skinned of ふいご付き精錬炉 count=38 remaining=4
+02:05:16 status: focused=True focusedWindow=GameView
+02:05:17 enabled skinned of 油井 count=287 remaining=3
+02:05:33 status: focused=True focusedWindow=GameView
+02:05:34 enabled skinned of ガソリンエンジン発電機 count=374 remaining=2
+02:05:50 status: focused=True focusedWindow=GameView
+02:05:51 enabled skinned of 電気汎用工作装置 count=1710 remaining=1
+02:06:23 status: FAIL {
+  "Success": false,
+  "Error": {
+    "ErrorCode": "UNITY_DISCONNECTED_AFTER_ACCEPT",
+    "Phase": "response_waiting",
+    "Message": "Unity disconnected after accepting the request.",
+    "Retryable": true,
+    "SafeToRetry": false,
+    "ProjectRoot": "G:\\GitHub\\moorestech\\moorestech_client",
+ 
+02:06:23 CRASH after: enabled skinned of 電気汎用工作装置 count=1710 remaining=1
+02:06:23 gpu-errors: 5

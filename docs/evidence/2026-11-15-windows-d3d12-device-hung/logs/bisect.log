@@ -1,0 +1,30 @@
+===== noshadow
+784bb70d16 perf(preview): 設置モードのプレビュー専用部品を描画するプレイヤー半径内だけ有効にし、状態が変わらないブロックには指示を出さない（ADR 0101）
+compile: 1
+opened Assets/Scenes/Game/MainMenu.unity
+enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+exp: shadows off, lights=3
+place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+alive: 
+gpu-errors: 5
+screenshot: /Users/juha/Documents/GitHub/moorestech/moorestech_client/PlaytestResults/scratch-local/crash-repro-noshadow.png
+===== noblocks
+784bb70d16 perf(preview): 設置モードのプレビュー専用部品を描画するプレイヤー半径内だけ有効にし、状態が変わらないブロックには指示を出さない（ADR 0101）
+compile: 1
+opened Assets/Scenes/Game/MainMenu.unity
+enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+exp: block renderers off=230194
+place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+alive: moorestech_client - MainGame - Windows, Mac, Linux - Unity 6.3 LTS (6000.3.8f1) <DX12>
+gpu-errors: 0
+screenshot: /Users/juha/Documents/GitHub/moorestech/moorestech_client/PlaytestResults/scratch-local/crash-repro-noblocks.png
+===== teleportonly
+784bb70d16 perf(preview): 設置モードのプレビュー専用部品を描画するプレイヤー半径内だけ有効にし、状態が変わらないブロックには指示を出さない（ADR 0101）
+compile: 1
+opened Assets/Scenes/Game/MainMenu.unity
+enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+exp: no change
+place: teleported (622.21, 82.99, 420.90) camEuler=(20.0, 0.0, 0.0)
+alive: moorestech_client - MainGame - Windows, Mac, Linux - Unity 6.3 LTS (6000.3.8f1) <DX12>
+gpu-errors: 0
+screenshot: /Users/juha/Documents/GitHub/moorestech/moorestech_client/PlaytestResults/scratch-local/crash-repro-teleportonly.png

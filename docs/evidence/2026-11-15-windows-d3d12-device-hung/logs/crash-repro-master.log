@@ -1,0 +1,8 @@
+b3c9c11c5b Merge pull request #1664 from moorestech/feature/cleanroom-purifier-count-class
+compile: 1
+opened Assets/Scenes/Game/MainMenu.unity
+enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+alive: moorestech_client - MainGame - Windows, Mac, Linux - Unity 6.3 LTS (6000.3.8f1) <DX12>
+gpu-errors: 2
+screenshot: /Users/juha/Documents/GitHub/moorestech/moorestech_client/PlaytestResults/scratch-local/crash-repro-b3c9c11c5b.png

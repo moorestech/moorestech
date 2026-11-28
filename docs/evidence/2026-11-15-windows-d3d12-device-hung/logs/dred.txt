@@ -1,0 +1,431 @@
+﻿Server.Boot.Loop.ServerGameUpdater:StartUpdate (System.Threading.CancellationToken,Server.Boot.Loop.ServerThreadActionQueue) (at G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/Loop/ServerGameUpdater.cs:54)
+Server.Boot.ServerInstanceStartup/<>c__DisplayClass0_0:<Start>b__3 () (at G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/ServerInstanceStartup.cs:130)
+System.Threading.ThreadHelper:ThreadStart_Context (object)
+System.Threading.ExecutionContext:RunInternal (System.Threading.ExecutionContext,System.Threading.ContextCallback,object,bool)
+System.Threading.ExecutionContext:Run (System.Threading.ExecutionContext,System.Threading.ContextCallback,object,bool)
+System.Threading.ExecutionContext:Run (System.Threading.ExecutionContext,System.Threading.ContextCallback,object)
+System.Threading.ThreadHelper:ThreadStart ()
+
+(Filename: G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/Loop/ServerGameUpdater.cs Line: 54)
+
+[ServerGameUpdater] tick縺・93ms驕・ｌ縺溘◆繧∝叙繧頑綾縺輔★蛻ｻ縺ｿ逶ｴ縺励∪縺・/ Tick fell 293ms behind; re-anchoring instead of catching up
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+Server.Boot.Loop.ServerGameUpdater:StartUpdate (System.Threading.CancellationToken,Server.Boot.Loop.ServerThreadActionQueue) (at G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/Loop/ServerGameUpdater.cs:54)
+Server.Boot.ServerInstanceStartup/<>c__DisplayClass0_0:<Start>b__3 () (at G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/ServerInstanceStartup.cs:130)
+System.Threading.ThreadHelper:ThreadStart_Context (object)
+System.Threading.ExecutionContext:RunInternal (System.Threading.ExecutionContext,System.Threading.ContextCallback,object,bool)
+System.Threading.ExecutionContext:Run (System.Threading.ExecutionContext,System.Threading.ContextCallback,object,bool)
+System.Threading.ExecutionContext:Run (System.Threading.ExecutionContext,System.Threading.ContextCallback,object)
+System.Threading.ThreadHelper:ThreadStart ()
+
+(Filename: G:/GitHub/moorestech/moorestech_server/Assets/Scripts/Server.Boot/Loop/ServerGameUpdater.cs Line: 54)
+
+D3D12Fence::Wait(1347) error: got 18446744073709551615. Device removal.
+d3d12 validation error (catergory: 9, id: 232): ID3D12Device::RemoveDevice: Device removal has been triggered for the following reason (DXGI_ERROR_DEVICE_HUNG: The Device took an unreasonable amount of time to execute its commands, or the hardware crashed/hung. As a result, the TDR (Timeout Detection and Recovery) mechanism has been triggered. The current Device Context was executing commands when the hang occurred. The application may want to respawn and fallback to less aggressive use of the display hardware).
+d3d12: Device failed error (887a0006).
+d3d12: GfxDevice was not out of Local memory
+d3d12: Local memory usage:
+ Budget: 7608467456
+ CurrentUsage: 1777041408
+ AvailableForReservation: 67108864
+ CurrentReservation: 3938451456
+d3d12: GfxDevice was not out of Non-Local memory
+d3d12: Non-Local memory usage:
+ Budget: 67643031552
+ CurrentUsage: 550711296
+ AvailableForReservation: 0
+ CurrentReservation: 33955733504
+d3d12:     Starting DRED v1.2
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 0
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: Internal DXGI CommandList (debug layer indirect)
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 1
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 2
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: Internal DXGI CommandList (debug layer indirect)
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 3
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 2
+d3d12:     DRED BreadCrumb node id: 4
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+  15: RESOURCEBARRIER  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 5
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 6
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 7
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 8
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: noname
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 1
+d3d12:     DRED BreadCrumb node id: 9
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+
+
+d3d12:     DRED CommandList: Gfx barriers command list (debug layer indirect)
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 2
+d3d12:     DRED BreadCrumb node id: 10
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+  15: RESOURCEBARRIER  
+
+
+d3d12:     DRED CommandList: Async command list (debug layer indirect)
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 107
+d3d12:     DRED BreadCrumb node id: 11
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+  14: CLEARDEPTHSTENCILVIEW  
+  12: CLEARRENDERTARGETVIEW  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  07: COPYBUFFERREGION  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  15: RESOURCEBARRIER  
+  06: DISPATCH  
+  14: CLEARDEPTHSTENCILVIEW  
+  15: RESOURCEBARRIER  
+
+
+d3d12:     DRED CommandList: Async command list (debug layer indirect)
+d3d12:     DRED CommandQueue: Graphics CommandQueue
+d3d12:     DRED BreadCrumb count: 245
+d3d12:     DRED BreadCrumb node id: 12
+d3d12:     DRED BreadCrumb node contexts: 0
+d3d12:     DRED Command History:
+  46: BEGIN_COMMAND_LIST  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  
+  04: DRAWINDEXEDINSTANCED  

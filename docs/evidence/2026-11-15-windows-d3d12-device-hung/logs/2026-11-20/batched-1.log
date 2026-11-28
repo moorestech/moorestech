@@ -1,0 +1,11 @@
+22:43:49 [batched-1] compile ok=1
+22:43:49 open: opened Assets/Scenes/Game/MainMenu.unity
+22:43:50 meshDeformation 2 -> 2 gpuSkinning=True
+22:44:01 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+22:45:14 steady renderers=217527
+22:45:14 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+22:45:26 +11s: focused=True skinnedActive=4725 frame=1341 fps~13.5
+22:45:37 +22s: focused=True skinnedActive=4725 frame=1495 fps~14.4
+22:46:12 +57s: FAIL 
+22:46:12 gpu-errors: 3
+22:46:13 [batched-1] done dead=1

@@ -1,0 +1,13 @@
+29223:D3D12Fence::Wait(1263) error: got 18446744073709551615. Device removal.
+29224-d3d12: Device failed error (887a0006).
+29225-d3d12: GfxDevice was not out of Local memory
+29226-d3d12: Local memory usage:
+29227- Budget: 7608467456
+29228- CurrentUsage: 1773101056
+29229- AvailableForReservation: 67108864
+29230- CurrentReservation: 3938451456
+29231-d3d12: GfxDevice was not out of Non-Local memory
+29232-d3d12: Non-Local memory usage:
+29233- Budget: 67643031552
+29234- CurrentUsage: 538619904
+29235- AvailableForReservation: 0

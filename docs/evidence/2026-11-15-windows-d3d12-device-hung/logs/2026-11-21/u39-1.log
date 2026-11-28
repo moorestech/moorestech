@@ -1,0 +1,16 @@
+01:02:53 [u39-1] compile ok=1
+01:02:53 open: opened Assets/Scenes/Game/MainMenu.unity
+01:02:55 meshDeformation 2 -> 2 gpuSkinning=True
+01:03:09 enter: started world=C:\moorestech-perf\work\current wasMinimized=False
+01:04:27 steady renderers=217525
+01:04:27 vfx: FX_Flame n=178 on=178 alive=-356 visible=0 | FX_Smoke_White n=52 on=52 alive=113 visible=5 | FX_Smoke_Black n=48 on=48 alive=-83 visible=2
+01:04:28 exp: none
+01:04:29 place: player=(622.21, 82.99, 420.90) cameraEuler=(2.52, 321.86, 0.00) cameraDistance=3.50 fov=70.0 blocksWithin20m=409
+01:04:35 vfx: FX_Flame n=178 on=178 alive=866 visible=40 | FX_Smoke_White n=52 on=52 alive=1528 visible=48 | FX_Smoke_Black n=48 on=48 alive=-13 visible=4
+01:09:43 gpu-errors: 0
+01:10:00 [u39-1] done dead=0
+0
+Initialize engine version: 6000.3.9f1 (7a9955a4f2fa)
+GfxDevice: creating device client; kGfxThreadingModeSplitJobs
+
+[exited with code 0]
