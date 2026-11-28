@@ -26,8 +26,8 @@ uGUI の頃はマスタの `blockUIAddressablesPath` がプレハブを指し、
   2. 搬送量・電力・歯車などの追加の欄は、今と同じくブロックの値（`IBeltSpeedParam` 等）を見てどの画面にも自動で付ける。画面の見た目は変わらない（根拠: 既存の `SpecialBlockDetailReader` の性質判定。ユーザーが「画面実装の詳細」と確認した）
   3. スキーマの選択肢に無い ID がマスタにあれば、マスタ読込時に起動を止める。スキーマの選択肢にクライアントの画面が登録されていないことは CI のテストで止める（どちらもビルドに入るコードなので、食い違いはビルドの検査で必ず見つかる）。開いたときに表を引いて見つからなければ例外にし、blockType の表が未登録の種類を共通画面へ戻していた経路は消す（AGENTS.md「必須の値・設定が無いときは既定値で埋めずいちばん早い段階で止める」）。
   4. 画面の都合で blockType を見ている分岐（`OrbitalCargoLargePanelRule` の大きい画面など）は画面の定義の側へ移す。ブロックの機能の確認（`SpecialBlockCommands`・`TrainBlockCommands` の種類確認、`BlockNetworkInfoCache` のフィルター分岐器取得）は今のまま blockType を見る。
-  5. サーバー（`InventoryRequestProtocol` の開けるかどうかの判定）とクライアント（`BlockGameObject` の `BlockInteractable` 付与）は、`openable` の代わりに ID が `none` でないかを見る。
-  6. moorestech_master の全 mod の blocks.json を変換する（今の blockType の表どおりに ID を振り、`openable: false` は `none`）。
+  5. サーバー（`InventoryRequestProtocol` の開けるかどうかの判定）とクライアント（`BlockGameObject` の `BlockInteractable` 付与）は、`openable` の代わりに ID が `None` でないかを見る。
+  6. moorestech_master の全 mod の blocks.json を変換する（今の blockType の表どおりに ID を振り、`openable: false` は `None`）。
   7. 稼働状態や研究の進み具合で画面を切り替える仕組みは作らない。ID はブロックごとに固定。
   8. セーブ形式・通信形式は変えない（マスタの値はセーブにも通信にも乗らない）。
 

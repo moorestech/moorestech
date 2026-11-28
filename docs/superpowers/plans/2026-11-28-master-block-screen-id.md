@@ -112,7 +112,12 @@ SCREEN_BY_TYPE = {
     "ElectricPole": "ElectricPole", "SpaceElevatorBase": "SpaceElevatorBase", "RocketLaunchPad": "RocketLaunchPad",
 }
 
+TEST_MASTER = "--test-master" in sys.argv
+
 def screen_of(block):
+    # テスト用マスタは表にある種類へ必ずその画面を振る（クライアントのテストが openable:false のブロックも開いて画面を組むため）
+    if TEST_MASTER and block["blockType"] in SCREEN_BY_TYPE:
+        return SCREEN_BY_TYPE[block["blockType"]]
     # openable が無いブロックは旧スキーマの default false と同じ扱い
     if not block.get("openable", False):
         return "None"
@@ -133,7 +138,7 @@ def convert(path):
     open(path, "w", encoding="utf-8").write(out)
     print(path, len(blocks), {s: screens.count(s) for s in sorted(set(screens))})
 
-for p in sys.argv[1:]:
+for p in [a for a in sys.argv[1:] if a != "--test-master"]:
     convert(p)
 ```
 
@@ -141,7 +146,9 @@ for p in sys.argv[1:]:
 
 - [ ] **Step 3: 本 repo のテスト用 JSON を変換する**
 
-Run: `python3 -I <scratchpad>/convert_block_screen.py moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json`
+Run: `python3 -I <scratchpad>/convert_block_screen.py --test-master moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` と `python3 -I <scratchpad>/convert_block_screen.py moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json`（EditModeInPlayingTest が開くブロックはすべて openable:true なので通常の変換でよい）
+
+forUnitTest は `--test-master` で、表にある種類（Chest・ElectricMachine・FilterSplitter・ElectricPole・ElectricPump など）は openable:false でもその画面になる。表に無い種類（TestBeltConveyor の BeltConveyor・TestTrainRail の TrainRail など）は通常どおり openable で決まり、`BlockInteractableTest` の PlainBlockName（TestBeltConveyor）と `RequestBlockInventoryTest` の TestTrainRail は `None` のまま残る。Step 10 のサーバーテストで「開けないこと」を前提にした失敗が出たら、そのブロックだけ `None` に戻し、どのブロックを戻したかを判断記録に1行足す
 Expected: 2行の件数表示、assert 無し。`git grep -c '"openable"' -- '*blocks.json'` の結果に2ファイルが出ない。
 
 - [ ] **Step 4: moorestech_master を変換して push・PR を作る**
@@ -158,7 +165,7 @@ git push -u origin feat/master-block-screen-id
 gh pr create --repo moorestech/moorestech_master --base master --title "blocks.json: openable をブロック画面ID blockScreen へ置き換える" --body "本体 repo の ADR 0109 に対応。openable:false は None、true は blockType ごとに今の画面と同じIDへ変換した。"
 ```
 
-v8 の確かめ方（ピン 84ca888b 時点の blockType と openable の組み）: `None` になるのは基本土台（Block）・ボイドパイプ（VoidPipe）・歯車チェーンポール・レール橋脚（TrainRail）・ガソリンエンジン発電機（ElectricGenerator, false）・高圧電柱（ElectricPole, false）・クリーンルームの壁/ドア/アイテムハッチ/パイプコネクタ。`Generic` になるのは木の歯車（Gear）・木のシャフト（Shaft）・歯車ベルトコンベア系（GearBeltConveyor）・ベルトコンベア系（BeltConveyor）。核融合炉（ElectricGenerator, true）は `ElectricGenerator`。スクリプトが出した内訳を PR 本文に貼る。
+v8 の確かめ方（ピン 84ca888b 時点の blockType と openable の組み）: `None` になるのは openable:false の全ブロック（反証検査の空実行で15件。基本土台・ボイドパイプ・歯車チェーンポール・レール橋脚・ガソリンエンジン発電機・高圧電柱・広範囲電柱・クリーンルームの壁/ドア/アイテムハッチ/パイプコネクタなど）。`Generic` になるのは木の歯車（Gear）・木のシャフト（Shaft）・歯車ベルトコンベア系（GearBeltConveyor）・ベルトコンベア系（BeltConveyor）。核融合炉（ElectricGenerator, true）は `ElectricGenerator`。スクリプトが出した内訳を PR 本文に貼る。
 
 - [ ] **Step 5: ピンを更新する**
 
@@ -272,7 +279,6 @@ namespace Tests.UnitTest.Core.Master.BlockScreen
     {
         [TestCase("chest")]
         [TestCase("true")]
-        [TestCase("")]
         public void スキーマに無いブロック画面IDを止める(string unknownScreen)
         {
             // 先頭のブロックの画面IDだけを未知の値にする
@@ -333,6 +339,8 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/BlockInventory/Special/Cargo/OrbitalCargoLargePanelRule.cs:20`
 - Modify: `moorestech_client/Assets/Scripts/Client.Ui.State/Train/Platform/Edit/TrainBlockCommands.cs:39-42`
 - Modify（コンパイルエラー駆動）: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/SectionStackConfigTableTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryPanelStateFactoryTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/Panel/BlockComponentRegistryTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/BlockInventoryTitleActionTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/SectionStack/SectionDetachTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/Special/SectionStack/SpecialBlockDetailsTest.cs`
+- Modify（テスト補助関数）: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockInventoryTestPanels.cs:57-60`（`OfType`）、`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/BlockInventory/BlockInventoryTestFixtures.cs:70-72`（`SectionStack`）
+- Modify（ctor・補助関数の呼び出し。反証検査で列挙）: `Client.Tests/Ui/Screens/BlockInventory/BlockInventoryLocalizationTest.cs:95`、`Fluid/FluidSlotTest.cs:26`、`Special/NetworkSectionViewTest.cs:96`、`Client.Tests/Ui/State/BlockInventory/Machine/Detail/MachineTestDetails.cs:62`、`Special/Commands/SpecialBlockCommandsTest.cs:132,133,183`、`Special/Commands/VanillaSpecialBlockRequestSenderApplyTest.cs:69`、`Special/SpecialBlockDetailModelTest.cs:55,70`、`SectionStackViewTest.cs:23-37`、`SectionStackRegressionTest.cs:19-28`、`Context/ContextSectionOrderTest.cs:123,128`、`Machine/BlockDetailsMachineTest.cs:36,43`、`Fluid/FluidScreenTestHost.cs:70-72`、`Special/SectionStack/SpecialBlockDetailsTest.cs:80-87,114`、`SpecialSectionStackSpacingTest.cs:63`、`Machine/Regression/SectionStackMachineRegressionTest.cs:109-111`、ほか `BlockInventoryTestPanels.OfType(` を呼ぶ全ファイル（`grep -rln 'BlockInventoryTestPanels.OfType(' moorestech_client/Assets/Scripts/Client.Tests` で列挙。反証検査時点で20ファイル）。パスは `moorestech_client/Assets/Scripts/Client.Tests/Ui/` 配下を `find` で特定する
 - Delete: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockRegistryCoverageTest.cs`（と `.meta`）、`moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/Fixtures/v8-block-ui-registry.json`（と `.meta`。Fixtures が空になればディレクトリと `.meta` も）
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/State/BlockInventory/PanelModel/BlockScreenCoverageTest.cs`
 
@@ -387,7 +395,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
     }
 ```
 
-`Registered` プロパティは削除する（参照は Delete する `BlockRegistryCoverageTest` だけ）。
+`Registered` プロパティは削除する（参照は Delete する `BlockRegistryCoverageTest` だけ）。今ある `silent-ok` コメント（`registeredBlockTypes.ts` 一致テストを気づく経路に挙げたもの）と「Web blockComponentRegistry.ts の写し」の XML コメントも消す。
 
 - [ ] **Step 2: SectionStackConfigTable をブロック画面IDで引く**
 
@@ -424,7 +432,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
     }
 ```
 
-`public static readonly SectionStackConfig Generic` を参照している箇所がコンパイルエラーで出たら `SectionStackConfigTable.Resolve(BlockMasterElement.BlockScreenConst.Generic)` に替える。XML ドキュメントコメントの「blockType」は「ブロック画面ID」に直す。
+`public static readonly SectionStackConfig Generic` を参照している箇所がコンパイルエラーで出たら `SectionStackConfigTable.Resolve(BlockMasterElement.BlockScreenConst.Generic)` に替える。XML ドキュメントコメントの「blockType」は「ブロック画面ID」に直し、「Web configByBlockType と genericConfig の写し」と `silent-ok` コメント（`BlockRegistryCoverageTest` を気づく経路に挙げたもの）を消す。
 
 - [ ] **Step 3: パネルにブロック画面IDを持たせる**
 
@@ -463,7 +471,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 
 （`using Client.Ui.State.BlockInventory.Logic.Panel;` を足す。）
 
-`TrainBlockCommands` の `TryResolveOpenBlock` を、blockType の代わりにブロックのマスタを返す形にする（`using Core.Master;` を足す）:
+`TrainBlockCommands` の `TryResolveOpenBlock` を、blockType の代わりにブロックのマスタを返す形にする（`using Core.Master;` と `using Mooresmaster.Model.BlocksModule;` を足す。既存の `using static ...BlockMasterElement;` だけでは型名 `BlockMasterElement` が解決しない）:
 
 ```csharp
         private bool TryResolveOpenBlock(out BlockSubInventorySource source, out BlockMasterElement master)
@@ -518,10 +526,28 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 }
 ```
 
-- [ ] **Step 7: 既存テストを直す**
+- [ ] **Step 7: テスト補助関数と既存テストを直す**
+
+`BlockInventoryTestPanels.OfType` をブロック画面IDも受ける形にする:
+
+```csharp
+        // マスタに無い blockType も組めるよう internal ctor を直に呼ぶ（Client.Ui.State の InternalsVisibleTo）
+        // Calls the internal ctor directly so blockTypes absent from the master can be built (Client.Ui.State InternalsVisibleTo)
+        public static BlockInventoryPanelState OfType(string blockType, string blockScreen, params SlotItem[] slots)
+        {
+            return new OpenBlockInventoryPanel(blockType, blockScreen, Guid.Empty, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
+        }
+```
+
+`BlockInventoryTestFixtures.SectionStack(FakePanelSource source, string blockType, ...)` の第2引数を `string blockScreen` にし、中で `SectionStackBodyFactory.Create(blockScreen, ...)` に渡す。
+
+呼び出し側は次の規則で直す（文字列引数のままでも実行時に例外になるので、コンパイルエラーだけでなく上の Files 節の全ファイルを grep で開いて直す）:
+- blockType 文字列を渡していた所は、R4 の変換表で対応するブロック画面IDを渡す（`"ElectricMachine"`・`"GearMachine"`・`"CleanRoomMachine"` → `BlockScreenConst.Machine`、`"SimpleGearGenerator"` → `FuelGearGenerator`、`"ElectricPump"`・`"GearPump"` → `Pump`、`"Chest"` → `Chest` など）。`OfType` は blockType と画面IDの両方を渡す。
+- `"Tank"`（`FluidSlotTest.cs:26`）は液体の欄を出すためのものなので `BlockScreenConst.FluidPipe` を渡す。
+- `"unknown"` で「未登録は共通画面へ戻る」ことを確かめていたケースは、未登録で `InvalidOperationException` になることを確かめる形に替える。それ以外の目的で `"unknown"` を使っていたケースは `BlockScreenConst.Generic` を渡す。
+- 期待値（出る欄・testid）は変えない。
 
 Run: `uloop compile --project-path ./moorestech_client`
-Files 節のテストで出るエラーを直す。blockType 文字列で `Resolve` していたテストケースは、R4 の変換表で対応するブロック画面IDに置き換え、期待値はそのまま（例: `Resolve(BlockTypeConst.ElectricMachine)` の期待 → `Resolve(BlockScreenConst.Machine)`）。`SectionStackConfigTable.Resolve` に未登録を渡して Generic を期待していたケースは、未登録で `InvalidOperationException` を期待する形に替える。
 Expected: ErrorCount 0
 
 - [ ] **Step 8: テストを回す**
@@ -539,7 +565,7 @@ git commit -m "ブロック画面の表をブロック画面IDで引き、未登
 ### Task 3: unityプレイ録画テストで画面が変わらないことを確かめる
 
 **Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Playtest/Scenarios/BlockScreenIdScenario.cs`（Scenarios ディレクトリの置き場・命名は unity-playmode-recorded-playtest スキルの `references/write-scenario.md` に従う。既存の置き場が別ならそちらに合わせる）
+- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/block-screen-id.cs`（execute-dynamic-code のスニペット形式。前例 `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/interact-key-unification.cs`）
 
 **Interfaces:**
 - Consumes: Task 1・2 の全変更、ピン更新済みのマスタ
@@ -556,6 +582,7 @@ git commit -m "ブロック画面の表をブロック画面IDで引き、未登
 | 直線歯車ベルトコンベア | 搬送量パネルが出る |
 | フィルター分岐器 | フィルター分岐器の専用本文が出る |
 | 電柱 | 電柱の専用本文が出る |
+| 貨物プラットフォーム | 列車の乗り場の本文が出て、転送モードの切替ボタン（今の master で控えた testid）を `ClickUi` で押すと表示が切り替わる（`TrainBlockCommands.SetTransferMode` の本番経路を通す。単体テストは偽物しか通らないため） |
 | 基本土台 | `PressInteract()` で何も開かず `CurrentUiState` が GameScreen のまま |
 
 各ブロックで `p.Screenshot("NN-<ブロック名>")` を撮る。testid は今の master のブランチで同じシナリオを `Record = false` で回して実在を確かめてから使う（推測の testid で書かない）。
@@ -568,7 +595,7 @@ Expected: `result.json` の `Success: true`、Asserts 全通過。録画とス�
 - [ ] **Step 3: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Playtest
+git add .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/block-screen-id.cs
 git commit -m "ブロック画面IDで今と同じ画面が開くことを確かめる録画シナリオを追加"
 ```
 
@@ -604,3 +631,6 @@ git commit -m "ブロック画面IDで今と同じ画面が開くことを確か
 - `BlockScreenValidator` と `BlockScreens.IsKnownScreen` は internal（前例: `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` などの検証クラス）。`BlockScreens` と `IsOpenable` は Client.Game・Server.Protocol が使うので public（前例: `FilterSplitter/FilterSplitterOutputSideResolver.cs`）。テストは前例 `RocketLaunchPadParamValidatorTest` と同じく JSON を書き換えて `BlockMasterUtil.Validate` を通す形にし、`Tests/UnitTest/Core/Master/BlockScreen/` に置く。出所: agent前提（配置検査の違反1件を修正）
 - `BlockInventoryPartRegistry` の「専用本文の工場が無いときは警告して共通画面で描く」逃げ道は残し、共通画面の設定は `Generic` で引く。出所: agent前提（配置検査の注目点。工場の登録漏れは本番では起きず、工場を登録しないテスト構成が通る道なので今の挙動を保つ）
 - 本番コードで生成定数クラスをリフレクションで列挙するのは `BlockScreens` が初めて（前例はテストのみ）。出所: agent前提（配置検査の注目点。生成器を改修しない判断の帰結。レビューの注目点として PR 本文に書く）
+- forUnitTest の blocks.json は `--test-master` で変換し、表にある種類には openable に関わらずその画面を振る。出所: agent前提（反証検査 C1。クライアントのテストが TestChest など openable:false のブロックから画面を組んでおり、`None` にすると `Resolve` が例外になる。テスト用マスタはテストの道具なので、ゲームのマスタと違う振り方でよい）
+- テスト補助関数 `OfType` は blockType と画面IDの両方を受け、`SectionStack` は画面IDを受ける。出所: agent前提（反証検査 C1）
+- 録画シナリオはスキル同梱の `scenarios/misc/` に置く。出所: agent前提（反証検査 C2。`write-scenario.md` の定め）
