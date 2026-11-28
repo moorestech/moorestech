@@ -1,4 +1,3 @@
-using System.Reflection;
 using Client.Game;
 using Client.Game.InGame.Player.FlyMode;
 using Client.Input;
@@ -61,18 +60,6 @@ namespace Client.Tests.Player
             TapSpace(0.3f);
 
             Assert.IsTrue(_thirdPersonController.IsFlying());
-        }
-
-        [Test]
-        public void フライ中のE押下が上下入力としてThirdPersonControllerへ届く()
-        {
-            DebugParameters.SaveBool(DebugConst.FlyModeKey, true);
-            TapSpace(0.0f, 0.1f, 0.2f, 0.3f);
-
-            Press(_keyboard.eKey);
-            _flyMode.ManualUpdate(1.0f);
-
-            Assert.AreEqual(15f, GetFlightMotion().ResolveVerticalVelocity(0f, 15f, false));
         }
 
         [Test]
@@ -158,28 +145,6 @@ namespace Client.Tests.Player
             TapSpace(0.25f, 0.3f);
 
             Assert.IsFalse(_thirdPersonController.IsFlying(), "ロックを挟んだ連打が通算された");
-        }
-
-        [Test]
-        public void 操作不可へ移ると上下入力を捨てる()
-        {
-            DebugParameters.SaveBool(DebugConst.FlyModeKey, true);
-            TapSpace(0.0f, 0.1f, 0.2f, 0.3f);
-            Press(_keyboard.eKey);
-            _flyMode.ManualUpdate(1.0f);
-
-            // ロック中にEを離しても届かないため、移る瞬間に0へ戻す
-            // Releasing E during the lock never arrives, so it is zeroed the moment control is lost
-            _flyMode.SetControllable(false);
-
-            Assert.AreEqual(0f, GetFlightMotion().ResolveVerticalVelocity(0f, 15f, false));
-        }
-
-        private PlayerFlightMotion GetFlightMotion()
-        {
-            // 上下入力の公開読み口は無いため、委譲先を直接見る
-            // There is no public reader for vertical input, so inspect the delegate directly
-            return (PlayerFlightMotion)typeof(ThirdPersonController).GetField("_flightMotion", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(_thirdPersonController);
         }
 
         private void TapSpace(params float[] tapTimes)

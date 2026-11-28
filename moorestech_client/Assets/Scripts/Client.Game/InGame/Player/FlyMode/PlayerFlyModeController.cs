@@ -78,11 +78,11 @@ namespace Client.Game.InGame.Player.FlyMode
 
             float ReadVerticalInput()
             {
-                // EとQの同時押しは相殺する
-                // Holding both E and Q cancels out
+                // Space(ジャンプ)で上昇、Cで下降し、同時押しは相殺する
+                // Jump (Space) ascends, C descends, and holding both cancels out
                 var vertical = 0f;
-                if (HybridInput.GetKey(KeyCode.E)) vertical += 1f;
-                if (HybridInput.GetKey(KeyCode.Q)) vertical -= 1f;
+                if (InputManager.Player.Jump.GetKey) vertical += 1f;
+                if (HybridInput.GetKey(KeyCode.C)) vertical -= 1f;
                 return vertical;
             }
 
