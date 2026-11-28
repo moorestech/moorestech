@@ -2,6 +2,7 @@ using System;
 using Client.Ui.Foundation.Stage;
 using Client.Ui.Foundation.Stage.ScaleReading;
 using UniRx;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Modal
@@ -19,6 +20,8 @@ namespace Client.Ui.Foundation.Modal
         private const string ShownClass = "ui-modal-host--shown";
 
         private readonly UiScreenPixelScope _scope;
+        private readonly StageScaleSource _stageScale;
+        private readonly SerialDisposable _stageScaleSubscription = new();
         private readonly VisualElement _center;
         private readonly Subject<Unit> _onBackdropClicked = new();
         private VisualElement _content;
@@ -27,6 +30,7 @@ namespace Client.Ui.Foundation.Modal
 
         public UiModalHost(StageScaleSource stageScale)
         {
+            _stageScale = stageScale;
             _scope = new UiScreenPixelScope("modal-scope", stageScale);
             _scope.AddToClassList("ui-modal-host");
 
@@ -56,6 +60,14 @@ namespace Client.Ui.Foundation.Modal
             ApplyShown();
         }
 
+        // 舞台の画面から開く中身用。宿主は実画面 px なので舞台の倍率を掛け直し、開いた画面と同じ大きさで出す
+        // For contents opened from a stage screen: the host is in real-screen px, so reapply the stage scale to match that screen's size
+        public void ShowAtStageScale(VisualElement content)
+        {
+            Show(content);
+            _stageScaleSubscription.Disposable = _stageScale.Scale.Subscribe(scale => content.style.scale = new Scale(new Vector3(scale, scale, 1f)));
+        }
+
         public void Hide()
         {
             RemoveContent();
@@ -71,6 +83,7 @@ namespace Client.Ui.Foundation.Modal
             // フォーカス中の入力欄ごと外したときの旗は、根の入力規則が入力欄の取り外しを購読して下ろす
             // The text-input flag for a field removed with focus is lowered by the root input rules, which watch the field's detach
             _content.RemoveFromHierarchy();
+            _stageScaleSubscription.Disposable = Disposable.Empty;
         }
 
         // 表示の有無は中身の有無 1 つで決まり、状態クラスはその写しだけ（二重に持たない）

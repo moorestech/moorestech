@@ -1,3 +1,4 @@
+using System.Threading;
 using Client.Tests.Ui.State.Toast;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Modal;
@@ -17,7 +18,7 @@ namespace Client.Tests.Ui.State.Modal
         public void 保留中の要求への確定は受理され要求が閉じる()
         {
             var service = new ModalRequestService();
-            var result = service.RequestModal("確認", "本文", "OK", ModalVariant.Confirm);
+            var result = service.RequestModal("確認", "本文", "OK", ModalVariant.Confirm, CancellationToken.None).Response;
             var toaster = new RecordingUiCommandResultToaster();
             var commands = new ModalCommands(service, toaster);
 
@@ -33,7 +34,7 @@ namespace Client.Tests.Ui.State.Modal
         public void 閉じた後の古い応答は良性の拒否になる()
         {
             var service = new ModalRequestService();
-            service.RequestModal("確認", "本文", "OK", ModalVariant.Confirm).Forget();
+            service.RequestModal("確認", "本文", "OK", ModalVariant.Confirm, CancellationToken.None);
             var request = service.Pending;
             var toaster = new RecordingUiCommandResultToaster();
             var commands = new ModalCommands(service, toaster);

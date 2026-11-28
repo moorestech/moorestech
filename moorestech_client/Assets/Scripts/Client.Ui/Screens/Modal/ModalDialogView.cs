@@ -2,7 +2,6 @@ using System;
 using Client.Input;
 using Client.Ui.Components.Controls;
 using Client.Ui.Components.Panels;
-using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Modal.Logic;
@@ -14,10 +13,14 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.Modal
 {
     /// <summary>
-    /// モーダル 1 件の中身（Web ModalBody）。要求ごとに作り直し、入力の持ち越しを構造で無くす（Web の key={id}）。確定・ESC・幕の押下をすべて自分で IModalCommands へ返す（設計書 A-8）
-    /// One modal's contents (Web ModalBody); rebuilt per request so input never carries over (Web key={id}). It returns confirm, ESC and backdrop presses to IModalCommands itself (design A-8)
+    /// 確認・入力モーダル1件の中身（Web ModalBody）
+    /// - 要求ごとに作り直し、入力を持ち越さない（Web の key={id}）
+    /// - 確定・ESC・幕押下を自分で IModalCommands へ返す（A-8）
+    /// One confirm or input modal's contents (Web ModalBody)
+    /// - Rebuilt per request so input never carries over (Web key={id})
+    /// - Returns confirm, ESC and backdrop presses to IModalCommands itself (A-8)
     /// </summary>
-    public sealed class ModalView : VisualElement
+    public sealed class ModalDialogView : VisualElement
     {
         private readonly ModalRequest _request;
         private readonly IModalCommands _commands;
@@ -27,12 +30,12 @@ namespace Client.Ui.Screens.Modal
         private string _confirmedText;
         private IDisposable _backdropSubscription;
 
-        public ModalView(ModalRequest request, IModalCommands commands, IObservable<Unit> backdropClicked)
+        public ModalDialogView(ModalRequest request, IModalCommands commands, IObservable<Unit> backdropClicked)
         {
             _request = request;
             _commands = commands;
             _backdropClicked = backdropClicked;
-            AddToClassList("modal-view");
+            AddToClassList("modal-dialog-view");
 
             // 題・本文（Web Modal.Title fz=h4・Text size=sm c=dimmed mb=lg）。文は要求側が解いた文なので FromVerbatim（A-40）
             // Title and message (Web Modal.Title fz=h4, Text size=sm c=dimmed mb=lg); requester-resolved text, so FromVerbatim (A-40)
@@ -42,13 +45,9 @@ namespace Client.Ui.Screens.Modal
             var message = new LocalizedLabel { name = "modal-message" };
             message.AddToClassList(UiTypographyClass.TextSm);
             message.AddToClassList(UiTypographyClass.TextDimmed);
-            message.AddToClassList("modal-view__message");
+            message.AddToClassList("modal-dialog-view__message");
             message.SetText(UiText.FromVerbatim(request.Message));
             frame.Add(message);
-
-            // 項目名と値の行は行のある要求だけ（visual-vocabulary §3。ADR 0105 §4）
-            // Label-and-values rows only for requests that carry them (visual-vocabulary §3, ADR 0105 §4)
-            if (request.Rows.Count > 0) frame.Add(CreateTable());
 
             // 入力欄は入力付きのみ、ボタンは全幅
             // The field only for input requests; the button spans the width
@@ -65,37 +64,10 @@ namespace Client.Ui.Screens.Modal
 
             #region Internal
 
-            VisualElement CreateTable()
-            {
-                // 1行は項目名の行と、その下に字下げした値の行の2行1組。罫線・列そろえは作らない
-                // Each row is a label line with an indented values line below; no rules or column alignment
-                var table = new UiStack(UiGap.Sm) { name = "modal-table", pickingMode = PickingMode.Ignore };
-                table.AddToClassList("modal-view__table");
-                for (var i = 0; i < request.Rows.Count; i++)
-                {
-                    var row = new UiStack(UiGap.Px2) { name = $"modal-table-row-{i}", pickingMode = PickingMode.Ignore };
-                    row.AddToClassList("modal-view__table-row");
-                    row.AddItem(TableLabel($"modal-table-row-{i}-label", request.Rows[i].Label, null));
-                    row.AddItem(TableLabel($"modal-table-row-{i}-values", request.Rows[i].Values, "modal-view__table-values"));
-                    table.AddItem(row);
-                }
-                return table;
-            }
-
-            LocalizedLabel TableLabel(string testid, string text, string extraClassName)
-            {
-                var label = new LocalizedLabel { name = testid, pickingMode = PickingMode.Ignore };
-                label.AddToClassList(UiTypographyClass.TextSm);
-                label.AddToClassList(UiTypographyClass.TextDefault);
-                if (extraClassName != null) label.AddToClassList(extraClassName);
-                label.SetText(UiText.FromVerbatim(text));
-                return label;
-            }
-
             GameTextField CreateInput()
             {
                 var input = new GameTextField("modal-input", false, GameTextFieldLook.MantineInput);
-                input.AddToClassList("modal-view__input");
+                input.AddToClassList("modal-dialog-view__input");
                 input.OnValueChanged.Subscribe(SetEnteredText);
 
                 // 入力欄の ESC は GameUiInputRules が消費してフォーカスを外す。その外れを見て 1 回で取り消す（Web の Mantine と同じ 1 回。計画 D-11）

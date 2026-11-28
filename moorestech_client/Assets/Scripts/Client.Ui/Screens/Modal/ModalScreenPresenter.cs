@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Modal;
 using Client.Ui.State.Modal;
 using UniRx;
@@ -14,13 +15,15 @@ namespace Client.Ui.Screens.Modal
         private readonly UiModalHost _host;
         private readonly ModalRequestService _service;
         private readonly IModalCommands _commands;
+        private readonly IUiOsCursor _osCursor;
         private string _shownRequestId;
 
-        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands)
+        public ModalScreenPresenter(UiModalHost host, ModalRequestService service, IModalCommands commands, IUiOsCursor osCursor)
         {
             _host = host;
             _service = service;
             _commands = commands;
+            _osCursor = osCursor;
         }
 
         public void Initialize()
@@ -44,7 +47,11 @@ namespace Client.Ui.Screens.Modal
             // silent-ok: 同じ要求の通知の重なりは描き直さない（入力中の文を守る） / 新しい要求は ID が変わるので ModalScreenPresenterTest「新しい要求は…」が見る
             if (pending.Id == _shownRequestId) return;
             _shownRequestId = pending.Id;
-            _host.Show(new ModalView(pending, _commands, _host.OnBackdropClicked));
+
+            // 行のある要求は舞台の画面から開く情報パネルなので舞台の倍率で、それ以外は実画面 px の確認・入力ダイアログで出す
+            // Requests with rows are information panels opened from a stage screen, shown at the stage scale; the rest are confirm or input dialogs in real-screen px
+            if (0 < pending.Rows.Count) _host.ShowAtStageScale(new ModalTableView(pending, _commands, _host.OnBackdropClicked, _osCursor));
+            else _host.Show(new ModalDialogView(pending, _commands, _host.OnBackdropClicked));
         }
     }
 }

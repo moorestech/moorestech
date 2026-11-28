@@ -1,22 +1,32 @@
 using System.Collections.Generic;
+using System.Threading;
+using Client.Game.InGame.UI.UIState;
 using Client.Localization;
+using Client.Tests.Ui.Screens.Inventory.Support;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Context;
 using Client.Ui.State.BlockInventory.Logic.CleanRoom;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Panel.Lifetime;
 using Client.Ui.State.Modal;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.State.BlockInventory.Context
 {
     /// <summary>
-    /// 「失敗率の改善方法」のモーダルを押した時点の中身で開く（ADR 0105 §4）
-    /// Opens the improvement modal with the contents at press time (ADR 0105 §4)
+    /// 「失敗率の改善方法」のモーダルを押した時点の中身で開き、機械の画面と一緒に閉じる（ADR 0105 §4）
+    /// Opens the improvement modal with the contents at press time and closes it with the machine screen (ADR 0105 §4)
     /// </summary>
     public class CleanRoomYieldImprovementModalBridgeTest
     {
         private const string Minus = "−";
+        private GameObject _host;
+        private UIStateControl _control;
+        private FakePanelSource _panel;
         private FakeBlockContextModel _context;
         private ModalRequestService _modal;
         private CleanRoomYieldImprovementModalBridge _bridge;
@@ -25,9 +35,24 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
         public void SetUp()
         {
             Localize.Initialize();
+
+            // 機械の画面を開いた状態から始める。閉じる経路は本物の画面遷移とパネルの状態で通す
+            // Start with the machine screen open; closing goes through real screen transitions and panel states
+            _host = new GameObject("CleanRoomYieldImprovementModalBridgeTest");
+            var routing = UiRoutingStateTestFactory.CreateSwitchable(_host, UIStateEnum.SubInventory, new[] { UIStateEnum.SubInventory, UIStateEnum.GameScreen }, out _control);
+            _panel = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("Machine")));
+            var lifetime = new BlockInventoryScreenLifetime(routing, _panel);
+            lifetime.Initialize();
+
             _context = new FakeBlockContextModel();
             _modal = new ModalRequestService();
-            _bridge = new CleanRoomYieldImprovementModalBridge(_context, _modal);
+            _bridge = new CleanRoomYieldImprovementModalBridge(_context, _modal, lifetime);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(_host);
         }
 
         [Test]
@@ -77,6 +102,65 @@ namespace Client.Tests.Ui.State.BlockInventory.Context
             LogAssert.Expect(LogType.Warning, "[CleanRoomYieldImprovementModalBridge] open ignored: the tracked machine has no improvement rows now");
             _bridge.Open();
             Assert.IsNull(_modal.Pending);
+        }
+
+        [Test]
+        public void 機械の画面を離れると開いたモーダルを閉じる()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+
+            Assert.IsNull(_modal.Pending);
+        }
+
+        [Test]
+        public void 機械が撤去されてパネルが閉じると開いたモーダルを閉じる()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+
+            _panel.State.Value = BlockInventoryPanelState.Closed;
+
+            Assert.IsNull(_modal.Pending);
+        }
+
+        [Test]
+        public void 機械の画面を離れても別のモーダルは閉じない()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+            var other = _modal.RequestInputModal("別の要求", "本文", "保存", CancellationToken.None);
+
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+
+            Assert.AreEqual(other.RequestId, _modal.Pending.Id);
+        }
+
+        [Test]
+        public void 閉じるで閉じた後に機械の画面を離れても後から開いた別のモーダルは閉じない()
+        {
+            _context.Set(Dicing(0.505));
+            _bridge.Open();
+            _modal.Respond(_modal.Pending.Id, ModalResult.Confirm, null);
+            var other = _modal.RequestInputModal("別の要求", "本文", "保存", CancellationToken.None);
+
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+
+            Assert.AreEqual(other.RequestId, _modal.Pending.Id);
+        }
+
+        [Test]
+        public void 開き直した機械の画面では前の寿命に引きずられず開ける()
+        {
+            _context.Set(Dicing(0.505));
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.GameScreen);
+            UiRoutingStateTestFactory.Transit(_control, UIStateEnum.SubInventory);
+
+            _bridge.Open();
+
+            Assert.IsNotNull(_modal.Pending);
         }
 
         // ADR 0105 §4 の形の例（ダイシング300個・Lv2は7.2%・Lv1は失敗との差し引き）

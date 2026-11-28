@@ -216,9 +216,11 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
 
 ## Execution Handoff
 
-実装は**新規の Codex セッションでのmoores-subagent-driven-development**に固定する（起動・SDD・最終レビューまで Codex ホストで回す。SDD は moores-subagent-driven-development の `references/runtime-codex.md`、moores-code-review は `references/codex-host.md` の Codex 手順に従う）。このセッションで実行方法の選択肢を提示せず、新規セッションを起動して開始プロンプトを送る（起動手段が無ければ出力する）（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
+moores-grill-with-docs §1.7 の対象外の小さな変更は、新規セッションを起動せず、このセッションで実装する（小さな変更を渡すと、引き継ぎの手間が実装より大きくなるため）。
 
-手順:
+それ以外の実装は**新規の Codex セッションでのmoores-subagent-driven-development**に固定する（起動・SDD・最終レビューまで Codex ホストで回す。SDD は moores-subagent-driven-development の `references/runtime-codex.md`、moores-code-review は `references/codex-host.md` の Codex 手順に従う）。このセッションで実行方法の選択肢を提示せず、新規セッションを起動して開始プロンプトを送る（起動手段が無ければ出力する）（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
+
+手順（§1.7 の対象の実装のみ）:
 
 1. **引き継ぎ完全性チェック**: 「planとADRと`.decisions/`だけ読んで実装できるか？」に Yes と言えるか確認する。会話の中でしか決まっていない裁定・制約が1つでも残っていれば、planの `## 判断記録（ADR）` か `.decisions/` へ書き落としてから次へ進む（新規セッションでは会話コンテキストは完全に消える）。
 
@@ -238,7 +240,7 @@ Self-Review（内容）の次に、このファイル後半の **spec-architectu
 
 3. **新規セッションを自分で起動して送る（既定）**: 環境ローカル規約（`CLAUDE.local.md` 等）に新規セッションの起動手段が定められていれば、それで作業worktreeを渡し、bot の配下（`--bot moorestech`）に新規セッションを起動して上のプロンプトを依頼文で渡し、届いたことを起動結果と `orca agent read` で確かめて起動先を報告する（手順は `docs/orca-usage.md`）。Codex で起動し、モデルは `~/bin/codex-model sol` で引いて明示する（規約に Claude Code 用が既定として書かれていても使わない。保存された既定モデルに依存しない）。このセッションでは実装しない。起動手段が無い・失敗した場合だけ、コードブロックで出力して貼り付けを案内する（失敗時は生エラーも添える）。
 
-このセッション内で本体が直接タスクを順次実行することは、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない（既定は moores-subagent-driven-development の規模ゲートが選ぶモードである）。
+§1.7 の対象の実装では、このセッション内で本体が直接タスクを順次実行することは、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない（既定は moores-subagent-driven-development の規模ゲートが選ぶモードである）。
 
 # 追加SKILL:spec-architecture-review
 

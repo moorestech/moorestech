@@ -29,7 +29,7 @@ namespace Client.Starter.Registration.GameUi.Screens
 
             // 「失敗率の改善方法」のモーダルを開く口
             // The entry that opens the improvement modal
-            builder.Register<CleanRoomYieldImprovementModalBridge>(Lifetime.Singleton).As<ICleanRoomYieldImprovementCommands>();
+            builder.Register<CleanRoomYieldImprovementModalBridge>(Lifetime.Singleton).AsSelf().As<ICleanRoomYieldImprovementCommands>();
 
             // 選ぶコマンド（送信はコマンドが ClientContext.VanillaApi を直接 await する。D-40）
             // The select command (it awaits ClientContext.VanillaApi directly; D-40)

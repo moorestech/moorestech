@@ -1,23 +1,41 @@
 /* web: web@6248097123/src/features/modal/ModalHost.tsx の Text mb="lg"・TextInput mb="lg"。枠・題・本文の余白・幕は DialogFrame と UiModalHost（C3-b）が持つ */
 /* web: Text mb="lg" and TextInput mb="lg" in web@6248097123/src/features/modal/ModalHost.tsx; frame, title, body padding and backdrop belong to DialogFrame and UiModalHost (C3-b) */
-.modal-view {
+.modal-dialog-view {
     flex-direction: column;
 }
 
-.modal-view__message {
+.modal-dialog-view__message {
     margin-bottom: var(--mantine-spacing-lg);
 }
 
-.modal-view__input {
+.modal-dialog-view__input {
     margin-bottom: var(--mantine-spacing-lg);
 }
 
-/* 項目名と値の行（visual-vocabulary §3）。表の下は本文と同じ余白、値の行は md だけ字下げする */
-/* Label-and-values rows (visual-vocabulary §3); the table keeps the message's bottom gap and values indent by md */
-.modal-view__table {
+/* 項目名と値の行のモーダル（visual-vocabulary §3）。面は GamePanel の Craft 枠、幅は確認モーダルと同じ */
+/* The label-and-values modal (visual-vocabulary §3); the face is GamePanel's Craft frame and the width matches the confirm modal */
+.modal-table-view {
+    width: var(--modal-size);
+}
+
+.modal-table-view__title {
+    margin-bottom: var(--mantine-spacing-sm);
+}
+
+.modal-table-view__message {
+    margin-bottom: var(--mantine-spacing-md);
+    color: var(--text-muted);
+}
+
+.modal-table-view__table {
     margin-bottom: var(--mantine-spacing-lg);
 }
 
-.modal-view__table-values {
+.modal-table-view__row-values {
     margin-left: var(--mantine-spacing-md);
+}
+
+.modal-table-view__actions {
+    flex-direction: row;
+    justify-content: flex-end;
 }

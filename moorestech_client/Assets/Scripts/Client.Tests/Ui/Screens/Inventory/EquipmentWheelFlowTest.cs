@@ -1,3 +1,4 @@
+using System.Threading;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.Ui.Screens.Inventory.Support;
 using Client.Tests.Ui.State.Inventory.Equipment;
@@ -127,7 +128,7 @@ namespace Client.Tests.Ui.Screens.Inventory
             // ルーターが状況を組む経路（画面・モーダル・占有の読み取り）を本物の State で通す（Gate の規則は L0 が見る）
             // Drive the router's own assembly (screen, modal, ownership reads) through real State (the gate rules are L0's)
             var modal = Wheel(UIStateEnum.GameScreen);
-            modal.Modal.RequestInputModal("title", "message", "ok");
+            modal.Modal.RequestInputModal("title", "message", "ok", CancellationToken.None);
             WheelAt(modal, OverWorld, 100);
             var tool = Wheel(UIStateEnum.GameScreen);
             tool.Placement.SetWheelOwnedByTool(true);

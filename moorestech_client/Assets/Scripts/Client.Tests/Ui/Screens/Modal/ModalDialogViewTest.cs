@@ -13,13 +13,13 @@ namespace Client.Tests.Ui.Screens.Modal
     /// モーダルの中身・可否・空白除去・色（L1）
     /// Modal contents, eligibility, trimming and colour (L1)
     /// </summary>
-    public class ModalViewTest : ScreenTestHost
+    public class ModalDialogViewTest : ScreenTestHost
     {
         /// <web-test file="e2e/tests/modal.spec.ts">接続後にモーダルが描画される</web-test>
         [Test]
         public void 確認の要求は題と本文とボタンを描き入力欄を持たない()
         {
-            var view = Mount(new ModalView(ModalRequestSamples.Confirm(), new RecordingModalCommands(), Observable.Never<Unit>()));
+            var view = Mount(new ModalDialogView(ModalRequestSamples.Confirm(), new RecordingModalCommands(), Observable.Never<Unit>()));
             simulate.FrameUpdate();
             Assert.IsTrue(IsShown(Find<VisualElement>(view, "modal")));
             StringAssert.EndsWith("確認", Find<Label>(view, "modal-title").text);
@@ -35,7 +35,7 @@ namespace Client.Tests.Ui.Screens.Modal
         public void BP名の入力は空のうち押せず前後の空白を除いた名前で確定する()
         {
             var commands = new RecordingModalCommands();
-            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), commands, Observable.Never<Unit>()));
+            var view = Mount(new ModalDialogView(ModalRequestSamples.BlueprintName(), commands, Observable.Never<Unit>()));
             var responses = commands.Responses;
             simulate.FrameUpdate();
 
@@ -61,7 +61,7 @@ namespace Client.Tests.Ui.Screens.Modal
             // TryGetConfirmableText は入力なしで確定の文を null にし、View はその null をそのまま応答へ渡す
             // TryGetConfirmableText leaves the confirmed text null without input, and the view passes that null straight to the reply
             var commands = new RecordingModalCommands();
-            var view = Mount(new ModalView(ModalRequestSamples.Confirm(), commands, Observable.Never<Unit>()));
+            var view = Mount(new ModalDialogView(ModalRequestSamples.Confirm(), commands, Observable.Never<Unit>()));
             simulate.FrameUpdate();
             simulate.Click(Find<FormButton>(view, "modal-button").worldBound.center);
 
@@ -75,7 +75,7 @@ namespace Client.Tests.Ui.Screens.Modal
         public void 空白だけの入力では押せず押しても確定を流さない()
         {
             var commands = new RecordingModalCommands();
-            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), commands, Observable.Never<Unit>()));
+            var view = Mount(new ModalDialogView(ModalRequestSamples.BlueprintName(), commands, Observable.Never<Unit>()));
             var responses = commands.Responses;
             simulate.FrameUpdate();
 
@@ -92,7 +92,7 @@ namespace Client.Tests.Ui.Screens.Modal
         {
             // Web の TextInput autoFocus。パネルに載った次のフレームで当てる（計画 D-13）
             // Web TextInput autoFocus; applied on the frame after attaching to the panel (plan D-13)
-            var view = Mount(new ModalView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Observable.Never<Unit>()));
+            var view = Mount(new ModalDialogView(ModalRequestSamples.BlueprintName(), new RecordingModalCommands(), Observable.Never<Unit>()));
             simulate.FrameUpdate();
             simulate.FrameUpdate();
             var input = Find<TextField>(view, "modal-input");
@@ -107,7 +107,7 @@ namespace Client.Tests.Ui.Screens.Modal
             // The colour mapping lives only in ModalButtonVariants (design A-28)
             Assert.AreEqual(FormButtonVariant.Filled, ModalButtonVariants.From(ModalButtonTone.Blue));
             Assert.AreEqual(FormButtonVariant.Danger, ModalButtonVariants.From(ModalButtonTone.Red));
-            var error = Mount(new ModalView(ModalRequestSamples.Error(), new RecordingModalCommands(), Observable.Never<Unit>()));
+            var error = Mount(new ModalDialogView(ModalRequestSamples.Error(), new RecordingModalCommands(), Observable.Never<Unit>()));
             simulate.FrameUpdate();
             Assert.IsTrue(Find<FormButton>(error, "modal-button").ClassListContains(FormButton.DangerUssClassName));
         }

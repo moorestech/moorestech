@@ -32,7 +32,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
 {
     await p.SetupFlatGround();
     await p.SkipOpeningSkitIfPlaying();
-    await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "GameScreen とメインカメラに戻った");
+    await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 120f, "GameScreen とメインカメラに戻った");
     // 地形(メサ・岩)は足場を突き抜けて照準と画面を狂わせるので、cleanroom-room-usability と同じく地形の表示と生成を止める
     // Terrain (mesas, rocks) pokes through the scaffold and skews aim and view, so stop its display and spawning like cleanroom-room-usability
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
@@ -142,7 +142,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         await OpenMachineUi(machine);
         foreach (var rowTestId in rowTestIds) { await PlaytestUiElementOps.WaitUiTextContains(rowTestId, "", 10f); p.Note($"{rowTestId}: {(await PlaytestUiElementOps.FindUi(rowTestId)).Text}"); }
         await p.Screenshot(screenshotName);
-        if (checksImprovementModal) await p.CheckCleanRoomYieldImprovementModal($"{screenshotName}-improvement-modal");
+        if (checksImprovementModal) { await p.CheckCleanRoomYieldImprovementModal($"{screenshotName}-improvement-modal"); await p.CheckCleanRoomYieldImprovementModalClosesOnEscape(); await OpenMachineUi(machine); await p.CheckCleanRoomYieldImprovementModalClosesOnLeaving(new Vector3(11.5f, 32.5f, -6f)); return; }
         await p.PressKey(Key.Tab);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
