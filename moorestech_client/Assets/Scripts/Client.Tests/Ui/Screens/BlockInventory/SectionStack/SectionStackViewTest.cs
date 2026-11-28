@@ -35,7 +35,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         public void 項目グリッドは設定どおり空でも出すか枠があるときだけ出す(string blockType, string blockScreen, string gridId, bool renderEmptyGrid)
         {
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(blockType, blockScreen)));
-            var body = BlockInventoryTestBodies.SectionStack(source, blockScreen);
+            var body = BlockInventoryTestBodies.SectionStack(source);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
@@ -52,7 +52,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         public void 区画は固定の順に並ぶ()
         {
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator", S.GearToElectricGenerator)));
-            var body = BlockInventoryTestBodies.SectionStack(source, S.GearToElectricGenerator, FakeSectionFactory.AllSlots(true));
+            var body = BlockInventoryTestBodies.SectionStack(source, FakeSectionFactory.AllSlots(true));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
@@ -64,7 +64,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         public void 文脈の区画は項目グリッドより上に来る()
         {
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("CleanRoomAirFilter", S.CleanRoomAirFilter, new SlotItem(new ItemId(1), 5))));
-            var body = BlockInventoryTestBodies.SectionStack(source, S.CleanRoomAirFilter, new FakeSectionFactory(SectionStackSlot.Context, true));
+            var body = BlockInventoryTestBodies.SectionStack(source, new FakeSectionFactory(SectionStackSlot.Context, true));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
@@ -80,7 +80,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator", S.GearToElectricGenerator)));
             var context = new FakeSectionFactory(SectionStackSlot.Context, false);
             var machine = new FakeSectionFactory(SectionStackSlot.Machine, true);
-            var body = BlockInventoryTestBodies.SectionStack(source, S.GearToElectricGenerator, context, machine);
+            var body = BlockInventoryTestBodies.SectionStack(source, context, machine);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();

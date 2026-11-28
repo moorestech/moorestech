@@ -108,17 +108,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             CollectionAssert.IsEmpty(ReferenceSectionIds.Where(id => id != "filter-splitter" && root.Q(id) != null).ToArray());
         }
 
-        private VisualElement MountStack(string blockType, string blockScreen, SpecialBlockDetailViewModel detail)
-        {
-            Model.Set(detail);
-            var panel = OpenPanel(blockType, blockScreen);
-            var body = BlockInventoryTestBodies.SectionStack(Panels, blockScreen, SectionFactories());
-            Mount(body.Root);
-            body.Attach(panel);
-            simulate.FrameUpdate();
-            return body.Root;
-        }
-
         private VisualElement MountFilterSplitter()
         {
             // 本物の本文の工場 5 つと区画の工場 5 つを alpha の本文のホストに登録し、パネル全体の根を返す（混入を見られるように）

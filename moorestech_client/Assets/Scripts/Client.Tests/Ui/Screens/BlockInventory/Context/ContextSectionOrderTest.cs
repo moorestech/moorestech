@@ -46,7 +46,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         {
             var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", S.CleanRoomAirFilter);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, S.CleanRoomAirFilter, new ContextSectionFactory(Content, _context, _machine, NewOsCursor(), new RecordingCleanRoomYieldImprovementCommands()));
+            var body = BlockInventoryTestBodies.SectionStack(source, new ContextSectionFactory(Content, _context, _machine, NewOsCursor(), new RecordingCleanRoomYieldImprovementCommands()));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();
@@ -126,7 +126,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             var osCursor = NewOsCursor();
             var improvementCommands = new RecordingCleanRoomYieldImprovementCommands();
             var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Content, new RecordingRecipeSelectCommand(), osCursor, improvementCommands);
-            var body = BlockInventoryTestBodies.SectionStack(source, S.Machine, new ContextSectionFactory(Content, _context, _machine, osCursor, improvementCommands), machineFactory);
+            var body = BlockInventoryTestBodies.SectionStack(source, new ContextSectionFactory(Content, _context, _machine, osCursor, improvementCommands), machineFactory);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

@@ -57,17 +57,6 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             AssertLeadingGap(root, "gear-section");
         }
 
-        private VisualElement MountStack(string blockType, string blockScreen, SpecialBlockDetailViewModel detail)
-        {
-            Model.Set(detail);
-            var panel = OpenPanel(blockType, blockScreen);
-            var body = BlockInventoryTestBodies.SectionStack(Panels, blockScreen, SectionFactories());
-            Mount(body.Root);
-            body.Attach(panel);
-            simulate.FrameUpdate();
-            return body.Root;
-        }
-
         private static SpecialBlockDetailViewModel WithGearToElectric(GearToElectricDetail generator)
         {
             return new SpecialBlockDetailViewModel(null, generator, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.None), null, null, null);

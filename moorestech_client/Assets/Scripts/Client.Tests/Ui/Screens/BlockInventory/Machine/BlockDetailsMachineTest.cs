@@ -41,7 +41,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
                 new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), ImprovementCommands),
                 new MinerSectionFactory(Content, _miner),
             };
-            var body = BlockInventoryTestBodies.SectionStack(source, S.Machine, factories);
+            var body = BlockInventoryTestBodies.SectionStack(source, factories);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

@@ -16,6 +16,7 @@ using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
+using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Text;
 using Mod.Loader;
@@ -81,6 +82,17 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         protected ISectionStackSectionFactory[] SectionFactories()
         {
             return new ISectionStackSectionFactory[] { new GearToElectricSectionFactory(Presenters), new BeltThroughputSectionFactory(Presenters), new GearSectionFactory(Presenters), new ElectricNetworkSectionFactory(Presenters), new GearNetworkSectionFactory(Presenters) };
+        }
+
+        protected VisualElement MountStack(string blockType, string blockScreen, SpecialBlockDetailViewModel detail)
+        {
+            Model.Set(detail);
+            var panel = OpenPanel(blockType, blockScreen);
+            var body = BlockInventoryTestBodies.SectionStack(Panels, SectionFactories());
+            Mount(body.Root);
+            body.Attach(panel);
+            simulate.FrameUpdate();
+            return body.Root;
         }
 
         // alpha の土台でパネルを開いた状態にして返す（Presenter の Attach に渡す）

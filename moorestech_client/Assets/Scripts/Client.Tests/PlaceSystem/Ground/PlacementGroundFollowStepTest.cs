@@ -99,6 +99,33 @@ namespace Client.Tests.PlaceSystem.Ground
         private static PlacementRun BuildRun(Vector3Int startCell, Vector3Int endCell)
         {
             return CommonBlockPlacePointCalculator.CalculateRun(startCell, endCell, BlockDirection.North, MakeMockBlock());
+
+            #region Internal
+
+            // ゼロGuidのモック要素はMasterHolderを引かないため実DI起動が要らない
+            // A zero-Guid mock element never reads MasterHolder, so it needs no real DI boot
+            static BlockMasterElement MakeMockBlock()
+            {
+                return new BlockMasterElement(
+                    0,
+                    Guid.Empty,
+                    "TestBlock",
+                    "TestBlockType",
+                    null,
+                    1, // placementsPerCost
+                    null,
+                    "テスト",
+                    "テスト",
+                    0,
+                    false,
+                    Vector3Int.one,
+                    null,
+                    BlockMasterElement.BlockScreenConst.None,
+                    null
+                );
+            }
+
+            #endregion
         }
 
         // セル1つ分をちょうど覆う段。隣接セルへはみ出さないので階段の各段を独立に作れる
@@ -113,27 +140,5 @@ namespace Client.Tests.PlaceSystem.Ground
             _slabs.Add(slab);
         }
 
-        // ゼロGuidのモック要素はMasterHolderを引かないため実DI起動が要らない
-        // A zero-Guid mock element never reads MasterHolder, so it needs no real DI boot
-        private static BlockMasterElement MakeMockBlock()
-        {
-            return new BlockMasterElement(
-                0,
-                Guid.Empty,
-                "TestBlock",
-                "TestBlockType",
-                null,
-                1, // placementsPerCost
-                null,
-                "テスト",
-                "テスト",
-                0,
-                false,
-                Vector3Int.one,
-                null,
-                BlockMasterElement.BlockScreenConst.None,
-                null
-            );
-        }
     }
 }

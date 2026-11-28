@@ -69,7 +69,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         {
             var panel = BlockInventoryTestPanels.OfType(blockType, blockScreen);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, blockScreen, Factories(ContentWith(Texture)));
+            var body = BlockInventoryTestBodies.SectionStack(source, Factories(ContentWith(Texture)));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

@@ -11,8 +11,8 @@ using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 項目グリッドの id が blockType ごとに Web の e2e と同じ（区画の id は持ち主のレーンのテストが写す）
-    /// Item-grid ids per blockType match the Web e2e (section ids are ported by the owning lanes' tests)
+    /// 項目グリッドの id が画面IDごとに Web の e2e と同じ（区画の id は持ち主のレーンのテストが写す）
+    /// Item-grid ids per screen ID match the Web e2e (section ids are ported by the owning lanes' tests)
     /// </summary>
     public class SectionStackRegressionTest : BlockInventoryScreenTestHost
     {
@@ -23,10 +23,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [TestCase("ElectricGenerator", S.ElectricGenerator, "generator-fuel-grid")]
         [TestCase("FuelGearGenerator", S.FuelGearGenerator, "generator-fuel-grid")]
         [TestCase("unknown", S.Generic, "generic-block-grid")]
-        public void 項目グリッドは対応するblockTypeだけに出る(string blockType, string blockScreen, string gridId)
+        public void 画面IDに応じて項目グリッドの表示とIDが決まる(string blockType, string blockScreen, string gridId)
         {
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(blockType, blockScreen, new SlotItem(new ItemId(1), 1))));
-            var body = BlockInventoryTestBodies.SectionStack(source, blockScreen);
+            var body = BlockInventoryTestBodies.SectionStack(source);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();

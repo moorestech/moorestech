@@ -88,13 +88,17 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
 
             Panels.State.Value = OtherPanel(new SlotItem(new ItemId(1), 7));
             Assert.AreEqual(3, view.LastSlots[0].Count, "別のパネルへ替わる途中の値は描かない");
-        }
 
-        // 別の位置・個体の電柱（マスタを読まずに組むため internal ctor を直に呼ぶ。前例 BlockInventoryTestPanels.OfType）
-        // A pole at another position and instance, built via the internal ctor without the master (precedent BlockInventoryTestPanels.OfType)
-        private static OpenBlockInventoryPanel OtherPanel(params SlotItem[] slots)
-        {
-            return new OpenBlockInventoryPanel("ElectricPole", S.ElectricPole, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), slots, BlockInventoryPanelError.None);
+            #region Internal
+
+            // 別の位置・個体の電柱（マスタを読まずに組むため テスト用パネルを指定位置に作る）
+            // A pole at another position and instance, built from test values without loading the master
+            static OpenBlockInventoryPanel OtherPanel(params SlotItem[] slots)
+            {
+                return BlockInventoryTestPanels.OpenBlock("ElectricPole", S.ElectricPole, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), slots, BlockInventoryPanelError.None);
+            }
+
+            #endregion
         }
 
         // 渡された枠を覚えるだけの View

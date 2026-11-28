@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
             {
                 new MinerSectionFactory(Content, Miner), new PumpSectionFactory(Content, Pump), new GeneratorSectionFactory(Generator),
             };
-            var body = BlockInventoryTestBodies.SectionStack(source, S.CleanRoomAirFilter, factories);
+            var body = BlockInventoryTestBodies.SectionStack(source, factories);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

@@ -65,11 +65,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         // One DontSave texture shared by all tests (the picture itself is never inspected)
         private static readonly Texture2D Texture = new(4, 4) { hideFlags = HideFlags.DontSave };
 
-        // 標準の本文を本物の部品で組む（枠の操作は記録係、blockType は源のパネルから引くので引数は読みやすさのため）
-        // Builds the standard body from real parts (slot commands go to a recorder; blockType is read from the source panel, so the argument is for readability)
-        public static IBlockInventoryPart SectionStack(FakePanelSource source, string blockScreen, params ISectionStackSectionFactory[] plugged)
+        // 開いたパネルの画面IDで標準本文を組む
+        // Build the standard body for the open panel’s screen ID
+        public static IBlockInventoryPart SectionStack(FakePanelSource source, params ISectionStackSectionFactory[] plugged)
         {
-            return new SectionStackBodyFactory(Grids(), new SectionStackSlotRegistry(plugged), source).Create(blockScreen, new BlockInventoryBodyMount(false));
+            var panel = (OpenBlockInventoryPanel)source.Current.Value;
+            return new SectionStackBodyFactory(Grids(), new SectionStackSlotRegistry(plugged), source).Create(panel.BlockScreen, new BlockInventoryBodyMount(false));
         }
 
         // 本物の枠の並びの工場（枠の操作は記録係、絵は共有の 1 枚）

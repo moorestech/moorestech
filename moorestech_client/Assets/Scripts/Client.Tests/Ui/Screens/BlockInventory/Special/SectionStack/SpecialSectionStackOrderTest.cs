@@ -29,19 +29,15 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         {
             // Web と同じ値: 発電中 72.4/100・歯車 120rpm 100trq（基準 120）・電力網 100/72.4・歯車網 100/72
             // Same values as the Web: generating 72.4/100, gear 120rpm 100trq (base 120), electric 100/72.4, gear network 100/72
-            Model.Set(new SpecialBlockDetailViewModel(null, new GearToElectricDetail(GearToElectricDisplayState.Generating, 72.4, 100), GearDetail.Consumer(120, 100, 120), null, new ElectricNetworkDetail(100, 72.4, 1, 1), new GearNetworkDetail(100, 72, GearNetworkStopReasonKind.None), null, null, null));
-            var panel = OpenPanel("GearToElectricGenerator", S.GearToElectricGenerator);
-            var body = BlockInventoryTestBodies.SectionStack(Panels, S.GearToElectricGenerator, SectionFactories());
-            Mount(body.Root);
-            body.Attach(panel);
-            simulate.FrameUpdate();
+            var detail = new SpecialBlockDetailViewModel(null, new GearToElectricDetail(GearToElectricDisplayState.Generating, 72.4, 100), GearDetail.Consumer(120, 100, 120), null, new ElectricNetworkDetail(100, 72.4, 1, 1), new GearNetworkDetail(100, 72, GearNetworkStopReasonKind.None), null, null, null);
+            var root = MountStack("GearToElectricGenerator", S.GearToElectricGenerator, detail);
 
             // 表示中の要素の testid を木の順に読む（Web は data-testid を持つ要素を木の順で並べる）
             // Read the testids of shown elements in tree order (the Web lists data-testid elements in tree order)
-            var ids = body.Root.Query<VisualElement>().ToList().Where(e => IsSectionOrRowId(e.name) && IsShownInTree(e, body.Root)).Select(e => e.name).ToArray();
+            var ids = root.Query<VisualElement>().ToList().Where(e => IsSectionOrRowId(e.name) && IsShownInTree(e, root)).Select(e => e.name).ToArray();
             CollectionAssert.AreEqual(ExpectedIds, ids, "余計な区画・行・項目グリッドが出ていない");
-            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricStateGenerating).Resolve(), TextOf(body.Root, "gear-to-electric-state"));
-            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricSuppliedPower, new[] { new LocalizationTextParam("current", "72"), new LocalizationTextParam("max", "100") }).Resolve(), TextOf(body.Root, "gear-to-electric-supplied-power"));
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricStateGenerating).Resolve(), TextOf(root, "gear-to-electric-state"));
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.GearToElectricSuppliedPower, new[] { new LocalizationTextParam("current", "72"), new LocalizationTextParam("max", "100") }).Resolve(), TextOf(root, "gear-to-electric-supplied-power"));
         }
 
         // 区画（-section）・項目グリッド（-grid）と、Web が並べる区画の行の id
