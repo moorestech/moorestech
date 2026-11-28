@@ -30,8 +30,8 @@ namespace Client.Tests.Player
             _ = InputManager.Player;
             InputSystem.Update();
 
-            // 実際のThirdPersonControllerを初期化済みで用意する
-            // Prepare a real, initialized ThirdPersonController
+            // 初期化済みの実TPCを用意
+            // Prepare an initialized real TPC
             _playerRoot = new GameObject("PlayerFlyModeVerticalInputTestPlayer");
             _playerRoot.AddComponent<CharacterController>();
             _playerRoot.AddComponent<StarterAssetsInputs>();
@@ -60,7 +60,7 @@ namespace Client.Tests.Player
             _flyMode.ManualUpdate(1.0f);
             Assert.AreEqual(15f, GetFlightMotion().ResolveVerticalVelocity(0f, 15f, false));
 
-            // Space→Cに持ち替えると下降入力に変わる
+            // Space→Cで下降入力に変わる
             // Switching from Space to C turns it into a descending input
             Release(_keyboard.spaceKey);
             Press(_keyboard.cKey);

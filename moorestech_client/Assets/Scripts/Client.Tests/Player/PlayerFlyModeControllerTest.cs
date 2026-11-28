@@ -20,12 +20,11 @@ namespace Client.Tests.Player
         private GameObject _playerRoot;
         private ThirdPersonController _thirdPersonController;
         private PlayerFlyModeController _flyMode;
-        private Keyboard _keyboard;
 
         public override void Setup()
         {
             base.Setup();
-            _keyboard = InputSystem.AddDevice<Keyboard>();
+            InputSystem.AddDevice<Keyboard>();
             TestReflection.ResetInputManagerCache();
             _ = InputManager.Player;
             InputSystem.Update();
