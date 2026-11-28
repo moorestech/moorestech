@@ -1,6 +1,14 @@
 using System;
 using System.Linq;
+using Client.Game.InGame.BeltTransport;
+using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
+using Client.Tests.Ui.State.BlockInventory.Family;
+using Client.Ui.State.BlockDetail;
+using Client.Ui.State.BlockInventory.Logic.Panel;
+using Client.Ui.State.BlockInventory.Special.Source;
+using Mooresmaster.Model.BlocksModule;
+using Tests.Module.TestMod;
 using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.Screens.BlockInventory.Special.Space;
 using Client.Ui.State.BlockInventory.Logic.SlotRestriction;
@@ -23,12 +31,41 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
     /// </summary>
     public class RocketLaunchPadViewTest : SpecialScreenTestHost
     {
+        private TrackedBlockHarness _harness;
+
+        [TearDown]
+        public void TearDownTrackedBlock()
+        {
+            _harness?.Dispose();
+            _harness = null;
+        }
+
         /// <web-test file="src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx">a mismatched registry key shows pending detail without throwing</web-test>
         [Test]
         public void 発射台の詳細が無い種別では取得待ちを出し落ちない()
         {
             var view = Mount(new RocketLaunchPadBodyView(Kit(null), false));
             view.Render(NoSlots, SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork), false);
+            Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
+            Assert.IsFalse(IsShown(Find<VisualElement>(view, "rocket-launch-pad-cargo-pane")));
+        }
+
+        [Test]
+        public void チェストに発射台画面を指定すると打ち上げ機能の不足を本文に表示する()
+        {
+            var content = LoadContent();
+            _harness = new TrackedBlockHarness();
+            var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var block = _harness.CreateBlock(Vector3Int.zero, master);
+            var screen = BlockMasterElement.BlockScreenConst.RocketLaunchPad;
+            var beltCache = new BeltTransportClientCache(new BeltSegmentExitStatisticsTable());
+            var detail = SpecialBlockDetailReader.Read(block, new BlockNetworkInfoCache(), beltCache, Array.Empty<ItemId>(), BlockInventoryBodyKind.RocketLaunchPad, screen, out _);
+
+            // 画面IDに加え、何ができないかを本文で確かめる
+            // Assert the literal body message identifies the missing functionality as well as the screen ID
+            var view = Mount(new RocketLaunchPadBodyView(Kit(content), false));
+            view.Render(NoSlots, detail, false);
+            Assert.AreEqual("TestChest / RocketLaunchPad: This block cannot launch rockets.", TextOf(view, "rocket-launch-pad-loading"));
             Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
             Assert.IsFalse(IsShown(Find<VisualElement>(view, "rocket-launch-pad-cargo-pane")));
         }

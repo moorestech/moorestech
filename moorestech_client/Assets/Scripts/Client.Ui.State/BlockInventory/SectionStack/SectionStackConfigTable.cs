@@ -1,39 +1,36 @@
+using System;
 using System.Collections.Generic;
-using Mooresmaster.Model.BlocksModule;
-using T = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockTypeConst;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Ui.State.BlockInventory.SectionStack
 {
     /// <summary>
-    /// blockType → 標準の本文の設定（Web configByBlockType と genericConfig の 1 対 1 の写し）
-    /// blockType → standard-body settings (one-to-one port of Web configByBlockType and genericConfig)
+    /// ブロック画面IDに対応する標準本文の設定
+    /// Standard-body settings keyed by block screen ID
     /// </summary>
     public static class SectionStackConfigTable
     {
-        public static readonly SectionStackConfig Generic = new(Grid("generic-block-grid", false), Row("generic-block-fluids", true));
-
-        private static readonly Dictionary<string, SectionStackConfig> ByBlockType = new()
+        private static readonly Dictionary<string, SectionStackConfig> ByScreen = new()
         {
-            [T.FluidPipe] = new SectionStackConfig(SectionStackItemGrid.Hidden, new DetailsSectionStackFluid("fluid-pipe-fluid-slots")),
-            [T.Chest] = new SectionStackConfig(Grid("chest-grid", true), SectionStackFluid.Hidden),
-            [T.ElectricMachine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
-            [T.GearMachine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
-            [T.ElectricGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", false), Row("generator-fluid-slots", false)),
-            [T.FuelGearGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", true), SectionStackFluid.Hidden),
-            [T.SimpleGearGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", true), SectionStackFluid.Hidden),
-            [T.GearToElectricGenerator] = new SectionStackConfig(SectionStackItemGrid.Hidden, SectionStackFluid.Hidden),
-            [T.ElectricMiner] = new SectionStackConfig(Grid("miner-output-grid", true), SectionStackFluid.Hidden),
-            [T.GearMiner] = new SectionStackConfig(Grid("gear-miner-output-grid", true), SectionStackFluid.Hidden),
-            [T.ElectricPump] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("pump-fluid-slots", false)),
-            [T.GearPump] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("pump-fluid-slots", false)),
-            [T.CleanRoomMachine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
-            [T.CleanRoomAirFilter] = new SectionStackConfig(Grid("clean-room-filter-grid", true), SectionStackFluid.Hidden),
+            [S.Generic] = new SectionStackConfig(Grid("generic-block-grid", false), Row("generic-block-fluids", true)),
+            [S.FluidPipe] = new SectionStackConfig(SectionStackItemGrid.Hidden, new DetailsSectionStackFluid("fluid-pipe-fluid-slots")),
+            [S.Chest] = new SectionStackConfig(Grid("chest-grid", true), SectionStackFluid.Hidden),
+            [S.Machine] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("machine-fluid-slots", false)),
+            [S.ElectricGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", false), Row("generator-fluid-slots", false)),
+            [S.FuelGearGenerator] = new SectionStackConfig(Grid("generator-fuel-grid", true), SectionStackFluid.Hidden),
+            [S.GearToElectricGenerator] = new SectionStackConfig(SectionStackItemGrid.Hidden, SectionStackFluid.Hidden),
+            [S.ElectricMiner] = new SectionStackConfig(Grid("miner-output-grid", true), SectionStackFluid.Hidden),
+            [S.GearMiner] = new SectionStackConfig(Grid("gear-miner-output-grid", true), SectionStackFluid.Hidden),
+            [S.Pump] = new SectionStackConfig(SectionStackItemGrid.Hidden, Row("pump-fluid-slots", false)),
+            [S.CleanRoomAirFilter] = new SectionStackConfig(Grid("clean-room-filter-grid", true), SectionStackFluid.Hidden),
         };
 
-        public static SectionStackConfig Resolve(string blockType)
+        public static SectionStackConfig Resolve(string blockScreen)
         {
-            // silent-ok: 未登録の blockType は Web の genericConfig と同じ正規の既定表示 / 取りこぼしは BlockRegistryCoverageTest と S4-alpha の録画で見える
-            return ByBlockType.TryGetValue(blockType, out var config) ? config : Generic;
+            // 標準の本文を持つIDだけが載る。専用本文のIDで呼ぶのは配線の誤り
+            // Only IDs with the standard body are listed; calling with a dedicated-body ID is a wiring error
+            if (blockScreen != null && ByScreen.TryGetValue(blockScreen, out var config)) return config;
+            throw new InvalidOperationException($"ブロック画面ID {blockScreen} の標準の本文の設定が無い");
         }
 
         private static SectionStackItemGrid Grid(string gridId, bool renderEmpty) => new ShownSectionStackItemGrid(gridId, renderEmpty);

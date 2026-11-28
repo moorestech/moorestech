@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using Client.Tests.Ui.Components;
 using Client.Ui.Components.Slots;
 using Client.Ui.Foundation.Tooltip;
@@ -10,6 +11,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
@@ -23,7 +25,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 
         private void OpenTank(Texture2D fluidTexture, float? progress, params BlockFluidSlotState[] slots)
         {
-            var panel = new OpenBlockInventoryPanel("Tank", TankGuid, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), new SlotItem[0], BlockInventoryPanelError.None);
+            var panel = BlockInventoryTestPanels.OpenBlock("Tank", S.Generic, TankGuid, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), new SlotItem[0], BlockInventoryPanelError.None);
             _shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(panel), Factories(ContentWith(fluidTexture)));
             SetFluids(progress, slots);
         }

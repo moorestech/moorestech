@@ -9,7 +9,9 @@ using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Text;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Blocks.GearToElectric;
 using Game.Block.Blocks.SpaceElevator;
@@ -33,18 +35,41 @@ namespace Client.Ui.State.BlockInventory.Special.Source
         // unlockedPayloadItemIds are the unlocked cargo kinds, narrowing the pad and base lists
         public static SpecialBlockDetailViewModel Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, out string gearAnomaly)
         {
+            return Read(block, networkCache, beltCache, unlockedPayloadItemIds, BlockInventoryBodyKind.SectionStack, string.Empty, out gearAnomaly);
+        }
+
+        public static SpecialBlockDetailViewModel Read(BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, IReadOnlyCollection<ItemId> unlockedPayloadItemIds, BlockInventoryBodyKind body, string screenId, out string gearAnomaly)
+        {
             var param = block.BlockMasterElement.BlockParam;
+            UiText unavailable = null;
+            if (!BlockNetworkInfoCache.JoinsElectricNetwork(param))
+                MissingFeature(BlockInventoryBodyKind.ElectricPole, LocalizationKeys.Ui.BlockInventory.ScreenRequiresElectricNetwork);
             var gearDetail = ReadGear(out gearAnomaly);
             return new SpecialBlockDetailViewModel(
                 ReadElectricToGear(), ReadGearToElectric(), gearDetail, BeltThroughputReader.Read(block, beltCache),
                 SpecialNetworkReader.Electric(networkCache.Electric), SpecialNetworkReader.Gear(networkCache.GearNetwork), ReadFilterSplitter(),
-                ReadRocketLaunchPad(), ReadSpaceElevator());
+                ReadRocketLaunchPad(), ReadSpaceElevator(), unavailable, block.BlockInstanceId);
 
             #region Internal
 
+            // 詳細を作れない機能だけを、割り当てられた本文の理由として返す
+            // Report a missing feature only when it belongs to the assigned body
+            void MissingFeature(BlockInventoryBodyKind requiredBy, LocalizationKey message)
+            {
+                if (body == requiredBy)
+                {
+                    unavailable = new UiText(message)
+                        .WithLeadingParam("target", $"{block.BlockMasterElement.Name} / {screenId}");
+                }
+            }
+
             ElectricToGearDetail ReadElectricToGear()
             {
-                if (param is not ElectricToGearGeneratorBlockParam electricParam) return null;
+                if (param is not ElectricToGearGeneratorBlockParam electricParam)
+                {
+                    MissingFeature(BlockInventoryBodyKind.ElectricToGear, LocalizationKeys.Ui.BlockInventory.ScreenRequiresElectricToGear);
+                    return null;
+                }
                 var state = block.GetStateDetail<ElectricToGearGeneratorBlockStateDetail>(ElectricToGearGeneratorBlockStateDetail.BlockStateDetailKey);
                 // silent-ok: 状態の初回到着待ち。本文は空のまま（Web と同じ） / 届かないままなら録画（R-12）の回転生成機の段で気づく
                 if (state == null) return null;
@@ -94,7 +119,11 @@ namespace Client.Ui.State.BlockInventory.Special.Source
             FilterSplitterDetail ReadFilterSplitter()
             {
                 // silent-ok: 分岐器でないブロックは分岐器の詳細を持たない（キャッシュも分岐器のときだけ取りに行く。BlockNetworkInfoCache.Track） / 分岐器で出ないなら録画の分岐器の段で気づく
-                if (param is not FilterSplitterBlockParam splitterParam) return null;
+                if (param is not FilterSplitterBlockParam splitterParam)
+                {
+                    MissingFeature(BlockInventoryBodyKind.FilterSplitter, LocalizationKeys.Ui.BlockInventory.ScreenRequiresItemFiltering);
+                    return null;
+                }
 
                 // 出口の側は開いた分岐器のマスタの接続で決まる（発射台の枠の並びをマスタから組むのと同じ）
                 // Exit sides come from the open splitter's master connectors (same as building the launch pad slot layout from the master)
@@ -103,7 +132,11 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
             RocketLaunchPadDetail ReadRocketLaunchPad()
             {
-                if (param is not RocketLaunchPadBlockParam rocketParam) return null;
+                if (param is not RocketLaunchPadBlockParam rocketParam)
+                {
+                    MissingFeature(BlockInventoryBodyKind.RocketLaunchPad, LocalizationKeys.Ui.BlockInventory.ScreenRequiresRocketLaunch);
+                    return null;
+                }
                 var state = block.GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
                 // silent-ok: 状態の初回到着待ちは本文が「状態の取得を待っています」を出す / 録画（R-12）の発射台の段で気づく
                 if (state == null) return null;
@@ -126,7 +159,11 @@ namespace Client.Ui.State.BlockInventory.Special.Source
 
             SpaceElevatorDetail ReadSpaceElevator()
             {
-                if (param is not SpaceElevatorBaseBlockParam elevatorParam) return null;
+                if (param is not SpaceElevatorBaseBlockParam elevatorParam)
+                {
+                    MissingFeature(BlockInventoryBodyKind.SpaceElevator, LocalizationKeys.Ui.BlockInventory.ScreenRequiresSpaceElevator);
+                    return null;
+                }
                 var state = block.GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
                 // silent-ok: 状態の初回到着待ちは区画が取得待ちを出す / 録画（R-12）の宇宙エレベーターの段で気づく
                 if (state == null) return null;

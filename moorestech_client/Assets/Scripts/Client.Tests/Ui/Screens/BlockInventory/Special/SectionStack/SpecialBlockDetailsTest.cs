@@ -9,6 +9,7 @@ using Client.Ui.State.BlockInventory.Special.Details;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
 {
@@ -31,7 +32,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         [Test]
         public void 歯車機械の標準の本文に歯車の区画が出る()
         {
-            var root = MountStack(BlockMasterElement.BlockTypeConst.GearMachine, SpecialDetailSamples.GearMachine);
+            var root = MountStack(BlockMasterElement.BlockTypeConst.GearMachine, S.Machine, SpecialDetailSamples.GearMachine);
             Assert.IsTrue(IsShown(Find<VisualElement>(root, "gear-section")));
         }
 
@@ -47,7 +48,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         [Test]
         public void 歯車機械は消費トルクと基準付きRPMを不足色なしで出し歯車網の区画を持つ()
         {
-            var root = MountStack(BlockMasterElement.BlockTypeConst.GearMachine, SpecialDetailSamples.GearMachine);
+            var root = MountStack(BlockMasterElement.BlockTypeConst.GearMachine, S.Machine, SpecialDetailSamples.GearMachine);
             var rows = GearRowDisplay.From(SpecialDetailSamples.GearMachineGear);
             Assert.AreEqual(Resolved(rows.Torque), TextOf(root, "gear-torque"));
             Assert.AreEqual(Resolved(rows.Rpm), TextOf(root, "gear-rpm"));
@@ -61,7 +62,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         [Test]
         public void 歯車発電機は発生トルクと現在RPMだけを不足色なしで出す()
         {
-            var root = MountStack(BlockMasterElement.BlockTypeConst.SimpleGearGenerator, SpecialDetailSamples.GearGenerator);
+            var root = MountStack(BlockMasterElement.BlockTypeConst.SimpleGearGenerator, S.FuelGearGenerator, SpecialDetailSamples.GearGenerator);
             StringAssert.Contains("5.0", TextOf(root, "gear-torque"));
             StringAssert.Contains("20.0", TextOf(root, "gear-rpm"));
             StringAssert.DoesNotContain("/", TextOf(root, "gear-rpm"));
@@ -72,24 +73,24 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         [Test]
         public void 歯車ポンプは歯車の区画を出し電力網の区画を出さない()
         {
-            var root = MountStack(BlockMasterElement.BlockTypeConst.GearPump, SpecialDetailSamples.GearMachine);
+            var root = MountStack(BlockMasterElement.BlockTypeConst.GearPump, S.Pump, SpecialDetailSamples.GearMachine);
             Assert.IsTrue(IsShown(Find<VisualElement>(root, "gear-section")));
         }
 
         /// <web-test file="e2e/tests/regression/sectionStack.spec.ts">${entry.type}は対応セクションだけを表示する</web-test>
-        [TestCase("GearMachine", true)]
-        [TestCase("GearMiner", true)]
-        [TestCase("GearPump", true)]
-        [TestCase("SimpleGearGenerator", true)]
-        [TestCase("ElectricMachine", false)]
-        [TestCase("ElectricMiner", false)]
-        [TestCase("ElectricGenerator", false)]
-        [TestCase("ElectricPump", false)]
-        public void 歯車駆動は歯車と歯車網の区画だけ電力駆動は電力網の区画だけを特殊族の区画として出す(string blockType, bool gearDriven)
+        [TestCase("GearMachine", S.Machine, true)]
+        [TestCase("GearMiner", S.GearMiner, true)]
+        [TestCase("GearPump", S.Pump, true)]
+        [TestCase("SimpleGearGenerator", S.FuelGearGenerator, true)]
+        [TestCase("ElectricMachine", S.Machine, false)]
+        [TestCase("ElectricMiner", S.ElectricMiner, false)]
+        [TestCase("ElectricGenerator", S.ElectricGenerator, false)]
+        [TestCase("ElectricPump", S.Pump, false)]
+        public void 歯車駆動は歯車と歯車網の区画だけ電力駆動は電力網の区画だけを特殊族の区画として出す(string blockType, string blockScreen, bool gearDriven)
         {
             // Web の cases の shown のうち特殊族の区画の id だけを見る（他の id は alpha・S4-machine が同じタグで見る）
             // Check only the special section ids among the Web cases' shown list (alpha and S4-machine check the rest under the same tag)
-            var root = MountStack(blockType, gearDriven ? SpecialDetailSamples.GearMachine : SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
+            var root = MountStack(blockType, blockScreen, gearDriven ? SpecialDetailSamples.GearMachine : SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
             var expected = gearDriven ? new[] { "gear-section", "gear-network-section" } : new[] { "electric-network-section" };
             var shownSpecial = SpecialSectionIds.Where(id => root.Q(id) is { } section && IsShown(section)).ToArray();
             CollectionAssert.AreEqual(expected, shownSpecial);
@@ -101,21 +102,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         {
             // 種別の表で専用の本文に振られ、標準の本文の区画を一つも作らない
             // The registry routes it to the dedicated body, which creates none of the standard sections
-            Assert.AreEqual(BlockInventoryBodyKind.FilterSplitter, BlockComponentRegistry.Resolve(BlockMasterElement.BlockTypeConst.FilterSplitter).Body);
+            Assert.AreEqual(BlockInventoryBodyKind.FilterSplitter, BlockComponentRegistry.Resolve(S.FilterSplitter).Body);
             var root = MountFilterSplitter();
             Assert.IsTrue(IsShown(Find<VisualElement>(root, "filter-splitter")));
             CollectionAssert.IsEmpty(ReferenceSectionIds.Where(id => id != "filter-splitter" && root.Q(id) != null).ToArray());
-        }
-
-        private VisualElement MountStack(string blockType, SpecialBlockDetailViewModel detail)
-        {
-            Model.Set(detail);
-            var panel = OpenPanel(blockType);
-            var body = BlockInventoryTestBodies.SectionStack(Panels, blockType, SectionFactories());
-            Mount(body.Root);
-            body.Attach(panel);
-            simulate.FrameUpdate();
-            return body.Root;
         }
 
         private VisualElement MountFilterSplitter()
@@ -126,7 +116,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             var kit = Kit(LoadContent());
             var bodies = new IBlockInventoryBodyFactory[] { new FilterSplitterBodyFactory(kit, Presenters), new ElectricToGearBodyFactory(kit, Presenters), new ElectricPoleBodyFactory(Presenters), new SpaceElevatorBodyFactory(kit, Presenters), new RocketLaunchPadBodyFactory(kit, Presenters) };
             var shell = BlockInventoryTestShell.Create(this, Panels.State, bodies.Cast<object>().Concat(SectionFactories()).ToArray());
-            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             simulate.FrameUpdate();
             return shell.View;
         }

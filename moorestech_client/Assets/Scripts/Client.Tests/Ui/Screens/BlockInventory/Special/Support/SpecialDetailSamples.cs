@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using System;
 using Client.Tests.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.BlockInventory.Logic.Belt;
@@ -39,18 +40,18 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         public static GearDetail GearMachineGear => GearDetail.Consumer(12.5, 3, 20);
         public static GearNetworkDetail GearMachineNetwork => new(100, 60, GearNetworkStopReasonKind.None);
-        public static SpecialBlockDetailViewModel GearMachine => new(null, null, GearMachineGear, null, null, GearMachineNetwork, null, null, null);
-        public static SpecialBlockDetailViewModel GearGenerator => new(null, null, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(100, 60, GearNetworkStopReasonKind.None), null, null, null);
+        public static SpecialBlockDetailViewModel GearMachine => new(null, null, GearMachineGear, null, null, GearMachineNetwork, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel GearGenerator => new(null, null, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(100, 60, GearNetworkStopReasonKind.None), null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
         public static GearToElectricDetail GearToElectricGenerating => new(GearToElectricDisplayState.Generating, 120, 200);
 
-        public static SpecialBlockDetailViewModel Only(ElectricToGearDetail detail) => new(detail, null, null, null, null, null, null, null, null);
-        public static SpecialBlockDetailViewModel Only(GearToElectricDetail detail) => new(null, detail, null, null, null, null, null, null, null);
-        public static SpecialBlockDetailViewModel Only(GearDetail detail) => new(null, null, detail, null, null, null, null, null, null);
-        public static SpecialBlockDetailViewModel Only(BeltThroughputDetail detail) => new(null, null, null, detail, null, null, null, null, null);
-        public static SpecialBlockDetailViewModel Only(ElectricNetworkDetail detail) => new(null, null, null, null, detail, null, null, null, null);
-        public static SpecialBlockDetailViewModel Only(GearNetworkDetail detail) => new(null, null, null, null, null, detail, null, null, null);
-        public static SpecialBlockDetailViewModel Only(FilterSplitterDetail detail) => new(null, null, null, null, null, null, detail, null, null);
-        public static SpecialBlockDetailViewModel Only(RocketLaunchPadDetail detail) => new(null, null, null, null, null, null, null, detail, null);
-        public static SpecialBlockDetailViewModel ElevatorWithNetwork(SpaceElevatorDetail detail) => new(null, null, null, null, new ElectricNetworkDetail(4000, 2000, 1, 1), null, null, null, detail);
+        public static SpecialBlockDetailViewModel Only(ElectricToGearDetail detail) => new(detail, null, null, null, null, null, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(GearToElectricDetail detail) => new(null, detail, null, null, null, null, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(GearDetail detail) => new(null, null, detail, null, null, null, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(BeltThroughputDetail detail) => new(null, null, null, detail, null, null, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(ElectricNetworkDetail detail) => new(null, null, null, null, detail, null, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(GearNetworkDetail detail) => new(null, null, null, null, null, detail, null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(FilterSplitterDetail detail) => new(null, null, null, null, null, null, detail, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel Only(RocketLaunchPadDetail detail) => new(null, null, null, null, null, null, null, detail, null, null, BlockInventoryTestPanels.SampleInstanceId);
+        public static SpecialBlockDetailViewModel ElevatorWithNetwork(SpaceElevatorDetail detail) => new(null, null, null, null, new ElectricNetworkDetail(4000, 2000, 1, 1), null, null, null, detail, null, BlockInventoryTestPanels.SampleInstanceId);
     }
 }

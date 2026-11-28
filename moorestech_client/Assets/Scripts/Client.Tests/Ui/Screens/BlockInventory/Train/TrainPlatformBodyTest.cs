@@ -15,6 +15,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
@@ -27,7 +28,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         [SetUp]
         public void MountBody()
         {
-            var panel = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainItemPlatform);
+            var panel = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainItemPlatform, S.TrainPlatform);
             _bodies = new TrainTestBodies(Toaster, panel);
             _body = _bodies.CreatePlatformBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
             Mount(_body.Root);
@@ -81,10 +82,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
         {
             // Web と同じく液体 PF の本文で、水 250 → 700 → 空
             // As in Web, a fluid platform body going water 250, then 700, then empty
-            var bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.OfType(BlockTypeConst.TrainFluidPlatform));
+            var bodies = new TrainTestBodies(Toaster, BlockInventoryTestPanels.OfType(BlockTypeConst.TrainFluidPlatform, S.TrainPlatform));
             var body = bodies.CreatePlatformBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
             Mount(body.Root);
-            body.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(BlockTypeConst.TrainFluidPlatform));
+            body.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(BlockTypeConst.TrainFluidPlatform, S.TrainPlatform));
             var water = MasterHolder.FluidMaster.GetFluidId(TrainTestText.WaterFluidGuid);
             bodies.Sources.SetPlatform(TrainTestPlatforms.FluidPlatformBody(new[] { BlockFluidSlotState.Filled(water, 250, 1000) }, TrainPlatformTransferMode.UnloadToPlatform));
             simulate.FrameUpdate();

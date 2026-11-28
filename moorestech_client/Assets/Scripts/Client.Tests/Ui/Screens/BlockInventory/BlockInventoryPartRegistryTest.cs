@@ -11,6 +11,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory
 {
@@ -24,7 +25,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         public void SectionStackのKindは標準の本文を返す()
         {
             var registry = NewRegistry(new IBlockInventoryBodyFactory[0]);
-            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("Chest");
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("Chest", S.Chest);
             Assert.IsInstanceOf<SectionStackBody>(registry.CreateBody(panel, new BlockInventoryBodyMount(false)));
         }
 
@@ -33,7 +34,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         {
             var factory = new FakeBodyFactory(BlockInventoryBodyKind.FilterSplitter);
             var registry = NewRegistry(new IBlockInventoryBodyFactory[] { factory });
-            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("FilterSplitter");
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("Chest", S.FilterSplitter);
             var part = registry.CreateBody(panel, new BlockInventoryBodyMount(true));
             Assert.AreSame(factory.Created, part);
             Assert.IsTrue(factory.LastMount.FillsPanelHeight);
@@ -43,7 +44,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         public void 未登録の本文Kindは標準の本文へ逃げて警告を1回だけ出す()
         {
             var registry = NewRegistry(new IBlockInventoryBodyFactory[0]);
-            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("FilterSplitter");
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("FilterSplitter", S.FilterSplitter);
             LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("FilterSplitter"));
             Assert.IsInstanceOf<SectionStackBody>(registry.CreateBody(panel, new BlockInventoryBodyMount(false)));
             Assert.IsInstanceOf<SectionStackBody>(registry.CreateBody(panel, new BlockInventoryBodyMount(false)));

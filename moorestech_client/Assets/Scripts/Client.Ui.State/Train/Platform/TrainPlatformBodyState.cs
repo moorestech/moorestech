@@ -1,3 +1,4 @@
+using Client.Ui.State.Text;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.Common;
@@ -32,12 +33,15 @@ namespace Client.Ui.State.Train.Platform
         // Present only when a transfer state exists
         public SectionContent<TrainPlatformTransferMode> Mode { get; }
 
-        public OpenTrainPlatformBody(SectionContent<string> stationName, SectionContent<IReadOnlyList<SlotItem>> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids, SectionContent<TrainPlatformTransferMode> mode)
+        public UiText Unavailable { get; }
+
+        public OpenTrainPlatformBody(SectionContent<string> stationName, SectionContent<IReadOnlyList<SlotItem>> itemSlots, IReadOnlyList<BlockFluidSlotState> fluids, SectionContent<TrainPlatformTransferMode> mode, UiText unavailable)
         {
             StationName = stationName;
             ItemSlots = itemSlots;
             Fluids = fluids;
             Mode = mode;
+            Unavailable = unavailable;
         }
     }
 }

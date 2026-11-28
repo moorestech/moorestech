@@ -26,6 +26,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         private const string MaterialGridTestId = "rocket-launch-pad-material-slots";
         private const string PayloadGridTestId = "rocket-launch-pad-payload-slots";
 
+        private static readonly UiText LoadingText = new(LocalizationKeys.Ui.BlockInventory.DetailLoading);
         private readonly LocalizedLabel _loading = SpecialViewParts.Label("rocket-launch-pad-loading", UiTypographyClass.TextSm, UiTypographyClass.TextMuted);
         private readonly UiStack _view = new(UiGap.Sm) { name = "rocket-launch-pad-view" };
         private readonly BlockItemGrid _material;
@@ -45,7 +46,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             AddToClassList("orbital-cargo-host");
             pickingMode = PickingMode.Ignore;
             _content = kit.Presentation;
-            _loading.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading));
+            _loading.SetText(LoadingText);
             _material = kit.Grids.Create(MaterialGridTestId);
             _payload = kit.Grids.Create(PayloadGridTestId);
             _output = kit.Grids.Create("rocket-launch-pad-output-slots");
@@ -65,6 +66,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail, bool showsSelection)
         {
             var present = detail.TryGetRocketLaunchPad(out var rocket);
+            _loading.SetText(detail.Unavailable ?? LoadingText);
             UiDisplay.SetShown(_loading, !present);
             UiDisplay.SetShown(_pane, present);
             // silent-ok: 詳細の未着は「状態の取得を待っています」を出したまま / 録画（R-12）の発射台の段で気づく

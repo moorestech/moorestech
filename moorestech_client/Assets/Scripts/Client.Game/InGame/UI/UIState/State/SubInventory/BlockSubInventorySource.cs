@@ -1,5 +1,4 @@
-using System;
-using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.Inventory;
@@ -39,28 +38,18 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             return reachTarget != null;
         }
 
-        // 表示名を運ばず、表示側が辞書解決できる識別子を渡す。撤去済みなら引けないことを戻り値で表に出す
-        // Hands over identity instead of a source name, and reports through the return value that a removed block has none
-        public bool TryGetBlockIdentity(out Guid blockGuid, out string blockTypeName)
+        // 開いた座標の現物から、差し替え後の画面指定も読み取る
+        // Read the screen assignment from the current view at the opened position
+        public bool TryGetBlockMaster(out BlockMasterElement master)
         {
-            return TryGetBlockIdentity(out blockGuid, out blockTypeName, out _);
-        }
-
-        public bool TryGetBlockIdentity(out Guid blockGuid, out string blockTypeName, out BlockInstanceId instanceId)
-        {
-            if (!TryResolveBlockGameObject(out var blockGameObject))
+            if (TryResolveBlockGameObject(out var blockGameObject))
             {
-                instanceId = default;
-                blockGuid = Guid.Empty;
-                blockTypeName = null;
-                return false;
+                master = blockGameObject.BlockMasterElement;
+                return true;
             }
 
-            instanceId = blockGameObject.BlockInstanceId;
-            var masterElement = blockGameObject.BlockMasterElement;
-            blockGuid = masterElement.BlockGuid;
-            blockTypeName = masterElement.BlockType;
-            return true;
+            master = null;
+            return false;
         }
 
         // 「開いた位置の今の表示は何か」を答える唯一の口。撤去済みの墓標はfake-null比較で落とす

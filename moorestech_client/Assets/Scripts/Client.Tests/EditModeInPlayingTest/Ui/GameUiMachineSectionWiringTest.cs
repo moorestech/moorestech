@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -12,13 +14,16 @@ using Client.Ui.Screens.BlockInventory.Context;
 using Client.Ui.Screens.BlockInventory.Family;
 using Client.Ui.Screens.BlockInventory.Fluid;
 using Client.Ui.Screens.BlockInventory.Machine;
+using Client.Ui.Screens.BlockInventory.Registry;
 using Client.Ui.Screens.BlockInventory.SectionStack;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Machine;
 using Client.Ui.State.BlockInventory.Machine.Selection;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.SlotRestriction;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -124,14 +129,28 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // 工場 7 本と寄与 2 本が引ける
             // 7 factories, 2 contributions and the command resolve
             var resolver = ClientDIContext.DIContainer.DIContainerResolver;
-            var factoryTypes = resolver.Resolve<System.Collections.Generic.IReadOnlyList<ISectionStackSectionFactory>>().Select(f => f.GetType()).ToArray();
+            var factoryTypes = resolver.Resolve<IReadOnlyList<ISectionStackSectionFactory>>().Select(f => f.GetType()).ToArray();
             foreach (var type in new[] { typeof(ContextSectionFactory), typeof(MachineSectionFactory), typeof(MinerSectionFactory), typeof(PumpSectionFactory), typeof(GeneratorSectionFactory), typeof(FluidDetailsSectionFactory), typeof(FluidRowSectionFactory) })
             {
                 Assert.AreEqual(1, factoryTypes.Count(t => t == type), $"{type.Name} の登録が 1 本でない");
             }
-            Assert.AreEqual(1, resolver.Resolve<System.Collections.Generic.IReadOnlyList<IBlockInventoryLargePanelRule>>().Count(r => r is RecipeMachineLargePanelRule), "大型の寄与の登録が 1 本でない");
-            Assert.AreEqual(1, resolver.Resolve<System.Collections.Generic.IReadOnlyList<IBlockSlotRestrictionContributor>>().Count(c => c is MachineSlotRestrictionContributor), "枠の制限の寄与の登録が 1 本でない");
+            Assert.AreEqual(1, resolver.Resolve<IReadOnlyList<IBlockInventoryLargePanelRule>>().Count(r => r is RecipeMachineLargePanelRule), "大型の寄与の登録が 1 本でない");
+            Assert.AreEqual(1, resolver.Resolve<IReadOnlyList<IBlockSlotRestrictionContributor>>().Count(c => c is MachineSlotRestrictionContributor), "枠の制限の寄与の登録が 1 本でない");
             Assert.IsInstanceOf<MachineRecipeSelectCommand>(resolver.Resolve<IMachineRecipeSelectCommand>());
+
+            // 本番DIで専用本文と題操作を照合
+            // Check dedicated bodies and title actions against production DI.
+            var bodies = resolver.Resolve<IReadOnlyList<IBlockInventoryBodyFactory>>();
+            var actions = resolver.Resolve<IReadOnlyList<IBlockInventoryTitleActionFactory>>();
+            var screenFields = typeof(BlockMasterElement.BlockScreenConst).GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach (var screen in screenFields.Select(field => (string)field.GetRawConstantValue()).Where(id => id != BlockMasterElement.BlockScreenConst.None))
+            {
+                var components = BlockComponentRegistry.Resolve(screen);
+                if (components.Body != BlockInventoryBodyKind.SectionStack)
+                    Assert.AreEqual(1, bodies.Count(body => body.Kind == components.Body), $"{screen} の専用本文 {components.Body}");
+                if (components.TitleAction != BlockInventoryTitleActionKind.None)
+                    Assert.AreEqual(1, actions.Count(action => action.Kind == components.TitleAction), $"{screen} の題の操作 {components.TitleAction}");
+            }
         }
 
         // UIStateControl に文脈付き遷移の入口は無いので、先に SubInventory へ入れて（文脈なしのエラーログが 1 回出る）実プレイと同じ文脈で開き直す（BlockDetailStateProbe と同じ手順）

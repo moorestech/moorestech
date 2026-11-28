@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Model.BlocksModule;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Ui.State.Train.Platform.Edit
@@ -24,8 +25,8 @@ namespace Client.Ui.State.Train.Platform.Edit
 
         public async UniTask<UiCommandResult> SetStationName(string name)
         {
-            if (!TryResolveOpenBlock(out var source, out var blockType)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
-            if (blockType != BlockTypeConst.TrainStation) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
+            if (!TryResolveOpenBlock(out var source, out var master)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
+            if (master.BlockType != BlockTypeConst.TrainStation) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
 
             // 応答はネットワーク由来なので null を拒否として扱う
             // The response comes from the network, so null counts as a refusal
@@ -38,19 +39,20 @@ namespace Client.Ui.State.Train.Platform.Edit
         {
             // 本文の種類はパネルと同じ登録表で判定する（blockType を並べない）
             // The body kind is judged by the same registry as the panel (no blockType list)
-            if (!TryResolveOpenBlock(out var source, out var blockType)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
-            if (BlockComponentRegistry.Resolve(blockType).Body != BlockInventoryBodyKind.TrainPlatform) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
+            if (!TryResolveOpenBlock(out var source, out var master)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
+            if (!BlockComponentRegistry.TryResolveOpenable(master, out var components)) return UiCommandRejected.Of(UiCommandRejectReason.BlockNotOpen);
+            if (components.Body != BlockInventoryBodyKind.TrainPlatform) return UiCommandRejected.Of(UiCommandRejectReason.BlockTypeMismatch);
 
             var response = await ClientContext.VanillaApi.Response.Train.SetTrainPlatformTransferMode(source.BlockPosition, TrainPlatformTransferModeConversion.ToServer(mode), CancellationToken.None);
             if (response == null || !response.Success) return UiCommandRejected.WithDiagnostic(UiCommandRejectReason.TrainPlatformModeFailed, response == null ? "no response" : response.FailureReason.ToString());
             return UiCommandAccepted.Instance;
         }
 
-        private bool TryResolveOpenBlock(out BlockSubInventorySource source, out string blockType)
+        private bool TryResolveOpenBlock(out BlockSubInventorySource source, out BlockMasterElement master)
         {
-            blockType = null;
+            master = null;
             source = _subInventoryState.CurrentSubInventorySource as BlockSubInventorySource;
-            return source != null && source.TryGetBlockIdentity(out _, out blockType);
+            return source != null && source.TryGetBlockMaster(out master);
         }
     }
 }

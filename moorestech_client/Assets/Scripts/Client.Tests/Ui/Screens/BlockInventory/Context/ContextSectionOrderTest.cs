@@ -20,6 +20,7 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
@@ -43,9 +44,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
 
         private IBlockInventoryPart MountBody()
         {
-            var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter");
+            var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", S.CleanRoomAirFilter);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, "CleanRoomAirFilter", new ContextSectionFactory(Content, _context, _machine, NewOsCursor(), new RecordingCleanRoomYieldImprovementCommands()));
+            var body = BlockInventoryTestBodies.SectionStack(source, new ContextSectionFactory(Content, _context, _machine, NewOsCursor(), new RecordingCleanRoomYieldImprovementCommands()));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();
@@ -120,12 +121,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
             // On machines the context leads the body box
             _machine.Set(SectionContent<MachineSectionViewModel>.Present(MachineScreenViewModels.WithState(MachineProcessDisplayState.Processing, 1, 1, false, false)));
             _context.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Absent, SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Present(new MachineInputStall(MachineInputStallReasonKind.MixedLevel, PlateId))));
-            var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
+            var panel = BlockInventoryTestPanels.OfType("ElectricMachine", S.Machine);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var osCursor = NewOsCursor();
             var improvementCommands = new RecordingCleanRoomYieldImprovementCommands();
             var machineFactory = new MachineSectionFactory(_machine, _context, new RecordingBlockSlotCommands(), Content, new RecordingRecipeSelectCommand(), osCursor, improvementCommands);
-            var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", new ContextSectionFactory(Content, _context, _machine, osCursor, improvementCommands), machineFactory);
+            var body = BlockInventoryTestBodies.SectionStack(source, new ContextSectionFactory(Content, _context, _machine, osCursor, improvementCommands), machineFactory);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Text;
 using System.Collections.Generic;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
@@ -13,6 +14,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
     /// </summary>
     public sealed class FilterSplitterBodyView : VisualElement, ISpecialSectionRenderer<SpecialBlockDetailViewModel>
     {
+        private readonly LocalizedLabel _unavailable = SpecialViewParts.Label("block-screen-unavailable", UiTypographyClass.TextMd, "block-inventory__error");
         private readonly SpecialViewKit _kit;
         private readonly UiStack _stack = new(UiGap.Sm);
         private readonly List<FilterDirectionView> _directions = new();
@@ -22,12 +24,14 @@ namespace Client.Ui.Screens.BlockInventory.Special.FilterSplitter
             _kit = kit;
             name = "filter-splitter";
             AddToClassList("filter-splitter");
+            Add(_unavailable);
             Add(_stack);
         }
 
         public void Render(IReadOnlyList<SlotItem> itemSlots, SpecialBlockDetailViewModel detail)
         {
             var present = detail.TryGetFilterSplitter(out var filter);
+            SpecialViewParts.RenderUnavailable(_unavailable, detail);
             UiDisplay.SetShown(_stack, present);
             // silent-ok: 詳細の未着は本文を空のまま（Web と同じ） / 届かないままなら録画（R-12）の振り分け機の段で気づく
             if (!present) return;

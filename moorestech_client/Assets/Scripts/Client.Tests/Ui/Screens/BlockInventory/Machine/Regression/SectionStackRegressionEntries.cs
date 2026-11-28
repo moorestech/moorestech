@@ -11,6 +11,7 @@ using Client.Ui.State.Items;
 using Client.Ui.State.Recipe.Data;
 using Core.Master;
 using T = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockTypeConst;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
 {
@@ -21,15 +22,17 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
     public sealed class SectionStackRegressionEntry
     {
         public string BlockType { get; private set; }
+        public string BlockScreen { get; private set; }
         public SectionContent<MachineSectionViewModel> Machine { get; private set; } = SectionContent<MachineSectionViewModel>.Absent;
         public SectionContent<MinerDetail> Miner { get; private set; } = SectionContent<MinerDetail>.Absent;
         public SectionContent<PumpDetail> Pump { get; private set; } = SectionContent<PumpDetail>.Absent;
         public SectionContent<GeneratorDetail> Generator { get; private set; } = SectionContent<GeneratorDetail>.Absent;
         public BlockFluidSlotsViewModel Fluids { get; private set; }
 
-        public SectionStackRegressionEntry(string blockType, BlockFluidSlotsViewModel fluids)
+        public SectionStackRegressionEntry(string blockType, string blockScreen, BlockFluidSlotsViewModel fluids)
         {
             BlockType = blockType;
+            BlockScreen = blockScreen;
             Fluids = fluids;
         }
 
@@ -72,40 +75,46 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
 
         public static SectionStackRegressionEntry For(string entryType)
         {
-            // blockType は fixture の値そのまま（tank・UnregisteredBlock は汎用の設定に落ちる）
-            // blockType is the fixture's own value (tank and UnregisteredBlock fall to the generic setting)
+            // 画面指定後も元のブロック型を保持
+            // Keep each fixture’s original block type when assigning its screen.
             return entryType switch
             {
-                "chest" => new SectionStackRegressionEntry(T.Chest, NoFluids()),
-                "tank" => new SectionStackRegressionEntry("tank", FluidsOf(true, 0.5f, BlockFluidSlotState.Filled(Water, 500, 1000), BlockFluidSlotState.Empty(1000))),
+                "chest" => new SectionStackRegressionEntry(T.Chest, S.Chest, NoFluids()),
+                "tank" => new SectionStackRegressionEntry("tank", S.Generic, FluidsOf(true, 0.5f, BlockFluidSlotState.Filled(Water, 500, 1000), BlockFluidSlotState.Empty(1000))),
                 "machine" => MachineEntry(T.ElectricMachine, new MachineSlotLayout(2, 1, 1), false, BlockFluidSlotState.Empty(100), BlockFluidSlotState.Empty(100)),
                 "gearMachine" => MachineEntry(T.GearMachine, new MachineSlotLayout(1, 1, 0), true),
-                "miner" => new SectionStackRegressionEntry(T.ElectricMiner, NoFluids()).SetMiner(new MinerDetail(50, 100, 0, false, new[] { new MinerMiningItem(Item, 12) })),
-                "gearMiner" => new SectionStackRegressionEntry(T.GearMiner, NoFluids()).SetMiner(new MinerDetail(20, 40, 0, true, new[] { new MinerMiningItem(Item, 6) })),
-                "generator" => new SectionStackRegressionEntry(T.ElectricGenerator, NoFluids()).SetGenerator(new GeneratorDetail(12.5, 30, 0.75)),
-                "generic" => new SectionStackRegressionEntry("UnregisteredBlock", FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 10, 20))),
-                "filterSplitter" => new SectionStackRegressionEntry(T.FilterSplitter, NoFluids()),
-                "pump" => new SectionStackRegressionEntry(T.ElectricPump, FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 120, 200)))
+                "miner" => new SectionStackRegressionEntry(T.ElectricMiner, S.ElectricMiner, NoFluids()).SetMiner(new MinerDetail(50, 100, 0, false, new[] { new MinerMiningItem(Item, 12) })),
+                "gearMiner" => new SectionStackRegressionEntry(T.GearMiner, S.GearMiner, NoFluids()).SetMiner(new MinerDetail(20, 40, 0, true, new[] { new MinerMiningItem(Item, 6) })),
+                "generator" => new SectionStackRegressionEntry(T.ElectricGenerator, S.ElectricGenerator, NoFluids()).SetGenerator(new GeneratorDetail(12.5, 30, 0.75)),
+                "generic" => new SectionStackRegressionEntry("UnregisteredBlock", S.Generic, FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 10, 20))),
+                // 専用本文は SpecialBlockDetailsTest で検査する
+                // SpecialBlockDetailsTest covers the dedicated splitter body
+                "filterSplitter" => new SectionStackRegressionEntry(T.FilterSplitter, S.Generic, NoFluids()),
+                "pump" => new SectionStackRegressionEntry(T.ElectricPump, S.Pump, FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 120, 200)))
                     .SetPump(new ElectricPumpDetail(MachineProcessDisplayState.Processing, 10, 10, new[] { new PumpingFluid(Water, 3600) })),
-                "gearPump" => new SectionStackRegressionEntry(T.GearPump, FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 30, 100)))
+                "gearPump" => new SectionStackRegressionEntry(T.GearPump, S.Pump, FluidsOf(false, 0, BlockFluidSlotState.Filled(Water, 30, 100)))
                     .SetPump(new GearPumpDetail(new[] { new PumpingFluid(Water, 120) })),
                 // 風車は generator を持たない
                 // The windmill has no generator detail; the Web fixture carries only gear and gearNetwork
-                "gearGenerator" => new SectionStackRegressionEntry(T.SimpleGearGenerator, NoFluids()),
+                "gearGenerator" => new SectionStackRegressionEntry(T.SimpleGearGenerator, S.FuelGearGenerator, NoFluids()),
                 _ => throw new ArgumentOutOfRangeException(nameof(entryType), entryType, null),
             };
-        }
 
-        // 機械の fixture。加工中で入力先頭に 1 品
-        // Machine fixture: processing, one item in the first input, fluids on the body
-        private static SectionStackRegressionEntry MachineEntry(string blockType, MachineSlotLayout layout, bool gearDriven, params BlockFluidSlotState[] fluids)
-        {
-            var slots = new SlotItem[layout.Input + layout.Output + layout.Module];
-            for (var i = 0; i < slots.Length; i++) slots[i] = new SlotItem(new ItemId(0), 0);
-            slots[0] = new SlotItem(Item, 5);
-            var detail = new MachineDetail(MachineRecipeSelection.Unselected, MachineProcessDisplayState.Processing, 80, 100, 0.42f, false, gearDriven, 15, Array.Empty<RecipeOutputItem>(), new MachineBindingDetail(layout, Array.Empty<MachineItemSlotBinding>(), Array.Empty<MachineTankBinding>()));
-            var machine = MachineScreenViewModels.Build(detail, slots, MachineRecipeCatalog.Empty, 1, fluids);
-            return new SectionStackRegressionEntry(blockType, FluidsOf(true, 0.42f, fluids)).SetMachine(machine);
+            #region Internal
+
+            // 機械の fixture。加工中で入力先頭に 1 品
+            // Machine fixture: processing, one item in the first input, fluids on the body
+            static SectionStackRegressionEntry MachineEntry(string blockType, MachineSlotLayout layout, bool gearDriven, params BlockFluidSlotState[] fluids)
+            {
+                var slots = new SlotItem[layout.Input + layout.Output + layout.Module];
+                for (var i = 0; i < slots.Length; i++) slots[i] = new SlotItem(new ItemId(0), 0);
+                slots[0] = new SlotItem(Item, 5);
+                var detail = new MachineDetail(MachineRecipeSelection.Unselected, MachineProcessDisplayState.Processing, 80, 100, 0.42f, false, gearDriven, 15, Array.Empty<RecipeOutputItem>(), new MachineBindingDetail(layout, Array.Empty<MachineItemSlotBinding>(), Array.Empty<MachineTankBinding>()));
+                var machine = MachineScreenViewModels.Build(detail, slots, MachineRecipeCatalog.Empty, 1, fluids);
+                return new SectionStackRegressionEntry(blockType, S.Machine, FluidsOf(true, 0.42f, fluids)).SetMachine(machine);
+            }
+
+            #endregion
         }
 
         private static BlockFluidSlotsViewModel NoFluids()

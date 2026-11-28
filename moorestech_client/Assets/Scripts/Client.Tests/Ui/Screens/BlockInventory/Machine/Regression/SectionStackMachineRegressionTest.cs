@@ -68,51 +68,55 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
         public void 対応する区画だけを出す(string entryType, string[] expectedOwnIds)
         {
             var entry = SectionStackRegressionEntries.For(entryType);
-            var root = MountBody(entry);
+            var root = MountBody();
 
             // 隠れていない id を Web の並びで
             // Visible lane ids in Web order
             var shown = OwnSectionIds.Where(id => root.Query<VisualElement>(id).ToList().Any(IsEffectivelyShown)).ToArray();
             CollectionAssert.AreEqual(expectedOwnIds, shown, string.Join(",", shown));
-        }
 
-        // 7 工場に偽の Model を差し本文を載せる
-        // Plug fake models into 7 factories and mount the body
-        private VisualElement MountBody(SectionStackRegressionEntry entry)
-        {
-            var machine = new FakeMachineSectionModel();
-            var context = new FakeBlockContextModel();
-            var miner = new FakeMinerDetailModel();
-            var pump = new FakePumpDetailModel();
-            var generator = new FakeGeneratorDetailModel();
-            var fluids = new FakeBlockFluidSlotsModel();
-            machine.Set(entry.Machine);
-            miner.Set(entry.Miner);
-            pump.Set(entry.Pump);
-            generator.Set(entry.Generator);
-            fluids.Set(entry.Fluids);
+            #region Internal
 
-            var content = new GameContentPresentation(new FakeContentTextureSource(Texture, Texture, Texture));
-            var osCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
-            var improvementCommands = new RecordingCleanRoomYieldImprovementCommands();
-            var factories = new ISectionStackSectionFactory[]
+            // 7 工場に偽の Model を差し本文を載せる
+            // Plug fake models into 7 factories and mount the body
+            VisualElement MountBody()
             {
-                new ContextSectionFactory(content, context, machine, osCursor, improvementCommands),
-                new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), content, new RecordingRecipeSelectCommand(), osCursor, improvementCommands),
-                new MinerSectionFactory(content, miner),
-                new PumpSectionFactory(content, pump),
-                new GeneratorSectionFactory(generator),
-                new FluidDetailsSectionFactory(content, fluids),
-                new FluidRowSectionFactory(content, fluids, machine),
-            };
+                var machine = new FakeMachineSectionModel();
+                var context = new FakeBlockContextModel();
+                var miner = new FakeMinerDetailModel();
+                var pump = new FakePumpDetailModel();
+                var generator = new FakeGeneratorDetailModel();
+                var fluids = new FakeBlockFluidSlotsModel();
+                machine.Set(entry.Machine);
+                miner.Set(entry.Miner);
+                pump.Set(entry.Pump);
+                generator.Set(entry.Generator);
+                fluids.Set(entry.Fluids);
 
-            var panel = BlockInventoryTestPanels.OfType(entry.BlockType);
-            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, entry.BlockType, factories);
-            Mount(body.Root);
-            body.Attach((OpenBlockInventoryPanel)panel);
-            simulate.FrameUpdate();
-            return body.Root;
+                var content = new GameContentPresentation(new FakeContentTextureSource(Texture, Texture, Texture));
+                var osCursor = new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f));
+                var improvementCommands = new RecordingCleanRoomYieldImprovementCommands();
+                var factories = new ISectionStackSectionFactory[]
+                {
+                    new ContextSectionFactory(content, context, machine, osCursor, improvementCommands),
+                    new MachineSectionFactory(machine, context, new RecordingBlockSlotCommands(), content, new RecordingRecipeSelectCommand(), osCursor, improvementCommands),
+                    new MinerSectionFactory(content, miner),
+                    new PumpSectionFactory(content, pump),
+                    new GeneratorSectionFactory(generator),
+                    new FluidDetailsSectionFactory(content, fluids),
+                    new FluidRowSectionFactory(content, fluids, machine),
+                };
+
+                var panel = BlockInventoryTestPanels.OfType(entry.BlockType, entry.BlockScreen);
+                var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
+                var body = BlockInventoryTestBodies.SectionStack(source, factories);
+                Mount(body.Root);
+                body.Attach((OpenBlockInventoryPanel)panel);
+                simulate.FrameUpdate();
+                return body.Root;
+            }
+
+            #endregion
         }
 
         private static bool IsEffectivelyShown(VisualElement element)

@@ -16,6 +16,7 @@ using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.Screens.BlockInventory.Special.Registration;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
+using Client.Ui.State.BlockInventory.Special.Details;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Text;
 using Mod.Loader;
@@ -83,11 +84,22 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
             return new ISectionStackSectionFactory[] { new GearToElectricSectionFactory(Presenters), new BeltThroughputSectionFactory(Presenters), new GearSectionFactory(Presenters), new ElectricNetworkSectionFactory(Presenters), new GearNetworkSectionFactory(Presenters) };
         }
 
+        protected VisualElement MountStack(string blockType, string blockScreen, SpecialBlockDetailViewModel detail)
+        {
+            Model.Set(detail);
+            var panel = OpenPanel(blockType, blockScreen);
+            var body = BlockInventoryTestBodies.SectionStack(Panels, SectionFactories());
+            Mount(body.Root);
+            body.Attach(panel);
+            simulate.FrameUpdate();
+            return body.Root;
+        }
+
         // alpha の土台でパネルを開いた状態にして返す（Presenter の Attach に渡す）
         // Opens a panel with alpha's fixtures and returns it (passed to a presenter's Attach)
-        protected OpenBlockInventoryPanel OpenPanel(string blockType, params SlotItem[] slots)
+        protected OpenBlockInventoryPanel OpenPanel(string blockType, string blockScreen, params SlotItem[] slots)
         {
-            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, slots);
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, blockScreen, slots);
             Panels.State.Value = panel;
             return panel;
         }

@@ -10,6 +10,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.State.BlockInventory.Special.Cargo.OrbitalCargoSamples;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
 {
@@ -69,7 +70,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             Assert.IsNotNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"));
             presenter.Detach();
             Assert.IsFalse(presenter.IsApplicable.Value);
-            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, Slots()));
+            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad, Slots()));
             Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"), "前のパネルの開いた一覧を持ち越さない");
         }
 
@@ -78,7 +79,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
         {
             var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
             var presenter = Presenters.OrbitalCargoBody(view);
-            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, Slots()));
+            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad, Slots()));
             Assert.IsTrue(presenter.IsApplicable.Value, "本文は詳細の未着でも出す（前例 WholeSpecialDetailSelector）");
             Assert.IsTrue(IsShown(Find<Label>(view, "rocket-launch-pad-loading")));
             Assert.IsNull(view.Q<VisualElement>("rocket-launch-pad-cargo-list"));
@@ -89,7 +90,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Cargo
             var view = Mount(new RocketLaunchPadBodyView(Kit(LoadContent()), false));
             var presenter = Presenters.OrbitalCargoBody(view);
             Model.Set(Detail(cargo));
-            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, Slots()));
+            presenter.Attach(OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad, Slots()));
             simulate.FrameUpdate();
             return (view, presenter);
         }

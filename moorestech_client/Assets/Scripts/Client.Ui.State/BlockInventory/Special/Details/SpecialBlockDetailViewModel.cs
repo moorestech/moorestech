@@ -1,4 +1,7 @@
 using Client.Ui.State.BlockInventory.Logic.Detail;
+using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.Text;
+using Game.Block.Interface;
 
 namespace Client.Ui.State.BlockInventory.Special.Details
 {
@@ -8,7 +11,7 @@ namespace Client.Ui.State.BlockInventory.Special.Details
     /// </summary>
     public sealed class SpecialBlockDetailViewModel
     {
-        public static readonly SpecialBlockDetailViewModel Empty = new(null, null, null, null, null, null, null, null, null);
+        public static readonly SpecialBlockDetailViewModel Empty = new();
 
         private readonly ElectricToGearDetail _electricToGear;
         private readonly GearToElectricDetail _gearToElectric;
@@ -20,8 +23,17 @@ namespace Client.Ui.State.BlockInventory.Special.Details
         private readonly RocketLaunchPadDetail _rocketLaunchPad;
         private readonly SpaceElevatorDetail _spaceElevator;
 
-        public SpecialBlockDetailViewModel(ElectricToGearDetail electricToGear, GearToElectricDetail gearToElectric, GearDetail gear, BeltThroughputDetail belt, ElectricNetworkDetail electricNetwork, GearNetworkDetail gearNetwork, FilterSplitterDetail filterSplitter, RocketLaunchPadDetail rocketLaunchPad, SpaceElevatorDetail spaceElevator)
+        public UiText Unavailable { get; }
+        private BlockInstanceId? BlockInstanceId { get; }
+
+        public bool IsFor(OpenBlockInventoryPanel panel) => BlockInstanceId == panel.BlockInstanceId;
+
+        private SpecialBlockDetailViewModel() { }
+
+        public SpecialBlockDetailViewModel(ElectricToGearDetail electricToGear, GearToElectricDetail gearToElectric, GearDetail gear, BeltThroughputDetail belt, ElectricNetworkDetail electricNetwork, GearNetworkDetail gearNetwork, FilterSplitterDetail filterSplitter, RocketLaunchPadDetail rocketLaunchPad, SpaceElevatorDetail spaceElevator, UiText unavailable, BlockInstanceId blockInstanceId)
         {
+            Unavailable = unavailable;
+            BlockInstanceId = blockInstanceId;
             _electricToGear = electricToGear;
             _gearToElectric = gearToElectric;
             _gear = gear;

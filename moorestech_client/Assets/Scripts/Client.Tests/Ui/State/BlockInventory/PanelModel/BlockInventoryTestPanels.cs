@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Items;
@@ -15,6 +17,8 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
     /// </summary>
     public static class BlockInventoryTestPanels
     {
+        internal static readonly BlockInstanceId SampleInstanceId = new(1);
+
         // テスト用 mod の最初のチェストの名前（題に出る）
         // Name of the test mod's first chest (shown as the title)
         public const string ChestName = "TestChest";
@@ -54,9 +58,23 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 
         // マスタに無い blockType（"unknown"）も組めるよう internal ctor を直に呼ぶ（Client.Ui.State の InternalsVisibleTo）
         // Calls the internal ctor directly so blockTypes absent from the master (e.g. "unknown") can be built (Client.Ui.State InternalsVisibleTo)
-        public static BlockInventoryPanelState OfType(string blockType, params SlotItem[] slots)
+        public static BlockInventoryPanelState OfType(string blockType, string blockScreen, params SlotItem[] slots)
         {
-            return new OpenBlockInventoryPanel(blockType, Guid.Empty, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
+            return OpenBlock(blockType, blockScreen, Guid.Empty, default, SampleInstanceId, new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
+        }
+
+        internal static OpenBlockInventoryPanel OpenBlock(string blockType, string blockScreen, Guid blockGuid, BlockId blockId, BlockInstanceId instanceId, Vector3Int position, IReadOnlyList<SlotItem> slots, BlockInventoryPanelError error)
+        {
+            return new OpenBlockInventoryPanel(blockType, blockScreen, blockGuid, blockId, instanceId, position, slots, error, BlockComponentRegistry.Resolve(blockScreen));
+        }
+
+        // 共有マスタを変更せず、画面だけが異なる同一ブロックを用意する
+        // Keep the shared master intact and vary only the screen of the same block
+        internal static BlockMasterElement WithScreen(BlockMasterElement master, string screen)
+        {
+            return new BlockMasterElement(master.Index, master.BlockGuid, master.Name, master.BlockType, master.RequiredItems,
+                master.PlacementsPerCost, master.ImagePath, master.Category, master.SubCategory, master.SortPriority,
+                master.InitialUnlocked, master.BlockSize, master.BlockPrefabAddressablesPath, screen, master.BlockParam);
         }
 
         private static BlockMasterElement FindChest()

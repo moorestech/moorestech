@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Panel;
+using Client.Ui.State.BlockInventory.Special.Cargo;
 using Client.Ui.State.Items;
 using Core.Master;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
+using T = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockTypeConst;
 
 namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 {
@@ -26,6 +29,16 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
             // BlockInventoryTestPanels がマスタのチェストを引くので、先にマスタを読む
             // BlockInventoryTestPanels looks up the master chest, so load the master first
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
+
+        [TestCase(T.Chest, S.Chest, false)]
+        [TestCase(T.Chest, S.RocketLaunchPad, true)]
+        [TestCase(T.Chest, S.SpaceElevatorBase, true)]
+        [TestCase(T.RocketLaunchPad, S.Chest, false)]
+        public void 貨物本文を選んだ画面だけ大型になる(string blockType, string blockScreen, bool expected)
+        {
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, blockScreen);
+            Assert.AreEqual(expected, new OrbitalCargoLargePanelRule().IsLargePanel(panel));
         }
 
         [Test]

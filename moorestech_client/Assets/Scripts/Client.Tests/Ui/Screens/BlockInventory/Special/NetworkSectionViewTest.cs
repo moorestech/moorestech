@@ -16,6 +16,7 @@ using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
 {
@@ -56,7 +57,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             var view = new ElectricNetworkSectionView();
             var presenter = Presenters.Section(view, new ElectricNetworkDetailSelector());
             Mount(presenter.Root);
-            presenter.Attach(OpenPanel("ElectricPole"));
+            presenter.Attach(OpenPanel("ElectricPole", S.ElectricPole));
             Assert.IsFalse(presenter.IsApplicable.Value);
 
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
@@ -81,19 +82,23 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             var view = new RecordingRenderer();
             var presenter = Presenters.Section(view, new WholeSpecialDetailSelector());
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.PoleNetwork));
-            presenter.Attach(OpenPanel("ElectricPole"));
-            Panels.State.Value = BlockInventoryTestPanels.OfType("ElectricPole", new SlotItem(new ItemId(1), 3));
+            presenter.Attach(OpenPanel("ElectricPole", S.ElectricPole));
+            Panels.State.Value = BlockInventoryTestPanels.OfType("ElectricPole", S.ElectricPole, new SlotItem(new ItemId(1), 3));
             Assert.AreEqual(3, view.LastSlots[0].Count, "同じパネルの枠の更新が届く");
 
             Panels.State.Value = OtherPanel(new SlotItem(new ItemId(1), 7));
             Assert.AreEqual(3, view.LastSlots[0].Count, "別のパネルへ替わる途中の値は描かない");
-        }
 
-        // 別の位置・個体の電柱（マスタを読まずに組むため internal ctor を直に呼ぶ。前例 BlockInventoryTestPanels.OfType）
-        // A pole at another position and instance, built via the internal ctor without the master (precedent BlockInventoryTestPanels.OfType)
-        private static OpenBlockInventoryPanel OtherPanel(params SlotItem[] slots)
-        {
-            return new OpenBlockInventoryPanel("ElectricPole", Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), slots, BlockInventoryPanelError.None);
+            #region Internal
+
+            // 別の位置・個体の電柱（マスタを読まずに組むため テスト用パネルを指定位置に作る）
+            // A pole at another position and instance, built from test values without loading the master
+            static OpenBlockInventoryPanel OtherPanel(params SlotItem[] slots)
+            {
+                return BlockInventoryTestPanels.OpenBlock("ElectricPole", S.ElectricPole, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), slots, BlockInventoryPanelError.None);
+            }
+
+            #endregion
         }
 
         // 渡された枠を覚えるだけの View

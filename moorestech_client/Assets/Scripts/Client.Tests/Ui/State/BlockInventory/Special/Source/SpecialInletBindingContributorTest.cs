@@ -13,6 +13,7 @@ using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
@@ -32,7 +33,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             var selected = new OrbitalCargoDetail(GpuSatellite, null, new[] { new OrbitalCargoChoice(GpuSatellite, 20, Array.Empty<ItemAmount>(), false) }, new[] { GpuSatellite }, 240);
             var elevator = SpecialStateDetailReader.SpaceElevator(new SpaceElevatorBaseStateDetail(false, 0, 0f, SpaceElevatorBaseStatus.ReadyToConnect, GpuSatellite, null), 0, 1, 2, 1000, selected);
-            var open = Contribute(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, SpecialDetailSamples.ElevatorWithNetwork(elevator));
+            var open = Contribute(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, S.SpaceElevatorBase, SpecialDetailSamples.ElevatorWithNetwork(elevator));
 
             var wood = BlockSlotRestrictionResolver.Resolve(open, Wood) as BoundBlockSlots;
             var satellite = BlockSlotRestrictionResolver.Resolve(open, GpuSatellite) as BoundBlockSlots;
@@ -47,7 +48,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             var bindings = new[] { new InletSlotBinding(1, new[] { Fuel }) };
             var rocket = SpecialStateDetailReader.RocketLaunchPad(new RocketLaunchPadStateDetail(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadWaitReason.None, 0f, OrbitalCargoSamples.ChipLv1, null), new[] { new RequiredItemSlot(1, Fuel, 20) }, Array.Empty<RequiredItemSlot>(), bindings, 2, OrbitalCargoSamples.Pad(OrbitalCargoSamples.ChipLv1, null, OrbitalCargoSamples.ChipLv1));
-            var open = Contribute(BlockMasterElement.BlockTypeConst.RocketLaunchPad, SpecialDetailSamples.Only(rocket));
+            var open = Contribute(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad, SpecialDetailSamples.Only(rocket));
 
             var fuel = BlockSlotRestrictionResolver.Resolve(open, Fuel) as BoundBlockSlots;
 
@@ -59,18 +60,18 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void 詳細の取得待ちのShiftは取得待ちになる()
         {
-            var pending = Contribute(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, SpecialBlockDetailViewModel.Empty);
+            var pending = Contribute(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, S.SpaceElevatorBase, SpecialBlockDetailViewModel.Empty);
             Assert.IsInstanceOf<BlockDetailLoading>(BlockSlotRestrictionResolver.Resolve(pending, Wood));
         }
 
-        private static OpenBlockSlotInput Contribute(string blockType, SpecialBlockDetailViewModel detail)
+        private static OpenBlockSlotInput Contribute(string blockType, string blockScreen, SpecialBlockDetailViewModel detail)
         {
             // 詳細の Model に値を差し込み、寄与の口を通した Shift の入力を組む
             // Push the detail into the model and build the Shift input through the contributor
             var model = new FakeSpecialBlockDetailModel();
             model.Set(detail);
             var contributor = new SpecialInletBindingContributor(model);
-            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, new SlotItem[3]);
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, blockScreen, new SlotItem[3]);
             Assert.IsTrue(contributor.AppliesTo(panel));
             return contributor.Contribute(panel, BlockSlotRestrictionInput.OpenBlock(blockType, 3));
         }

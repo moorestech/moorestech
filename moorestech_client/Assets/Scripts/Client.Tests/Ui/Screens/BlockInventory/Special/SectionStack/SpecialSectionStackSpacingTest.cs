@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.State.BlockInventory.Logic.Detail;
@@ -5,6 +6,7 @@ using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Special.Details;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
 {
@@ -21,7 +23,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         {
             // 歯車と歯車網だけの詳細で開く（回転発電機の状態は未着）
             // Open with only gear and gear-network details (the generator state has not arrived)
-            var root = MountStack("GearToElectricGenerator", WithGearToElectric(null));
+            var root = MountStack("GearToElectricGenerator", S.GearToElectricGenerator, WithGearToElectric(null));
             AssertLeadingGap(root, "gear-section", "gear-network-section");
 
             // 回転発電機の状態が組み直しの外で届く → 先頭が入れ替わり、歯車の区画に余白が付く
@@ -40,7 +42,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
         [Test]
         public void 先頭の歯車の区画が消えると歯車網が先頭で余白0になり網が消えても先頭は変わらない()
         {
-            var root = MountStack("GearMachine", SpecialDetailSamples.GearMachine);
+            var root = MountStack("GearMachine", S.Machine, SpecialDetailSamples.GearMachine);
             AssertLeadingGap(root, "gear-section", "gear-network-section");
 
             // 先頭が消える → 歯車網が先頭になり余白 0
@@ -56,20 +58,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             AssertLeadingGap(root, "gear-section");
         }
 
-        private VisualElement MountStack(string blockType, SpecialBlockDetailViewModel detail)
-        {
-            Model.Set(detail);
-            var panel = OpenPanel(blockType);
-            var body = BlockInventoryTestBodies.SectionStack(Panels, blockType, SectionFactories());
-            Mount(body.Root);
-            body.Attach(panel);
-            simulate.FrameUpdate();
-            return body.Root;
-        }
-
         private static SpecialBlockDetailViewModel WithGearToElectric(GearToElectricDetail generator)
         {
-            return new SpecialBlockDetailViewModel(null, generator, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.None), null, null, null);
+            return new SpecialBlockDetailViewModel(null, generator, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.None), null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
         }
 
         // 表示中の特殊族の区画が期待の順に並び、先頭だけ余白 0・他は正（UiGap.Sm の実値）

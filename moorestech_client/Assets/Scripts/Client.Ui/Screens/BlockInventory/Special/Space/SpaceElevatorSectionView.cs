@@ -20,6 +20,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
     /// </summary>
     public sealed class SpaceElevatorSectionView : VisualElement
     {
+        private static readonly UiText LoadingText = new(LocalizationKeys.Ui.BlockInventory.DetailLoading);
         private readonly LocalizedLabel _loading = SpecialViewParts.Label("space-elevator-loading", UiTypographyClass.TextSm, UiTypographyClass.TextMuted);
         private readonly UiStack _section = new(UiGap.Px4) { name = "space-elevator-section" };
         private readonly LackHighlightText _status = new("space-elevator-status", LackHighlightTextSize.Sm);
@@ -31,7 +32,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
         {
             _connect = new PanelActionButton("space-elevator-connect", new UiText(LocalizationKeys.Ui.BlockInventory.SpaceElevatorConnect), kit.OsCursor);
 
-            _loading.SetText(new UiText(LocalizationKeys.Ui.BlockInventory.DetailLoading));
+            _loading.SetText(LoadingText);
             _connect.OnClicked.Subscribe(_ => kit.Commands.ConnectSpaceElevator());
             _section.AddItem(_status);
             _section.AddItem(_pool);
@@ -46,6 +47,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Space
             // 詳細の未着は取得待ちだけを出し、接続の操作を出さない
             // Pending detail shows only the loading line, without the connect operation
             var present = detail.TryGetSpaceElevator(out var elevator);
+            _loading.SetText(detail.Unavailable ?? LoadingText);
             UiDisplay.SetShown(_loading, !present);
             UiDisplay.SetShown(_section, present);
             if (!present) return;

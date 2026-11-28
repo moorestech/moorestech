@@ -2,6 +2,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.Routing;
 using NUnit.Framework;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 {
@@ -14,7 +15,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void SubInventoryでブロックが開いていれば出す()
         {
-            Assert.IsTrue(BlockInventoryScreenVisibility.IsShown(new UiRoutingSnapshot(UiScreen.SubInventory), BlockInventoryTestPanels.OfType("Chest")));
+            Assert.IsTrue(BlockInventoryScreenVisibility.IsShown(new UiRoutingSnapshot(UiScreen.SubInventory), BlockInventoryTestPanels.OfType("Chest", S.Chest)));
         }
 
         [Test]
@@ -26,7 +27,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         [Test]
         public void GameScreenではブロックが開いた値が残っていても出さない()
         {
-            Assert.IsFalse(BlockInventoryScreenVisibility.IsShown(new UiRoutingSnapshot(UiScreenRouting.Resolve(UIStateEnum.GameScreen, null)), BlockInventoryTestPanels.OfType("Chest")));
+            Assert.IsFalse(BlockInventoryScreenVisibility.IsShown(new UiRoutingSnapshot(UiScreenRouting.Resolve(UIStateEnum.GameScreen, null)), BlockInventoryTestPanels.OfType("Chest", S.Chest)));
         }
     }
 }

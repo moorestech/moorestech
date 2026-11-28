@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Ui.Screens.BlockInventory.SectionStack;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Client.Ui.Screens.BlockInventory.Registry
@@ -40,10 +41,10 @@ namespace Client.Ui.Screens.BlockInventory.Registry
         public IBlockInventoryPart CreateBody(OpenBlockInventoryPanel panel, BlockInventoryBodyMount mount)
         {
             var kind = panel.Components.Body;
-            if (kind == BlockInventoryBodyKind.SectionStack) return _sectionStack.Create(panel.BlockType, mount);
+            if (kind == BlockInventoryBodyKind.SectionStack) return _sectionStack.Create(panel.BlockScreen, mount);
             if (_bodies.TryGetValue(kind, out var factory)) return factory.Create(mount);
-            WarnOnce($"body:{kind}", $"[BlockInventory] 本文 {kind} の登録が無いので標準の本文で描く（blockType={panel.BlockType}）");
-            return _sectionStack.Create(panel.BlockType, mount);
+            WarnOnce($"body:{kind}", $"[BlockInventory] 本文 {kind} の登録が無いので標準の本文で描く（blockScreen={panel.BlockScreen}）");
+            return _sectionStack.Create(BlockMasterElement.BlockScreenConst.Generic, mount);
         }
 
         // 題の操作を持たない（None）か登録が無ければ空の部分。登録漏れだけ警告する（「無い」は None 1 本で表し null を使わない）

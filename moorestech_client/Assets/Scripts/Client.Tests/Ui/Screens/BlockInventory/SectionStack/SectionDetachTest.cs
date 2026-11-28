@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Tests.Ui.Screens.BlockInventory.Machine;
@@ -25,6 +26,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
 {
@@ -38,14 +40,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         public void 文脈の区画はDetachで偽へ戻る()
         {
             ContextModel.Set(new BlockContextViewModel(SectionContent<CleanRoomFetchedDetail>.Unavailable(BlockInfoFetchState.NotFetched), SectionContent<CleanRoomYieldOdds>.Absent, SectionContent<MachineInputStall>.Absent));
-            AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel, OsCursor, ImprovementCommands).Create(Mount("Chest")), "Chest");
+            AssertResetOnDetach(new ContextSectionFactory(Content, ContextModel, MachineModel, OsCursor, ImprovementCommands).Create(Mount(S.Chest)), "Chest", S.Chest);
         }
 
         [Test]
         public void 機械の区画はDetachで偽へ戻る()
         {
             MachineModel.Set(SectionContent<MachineSectionViewModel>.Present(MachineTestDetails.ViewModelWithModules(0, 0f, 1)));
-            AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor, ImprovementCommands).Create(Mount("ElectricMachine")), "ElectricMachine");
+            AssertResetOnDetach(new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, RecipeSelect, OsCursor, ImprovementCommands).Create(Mount(S.Machine)), "ElectricMachine", S.Machine);
         }
 
         [Test]
@@ -53,18 +55,18 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         {
             var generator = new FakeGeneratorDetailModel();
             generator.Set(SectionContent<GeneratorDetail>.Present(new GeneratorDetail(10, 20, 0.5)));
-            AssertResetOnDetach(new GeneratorSectionFactory(generator).Create(Mount("ElectricGenerator")), "ElectricGenerator");
+            AssertResetOnDetach(new GeneratorSectionFactory(generator).Create(Mount(S.ElectricGenerator)), "ElectricGenerator", S.ElectricGenerator);
         }
 
-        [TestCase("unknown")]
-        [TestCase("FluidPipe")]
-        public void 液体の区画はDetachで偽へ戻る(string blockType)
+        [TestCase("unknown", S.Generic)]
+        [TestCase("FluidPipe", S.FluidPipe)]
+        public void 液体の区画はDetachで偽へ戻る(string blockType, string blockScreen)
         {
             var fluids = new FakeBlockFluidSlotsModel();
             fluids.Set(new BlockFluidSlotsViewModel(new[] { BlockFluidSlotState.Empty(100) }, false, 0f));
-            var mount = Mount(blockType);
+            var mount = Mount(blockScreen);
             ISectionStackSectionFactory factory = mount.Config.Fluid is RowSectionStackFluid ? new FluidRowSectionFactory(Content, fluids, MachineModel) : new FluidDetailsSectionFactory(Content, fluids);
-            AssertResetOnDetach(factory.Create(mount), blockType);
+            AssertResetOnDetach(factory.Create(mount), blockType, blockScreen);
         }
 
         [Test]
@@ -72,7 +74,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         {
             var opened = BlockInventoryTestPanels.ChestWithSlots(new SlotItem(new ItemId(1), 3));
             var panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(opened));
-            var section = new SectionStackItemGridSection(SectionStackConfigTable.Resolve("Chest").ItemGrid, BlockInventoryTestBodies.Grids(), panels);
+            var section = new SectionStackItemGridSection(SectionStackConfigTable.Resolve(S.Chest).ItemGrid, BlockInventoryTestBodies.Grids(), panels, Observable.Return<IReadOnlyList<int>>(System.Array.Empty<int>()));
 
             section.Attach((OpenBlockInventoryPanel)opened);
             Assert.IsTrue(section.IsApplicable.Value);
@@ -93,20 +95,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
             var section = new DetailSectionPresenter<GeneratorDetail>(generator.Current, new GeneratorSectionView());
 
             LogAssert.Expect(LogType.Error, new Regex(@"\[DetailSectionPresenter\] GeneratorDetail: this section has no unavailable line"));
-            section.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("ElectricGenerator"));
+            section.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType("ElectricGenerator", S.ElectricGenerator));
             Assert.IsFalse(section.IsApplicable.Value, "「取得できません」の行を持たない区画は隠す");
         }
 
-        private static SectionStackSectionMount Mount(string blockType)
+        private static SectionStackSectionMount Mount(string blockScreen)
         {
-            return new SectionStackSectionMount(SectionStackConfigTable.Resolve(blockType), false);
+            return new SectionStackSectionMount(SectionStackConfigTable.Resolve(blockScreen), false);
         }
 
         // 値を先に入れて Attach すると真、Detach で偽
         // True after Attach with the value already set, false after Detach
-        private static void AssertResetOnDetach(IBlockInventorySection section, string blockType)
+        private static void AssertResetOnDetach(IBlockInventorySection section, string blockType, string blockScreen)
         {
-            section.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType));
+            section.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, blockScreen));
             Assert.IsTrue(section.IsApplicable.Value, "Attach 時点の値で出す側にいる");
             section.Detach();
             Assert.IsFalse(section.IsApplicable.Value, "Detach で偽へ戻る");

@@ -4,6 +4,7 @@ using System.Linq;
 using Mooresmaster.Model.BlocksModule;
 using Core.Master.Validator.Block;
 using Core.Master.Validator.Block.FilterSplitter;
+using Core.Master.Validator.Block.Screen;
 
 namespace Core.Master.Validator
 {
@@ -28,6 +29,7 @@ namespace Core.Master.Validator
             errorLogs += RocketLaunchPadParamValidator.Validate(blocks);
             errorLogs += SpaceElevatorBaseParamValidator.Validate(blocks);
             errorLogs += FilterSplitterParamValidator.Validate(blocks);
+            errorLogs += BlockScreenValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal

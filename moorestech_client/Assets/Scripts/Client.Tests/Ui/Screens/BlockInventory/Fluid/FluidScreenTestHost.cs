@@ -65,11 +65,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             return new ISectionStackSectionFactory[] { new FluidRowSectionFactory(content, Fluids, Machine), new FluidDetailsSectionFactory(content, Fluids) };
         }
 
-        protected IBlockInventoryPart MountBody(string blockType)
+        protected IBlockInventoryPart MountBody(string blockType, string blockScreen)
         {
-            var panel = BlockInventoryTestPanels.OfType(blockType);
+            var panel = BlockInventoryTestPanels.OfType(blockType, blockScreen);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, blockType, Factories(ContentWith(Texture)));
+            var body = BlockInventoryTestBodies.SectionStack(source, Factories(ContentWith(Texture)));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

@@ -21,7 +21,7 @@ namespace Client.Ui.Screens.BlockInventory.Special.Registration
             return panels.Current
                 .Where(IsSamePanel)
                 .Select(current => ((OpenBlockInventoryPanel)current).ItemSlots)
-                .CombineLatest(model.Current, (slots, detail) => (slots, detail));
+                .CombineLatest(model.Current, (slots, detail) => (slots, detail.IsFor(panel) ? detail : SpecialBlockDetailViewModel.Empty));
 
             #region Internal
 

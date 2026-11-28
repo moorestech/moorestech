@@ -10,11 +10,6 @@ namespace Client.Tests.PlaceSystem
 {
     public class BlueprintCopyRangeCounterTest
     {
-        private static BlockMasterElement MakeBlock(string blockType, Vector3Int size)
-        {
-            return new BlockMasterElement(0, Guid.Empty, "TestBlock", blockType, null, 1, null, "テスト", "テスト", 0, false, size, null, false, null);
-        }
-
         [Test]
         public void 一部でも交差すれば数え_レール系は数えない()
         {
@@ -34,6 +29,15 @@ namespace Client.Tests.PlaceSystem
             Assert.AreEqual(2, BlueprintCopyRangeCounter.Count(blocks, new Vector3Int(0, 32, 0), new Vector3Int(11, 32, 4)));
             Assert.AreEqual(1, BlueprintCopyRangeCounter.Count(blocks, new Vector3Int(0, 33, 0), new Vector3Int(11, 33, 4)));
             Assert.AreEqual(0, BlueprintCopyRangeCounter.Count(blocks, new Vector3Int(3, 32, 2), new Vector3Int(4, 32, 4)));
+
+            #region Internal
+
+            static BlockMasterElement MakeBlock(string blockType, Vector3Int size)
+            {
+                return new BlockMasterElement(0, Guid.Empty, "TestBlock", blockType, null, 1, null, "テスト", "テスト", 0, false, size, null, BlockMasterElement.BlockScreenConst.None, null);
+            }
+
+            #endregion
         }
     }
 }

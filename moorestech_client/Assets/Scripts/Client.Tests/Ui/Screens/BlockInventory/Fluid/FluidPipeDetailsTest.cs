@@ -4,6 +4,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.BlockInventory.Logic.Common;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
@@ -19,7 +20,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         [Test]
         public void パイプは液体だけを進捗なしで描く()
         {
-            var body = MountBody("FluidPipe");
+            var body = MountBody("FluidPipe", S.FluidPipe);
             SetFluids(null, BlockFluidSlotState.Filled(Water, 40, 100));
 
             Assert.AreEqual(0, Shown<VisualElement>(body.Root, "progress-arrow-bar", null).Count);
@@ -34,7 +35,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         [Test]
         public void 空のパイプは文を出さず空の枠を残す()
         {
-            var body = MountBody("FluidPipe");
+            var body = MountBody("FluidPipe", S.FluidPipe);
             SetFluids(null, BlockFluidSlotState.Empty(100));
 
             Assert.IsNotNull(body.Root.Q(Slot0));
@@ -45,7 +46,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         [Test]
         public void 同じ行数の再描画では行の要素が同一のまま中身だけ変わる()
         {
-            var body = MountBody("FluidPipe");
+            var body = MountBody("FluidPipe", S.FluidPipe);
             SetFluids(null, BlockFluidSlotState.Filled(Water, 40, 100));
             var row = body.Root.Q(Slot0);
 

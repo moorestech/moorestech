@@ -6,6 +6,7 @@ using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Machine;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
 {
@@ -16,20 +17,20 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
     public class FluidSectionsTest : FluidScreenTestHost
     {
         /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">%s の既存表示を保つ</web-test>
-        [TestCase("Chest", null, true)]
-        [TestCase("ElectricMachine", "machine-fluid-slots", false)]
-        [TestCase("GearMachine", "machine-fluid-slots", false)]
-        [TestCase("ElectricGenerator", "generator-fluid-slots", false)]
-        [TestCase("FuelGearGenerator", null, true)]
-        [TestCase("SimpleGearGenerator", null, true)]
-        [TestCase("ElectricMiner", null, true)]
-        [TestCase("GearMiner", null, true)]
-        [TestCase("CleanRoomMachine", "machine-fluid-slots", false)]
-        [TestCase("CleanRoomAirFilter", null, false)]
-        [TestCase("unknown", "generic-block-fluids", true)]
-        public void 液体の行は設定のtestidで出し進捗は設定どおり(string blockType, string fluidRowTestId, bool showFluidProgress)
+        [TestCase("Chest", S.Chest, null, true)]
+        [TestCase("ElectricMachine", S.Machine, "machine-fluid-slots", false)]
+        [TestCase("GearMachine", S.Machine, "machine-fluid-slots", false)]
+        [TestCase("ElectricGenerator", S.ElectricGenerator, "generator-fluid-slots", false)]
+        [TestCase("FuelGearGenerator", S.FuelGearGenerator, null, true)]
+        [TestCase("SimpleGearGenerator", S.FuelGearGenerator, null, true)]
+        [TestCase("ElectricMiner", S.ElectricMiner, null, true)]
+        [TestCase("GearMiner", S.GearMiner, null, true)]
+        [TestCase("CleanRoomMachine", S.Machine, "machine-fluid-slots", false)]
+        [TestCase("CleanRoomAirFilter", S.CleanRoomAirFilter, null, false)]
+        [TestCase("unknown", S.Generic, "generic-block-fluids", true)]
+        public void 液体の行は設定のtestidで出し進捗は設定どおり(string blockType, string blockScreen, string fluidRowTestId, bool showFluidProgress)
         {
-            var body = MountBody(blockType);
+            var body = MountBody(blockType, blockScreen);
             SetFluids(0.4f, BlockFluidSlotState.Empty(100));
 
             var rowNames = Shown<FluidSlotRow>(body.Root, null, null).Select(row => row.name).ToArray();
@@ -37,11 +38,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             if (fluidRowTestId != null) Assert.AreEqual(showFluidProgress ? 1 : 0, Shown<VisualElement>(body.Root, "progress-arrow-bar", null).Count);
         }
 
-        [TestCase("ElectricPump", "pump-fluid-slots")]
-        [TestCase("GearPump", "pump-fluid-slots")]
-        public void ポンプは進捗なしの行で出る(string blockType, string rowTestId)
+        [TestCase("ElectricPump", S.Pump, "pump-fluid-slots")]
+        [TestCase("GearPump", S.Pump, "pump-fluid-slots")]
+        public void ポンプは進捗なしの行で出る(string blockType, string blockScreen, string rowTestId)
         {
-            var body = MountBody(blockType);
+            var body = MountBody(blockType, blockScreen);
             SetFluids(0.4f, BlockFluidSlotState.Empty(100));
 
             Assert.AreEqual(new[] { rowTestId }, Shown<FluidSlotRow>(body.Root, null, null).Select(row => row.name).ToArray());
@@ -51,7 +52,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         [Test]
         public void パイプは詳細の区画で出し行は出さない()
         {
-            var body = MountBody("FluidPipe");
+            var body = MountBody("FluidPipe", S.FluidPipe);
             SetFluids(null, BlockFluidSlotState.Empty(100));
 
             Assert.AreEqual(1, Shown<VisualElement>(body.Root, "fluid-pipe-fluid-slots", null).Count);
@@ -61,7 +62,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
         [Test]
         public void 機械のModelが有るとFluidRowは出ない()
         {
-            var body = MountBody("unknown");
+            var body = MountBody("unknown", S.Generic);
             SetFluids(null, BlockFluidSlotState.Empty(100));
             Assert.AreEqual(1, Shown<FluidSlotRow>(body.Root, null, null).Count);
 
@@ -74,11 +75,11 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Fluid
             Assert.AreEqual(1, Shown<FluidSlotRow>(body.Root, null, null).Count);
         }
 
-        [TestCase("unknown")]
-        [TestCase("FluidPipe")]
-        public void 液体が0件なら行も詳細も出ない(string blockType)
+        [TestCase("unknown", S.Generic)]
+        [TestCase("FluidPipe", S.FluidPipe)]
+        public void 液体が0件なら行も詳細も出ない(string blockType, string blockScreen)
         {
-            var body = MountBody(blockType);
+            var body = MountBody(blockType, blockScreen);
             SetFluids(null);
 
             Assert.AreEqual(0, Shown<FluidSlotRow>(body.Root, null, null).Count);

@@ -5,6 +5,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -73,6 +74,13 @@ namespace Client.Tests.EditModeInPlayingTest
                 var authoredColliders = GetClickableColliders(authoredBlock);
                 Assert.IsNotEmpty(authoredColliders, "authored-collider block has no clickable collider");
                 AssertClickRaycastResolvesBlock(authoredBlock, authoredColliders);
+
+                // 設置後の操作面の有無を比較
+                // Compare interaction on the two placed blocks.
+                Assert.AreEqual(BlockMasterElement.BlockScreenConst.None, bakedBlock.BlockMasterElement.BlockScreen);
+                Assert.IsNull(bakedBlock.Interactable, BakedColliderBlockName);
+                Assert.AreEqual(BlockMasterElement.BlockScreenConst.Machine, authoredBlock.BlockMasterElement.BlockScreen);
+                Assert.IsNotNull(authoredBlock.Interactable, AuthoredColliderBlockName);
             }
 
             Collider[] GetClickableColliders(BlockGameObject blockGameObject)

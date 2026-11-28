@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using System;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Common;
@@ -39,7 +40,7 @@ namespace Client.Tests.Ui.State.Train.Platform
         [Test]
         public void 駅は名前と枠とモードを持つ()
         {
-            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), new TrainStationNameStateDetail("北駅"), Unload, Slots, NoFluids);
+            var body = TrainPlatformDetailReader.Read(TestBlockParams.Find(BlockTypeConst.TrainStation), new TrainStationNameStateDetail("北駅"), Unload, Slots, NoFluids);
             Assert.AreEqual("北駅", Present(body.StationName));
             Assert.AreSame(Slots, Present(body.ItemSlots));
             Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, Present(body.Mode));
@@ -48,7 +49,7 @@ namespace Client.Tests.Ui.State.Train.Platform
         [Test]
         public void 品物PFは名前を持たず枠とモードを持つ()
         {
-            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainItemPlatform, TestBlockParams.ItemPlatform(), null, Unload, Slots, NoFluids);
+            var body = TrainPlatformDetailReader.Read(TestBlockParams.Find(BlockTypeConst.TrainItemPlatform), null, Unload, Slots, NoFluids);
             Assert.IsFalse(body.StationName.IsPresent);
             Assert.AreSame(Slots, Present(body.ItemSlots));
         }
@@ -57,7 +58,7 @@ namespace Client.Tests.Ui.State.Train.Platform
         public void 液体PFは枠を持たず液体とモードを持つ()
         {
             var fluids = new[] { BlockFluidSlotState.Empty(1000) };
-            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainFluidPlatform, TestBlockParams.FluidPlatform(), null, Unload, Slots, fluids);
+            var body = TrainPlatformDetailReader.Read(TestBlockParams.Find(BlockTypeConst.TrainFluidPlatform), null, Unload, Slots, fluids);
             Assert.IsFalse(body.ItemSlots.IsPresent);
             Assert.AreSame(fluids, body.Fluids);
             Assert.AreEqual(TrainPlatformTransferMode.UnloadToPlatform, Present(body.Mode));
@@ -68,10 +69,42 @@ namespace Client.Tests.Ui.State.Train.Platform
         {
             // Web ホストは状態が無ければ詳細ごと出さない。駅名の StateDetail が無ければ空名
             // The Web host omits the detail without a state; a missing name StateDetail gives an empty name
-            var body = TrainPlatformDetailReader.Read(BlockTypeConst.TrainStation, TestBlockParams.Station(), null, null, Slots, NoFluids);
+            var body = TrainPlatformDetailReader.Read(TestBlockParams.Find(BlockTypeConst.TrainStation), null, null, Slots, NoFluids);
             Assert.AreEqual(string.Empty, Present(body.StationName));
             Assert.IsFalse(body.ItemSlots.IsPresent);
             Assert.IsFalse(body.Mode.IsPresent);
+        }
+        [Test]
+        public void チェストの列車画面では機能不足を表示し液体があれば液体欄を使う()
+        {
+            var chest = BlockInventoryTestPanels.WithScreen(TestBlockParams.Find(BlockTypeConst.Chest), BlockScreenConst.TrainPlatform);
+            var body = TrainPlatformDetailReader.Read(chest, null, null, Slots, NoFluids);
+            Assert.AreEqual($"{chest.Name} / {chest.BlockScreen}", body.Unavailable.Params[0].Value);
+
+            var fluids = new[] { BlockFluidSlotState.Empty(1000) };
+            Assert.IsNull(TrainPlatformDetailReader.Read(chest, null, null, Slots, fluids).Unavailable);
+        }
+
+        [Test]
+        public void 配管の列車画面は初回受信を待ち届いた液体欄を表示する()
+        {
+            var pipe = BlockInventoryTestPanels.WithScreen(TestBlockParams.Find(BlockTypeConst.FluidPipe), BlockScreenConst.TrainPlatform);
+            var waiting = TrainPlatformDetailReader.Read(pipe, null, null, Slots, NoFluids);
+            Assert.IsNull(waiting.Unavailable);
+            Assert.IsEmpty(waiting.Fluids);
+
+            var fluids = new[] { BlockFluidSlotState.Empty(1000) };
+            var received = TrainPlatformDetailReader.Read(pipe, null, null, Slots, fluids);
+            Assert.IsNull(received.Unavailable);
+            Assert.AreSame(fluids, received.Fluids);
+        }
+
+        [TestCase(BlockTypeConst.TrainItemPlatform)]
+        [TestCase(BlockTypeConst.TrainFluidPlatform)]
+        public void 正規ホームの初回受信待ちには機能不足を表示しない(string blockType)
+        {
+            var body = TrainPlatformDetailReader.Read(TestBlockParams.Find(blockType), null, null, Slots, NoFluids);
+            Assert.IsNull(body.Unavailable);
         }
     }
 
@@ -81,13 +114,9 @@ namespace Client.Tests.Ui.State.Train.Platform
     /// </summary>
     internal static class TestBlockParams
     {
-        public static IBlockParam Station() => Find(BlockTypeConst.TrainStation);
-        public static IBlockParam ItemPlatform() => Find(BlockTypeConst.TrainItemPlatform);
-        public static IBlockParam FluidPlatform() => Find(BlockTypeConst.TrainFluidPlatform);
-
-        private static IBlockParam Find(string blockType)
+        public static BlockMasterElement Find(string blockType)
         {
-            return Array.Find(MasterHolder.BlockMaster.Blocks.Data, b => b.BlockType == blockType).BlockParam;
+            return Array.Find(MasterHolder.BlockMaster.Blocks.Data, b => b.BlockType == blockType);
         }
     }
 }
