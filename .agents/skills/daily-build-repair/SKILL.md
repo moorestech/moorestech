@@ -30,7 +30,7 @@ hooks:
 
 ## 最重要: 無人起動でも「repair-result.json で終える」
 
-このスキルは poller から `launch_claude` 経由で cmux ワークスペース上の**対話モード** claude で
+このスキルは poller から `launch_claude` 経由で**対話モード**の claude として
 フォアグラウンド起動される。対話モードではターンを終えても
 プロセスは消えない。**poller は `repair-result.json` の存在とプロセス生存で監視している**だけなので、
 ターンを閉じただけでは何も終わらない。

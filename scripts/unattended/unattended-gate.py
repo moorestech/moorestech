@@ -5,9 +5,9 @@ Gate for unattended sessions (daily-build repair); wired from each skill's front
 stop  … 成果物が無いままターンを終えようとしたらblockし、正しい終わり方を再注入する
 ask   … 無人実行中の AskUserQuestion をdenyし、判断の行き先（result の summary / abort.json）を再注入する
 
-なぜhookが要るか: cmuxフォアグラウンド化でターン終了してもプロセスが死ななくなり、止まっても誰も気付かない。
+なぜhookが要るか: 対話モードのフォアグラウンド起動ではターン終了してもプロセスが死なず、止まっても誰も気付かない。
 pollerはtranscriptが1200秒止まって初めて自壊と判定し、唯一のRESUME予算を1回消費する（実質20分の空転）。
-Why: after the cmux foreground move, ending a turn no longer kills the process, so a premature stop is silent —
+Why: in foreground interactive mode, ending a turn does not kill the process, so a premature stop is silent —
 the poller only notices after 1200s of transcript silence and then spends its single RESUME budget.
 
 全失敗経路はexit 0・無出力（fail open）。関所の実装バグで無人ランが止まる方が、たまに素通しするより高くつく。

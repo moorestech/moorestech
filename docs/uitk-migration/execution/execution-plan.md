@@ -230,7 +230,7 @@ integrator は共有ファイル（層 enum・全体スイッチ・composition r
 1. `git -C <main repo> fetch origin`。その週に master の Web 変更が入っていれば I-weekly を先に済ませる
 2. 詳細計画が `feature/uitk` に入っていることを確かめる（`○` のレーンは §6.2 で先に切る）
 3. worktree: `moores-wt new uitk-lane/<id小文字> --from origin/feature/uitk`（Editor 否のレーンは `--no-editor`）。W0-cef だけ `moores-wt new fix/cef-stop-record --from origin/master`
-4. 依頼文を scratchpad に書き（§4.2）、`~/bin/cmux-agent-pane -C <worktree> -a cxd -m gpt-6.1-sol --prompt-file <依頼文>`
+4. 依頼文を scratchpad に書き（§4.2）、`~/bin/orca-agent-pane -C <worktree> -a codex -m "$(~/bin/codex-model sol)" --bot moorestech --prompt-file <依頼文>`
 5. 完了は報告ではなく証拠で決める: `git log origin/feature/uitk` にマージコミット、報告ファイル `../moorestech_logs/harness/uitk/<id>/done.md`、PR の G1 緑。無ければ ListAgents で生存を見て、生きていれば再派遣しない
 
 ### 4.2 開始プロンプトの雛形
