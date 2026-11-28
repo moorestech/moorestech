@@ -43,7 +43,7 @@ moores-wt status [--json]
 - 拒否対象: メインワークツリー上での `checkout -b` / `switch -c` / `git branch <新規>` / 既存refへの `checkout|switch`（HEAD移動）
 - 通す: linked worktree内の同操作、`git -C <worktree>` 経由、`status`/`log`/`fetch`/`branch --list|-d`/`checkout -- <path>`/`worktree add`、moorestech以外のrepo
 - 上書き: `MOORES_MAIN_WT_OK=1` をコマンドに前置（低リスク作業で本当にメイン上で実行する場合のみ）
-- 理由: cmuxは全セッションをメインワークツリーのcwdで起こすため、`moores-wt new` を踏まないセッションはそのままメインで作業してしまう
+- 理由: Orcaの本体ワークスペースや `orca-agent-pane -C <メイン>` で起こしたセッションはメインワークツリーのcwdで動くため、`moores-wt new` を踏まないとそのままメインで作業してしまう
 
 ## PR の成果物の載せ先（pr-create の環境ローカル規約）
 
