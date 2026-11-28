@@ -14,6 +14,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Family
 {
@@ -60,13 +61,13 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Family
         // The three real factories (miner, pump, generator)
         protected IBlockInventoryPart MountBody()
         {
-            var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter");
+            var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", S.CleanRoomAirFilter);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var factories = new Client.Ui.Screens.BlockInventory.SectionStack.ISectionStackSectionFactory[]
             {
                 new MinerSectionFactory(Content, Miner), new PumpSectionFactory(Content, Pump), new GeneratorSectionFactory(Generator),
             };
-            var body = BlockInventoryTestBodies.SectionStack(source, "CleanRoomAirFilter", factories);
+            var body = BlockInventoryTestBodies.SectionStack(source, S.CleanRoomAirFilter, factories);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

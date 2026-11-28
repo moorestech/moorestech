@@ -15,6 +15,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.State.Train.Platform
 {
@@ -31,7 +32,7 @@ namespace Client.Tests.Ui.State.Train.Platform
         [Test]
         public void 閉じて同じ駅を開き直した後に戻った拒否は新しい入力を消さない()
         {
-            var panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation)));
+            var panels = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation, S.TrainPlatform)));
             var sources = new FakeTrainSources();
             sources.SetPlatform(TrainTestPlatforms.StationBody("北駅", new List<SlotItem>(), new List<BlockFluidSlotState>(), TrainPlatformTransferMode.LoadToTrain));
             var commands = new FakeTrainBlockCommands();
@@ -45,7 +46,7 @@ namespace Client.Tests.Ui.State.Train.Platform
             edit.EditStationName("南駅");
             edit.ApplyStationName();
             panels.State.Value = BlockInventoryPanelState.Closed;
-            panels.State.Value = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation);
+            panels.State.Value = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation, S.TrainPlatform);
             edit.EditStationName("東駅");
 
             // 前の回の拒否はトーストとログだけで、新しい入力は打った値のまま

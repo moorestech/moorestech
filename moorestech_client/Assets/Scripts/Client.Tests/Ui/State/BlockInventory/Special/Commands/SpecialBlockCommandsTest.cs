@@ -14,6 +14,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.State.BlockInventory.Special
 {
@@ -57,7 +58,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         {
             // 開いているので「ブロックが開いていません」の文言を引かない（wire は Web と同じ invalid_block_type）
             // The block is open, so the "block is not open" message must not be picked (wire stays invalid_block_type as on the Web)
-            Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            Open(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             _commands.SendRocketCommand(RocketCommand.Build);
             var result = LastReported(SpecialBlockCommands.RocketCommandName) as UiCommandRejected;
             Assert.AreEqual(UiCommandRejectReason.BlockTypeMismatch, result.Reason);
@@ -70,7 +71,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void フィルタ枠は掴んでいる物を設定し右押下は空にし掴みが空の左押下は送らない()
         {
-            Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            Open(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             _operations.SetGrab(new SlotItem(new ItemId(4), 3));
             _commands.SetFilterItem(2, 1, false);
             Assert.AreSame(UiCommandAccepted.Instance, LastReported(SpecialBlockCommands.SetFilterItemCommandName));
@@ -89,13 +90,13 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void モードと出力モードと接続と合図は位置とインスタンスを付けて送る()
         {
-            Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            Open(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             _commands.SetFilterMode(0, FilterSplitterMode.Blacklist);
-            Open(BlockMasterElement.BlockTypeConst.ElectricToGearGenerator);
+            Open(BlockMasterElement.BlockTypeConst.ElectricToGearGenerator, S.ElectricToGearGenerator);
             _commands.SetElectricToGearMode(1);
-            Open(BlockMasterElement.BlockTypeConst.SpaceElevatorBase);
+            Open(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, S.SpaceElevatorBase);
             _commands.ConnectSpaceElevator();
-            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
+            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad);
             _commands.SendRocketCommand(RocketCommand.Launch);
 
             CollectionAssert.AreEqual(new[] { $"filter_mode {Position} 77 0 Blacklist", $"electric_to_gear {Position} 1", $"connect {Position} 77", $"rocket {Position} Launch 77" }, _sender.Sent);
@@ -109,7 +110,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void 古い合図は良性で失敗は理由のコード付きの拒否()
         {
-            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
+            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad);
             _sender.SetNextOutcome(SpecialBlockRequestOutcome.Stale("rocket_command_not_awaiting_build"));
             _commands.SendRocketCommand(RocketCommand.Build);
             var stale = LastReported(SpecialBlockCommands.RocketCommandName) as UiCommandRejected;
@@ -129,18 +130,18 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         public void 送信後に開いているブロックが変わったら分配器の応答は当てない()
         {
             var sent = new BlockInstanceId(77);
-            var other = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, Guid.Empty, default, new BlockInstanceId(78), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
-            var same = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, Guid.Empty, default, sent, Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var other = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, new BlockInstanceId(78), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            var same = new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter, Guid.Empty, default, sent, Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
             Assert.IsTrue(VanillaSpecialBlockRequestSender.IsStillOpen(same, sent));
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(other, sent));
             Assert.IsFalse(VanillaSpecialBlockRequestSender.IsStillOpen(BlockInventoryPanelState.Closed, sent));
         }
 
-        [TestCase(BlockMasterElement.BlockTypeConst.RocketLaunchPad)]
-        [TestCase(BlockMasterElement.BlockTypeConst.SpaceElevatorBase)]
-        public void 積荷の選択は開いた発射台か拠点の座標と実体で送り成功は受理になる(string blockType)
+        [TestCase(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad)]
+        [TestCase(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, S.SpaceElevatorBase)]
+        public void 積荷の選択は開いた発射台か拠点の座標と実体で送り成功は受理になる(string blockType, string blockScreen)
         {
-            Open(blockType);
+            Open(blockType, blockScreen);
             _commands.SelectOrbitalCargo(new ItemId(10));
             CollectionAssert.AreEqual(new[] { $"cargo {Position} 77 10" }, _sender.Sent);
             Assert.IsInstanceOf<UiCommandAccepted>(LastReported(SpecialBlockCommands.SelectOrbitalCargoCommandName));
@@ -149,12 +150,12 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
         [Test]
         public void 積荷の選択はほかの種類のブロックへ送らずサーバーの拒否はコードつきの失敗になる()
         {
-            Open(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            Open(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             _commands.SelectOrbitalCargo(new ItemId(10));
             Assert.AreEqual(UiCommandRejectReason.BlockTypeMismatch, ((UiCommandRejected)LastReported(SpecialBlockCommands.SelectOrbitalCargoCommandName)).Reason);
             CollectionAssert.IsEmpty(_sender.Sent);
 
-            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad);
+            Open(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad);
             _sender.SetNextOutcome(SpecialBlockRequestOutcome.Failed("cargo_select_locked"));
             _commands.SelectOrbitalCargo(new ItemId(10));
             var rejected = (UiCommandRejected)LastReported(SpecialBlockCommands.SelectOrbitalCargoCommandName);
@@ -178,9 +179,9 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
             return names;
         }
 
-        private void Open(string blockType)
+        private void Open(string blockType, string blockScreen)
         {
-            _open.Value = new OpenBlockInventoryPanel(blockType, Guid.Empty, default, new BlockInstanceId(77), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            _open.Value = new OpenBlockInventoryPanel(blockType, blockScreen, Guid.Empty, default, new BlockInstanceId(77), Position, Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
         }
     }
 }

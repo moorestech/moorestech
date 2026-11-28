@@ -1,3 +1,4 @@
+using System;
 using Client.Ui.State.BlockInventory.SectionStack;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -5,15 +6,15 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 {
     /// <summary>
-    /// Web SectionStackView の configByBlockType と genericConfig の写しを主張する（L0）
-    /// Asserts the port of Web SectionStackView configByBlockType and genericConfig (L0)
+    /// ブロック画面IDに対応する標準本文の設定を確かめる（L0）
+    /// Checks the standard-body settings keyed by block screen ID (L0)
     /// </summary>
     public class SectionStackConfigTableTest
     {
         [Test]
         public void Chestは空でも出す項目グリッドで液体は出さない()
         {
-            var config = SectionStackConfigTable.Resolve(BlockMasterElement.BlockTypeConst.Chest);
+            var config = SectionStackConfigTable.Resolve(BlockMasterElement.BlockScreenConst.Chest);
             var grid = (ShownSectionStackItemGrid)config.ItemGrid;
             Assert.AreEqual("chest-grid", grid.GridId);
             Assert.IsTrue(grid.RenderEmpty);
@@ -21,9 +22,9 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         }
 
         [Test]
-        public void 未知の種類は標準の設定()
+        public void Genericは空なら隠し液体の行には進捗を出す()
         {
-            var config = SectionStackConfigTable.Resolve("Unknown");
+            var config = SectionStackConfigTable.Resolve(BlockMasterElement.BlockScreenConst.Generic);
             var grid = (ShownSectionStackItemGrid)config.ItemGrid;
             Assert.AreEqual("generic-block-grid", grid.GridId);
             Assert.IsFalse(grid.RenderEmpty);
@@ -33,9 +34,15 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         }
 
         [Test]
+        public void 未登録の画面IDは例外になる()
+        {
+            Assert.Throws<InvalidOperationException>(() => SectionStackConfigTable.Resolve("Unknown"));
+        }
+
+        [Test]
         public void FluidPipeは項目グリッドを出さず液体は詳細()
         {
-            var config = SectionStackConfigTable.Resolve(BlockMasterElement.BlockTypeConst.FluidPipe);
+            var config = SectionStackConfigTable.Resolve(BlockMasterElement.BlockScreenConst.FluidPipe);
             Assert.AreSame(SectionStackItemGrid.Hidden, config.ItemGrid);
             Assert.AreEqual("fluid-pipe-fluid-slots", ((DetailsSectionStackFluid)config.Fluid).RowId);
         }

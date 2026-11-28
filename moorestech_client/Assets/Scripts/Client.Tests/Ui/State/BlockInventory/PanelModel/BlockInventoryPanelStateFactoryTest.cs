@@ -38,7 +38,8 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
             Assert.AreEqual(BlockInventoryPanelError.None, open.Error);
             Assert.AreEqual(_chest.BlockGuid, open.BlockGuid);
             Assert.AreEqual(BlockMasterElement.BlockTypeConst.Chest, open.BlockType);
-            Assert.AreEqual(BlockComponentRegistry.Resolve(open.BlockType).Body, open.Components.Body);
+            Assert.AreEqual(_chest.BlockScreen, open.BlockScreen);
+            Assert.AreEqual(BlockComponentRegistry.Resolve(open.BlockScreen).Body, open.Components.Body);
             Assert.AreEqual(7, open.ItemSlots[0].Count);
             Assert.AreEqual(new BlockInstanceId(1), open.BlockInstanceId);
         }
@@ -48,6 +49,18 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         {
             var state = (OpenBlockInventoryPanel)BlockInventoryPanelStateFactory.FromBlock(false, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), Vector3Int.zero);
             Assert.AreEqual(BlockInventoryPanelError.OpenFailed, state.Error);
+        }
+
+        [Test]
+        public void 追跡している位置に画面のないブロックが来たらパネルは閉じる()
+        {
+            var replacement = Array.Find(MasterHolder.BlockMaster.Blocks.Data, b => b.BlockScreen == BlockMasterElement.BlockScreenConst.None);
+            var position = new Vector3Int(1, 2, 3);
+            var opened = BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), _chest, new BlockInstanceId(1), position);
+            Assert.IsInstanceOf<OpenBlockInventoryPanel>(opened);
+
+            var state = BlockInventoryPanelStateFactory.FromBlock(true, Array.Empty<SlotItem>(), replacement, new BlockInstanceId(2), position);
+            Assert.AreSame(BlockInventoryPanelState.Closed, state);
         }
 
         [TestCase(null, BlockInventoryPanelError.None)]

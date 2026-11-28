@@ -7,6 +7,7 @@ using Client.Ui.State.BlockInventory.Logic.Belt;
 using Client.Ui.State.BlockInventory.Special.Details;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
 {
@@ -82,7 +83,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             ArrowKeys.Press(HorizontalArrowKey.Right);
             presenter.Detach();
             ArrowKeys.Press(HorizontalArrowKey.Right);
-            presenter.Attach(OpenPanel("BeltConveyor"));
+            presenter.Attach(OpenPanel("BeltConveyor", S.Generic));
             Assert.AreEqual(before, TextOf(view, "belt-throughput-window"), "Detach の後は既定の窓へ戻る");
         }
 
@@ -100,7 +101,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             var view = Mount(new BeltThroughputSectionView());
             var presenter = Presenters.Belt(view);
             Model.Set(detail);
-            presenter.Attach(OpenPanel("BeltConveyor"));
+            presenter.Attach(OpenPanel("BeltConveyor", S.Generic));
             return (view, presenter);
         }
     }

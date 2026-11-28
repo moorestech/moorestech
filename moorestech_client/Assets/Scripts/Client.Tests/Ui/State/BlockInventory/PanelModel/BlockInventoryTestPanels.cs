@@ -54,9 +54,9 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
 
         // マスタに無い blockType（"unknown"）も組めるよう internal ctor を直に呼ぶ（Client.Ui.State の InternalsVisibleTo）
         // Calls the internal ctor directly so blockTypes absent from the master (e.g. "unknown") can be built (Client.Ui.State InternalsVisibleTo)
-        public static BlockInventoryPanelState OfType(string blockType, params SlotItem[] slots)
+        public static BlockInventoryPanelState OfType(string blockType, string blockScreen, params SlotItem[] slots)
         {
-            return new OpenBlockInventoryPanel(blockType, Guid.Empty, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
+            return new OpenBlockInventoryPanel(blockType, blockScreen, Guid.Empty, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
         }
 
         private static BlockMasterElement FindChest()

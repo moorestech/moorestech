@@ -13,6 +13,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory
 {
@@ -92,7 +93,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
         private static BlockInventoryPanelState Machine()
         {
-            return new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.Chest, MachineGuid, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
+            return new OpenBlockInventoryPanel(BlockMasterElement.BlockTypeConst.Chest, S.Chest, MachineGuid, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), Array.Empty<SlotItem>(), BlockInventoryPanelError.None);
         }
     }
 }

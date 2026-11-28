@@ -64,20 +64,22 @@ namespace Client.Ui.State.BlockInventory.Panel
     public sealed class OpenBlockInventoryPanel : OpenInventoryPanel
     {
         public string BlockType { get; private set; }
+        public string BlockScreen { get; private set; }
         public Guid BlockGuid { get; private set; }
         public BlockId BlockId { get; private set; }
         public BlockInstanceId BlockInstanceId { get; private set; }
         public Vector3Int Position { get; private set; }
         public BlockInventoryComponents Components { get; private set; }
 
-        internal OpenBlockInventoryPanel(string blockType, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error) : base(itemSlots, error)
+        internal OpenBlockInventoryPanel(string blockType, string blockScreen, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error) : base(itemSlots, error)
         {
             BlockType = blockType;
+            BlockScreen = blockScreen;
             BlockGuid = blockGuid;
             BlockId = blockId;
             BlockInstanceId = blockInstanceId;
             Position = position;
-            Components = BlockComponentRegistry.Resolve(blockType);
+            Components = BlockComponentRegistry.Resolve(blockScreen);
         }
 
         public override bool IsSamePanel(BlockInventoryPanelState other)

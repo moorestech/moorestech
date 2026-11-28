@@ -13,6 +13,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
 {
@@ -99,7 +100,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             Localize.TrySetChosenLanguage(language);
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.FilterSplitter));
             var shell = BlockInventoryTestShell.Create(this, Panels.State, new FilterSplitterBodyFactory(Kit(LoadContent()), Presenters));
-            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
@@ -147,7 +148,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.FilterSplitter));
             var shell = BlockInventoryTestShell.Create(this, Panels.State, new FilterSplitterBodyFactory(Kit(LoadContent()), Presenters));
             shell.Stage.style.height = 600f;
-            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter);
+            OpenPanel(BlockMasterElement.BlockTypeConst.FilterSplitter, S.FilterSplitter);
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 

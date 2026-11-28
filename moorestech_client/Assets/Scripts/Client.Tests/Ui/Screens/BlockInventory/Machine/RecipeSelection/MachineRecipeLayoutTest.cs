@@ -21,6 +21,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using Fixtures = Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection.MachineRecipeSelectionFixtures;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
 {
@@ -105,7 +106,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.RecipeSelection
         [Test]
         public void レシピ無しブロックは小型のまま()
         {
-            Open(BlockInventoryTestPanels.OfType("Chest"), null, Content);
+            Open(BlockInventoryTestPanels.OfType("Chest", S.Chest), null, Content);
             Assert.IsFalse(Shell.View.ClassListContains(BlockInventoryView.LargeClassName));
             Assert.IsNull(Shell.View.Q(MachineRecipeSelectionList.ListTestid));
         }

@@ -1,90 +1,42 @@
+using System;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using NUnit.Framework;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.State.BlockInventory.Panel
 {
-    /// <summary>
-    /// Web の blockComponentRegistry.test.ts の写し（L0）。登録の取りこぼしは BlockRegistryCoverageTest が見る
-    /// Port of Web blockComponentRegistry.test.ts (L0); missed registrations are caught by BlockRegistryCoverageTest
-    /// </summary>
     public class BlockComponentRegistryTest
     {
-        private static readonly BlockInventoryBodyKind Fallback = BlockComponentRegistry.Resolve("unknown").Body;
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">標準ビューのblockTypeは単一のフォールバックへ統合する</web-test>
-        [Test]
-        public void 標準ビューの種類は単一のフォールバックへまとめる()
+        [TestCase(S.Generic)]
+        [TestCase(S.Chest)]
+        [TestCase(S.Machine)]
+        [TestCase(S.GearMiner)]
+        public void 標準の本文は題の操作を持たない(string blockScreen)
         {
-            Assert.AreEqual(Fallback, BlockComponentRegistry.Resolve("Chest").Body);
-            Assert.AreEqual(Fallback, BlockComponentRegistry.Resolve("ElectricMachine").Body);
-            Assert.AreEqual(Fallback, BlockComponentRegistry.Resolve("GearMiner").Body);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">小文字 chest は実マスタ値でないため fallback になる</web-test>
-        [Test]
-        public void 小文字のchestは実マスタ値でないのでフォールバック()
-        {
-            Assert.AreEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve("chest").Body);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">tank は登録キー削除済みのためフォールバックを返す</web-test>
-        [Test]
-        public void tankは登録を消したのでフォールバック()
-        {
-            Assert.AreEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve("tank").Body);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">未登録 blockType はフォールバックを返す</web-test>
-        [Test]
-        public void 未登録の種類はフォールバック()
-        {
-            Assert.AreEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve("unknown").Body);
-            Assert.AreEqual(BlockInventoryTitleActionKind.None, BlockComponentRegistry.Resolve("unknown").TitleAction);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">GearEnergyTransformerUI対象の%sを既存ギアビューへ明示登録する</web-test>
-        [TestCase("Shaft")]
-        [TestCase("Gear")]
-        [TestCase("GearBeltConveyor")]
-        public void 歯車系の種類を既存の歯車ビューへ明示登録する(string blockType)
-        {
-            Assert.IsTrue(BlockComponentRegistry.Registered.TryGetValue(blockType, out var components));
+            var components = BlockComponentRegistry.Resolve(blockScreen);
             Assert.AreEqual(BlockInventoryBodyKind.SectionStack, components.Body);
             Assert.AreEqual(BlockInventoryTitleActionKind.None, components.TitleAction);
         }
 
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">スキーマに存在しないGearEnergyTransformerキーは登録しない</web-test>
-        [Test]
-        public void スキーマに無いGearEnergyTransformerは登録しない()
+        [TestCase("chest")]
+        [TestCase("tank")]
+        [TestCase("unknown")]
+        [TestCase("GearEnergyTransformer")]
+        public void 未登録の画面IDは例外になる(string blockScreen)
         {
-            Assert.IsFalse(BlockComponentRegistry.Registered.ContainsKey("GearEnergyTransformer"));
+            var error = Assert.Throws<InvalidOperationException>(() => BlockComponentRegistry.Resolve(blockScreen));
+            StringAssert.Contains(blockScreen, error.Message);
         }
 
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">ElectricToGearGeneratorは専用ビューへ登録する</web-test>
-        [Test]
-        public void 電力歯車変換機は専用ビューへ登録する()
+        [TestCase(S.FilterSplitter, BlockInventoryBodyKind.FilterSplitter)]
+        [TestCase(S.ElectricToGearGenerator, BlockInventoryBodyKind.ElectricToGear)]
+        [TestCase(S.TrainPlatform, BlockInventoryBodyKind.TrainPlatform)]
+        [TestCase(S.ElectricPole, BlockInventoryBodyKind.ElectricPole)]
+        [TestCase(S.SpaceElevatorBase, BlockInventoryBodyKind.SpaceElevator)]
+        [TestCase(S.RocketLaunchPad, BlockInventoryBodyKind.RocketLaunchPad)]
+        public void 専用画面IDは対応する本文を引く(string blockScreen, BlockInventoryBodyKind expectedBody)
         {
-            Assert.IsTrue(BlockComponentRegistry.Registered.ContainsKey("ElectricToGearGenerator"));
-            Assert.AreNotEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve("ElectricToGearGenerator").Body);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">SpaceElevatorBaseは接続ボタンを持つ専用ビューへ登録する</web-test>
-        [Test]
-        public void 宇宙エレベーターは専用ビューへ登録する()
-        {
-            Assert.IsTrue(BlockComponentRegistry.Registered.ContainsKey("SpaceElevatorBase"));
-            Assert.AreNotEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve("SpaceElevatorBase").Body);
-        }
-
-        /// <web-test file="src/features/blockInventory/registry/blockComponentRegistry.test.ts">%sはPhase B2専用ビューへ登録する</web-test>
-        [TestCase("TrainStation")]
-        [TestCase("TrainItemPlatform")]
-        [TestCase("TrainFluidPlatform")]
-        [TestCase("ElectricPole")]
-        public void 駅と電柱は専用ビューへ登録する(string blockType)
-        {
-            Assert.IsTrue(BlockComponentRegistry.Registered.ContainsKey(blockType));
-            Assert.AreNotEqual(BlockInventoryBodyKind.SectionStack, BlockComponentRegistry.Resolve(blockType).Body);
+            Assert.AreEqual(expectedBody, BlockComponentRegistry.Resolve(blockScreen).Body);
         }
     }
 }

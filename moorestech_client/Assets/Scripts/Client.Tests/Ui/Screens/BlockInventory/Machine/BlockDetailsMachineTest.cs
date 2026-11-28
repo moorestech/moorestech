@@ -18,6 +18,7 @@ using Client.Ui.State.BlockInventory.Panel;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine
 {
@@ -33,14 +34,14 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine
         private IBlockInventoryPart MountBody()
         {
             _miner = new FakeMinerDetailModel();
-            var panel = BlockInventoryTestPanels.OfType("ElectricMachine");
+            var panel = BlockInventoryTestPanels.OfType("ElectricMachine", S.Machine);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
             var factories = new ISectionStackSectionFactory[]
             {
                 new MachineSectionFactory(MachineModel, ContextModel, Commands, Content, new RecordingRecipeSelectCommand(), new UiOsCursorRequestStack(new FakeUiOsCursorApplier(), new FakeUiScreenPointer(1f)), ImprovementCommands),
                 new MinerSectionFactory(Content, _miner),
             };
-            var body = BlockInventoryTestBodies.SectionStack(source, "ElectricMachine", factories);
+            var body = BlockInventoryTestBodies.SectionStack(source, S.Machine, factories);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

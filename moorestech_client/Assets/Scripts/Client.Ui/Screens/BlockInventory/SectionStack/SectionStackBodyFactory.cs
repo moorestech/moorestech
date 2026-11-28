@@ -8,8 +8,8 @@ using Client.Ui.State.BlockInventory.SectionStack;
 namespace Client.Ui.Screens.BlockInventory.SectionStack
 {
     /// <summary>
-    /// 標準の本文（固定順の区画の列）を blockType の設定から組む
-    /// Builds the standard body (the fixed-order section list) from the blockType settings
+    /// 標準の本文（固定順の区画の列）を ブロック画面IDの設定から組む
+    /// Builds the standard body (the fixed-order section list) from the block screen ID settings
     /// </summary>
     public sealed class SectionStackBodyFactory
     {
@@ -24,9 +24,9 @@ namespace Client.Ui.Screens.BlockInventory.SectionStack
             _panels = panels;
         }
 
-        public IBlockInventoryPart Create(string blockType, BlockInventoryBodyMount mount)
+        public IBlockInventoryPart Create(string blockScreen, BlockInventoryBodyMount mount)
         {
-            var config = SectionStackConfigTable.Resolve(blockType);
+            var config = SectionStackConfigTable.Resolve(blockScreen);
             var sectionMount = new SectionStackSectionMount(config, mount.FillsPanelHeight);
             var sections = new List<IBlockInventorySection>();
             foreach (SectionStackSlot slot in Enum.GetValues(typeof(SectionStackSlot)))

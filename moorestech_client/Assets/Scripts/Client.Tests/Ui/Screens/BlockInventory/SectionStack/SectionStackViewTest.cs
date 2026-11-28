@@ -8,6 +8,7 @@ using Core.Master;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
 {
@@ -20,27 +21,27 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         private const string ItemGridSectionName = "section-stack-item-grid";
 
         /// <web-test file="src/features/blockInventory/views/__tests__/SectionStackView.test.tsx">%s の既存表示を保つ</web-test>
-        [TestCase("Chest", "chest-grid", true)]
-        [TestCase("ElectricMachine", null, false)]
-        [TestCase("GearMachine", null, false)]
-        [TestCase("ElectricGenerator", "generator-fuel-grid", false)]
-        [TestCase("FuelGearGenerator", "generator-fuel-grid", true)]
-        [TestCase("SimpleGearGenerator", "generator-fuel-grid", true)]
-        [TestCase("ElectricMiner", "miner-output-grid", true)]
-        [TestCase("GearMiner", "gear-miner-output-grid", true)]
-        [TestCase("CleanRoomMachine", null, false)]
-        [TestCase("CleanRoomAirFilter", "clean-room-filter-grid", true)]
-        [TestCase("unknown", "generic-block-grid", false)]
-        public void 項目グリッドは設定どおり空でも出すか枠があるときだけ出す(string blockType, string gridId, bool renderEmptyGrid)
+        [TestCase("Chest", S.Chest, "chest-grid", true)]
+        [TestCase("ElectricMachine", S.Machine, null, false)]
+        [TestCase("GearMachine", S.Machine, null, false)]
+        [TestCase("ElectricGenerator", S.ElectricGenerator, "generator-fuel-grid", false)]
+        [TestCase("FuelGearGenerator", S.FuelGearGenerator, "generator-fuel-grid", true)]
+        [TestCase("SimpleGearGenerator", S.FuelGearGenerator, "generator-fuel-grid", true)]
+        [TestCase("ElectricMiner", S.ElectricMiner, "miner-output-grid", true)]
+        [TestCase("GearMiner", S.GearMiner, "gear-miner-output-grid", true)]
+        [TestCase("CleanRoomMachine", S.Machine, null, false)]
+        [TestCase("CleanRoomAirFilter", S.CleanRoomAirFilter, "clean-room-filter-grid", true)]
+        [TestCase("unknown", S.Generic, "generic-block-grid", false)]
+        public void 項目グリッドは設定どおり空でも出すか枠があるときだけ出す(string blockType, string blockScreen, string gridId, bool renderEmptyGrid)
         {
-            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(blockType)));
-            var body = BlockInventoryTestBodies.SectionStack(source, blockType);
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType(blockType, blockScreen)));
+            var body = BlockInventoryTestBodies.SectionStack(source, blockScreen);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
             Assert.AreEqual(gridId != null && renderEmptyGrid, IsShown(body.Root, ItemGridSectionName));
 
-            source.State.Value = BlockInventoryTestPanels.OfType(blockType, new SlotItem(new ItemId(1), 1));
+            source.State.Value = BlockInventoryTestPanels.OfType(blockType, blockScreen, new SlotItem(new ItemId(1), 1));
             simulate.FrameUpdate();
             Assert.AreEqual(gridId != null, IsShown(body.Root, ItemGridSectionName));
             if (gridId != null) Assert.AreEqual(gridId, body.Root.Q(ItemGridSectionName).Q<SlotGrid>().name);
@@ -50,8 +51,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [Test]
         public void 区画は固定の順に並ぶ()
         {
-            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator")));
-            var body = BlockInventoryTestBodies.SectionStack(source, "GearToElectricGenerator", FakeSectionFactory.AllSlots(true));
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator", S.GearToElectricGenerator)));
+            var body = BlockInventoryTestBodies.SectionStack(source, S.GearToElectricGenerator, FakeSectionFactory.AllSlots(true));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
@@ -62,8 +63,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         [Test]
         public void 文脈の区画は項目グリッドより上に来る()
         {
-            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("CleanRoomAirFilter", new SlotItem(new ItemId(1), 5))));
-            var body = BlockInventoryTestBodies.SectionStack(source, "CleanRoomAirFilter", new FakeSectionFactory(SectionStackSlot.Context, true));
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("CleanRoomAirFilter", S.CleanRoomAirFilter, new SlotItem(new ItemId(1), 5))));
+            var body = BlockInventoryTestBodies.SectionStack(source, S.CleanRoomAirFilter, new FakeSectionFactory(SectionStackSlot.Context, true));
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();
@@ -76,10 +77,10 @@ namespace Client.Tests.Ui.Screens.BlockInventory.SectionStack
         {
             // 網の集約・ベルトの統計のようにパネルの組み直しの外で届く変化でも、区画の通知だけで出し入れと間隔が組み直される
             // Even for changes arriving outside panel rebuilds (network totals, belt stats), the section's own signal re-lays visibility and gaps
-            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator")));
+            var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(BlockInventoryTestPanels.OfType("GearToElectricGenerator", S.GearToElectricGenerator)));
             var context = new FakeSectionFactory(SectionStackSlot.Context, false);
             var machine = new FakeSectionFactory(SectionStackSlot.Machine, true);
-            var body = BlockInventoryTestBodies.SectionStack(source, "GearToElectricGenerator", context, machine);
+            var body = BlockInventoryTestBodies.SectionStack(source, S.GearToElectricGenerator, context, machine);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)source.Current.Value);
             simulate.FrameUpdate();

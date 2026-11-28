@@ -11,6 +11,7 @@ using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
 {
@@ -84,7 +85,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             // 出し入れは Presenter の IsApplicable が親へ知らせる（区画は自分の display を触らない。D-23）
             // Visibility is reported by the presenter's IsApplicable (the section never touches its own display. D-23)
             var presenter = Presenters.Section(Mount(new GearToElectricSectionView()), new GearToElectricDetailSelector());
-            presenter.Attach(OpenPanel("GearToElectricGenerator"));
+            presenter.Attach(OpenPanel("GearToElectricGenerator", S.GearToElectricGenerator));
             Assert.IsFalse(presenter.IsApplicable.Value);
         }
 

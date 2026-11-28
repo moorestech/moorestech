@@ -21,6 +21,7 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Context
 {
@@ -40,7 +41,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Context
         protected BlockInventoryTestShell OpenAirFilterPanel()
         {
             ContextModel.Set(AirFilterRoom());
-            var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", new SlotItem(FirstItem, 5));
+            var panel = BlockInventoryTestPanels.OfType("CleanRoomAirFilter", S.CleanRoomAirFilter, new SlotItem(FirstItem, 5));
             var shell = OpenShell(panel);
             Assert.IsFalse(shell.View.ClassListContains(BlockInventoryView.LargeClassName), "air filter panel is not large");
             return shell;

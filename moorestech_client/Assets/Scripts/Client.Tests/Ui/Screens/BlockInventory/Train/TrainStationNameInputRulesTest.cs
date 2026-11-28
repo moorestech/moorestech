@@ -12,6 +12,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
@@ -40,7 +41,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
             Mount(_rulesRoot);
             GameUiInputRules.Attach(_rulesRoot);
 
-            var panel = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation);
+            var panel = BlockInventoryTestPanels.OfType(BlockTypeConst.TrainStation, S.TrainPlatform);
             var bodies = new TrainTestBodies(Toaster, panel);
             _body = bodies.CreatePlatformBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
             _rulesRoot.Add(_body.Root);

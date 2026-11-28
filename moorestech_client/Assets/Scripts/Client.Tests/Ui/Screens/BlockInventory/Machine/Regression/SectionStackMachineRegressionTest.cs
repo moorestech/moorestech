@@ -20,6 +20,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
 {
@@ -106,9 +107,12 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Machine.Regression
                 new FluidRowSectionFactory(content, fluids, machine),
             };
 
-            var panel = BlockInventoryTestPanels.OfType(entry.BlockType);
+            var panel = BlockInventoryTestPanels.OfType(entry.BlockType, entry.BlockScreen);
             var source = new FakePanelSource(new ReactiveProperty<BlockInventoryPanelState>(panel));
-            var body = BlockInventoryTestBodies.SectionStack(source, entry.BlockType, factories);
+            // 分配器の専用本文は SpecialBlockDetailsTest が検証する。ここでは標準本文側に機械の区画が出ないことを確かめる
+            // SpecialBlockDetailsTest covers the dedicated splitter body; here the standard body must show no machine sections
+            var standardScreen = entry.BlockScreen == S.FilterSplitter ? S.Generic : entry.BlockScreen;
+            var body = BlockInventoryTestBodies.SectionStack(source, standardScreen, factories);
             Mount(body.Root);
             body.Attach((OpenBlockInventoryPanel)panel);
             simulate.FrameUpdate();

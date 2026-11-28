@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Detail
         public static OpenBlockInventoryPanel Panel(BlockInstanceId instanceId, SlotItem[] slots)
         {
             var block = MachineBlock;
-            return new OpenBlockInventoryPanel(block.BlockType, block.BlockGuid, MasterHolder.BlockMaster.GetBlockId(block.BlockGuid), instanceId, new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
+            return new OpenBlockInventoryPanel(block.BlockType, block.BlockScreen, block.BlockGuid, MasterHolder.BlockMaster.GetBlockId(block.BlockGuid), instanceId, new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
         }
 
         public static MachineRecipeCatalog Catalog(params Guid[] unlockedRecipeGuids)

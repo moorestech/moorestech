@@ -11,6 +11,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory
 {
@@ -26,7 +27,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
         [Test]
         public void 題の操作を持つblockTypeでは器に操作が入る()
         {
-            Assert.AreEqual(BlockInventoryTitleActionKind.RocketLaunchPadCommand, BlockComponentRegistry.Resolve(RocketType).TitleAction);
+            Assert.AreEqual(BlockInventoryTitleActionKind.RocketLaunchPadCommand, BlockComponentRegistry.Resolve(S.RocketLaunchPad).TitleAction);
             var actions = new FakeTitleActionFactory();
             var shell = BlockInventoryTestShell.Create(this, new ReactiveProperty<BlockInventoryPanelState>(Panel(RocketType, BlockInventoryPanelError.None)), actions, new FakeRocketBodyFactory());
             simulate.FrameUpdate();
@@ -50,7 +51,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
             var shell = BlockInventoryTestShell.Create(this, state, actions, new FakeRocketBodyFactory());
             simulate.FrameUpdate();
 
-            state.Value = BlockInventoryTestPanels.OfType(BlockMasterElement.BlockTypeConst.Chest);
+            state.Value = BlockInventoryTestPanels.OfType(BlockMasterElement.BlockTypeConst.Chest, S.Chest);
             simulate.FrameUpdate();
             Assert.AreEqual(1, actions.DetachCount);
             Assert.IsNull(shell.View.Q(FakeActionName));
@@ -90,7 +91,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory
 
         private static BlockInventoryPanelState Panel(string blockType, BlockInventoryPanelError error)
         {
-            return new OpenBlockInventoryPanel(blockType, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), Array.Empty<SlotItem>(), error);
+            return new OpenBlockInventoryPanel(blockType, S.RocketLaunchPad, Guid.Empty, default, new BlockInstanceId(2), new Vector3Int(2, 0, 0), Array.Empty<SlotItem>(), error);
         }
 
         private sealed class FakeTitleActionFactory : IBlockInventoryTitleActionFactory, IBlockInventoryPart

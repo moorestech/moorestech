@@ -7,6 +7,7 @@ using Core.Master;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 {
@@ -41,7 +42,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
         {
             var view = Mount(new SpaceElevatorBodyView(Kit(LoadContent()), false));
             Model.Set(SpecialDetailSamples.ElevatorWithNetwork(detail));
-            Presenters.OrbitalCargoBody(view).Attach(OpenPanel(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, slots));
+            Presenters.OrbitalCargoBody(view).Attach(OpenPanel(BlockMasterElement.BlockTypeConst.SpaceElevatorBase, S.SpaceElevatorBase, slots));
             simulate.FrameUpdate();
             return view;
         }

@@ -7,6 +7,7 @@ using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
 {
@@ -29,8 +30,8 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
             // Web と同じ値: 発電中 72.4/100・歯車 120rpm 100trq（基準 120）・電力網 100/72.4・歯車網 100/72
             // Same values as the Web: generating 72.4/100, gear 120rpm 100trq (base 120), electric 100/72.4, gear network 100/72
             Model.Set(new SpecialBlockDetailViewModel(null, new GearToElectricDetail(GearToElectricDisplayState.Generating, 72.4, 100), GearDetail.Consumer(120, 100, 120), null, new ElectricNetworkDetail(100, 72.4, 1, 1), new GearNetworkDetail(100, 72, GearNetworkStopReasonKind.None), null, null, null));
-            var panel = OpenPanel("GearToElectricGenerator");
-            var body = BlockInventoryTestBodies.SectionStack(Panels, "GearToElectricGenerator", SectionFactories());
+            var panel = OpenPanel("GearToElectricGenerator", S.GearToElectricGenerator);
+            var body = BlockInventoryTestBodies.SectionStack(Panels, S.GearToElectricGenerator, SectionFactories());
             Mount(body.Root);
             body.Attach(panel);
             simulate.FrameUpdate();

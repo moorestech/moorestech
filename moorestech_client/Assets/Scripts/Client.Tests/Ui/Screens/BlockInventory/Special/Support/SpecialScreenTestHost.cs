@@ -85,9 +85,9 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.Support
 
         // alpha の土台でパネルを開いた状態にして返す（Presenter の Attach に渡す）
         // Opens a panel with alpha's fixtures and returns it (passed to a presenter's Attach)
-        protected OpenBlockInventoryPanel OpenPanel(string blockType, params SlotItem[] slots)
+        protected OpenBlockInventoryPanel OpenPanel(string blockType, string blockScreen, params SlotItem[] slots)
         {
-            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, slots);
+            var panel = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(blockType, blockScreen, slots);
             Panels.State.Value = panel;
             return panel;
         }

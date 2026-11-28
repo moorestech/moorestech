@@ -17,6 +17,7 @@ using NUnit.Framework;
 using UnityEngine.UIElements;
 using Mooresmaster.Model.BlocksModule;
 using static Client.Tests.Ui.State.Train.Fakes.TrainTestData;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Train
 {
@@ -75,7 +76,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Train
 
             var platform = bodies.CreatePlatformBody(BlockInventoryTestParts.Grids(), BlockInventoryTestParts.Content());
             Mount(platform.Root);
-            platform.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(BlockMasterElement.BlockTypeConst.TrainStation));
+            platform.Attach((OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(BlockMasterElement.BlockTypeConst.TrainStation, S.TrainPlatform));
             bodies.Sources.SetPlatform(TrainTestPlatforms.StationBody("北駅", new[] { new SlotItem(new Core.Master.ItemId(3), 12) }, new[] { BlockFluidSlotState.Empty(1000) }, TrainPlatformTransferMode.LoadToTrain));
             simulate.FrameUpdate();
             return (train.Root, platform.Root);

@@ -11,6 +11,7 @@ using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.Screens.BlockInventory.Special
 {
@@ -43,7 +44,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special
             Model.Set(SpecialDetailSamples.Only(SpecialDetailSamples.Rocket(RocketLaunchPadPhase.AwaitingBuildCommand)));
             var kit = Kit(LoadContent());
             var shell = BlockInventoryTestShell.Create(this, Panels.State, new RocketLaunchPadBodyFactory(kit, Presenters), new RocketLaunchPadTitleActionFactory(kit, Presenters));
-            OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0));
+            OpenPanel(BlockMasterElement.BlockTypeConst.RocketLaunchPad, S.RocketLaunchPad, new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0), new SlotItem(ItemMaster.EmptyItemId, 0));
             simulate.FrameUpdate();
 
             var action = Find<VisualElement>(shell.View, "rocket-launch-pad-title-action");

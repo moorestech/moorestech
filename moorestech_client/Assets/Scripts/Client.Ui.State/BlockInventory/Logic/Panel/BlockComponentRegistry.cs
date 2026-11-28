@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using Mooresmaster.Model.BlocksModule;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Ui.State.BlockInventory.Logic.Panel
 {
@@ -35,35 +36,38 @@ namespace Client.Ui.State.BlockInventory.Logic.Panel
     }
 
     /// <summary>
-    /// マスタの BlockType（PascalCase）→ ビューの種類の静的な表（Web blockComponentRegistry.ts の写し）
-    /// Static table from the master BlockType (PascalCase) to the view kind (port of Web blockComponentRegistry.ts)
+    /// マスタのブロック画面ID → 本文の種類と題の操作。None（開けない）と未登録は引けない
+    /// Master block screen ID → body kind and title action; None (not openable) and unregistered IDs never resolve
     /// </summary>
     public static class BlockComponentRegistry
     {
-        // 未登録の種類は共通ビューへ戻す（専用 UI の無い液体ブロック等が落ちないように）
-        // Unknown types fall back to the generic view (so blocks without a dedicated UI never break)
-        private static readonly BlockInventoryComponents Default = new BlockInventoryComponents(BlockInventoryBodyKind.SectionStack, BlockInventoryTitleActionKind.None);
-
-        public static readonly IReadOnlyDictionary<string, BlockInventoryComponents> Registered = new Dictionary<string, BlockInventoryComponents>
+        private static readonly IReadOnlyDictionary<string, BlockInventoryComponents> ByScreen = new Dictionary<string, BlockInventoryComponents>
         {
-            [BlockMasterElement.BlockTypeConst.FilterSplitter] = Body(BlockInventoryBodyKind.FilterSplitter),
-            [BlockMasterElement.BlockTypeConst.Shaft] = Body(BlockInventoryBodyKind.SectionStack),
-            [BlockMasterElement.BlockTypeConst.Gear] = Body(BlockInventoryBodyKind.SectionStack),
-            [BlockMasterElement.BlockTypeConst.GearBeltConveyor] = Body(BlockInventoryBodyKind.SectionStack),
-            [BlockMasterElement.BlockTypeConst.ElectricToGearGenerator] = Body(BlockInventoryBodyKind.ElectricToGear),
-            [BlockMasterElement.BlockTypeConst.TrainStation] = Body(BlockInventoryBodyKind.TrainPlatform),
-            [BlockMasterElement.BlockTypeConst.TrainItemPlatform] = Body(BlockInventoryBodyKind.TrainPlatform),
-            [BlockMasterElement.BlockTypeConst.TrainFluidPlatform] = Body(BlockInventoryBodyKind.TrainPlatform),
-            [BlockMasterElement.BlockTypeConst.ElectricPole] = Body(BlockInventoryBodyKind.ElectricPole),
-            [BlockMasterElement.BlockTypeConst.SpaceElevatorBase] = Body(BlockInventoryBodyKind.SpaceElevator),
-            [BlockMasterElement.BlockTypeConst.RocketLaunchPad] = new BlockInventoryComponents(BlockInventoryBodyKind.RocketLaunchPad, BlockInventoryTitleActionKind.RocketLaunchPadCommand),
+            [S.Generic] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.Chest] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.Machine] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.ElectricGenerator] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.FuelGearGenerator] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.GearToElectricGenerator] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.ElectricMiner] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.GearMiner] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.Pump] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.CleanRoomAirFilter] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.FluidPipe] = Body(BlockInventoryBodyKind.SectionStack),
+            [S.FilterSplitter] = Body(BlockInventoryBodyKind.FilterSplitter),
+            [S.ElectricToGearGenerator] = Body(BlockInventoryBodyKind.ElectricToGear),
+            [S.TrainPlatform] = Body(BlockInventoryBodyKind.TrainPlatform),
+            [S.ElectricPole] = Body(BlockInventoryBodyKind.ElectricPole),
+            [S.SpaceElevatorBase] = Body(BlockInventoryBodyKind.SpaceElevator),
+            [S.RocketLaunchPad] = new BlockInventoryComponents(BlockInventoryBodyKind.RocketLaunchPad, BlockInventoryTitleActionKind.RocketLaunchPadCommand),
         };
 
-        public static BlockInventoryComponents Resolve(string blockType)
+        public static BlockInventoryComponents Resolve(string blockScreen)
         {
-            // silent-ok: 未登録は Chest・ElectricMachine 等の標準ビューの正規の経路で縮退ではない / 種類の取りこぼしは registeredBlockTypes.ts 一致テストが CI で知らせ、画面の欠けは S4-alpha の録画で見える
-            // silent-ok: unregistered is the regular path for standard views (Chest, ElectricMachine...), not a degradation / missed kinds surface in the CI parity test and S4-alpha recordings
-            return Registered.TryGetValue(blockType, out var components) ? components : Default;
+            // 未知の値はマスタ検証が止め、None は開けないので、ここへ来たら登録漏れ
+            // Unknown values are stopped by master validation and None never opens, so reaching here is a missing registration
+            if (blockScreen != null && ByScreen.TryGetValue(blockScreen, out var components)) return components;
+            throw new InvalidOperationException($"ブロック画面ID {blockScreen} の本文が登録されていない");
         }
 
         private static BlockInventoryComponents Body(BlockInventoryBodyKind body)
