@@ -30,14 +30,23 @@ namespace Client.Ui.State.Train.Platform
             // Item slots only with a transfer state on an item platform or station
             var hasItemSlots = transfer != null && HasItemSlots(master.BlockParam);
             var slotsPart = hasItemSlots ? SectionContent<IReadOnlyList<SlotItem>>.Present(itemSlots) : SectionContent<IReadOnlyList<SlotItem>>.Absent;
-            // 正規ホームの初回受信待ちと、表示する機能がないブロックを区別する
-            // Distinguish platforms awaiting their first update from blocks with no displayable feature
+            // ホームや液体欄の初回受信待ちと、表示する機能がないブロックを区別する
+            // Distinguish platforms and fluid slots awaiting their first update from blocks with no displayable feature
             var needsPlatform = !namePart.IsPresent && transfer == null && fluids.Count == 0 &&
-                                !HasItemSlots(master.BlockParam) && master.BlockParam is not TrainFluidPlatformBlockParam;
+                                !HasItemSlots(master.BlockParam) && !HasFluidSlots(master.BlockParam);
             var unavailable = needsPlatform
                 ? new UiText(LocalizationKeys.Ui.BlockInventory.ScreenRequiresTrainPlatform).WithLeadingParam("target", $"{master.Name} / {master.BlockScreen}")
                 : null;
             return new OpenTrainPlatformBody(namePart, slotsPart, fluids, mode, unavailable);
+        }
+
+        private static bool HasFluidSlots(IBlockParam param)
+        {
+            // 配管は複製ノード、それ以外はサーバーのタンク情報が届くまで待つ
+            // Pipes await a replica node, while tank-bearing blocks await server inventory details
+            return param is FluidPipeBlockParam or CleanRoomPipeHatchBlockParam or IPumpParam or TrainFluidPlatformBlockParam ||
+                   param is IMachineParam machine && (0 < machine.InputTankCount || 0 < machine.OutputTankCount) ||
+                   param is ElectricGeneratorBlockParam generator && 0 < generator.FuelFluidTankCapacity;
         }
 
         // スロットを持つ型の唯一の列挙。品物 PF と駅だけが持つ

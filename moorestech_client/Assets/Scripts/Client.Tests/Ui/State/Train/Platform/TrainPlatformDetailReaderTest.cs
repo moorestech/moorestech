@@ -85,6 +85,20 @@ namespace Client.Tests.Ui.State.Train.Platform
             Assert.IsNull(TrainPlatformDetailReader.Read(chest, null, null, Slots, fluids).Unavailable);
         }
 
+        [Test]
+        public void 配管の列車画面は初回受信を待ち届いた液体欄を表示する()
+        {
+            var pipe = BlockInventoryTestPanels.WithScreen(TestBlockParams.Find(BlockTypeConst.FluidPipe), BlockScreenConst.TrainPlatform);
+            var waiting = TrainPlatformDetailReader.Read(pipe, null, null, Slots, NoFluids);
+            Assert.IsNull(waiting.Unavailable);
+            Assert.IsEmpty(waiting.Fluids);
+
+            var fluids = new[] { BlockFluidSlotState.Empty(1000) };
+            var received = TrainPlatformDetailReader.Read(pipe, null, null, Slots, fluids);
+            Assert.IsNull(received.Unavailable);
+            Assert.AreSame(fluids, received.Fluids);
+        }
+
         [TestCase(BlockTypeConst.TrainItemPlatform)]
         [TestCase(BlockTypeConst.TrainFluidPlatform)]
         public void 正規ホームの初回受信待ちには機能不足を表示しない(string blockType)
