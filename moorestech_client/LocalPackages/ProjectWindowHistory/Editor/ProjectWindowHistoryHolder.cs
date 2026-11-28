@@ -16,7 +16,7 @@ namespace ProjectWindowHistory
 
         public ProjectWindowHistory GetHistory(EditorWindow targetWindow)
         {
-            return _saveDataList.FirstOrDefault(data => data.WindowInstanceId == targetWindow.GetEntityId())?.History;
+            return _saveDataList.FirstOrDefault(data => data.WindowInstanceId == targetWindow.GetInstanceID())?.History;
         }
 
         public void Add(EditorWindow targetWindow, ProjectWindowHistory history)
@@ -29,15 +29,15 @@ namespace ProjectWindowHistory
     [Serializable]
     public class ProjectWindowHistorySaveData
     {
-        [SerializeField] private EntityId windowInstanceId;
+        [SerializeField] private int _windowInstanceId;
         [SerializeField] private ProjectWindowHistory _history;
 
-        public EntityId WindowInstanceId => windowInstanceId;
+        public int WindowInstanceId => _windowInstanceId;
         public ProjectWindowHistory History => _history;
 
         public ProjectWindowHistorySaveData(EditorWindow window, ProjectWindowHistory history)
         {
-            windowInstanceId = window.GetEntityId();
+            _windowInstanceId = window.GetInstanceID();
             _history = history;
         }
     }

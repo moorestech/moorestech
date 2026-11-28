@@ -74,8 +74,14 @@ jobs:
           had_issues = False
           findings = []
 
+          # 証拠として採取した生ログは文字化けも含めて原本のまま残すので検査しない
+          # Raw logs captured as evidence keep their original bytes (mojibake included), so skip them
+          EVIDENCE_DIR = 'docs/evidence/'
+
           for path in list_tracked_files():
               if path.suffix.lower() not in TEXT_EXTS:
+                  continue
+              if path.as_posix().startswith(EVIDENCE_DIR):
                   continue
               if not path.is_file():
                   continue

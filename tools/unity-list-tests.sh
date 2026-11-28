@@ -6,7 +6,7 @@
 # 説明:
 #   指定されたUnityプロジェクト内の全テスト名をリストアップします
 
-UNITY="/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.3.9f1/Unity.app/Contents/MacOS/Unity"
 
 ###############################################################################
 # 引数パース

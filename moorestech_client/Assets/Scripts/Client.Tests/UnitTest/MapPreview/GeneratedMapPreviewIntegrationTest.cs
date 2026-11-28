@@ -58,7 +58,7 @@ namespace Client.Tests.UnitTest.MapPreview
         [Timeout(1400000)]
         public IEnumerator TrackedFixtureMatchesEveryPlacementAndTileAndRegenerationReleasesPreviousRuns()
         {
-            var baselineData = Resources.FindObjectsOfTypeAll<TerrainData>().Select(x => x.GetEntityId()).ToHashSet();
+            var baselineData = Resources.FindObjectsOfTypeAll<TerrainData>().Select(x => x.GetInstanceID()).ToHashSet();
             var baselineDirectories = GeneratedMapPreviewObservation.WorldDirectories();
             var objectCount = _main.GetRootGameObjects().Sum(x => x.GetComponentsInChildren<Transform>(true).Length);
             GameObject previousRoot = null;
@@ -86,7 +86,7 @@ namespace Client.Tests.UnitTest.MapPreview
                 // 全走行で所有資源の総数と主Sceneの不変条件を確認する
                 // Check total owned resources and main-scene invariants on every run
                 Assert.That(data.Length, Is.EqualTo(session.Layout.TileCoordinates.Count));
-                Assert.That(Resources.FindObjectsOfTypeAll<TerrainData>().Count(x => !baselineData.Contains(x.GetEntityId())), Is.EqualTo(data.Length));
+                Assert.That(Resources.FindObjectsOfTypeAll<TerrainData>().Count(x => !baselineData.Contains(x.GetInstanceID())), Is.EqualTo(data.Length));
                 Assert.That(EditorApplication.isPlaying, Is.False);
                 Assert.That(_main.isDirty, Is.False);
                 Assert.That(_main.GetRootGameObjects().Sum(x => x.GetComponentsInChildren<Transform>(true).Length), Is.EqualTo(objectCount));
@@ -101,7 +101,7 @@ namespace Client.Tests.UnitTest.MapPreview
                 }
             }
             Assert.That(GeneratedMapPreviewObservation.WorldDirectories(), Is.EquivalentTo(baselineDirectories));
-            Assert.That(Resources.FindObjectsOfTypeAll<TerrainData>().Where(x => !baselineData.Contains(x.GetEntityId())), Is.Empty);
+            Assert.That(Resources.FindObjectsOfTypeAll<TerrainData>().Where(x => !baselineData.Contains(x.GetInstanceID())), Is.Empty);
             Assert.That(SceneManager.GetActiveScene(), Is.EqualTo(_main));
             Assert.That(_main.isDirty, Is.False);
         }

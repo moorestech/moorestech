@@ -20,11 +20,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
-
-// このファイルが LitInput.hlsl の代わりなので、LitForwardPass.hlsl が中で行う LitInput.hlsl の include を空にする（二重定義を防ぐ）
-// This file stands in for LitInput.hlsl, so the LitInput.hlsl include inside LitForwardPass.hlsl is made a no-op (prevents redefinitions)
-#define UNIVERSAL_LIT_INPUT_INCLUDED
 
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
@@ -37,6 +32,7 @@ half _Metallic;
 half _BumpScale;
 half _Parallax;
 half _OcclusionStrength;
+half _Surface;
 // 0: 窓（URP/Lit と同じ計算）、1: 水と水位（旧 Shader Graph と同じ計算）
 // 0: window (same as URP/Lit), 1: water and water level (same as the old Shader Graph)
 float _FluidMode;

@@ -13,17 +13,17 @@ namespace ProjectWindowHistory
     [Serializable]
     public class ProjectWindowHistoryRecord
     {
-        [SerializeField] private EntityId[] selectedFolderInstanceIds;
+        [SerializeField] private int[] _selectedFolderInstanceIds;
         [SerializeField] private string _searchedText;
         [SerializeField] private SearchViewState _searchViewState;
 
-        public EntityId[] SelectedFolderInstanceIDs => selectedFolderInstanceIds;
+        public int[] SelectedFolderInstanceIDs => _selectedFolderInstanceIds;
         public string SearchedText => _searchedText;
         public SearchViewState SearchViewState => _searchViewState;
 
-        public ProjectWindowHistoryRecord(EntityId[] selectedFolderInstanceIds, string searchedText, SearchViewState searchViewState)
+        public ProjectWindowHistoryRecord(int[] selectedFolderInstanceIds, string searchedText, SearchViewState searchViewState)
         {
-            this.selectedFolderInstanceIds = selectedFolderInstanceIds;
+            _selectedFolderInstanceIds = selectedFolderInstanceIds;
             _searchedText = searchedText;
             _searchViewState = searchViewState;
         }
@@ -36,8 +36,8 @@ namespace ProjectWindowHistory
         public bool IsValid()
         {
             // フォルダが何かしら削除されていた場合は無効にしておく
-            return (selectedFolderInstanceIds?.Any() ?? false)
-                   && selectedFolderInstanceIds.All(instanceId => EditorUtility.EntityIdToObject(instanceId) != null);
+            return (_selectedFolderInstanceIds?.Any() ?? false)
+                   && _selectedFolderInstanceIds.All(instanceId => EditorUtility.InstanceIDToObject(instanceId) != null);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace ProjectWindowHistory
             string SelectedFolderToLabelText()
             {
                 const int displayFolderCountMax = 3; // 表示は最大3件
-                var targetFolderNames = selectedFolderInstanceIds
+                var targetFolderNames = _selectedFolderInstanceIds
                     .Take(displayFolderCountMax)
                     .Select(id =>
                     {
@@ -74,7 +74,7 @@ namespace ProjectWindowHistory
                         return Path.GetFileName(path);
                     });
 
-                var suffix = selectedFolderInstanceIds.Length > displayFolderCountMax ? "+" : string.Empty;
+                var suffix = _selectedFolderInstanceIds.Length > displayFolderCountMax ? "+" : string.Empty;
                 return string.Join(",", targetFolderNames) + suffix;
             }
         }
