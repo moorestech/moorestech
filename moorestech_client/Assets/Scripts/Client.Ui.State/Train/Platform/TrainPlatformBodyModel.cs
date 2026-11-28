@@ -58,7 +58,7 @@ namespace Client.Ui.State.Train.Platform
             // StateDetails come from the server and may be missing; the Reader handles that
             var stationName = block.GetStateDetail<TrainStationNameStateDetail>(TrainStationNameStateDetail.BlockStateDetailKey);
             var transfer = block.GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey);
-            _current.Value = TrainPlatformDetailReader.Read(open.BlockType, block.BlockMasterElement.BlockParam, stationName, transfer, open.ItemSlots, _fluidSlots.Current.Value.Slots);
+            _current.Value = TrainPlatformDetailReader.Read(block.BlockMasterElement, stationName, transfer, open.ItemSlots, _fluidSlots.Current.Value.Slots);
         }
     }
 }

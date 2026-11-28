@@ -17,6 +17,8 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
     /// </summary>
     public static class BlockInventoryTestPanels
     {
+        internal static readonly BlockInstanceId SampleInstanceId = new(1);
+
         // テスト用 mod の最初のチェストの名前（題に出る）
         // Name of the test mod's first chest (shown as the title)
         public const string ChestName = "TestChest";
@@ -58,7 +60,7 @@ namespace Client.Tests.Ui.State.BlockInventory.PanelModel
         // Calls the internal ctor directly so blockTypes absent from the master (e.g. "unknown") can be built (Client.Ui.State InternalsVisibleTo)
         public static BlockInventoryPanelState OfType(string blockType, string blockScreen, params SlotItem[] slots)
         {
-            return OpenBlock(blockType, blockScreen, Guid.Empty, default, new BlockInstanceId(1), new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
+            return OpenBlock(blockType, blockScreen, Guid.Empty, default, SampleInstanceId, new Vector3Int(1, 0, 0), slots, BlockInventoryPanelError.None);
         }
 
         internal static OpenBlockInventoryPanel OpenBlock(string blockType, string blockScreen, Guid blockGuid, BlockId blockId, BlockInstanceId instanceId, Vector3Int position, IReadOnlyList<SlotItem> slots, BlockInventoryPanelError error)

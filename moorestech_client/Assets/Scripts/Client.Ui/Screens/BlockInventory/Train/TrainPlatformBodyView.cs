@@ -1,3 +1,5 @@
+using Client.Ui.Foundation.Text;
+using Client.Ui.State.Text;
 using Client.Ui.Foundation.Input.OsCursor;
 using Client.Ui.Foundation.Layout;
 using Client.Ui.Screens.BlockInventory.Fluid;
@@ -16,6 +18,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
     /// </summary>
     public sealed class TrainPlatformBodyView : VisualElement
     {
+        private readonly LocalizedLabel _unavailable = new(UiText.Empty) { name = "block-screen-unavailable" };
         private readonly UiStack _stack = new(UiGap.Sm);
         private readonly TrainStationNameRow _nameRow;
         private readonly BlockItemGrid _grid;
@@ -30,6 +33,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
             _fluids = fluids;
             _mode = new TrainPlatformModeSection(commands, osCursor);
 
+            _unavailable.AddToClassList("block-inventory__error");
+            _stack.AddItem(_unavailable);
             _stack.AddItem(_nameRow);
             _stack.AddItem(_grid);
             _stack.AddItem(_fluids);
@@ -44,6 +49,7 @@ namespace Client.Ui.Screens.BlockInventory.Train
             if (state is not OpenTrainPlatformBody open)
             {
                 _stack.SetItemShown(_nameRow, false);
+                _stack.SetItemShown(_unavailable, false);
                 _stack.SetItemShown(_grid, false);
                 _stack.SetItemShown(_fluids, false);
                 _stack.SetItemShown(_mode, false);
@@ -52,6 +58,8 @@ namespace Client.Ui.Screens.BlockInventory.Train
 
             // 出さない部分は Stack から隠し、間の余白も詰める
             // Hidden parts leave the stack so their gaps collapse too
+            if (open.Unavailable != null) _unavailable.SetText(open.Unavailable);
+            _stack.SetItemShown(_unavailable, open.Unavailable != null);
             var hasStationName = open.StationName.IsPresent;
             var hasItemSlots = open.ItemSlots.TryGetPresent(out var itemSlots);
             var hasMode = open.Mode.TryGetPresent(out var mode);

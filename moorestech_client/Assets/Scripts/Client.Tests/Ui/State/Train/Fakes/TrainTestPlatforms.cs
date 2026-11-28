@@ -14,17 +14,17 @@ namespace Client.Tests.Ui.State.Train.Fakes
     {
         public static OpenTrainPlatformBody StationBody(string syncedName, IReadOnlyList<SlotItem> slots, IReadOnlyList<BlockFluidSlotState> fluids, TrainPlatformTransferMode mode)
         {
-            return new OpenTrainPlatformBody(SectionContent<string>.Present(syncedName), SectionContent<IReadOnlyList<SlotItem>>.Present(slots), fluids, SectionContent<TrainPlatformTransferMode>.Present(mode));
+            return new OpenTrainPlatformBody(SectionContent<string>.Present(syncedName), SectionContent<IReadOnlyList<SlotItem>>.Present(slots), fluids, SectionContent<TrainPlatformTransferMode>.Present(mode), null);
         }
 
         public static OpenTrainPlatformBody ItemPlatformBody(IReadOnlyList<SlotItem> slots, IReadOnlyList<BlockFluidSlotState> fluids, TrainPlatformTransferMode mode)
         {
-            return new OpenTrainPlatformBody(SectionContent<string>.Absent, SectionContent<IReadOnlyList<SlotItem>>.Present(slots), fluids, SectionContent<TrainPlatformTransferMode>.Present(mode));
+            return new OpenTrainPlatformBody(SectionContent<string>.Absent, SectionContent<IReadOnlyList<SlotItem>>.Present(slots), fluids, SectionContent<TrainPlatformTransferMode>.Present(mode), null);
         }
 
         public static OpenTrainPlatformBody FluidPlatformBody(IReadOnlyList<BlockFluidSlotState> fluids, TrainPlatformTransferMode mode)
         {
-            return new OpenTrainPlatformBody(SectionContent<string>.Absent, SectionContent<IReadOnlyList<SlotItem>>.Absent, fluids, SectionContent<TrainPlatformTransferMode>.Present(mode));
+            return new OpenTrainPlatformBody(SectionContent<string>.Absent, SectionContent<IReadOnlyList<SlotItem>>.Absent, fluids, SectionContent<TrainPlatformTransferMode>.Present(mode), null);
         }
     }
 }

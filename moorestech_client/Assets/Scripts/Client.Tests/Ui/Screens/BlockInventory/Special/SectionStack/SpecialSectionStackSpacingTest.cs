@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using System.Linq;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.State.BlockInventory.Logic.Detail;
@@ -59,7 +60,7 @@ namespace Client.Tests.Ui.Screens.BlockInventory.Special.SectionStack
 
         private static SpecialBlockDetailViewModel WithGearToElectric(GearToElectricDetail generator)
         {
-            return new SpecialBlockDetailViewModel(null, generator, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.None), null, null, null);
+            return new SpecialBlockDetailViewModel(null, generator, GearDetail.Generator(20, 5), null, null, new GearNetworkDetail(20, 30, GearNetworkStopReasonKind.None), null, null, null, null, BlockInventoryTestPanels.SampleInstanceId);
         }
 
         // 表示中の特殊族の区画が期待の順に並び、先頭だけ余白 0・他は正（UiGap.Sm の実値）

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
 using System;
 using Client.Tests.Ui.Screens.BlockInventory.Special.Support;
 using Client.Ui.State.BlockInventory.Special.Selectors;
@@ -71,11 +72,11 @@ namespace Client.Tests.Ui.State.BlockInventory.Special
                 case "gearToElectric": return SpecialDetailSamples.Only(gearToElectric);
                 case "electricNetwork": return SpecialDetailSamples.Only(electricNetwork);
                 case "gearNetwork": return SpecialDetailSamples.Only(gearNetwork);
-                case "everything": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, gear, belt, electricNetwork, gearNetwork, filter, rocket, elevator);
-                case "allButGear": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, null, belt, electricNetwork, gearNetwork, filter, rocket, elevator);
-                case "allButGearToElectric": return new SpecialBlockDetailViewModel(electricToGear, null, gear, belt, electricNetwork, gearNetwork, filter, rocket, elevator);
-                case "allButElectricNetwork": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, gear, belt, null, gearNetwork, filter, rocket, elevator);
-                case "allButGearNetwork": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, gear, belt, electricNetwork, null, filter, rocket, elevator);
+                case "everything": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, gear, belt, electricNetwork, gearNetwork, filter, rocket, elevator, null, BlockInventoryTestPanels.SampleInstanceId);
+                case "allButGear": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, null, belt, electricNetwork, gearNetwork, filter, rocket, elevator, null, BlockInventoryTestPanels.SampleInstanceId);
+                case "allButGearToElectric": return new SpecialBlockDetailViewModel(electricToGear, null, gear, belt, electricNetwork, gearNetwork, filter, rocket, elevator, null, BlockInventoryTestPanels.SampleInstanceId);
+                case "allButElectricNetwork": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, gear, belt, null, gearNetwork, filter, rocket, elevator, null, BlockInventoryTestPanels.SampleInstanceId);
+                case "allButGearNetwork": return new SpecialBlockDetailViewModel(electricToGear, gearToElectric, gear, belt, electricNetwork, null, filter, rocket, elevator, null, BlockInventoryTestPanels.SampleInstanceId);
                 default: throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
             }
         }

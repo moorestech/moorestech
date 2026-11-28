@@ -80,9 +80,9 @@ namespace Client.Tests.Ui.State.Train.Platform
             var blockId = ForUnitTestModBlockId.TestTrainItemPlatform;
             var (_, transfer) = TrainTestHelper.PlaceBlockWithComponent<TrainPlatformTransferComponent>(environment, blockId, position, BlockDirection.North);
             var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var root = new GameObject(nameof(TrainPlatformEditModelTest));
             var previousApi = ClientContext.VanillaApi;
             using var packets = new PlacementPacketCapture();
+            var root = new GameObject(nameof(TrainPlatformEditModelTest));
             try
             {
                 // 同じ座標で表示マスタだけ変更
