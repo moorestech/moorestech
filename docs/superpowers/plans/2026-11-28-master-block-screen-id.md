@@ -61,7 +61,7 @@
 **Interfaces:**
 - Produces: `string BlockMasterElement.BlockScreen`、`BlockMasterElement.BlockScreenConst.None` ほか R1 の18定数（SourceGenerator 生成）。`internal static bool BlockScreens.IsKnownScreen(string blockScreen)`（Core.Master 内だけ）、`public static bool BlockScreens.IsOpenable(BlockMasterElement block)`（`BlockScreen != None`。開けるかの判定はこれ1本）。`internal static class BlockScreenValidator` の `internal static string Validate(Blocks blocks)`（エラー文。空なら正常。前例の検証クラスと同じく internal）
 
-- [ ] **Step 1: スキーマを書き換える**
+- [x] **Step 1: スキーマを書き換える**
 
 `VanillaSchema/blocks.yml` の `- key: openable`〜`default: false`（3行）を次で置き換える:
 
@@ -91,7 +91,7 @@
 
 edit-schema スキルの手順で SourceGenerator を再生成させる。
 
-- [ ] **Step 2: 変換スクリプトを scratchpad に置く**
+- [x] **Step 2: 変換スクリプトを scratchpad に置く**
 
 `<scratchpad>/convert_block_screen.py`（repo には入れない）:
 
@@ -144,14 +144,14 @@ for p in [a for a in sys.argv[1:] if a != "--test-master"]:
 
 `"openable"` が `data` 配列の順に1ブロック1回だけ現れることを前提にしている（件数の assert で確かめる）。
 
-- [ ] **Step 3: 本 repo のテスト用 JSON を変換する**
+- [x] **Step 3: 本 repo のテスト用 JSON を変換する**
 
 Run: `python3 -I <scratchpad>/convert_block_screen.py --test-master moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` と `python3 -I <scratchpad>/convert_block_screen.py moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json`（EditModeInPlayingTest が開くブロックはすべて openable:true なので通常の変換でよい）
 
 forUnitTest は `--test-master` で、表にある種類（Chest・ElectricMachine・FilterSplitter・ElectricPole・ElectricPump など）は openable:false でもその画面になる。表に無い種類（TestBeltConveyor の BeltConveyor・TestTrainRail の TrainRail など）は通常どおり openable で決まり、`BlockInteractableTest` の PlainBlockName（TestBeltConveyor）と `RequestBlockInventoryTest` の TestTrainRail は `None` のまま残る。Step 10 のサーバーテストで「開けないこと」を前提にした失敗が出たら、そのブロックだけ `None` に戻し、どのブロックを戻したかを判断記録に1行足す
 Expected: 2行の件数表示、assert 無し。`git grep -c '"openable"' -- '*blocks.json'` の結果に2ファイルが出ない。
 
-- [ ] **Step 4: moorestech_master を変換して push・PR を作る**
+- [x] **Step 4: moorestech_master を変換して push・PR を作る**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech_master
@@ -169,11 +169,11 @@ v8 の確かめ方（ピン 84ca888b 時点の blockType と openable の組み�
 
 土台は moorestech_master の `origin/master` にする。2026-11-28 時点で、ピン `84ca888b` より後に blocks.json を変えたコミット `a6df8db`（ロケット発射台の搬入口・搬出口）が master にある。ピンから切ると、その後に足されたブロックが `openable` のまま残り、master への PR が衝突する。変換後に Step 10 のテストが `a6df8db` 由来の不一致（本 repo のコードがまだ追っていない master の変更）で落ちたら、その原因を報告に書いたうえで、土台を `84ca888b` に替えて切り直し、PR 本文に「master へ入れる前に origin/master を取り込み、スクリプトを再実行する」と書く。push の直前に `git fetch origin && git merge origin/master` を行い、スクリプトを再実行する（件数の assert が取り残しを拾う）。
 
-- [ ] **Step 5: ピンを更新する**
+- [x] **Step 5: ピンを更新する**
 
 `.moorestech-external-revisions.json` の moorestech_master の `commitHash` を Step 4 で push したコミットの完全なハッシュへ替える。テストプレイ用のマスタ（`../moorestech_master/server_v8/mods`）は、そのコミットを指すピン worktree を `worktree-and-review-pitfalls.md` の手順で用意する。
 
-- [ ] **Step 6: 検証を書く**
+- [x] **Step 6: 検証を書く**
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/Screen/BlockScreens.cs`:
 
@@ -239,7 +239,7 @@ namespace Core.Master.Validator.Block.Screen
 
 `BlockMasterUtil.Validate` の `FilterSplitterParamValidator.Validate(blocks);` の次の行に `errorLogs += BlockScreenValidator.Validate(blocks);` を足し、`using Core.Master.Validator.Block.Screen;` を加える。
 
-- [ ] **Step 7: 開ける判定を替える**
+- [x] **Step 7: 開ける判定を替える**
 
 `InventoryRequestProtocol.cs:69` の `block.BlockMasterElement.Openable` を `BlockScreens.IsOpenable(block.BlockMasterElement)` に替える（`using Core.Master.Validator.Block.Screen;` を足す。Server.Protocol の asmdef が Core.Master を参照していることを確かめる）。
 
@@ -259,7 +259,7 @@ Run: `uloop compile --project-path ./moorestech_client`
 コンパイルエラーの出た手書き `new BlockMasterElement(...)` の `openable` 位置の `bool` を `BlockMasterElement.BlockScreenConst.None` に替える（上の Files 節の5ファイル。他にも出ればそれも）。`BlockInteractableTest.cs:84-85` の `FindMaster(...).Openable` は `BlockScreens.IsOpenable(FindMaster(...))` に替える（本番の判定と同じ1本を検証するため）。
 Expected: ErrorCount 0
 
-- [ ] **Step 9: 検証のテストを書く**
+- [x] **Step 9: 検証のテストを書く**
 
 前例 `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/RocketLaunchPadParamValidatorTest.cs` と同じく、テスト用 blocks.json の JToken を書き換えて `BlockMasterUtil.Validate` を通す。`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/BlockScreen/BlockScreenValidatorTest.cs`:
 
@@ -322,7 +322,7 @@ namespace Tests.UnitTest.Core.Master.BlockScreen
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockScreenValidatorTest|RequestBlockInventoryTest|BlockMaster"`
 Expected: 全 PASS。続けて `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\."` でサーバーテスト全体を回し、このタスク前から落ちていたもの以外に失敗が無い（前からの失敗は `git stash` 前の master で同じテストを回して見比べ、報告に書く）。
 
-- [ ] **Step 11: コミットする**
+- [x] **Step 11: コミットする**
 
 ```bash
 git add VanillaSchema/blocks.yml moorestech_server moorestech_client .moorestech-external-revisions.json
@@ -350,7 +350,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 - Consumes: `BlockMasterElement.BlockScreen`、`BlockMasterElement.BlockScreenConst`（Task 1）
 - Produces: `public static BlockInventoryComponents BlockComponentRegistry.Resolve(string blockScreen)`（未登録・`None` は `InvalidOperationException`）、`public static SectionStackConfig SectionStackConfigTable.Resolve(string blockScreen)`（SectionStack 本文のID以外は `InvalidOperationException`）、`public string OpenBlockInventoryPanel.BlockScreen { get; private set; }`、`OpenBlockInventoryPanel` の internal ctor は `(string blockType, string blockScreen, Guid blockGuid, BlockId blockId, BlockInstanceId blockInstanceId, Vector3Int position, IReadOnlyList<SlotItem> itemSlots, BlockInventoryPanelError error)`、`SectionStackBodyFactory.Create(string blockScreen, BlockInventoryBodyMount mount)`
 
-- [ ] **Step 1: BlockComponentRegistry をブロック画面IDで引く**
+- [x] **Step 1: BlockComponentRegistry をブロック画面IDで引く**
 
 `BlockComponentRegistry.cs` の `BlockComponentRegistry` クラス（enum と struct はそのまま）を次で置き換える。`using System;` と `using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;` を足す:
 
@@ -399,7 +399,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 
 `Registered` プロパティは削除する（参照は Delete する `BlockRegistryCoverageTest` だけ）。今ある `silent-ok` コメント（`registeredBlockTypes.ts` 一致テストを気づく経路に挙げたもの）と「Web blockComponentRegistry.ts の写し」の XML コメントも消す。
 
-- [ ] **Step 2: SectionStackConfigTable をブロック画面IDで引く**
+- [x] **Step 2: SectionStackConfigTable をブロック画面IDで引く**
 
 `SectionStackConfigTable.cs` の `using T = ...BlockTypeConst;` を `using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;` に替え、`using System;` を足し、クラス本体を次にする（各行の gridId・rowId・真偽値は今の表から写す）:
 
@@ -436,7 +436,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 
 `public static readonly SectionStackConfig Generic` を参照している箇所がコンパイルエラーで出たら `SectionStackConfigTable.Resolve(BlockMasterElement.BlockScreenConst.Generic)` に替える。XML ドキュメントコメントの「blockType」は「ブロック画面ID」に直し、「Web configByBlockType と genericConfig の写し」と `silent-ok` コメント（`BlockRegistryCoverageTest` を気づく経路に挙げたもの）を消す。
 
-- [ ] **Step 3: パネルにブロック画面IDを持たせる**
+- [x] **Step 3: パネルにブロック画面IDを持たせる**
 
 `BlockInventoryPanelState.cs` の `OpenBlockInventoryPanel` に `public string BlockScreen { get; private set; }` を `BlockType` の次に足し、ctor を次にする:
 
@@ -455,12 +455,12 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 
 `BlockInventoryPanelStateFactory.cs:23` を `return new OpenBlockInventoryPanel(master.BlockType, master.BlockScreen, master.BlockGuid, blockId, blockInstanceId, position, itemSlots, error);` にする。
 
-- [ ] **Step 4: 本文の組み立てをブロック画面IDで行う**
+- [x] **Step 4: 本文の組み立てをブロック画面IDで行う**
 
 `SectionStackBodyFactory.Create(string blockType, ...)` の引数名を `blockScreen` にし、`SectionStackConfigTable.Resolve(blockScreen)` で引く。XML コメントの「blockType の設定」を「ブロック画面IDの設定」に直す。
 `BlockInventoryPartRegistry.cs:43` の `_sectionStack.Create(panel.BlockType, mount)` を `_sectionStack.Create(panel.BlockScreen, mount)` に替える。`:46`（専用本文の工場が登録されていないときの逃げ道）は `_sectionStack.Create(BlockMasterElement.BlockScreenConst.Generic, mount)` にし、`:45` の警告文の `blockType={panel.BlockType}` を `blockScreen={panel.BlockScreen}` に替える（専用本文のIDで `SectionStackConfigTable.Resolve` を呼ぶと例外になるため。警告と共通画面で描く今の挙動を保つ）。`using Mooresmaster.Model.BlocksModule;` を足す。
 
-- [ ] **Step 5: 画面の都合の分岐を本文の種類で決める**
+- [x] **Step 5: 画面の都合の分岐を本文の種類で決める**
 
 `OrbitalCargoLargePanelRule.IsLargePanel` を次にし、不要になった `using Mooresmaster.Model.BlocksModule;` を消す。コメント「ブロックの種類だけで決まり」は「本文の種類だけで決まり」に直す:
 
@@ -488,7 +488,7 @@ git commit -m "openable をブロック画面ID blockScreen へ置き換え、�
 
 `SetStationName` は `out var master` で受けて `master.BlockType != BlockTypeConst.TrainStation` を見る（駅名はブロックの機能なので blockType のまま。R8）。`SetTransferMode` は `out var master` で受けて `BlockComponentRegistry.Resolve(master.BlockScreen).Body != BlockInventoryBodyKind.TrainPlatform` を見る。
 
-- [ ] **Step 6: 網羅テストを置き換える**
+- [x] **Step 6: 網羅テストを置き換える**
 
 `BlockRegistryCoverageTest.cs` と fixture を `git rm` し、`BlockScreenCoverageTest.cs` を作る:
 
@@ -557,7 +557,7 @@ Expected: ErrorCount 0
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockInventory|SectionStack|BlockComponentRegistry|BlockScreen|TrainPlatform|OrbitalCargo|SpecialBlockDetails"`
 Expected: 全 PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_client
