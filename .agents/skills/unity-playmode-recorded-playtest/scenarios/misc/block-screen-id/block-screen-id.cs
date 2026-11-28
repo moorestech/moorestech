@@ -105,9 +105,14 @@ return PlaytestRunner.Run("block-screen-id", new PlaytestRunOptions { Record = t
 
     bool HitsBlock(BlockGameObject block)
     {
-        return BlockClickDetectUtil.TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask, BlockClickDetectUtil.AimRayDistance, out var hit)
+        // 選定と同じ距離だけレイを伸ばし、到達距離はプレイヤーから測る
+        // Use the selection ray length and measure reach from the player.
+        var playerPosition = p.PlayerPosition;
+        var rayDistance = Vector3.Distance(Camera.main.transform.position, playerPosition) + InteractOverlap.InteractDistance;
+        var layerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
+        return BlockClickDetectUtil.TryGetFrontmostSolidHit(layerMask, rayDistance, out var hit)
             && hit.collider.transform.IsChildOf(block.transform)
-            && Vector3.Distance(p.PlayerPosition, hit.point) <= InteractOverlap.InteractDistance;
+            && Vector3.Distance(playerPosition, hit.point) <= InteractOverlap.InteractDistance;
     }
 
     async UniTask CheckBody(string name, string testId, string screenshot)
