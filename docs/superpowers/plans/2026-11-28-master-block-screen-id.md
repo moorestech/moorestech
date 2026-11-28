@@ -34,7 +34,7 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / 検証の public とテストの形を前例 RocketLaunchPadParamValidatorTest に揃えた。死活表で死ぬ操作なし
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / 検証の公開範囲を前例の internal に、テストの形を前例 RocketLaunchPadParamValidatorTest に揃えた（変更範囲の再検査を含む）。死活表で死ぬ操作なし
 - Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱2・第3バケツ0 / プレイヤーに見える差の無い内部の形なので、すべて agent前提として判断記録に記載。開けるかの判定を1本化し、ADR 0109 の登録漏れの止め方を直した
 
 ---
@@ -59,7 +59,7 @@
 - Modify: `.moorestech-external-revisions.json`
 
 **Interfaces:**
-- Produces: `string BlockMasterElement.BlockScreen`、`BlockMasterElement.BlockScreenConst.None` ほか R1 の18定数（SourceGenerator 生成）。`public static bool BlockScreens.IsKnownScreen(string blockScreen)`、`public static bool BlockScreens.IsOpenable(BlockMasterElement block)`（`BlockScreen != None`。開けるかの判定はこれ1本）、`public static string BlockScreenValidator.Validate(Blocks blocks)`（エラー文。空なら正常）
+- Produces: `string BlockMasterElement.BlockScreen`、`BlockMasterElement.BlockScreenConst.None` ほか R1 の18定数（SourceGenerator 生成）。`internal static bool BlockScreens.IsKnownScreen(string blockScreen)`（Core.Master 内だけ）、`public static bool BlockScreens.IsOpenable(BlockMasterElement block)`（`BlockScreen != None`。開けるかの判定はこれ1本）。`internal static class BlockScreenValidator` の `internal static string Validate(Blocks blocks)`（エラー文。空なら正常。前例の検証クラスと同じく internal）
 
 - [ ] **Step 1: スキーマを書き換える**
 
@@ -189,7 +189,7 @@ namespace Core.Master.Validator.Block.Screen
             .Select(field => (string)field.GetRawConstantValue())
             .ToHashSet();
 
-        public static bool IsKnownScreen(string blockScreen)
+        internal static bool IsKnownScreen(string blockScreen)
         {
             return KnownScreens.Contains(blockScreen);
         }
@@ -213,9 +213,9 @@ namespace Core.Master.Validator.Block.Screen
     /// ブロック画面IDがスキーマの選択肢にあるかを検証する（生成ローダーは enum の値を検査しないため）
     /// Validates each block screen ID is a schema option (the generated loader does not check enum values)
     /// </summary>
-    public static class BlockScreenValidator
+    internal static class BlockScreenValidator
     {
-        public static string Validate(Blocks blocks)
+        internal static string Validate(Blocks blocks)
         {
             var logs = string.Empty;
             foreach (var block in blocks.Data)
@@ -601,6 +601,6 @@ git commit -m "ブロック画面IDで今と同じ画面が開くことを確か
 - ブロック画面IDは C# の enum 型ではなく string ＋生成定数で扱う。出所: agent前提（Phase 2.6 5-I〈強〉。mooresmaster の生成器が enum を string と `*Const` で出すため。生成器の改修は範囲外）
 - `TrainBlockCommands.TryResolveOpenBlock` の false の理由（ブロック画面でない／GUID が取れない）は区別しない。出所: agent前提（Phase 2.6 5-C〈弱〉。既存の形を引き継ぎ、どちらも `BlockNotOpen` で返す）
 - 登録漏れの止め方: スキーマに無い値はマスタ読込（`BlockScreenValidator`）で起動時に止め、スキーマの選択肢にクライアントの画面が登録されていないことは `BlockScreenCoverageTest`（CI）で止める。開いた時の `Resolve` の例外は最後の網。ADR 0109 agent前提3 をこの形に直した。出所: agent前提（Phase 2.6 検査7〈強〉。選択肢もクライアントの表も同じビルドに入るコードなので、食い違いはビルドの検査で必ず見つかる）
-- `BlockScreens.IsKnownScreen` は `BlockScreenValidator` が別クラスから呼ぶので public にする。テストは前例 `RocketLaunchPadParamValidatorTest` と同じく JSON を書き換えて `BlockMasterUtil.Validate` を通す形にし、`Tests/UnitTest/Core/Master/BlockScreen/` に置く。出所: agent前提（配置検査の違反1件を修正）
+- `BlockScreenValidator` と `BlockScreens.IsKnownScreen` は internal（前例: `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` などの検証クラス）。`BlockScreens` と `IsOpenable` は Client.Game・Server.Protocol が使うので public（前例: `FilterSplitter/FilterSplitterOutputSideResolver.cs`）。テストは前例 `RocketLaunchPadParamValidatorTest` と同じく JSON を書き換えて `BlockMasterUtil.Validate` を通す形にし、`Tests/UnitTest/Core/Master/BlockScreen/` に置く。出所: agent前提（配置検査の違反1件を修正）
 - `BlockInventoryPartRegistry` の「専用本文の工場が無いときは警告して共通画面で描く」逃げ道は残し、共通画面の設定は `Generic` で引く。出所: agent前提（配置検査の注目点。工場の登録漏れは本番では起きず、工場を登録しないテスト構成が通る道なので今の挙動を保つ）
 - 本番コードで生成定数クラスをリフレクションで列挙するのは `BlockScreens` が初めて（前例はテストのみ）。出所: agent前提（配置検査の注目点。生成器を改修しない判断の帰結。レビューの注目点として PR 本文に書く）
