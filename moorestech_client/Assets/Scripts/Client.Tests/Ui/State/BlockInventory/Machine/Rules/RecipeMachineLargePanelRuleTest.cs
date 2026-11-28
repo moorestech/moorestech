@@ -1,5 +1,7 @@
 using Client.Tests.Ui.State.BlockInventory.Machine.Detail;
 using Client.Tests.Ui.State.BlockInventory.Machine.Selection;
+using Client.Tests.Ui.State.BlockInventory.PanelModel;
+using Client.Ui.State.BlockInventory.Panel;
 using Client.Ui.State.BlockInventory.Common;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Machine;
@@ -10,6 +12,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
+using S = Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockScreenConst;
 
 namespace Client.Tests.Ui.State.BlockInventory.Machine.Rules
 {
@@ -41,6 +44,12 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine.Rules
             Assert.IsFalse(_rule.IsLargePanel(panel));
             _model.Set(Present(MachineTestDetails.ViewModel(MachineRecipeSelection.Unselected, MachineTestDetails.RecipeA)));
             Assert.IsTrue(_rule.IsLargePanel(panel));
+
+            // 同じ機械でも電柱画面にはレシピ欄がない
+            // The pole screen has no recipe section even for the same machine
+            var pole = (OpenBlockInventoryPanel)BlockInventoryTestPanels.OfType(panel.BlockType, S.ElectricPole);
+            Assert.AreEqual(panel.BlockInstanceId, pole.BlockInstanceId);
+            Assert.IsFalse(_rule.IsLargePanel(pole));
 
             // 個体の違うパネルに前の機械の値を当てない
             // Another instance's panel never takes the old value

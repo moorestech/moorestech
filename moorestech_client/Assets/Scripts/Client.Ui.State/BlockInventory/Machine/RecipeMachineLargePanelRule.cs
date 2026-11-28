@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.State.BlockInventory.Common;
+using Client.Ui.State.BlockInventory.Logic.Panel;
 using Client.Ui.State.BlockInventory.Panel;
 using Game.Block.Interface;
 using UniRx;
@@ -51,7 +52,8 @@ namespace Client.Ui.State.BlockInventory.Machine
 
         public bool IsLargePanel(OpenBlockInventoryPanel panel)
         {
-            return _model.Current.Value.TryGetPresent(out var machine) && machine.IsFor(panel) && 0 < machine.Rows.Count;
+            return panel.Components.Body == BlockInventoryBodyKind.SectionStack &&
+                _model.Current.Value.TryGetPresent(out var machine) && machine.IsFor(panel) && 0 < machine.Rows.Count;
         }
     }
 }

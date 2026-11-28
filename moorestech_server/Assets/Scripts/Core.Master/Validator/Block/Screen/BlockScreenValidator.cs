@@ -1,3 +1,4 @@
+using System.Text;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Core.Master.Validator.Block.Screen
@@ -10,12 +11,14 @@ namespace Core.Master.Validator.Block.Screen
     {
         internal static string Validate(Blocks blocks)
         {
-            var logs = string.Empty;
+            StringBuilder logs = null;
             foreach (var block in blocks.Data)
             {
-                if (!BlockScreens.IsKnownScreen(block.BlockScreen)) logs += $"[BlockMaster] Block:{block.Name} has unknown blockScreen:{block.BlockScreen}\n";
+                if (BlockScreens.IsKnownScreen(block.BlockScreen)) continue;
+                logs ??= new StringBuilder();
+                logs.Append($"[BlockMaster] Block:{block.Name} has unknown blockScreen:{block.BlockScreen}\n");
             }
-            return logs;
+            return logs?.ToString() ?? string.Empty;
         }
     }
 }
