@@ -17,6 +17,14 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             _craftCapLookup = craftCapLookup;
         }
 
+        // この判定が見る製作上限そのもの。上限の無いレシピは-1（搬入の答えが変わりうるかの照合に使う）
+        // The craft cap this gate reads; -1 for an uncapped recipe (used to tell whether an inflow answer could have changed)
+        public int ResolveCraftCapLevel(MachineRecipeMasterElement recipe)
+        {
+            if (!MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape) || !shape.HasCraftCap) return -1;
+            return MachineRecipeLevelInheritanceUtil.GetMaxCraftableLevel(shape, _craftCapLookup);
+        }
+
         // 継承元スロット以外・上限なしのレシピは常に通す。束縛（IsInputBoundTo）を通った後に呼ぶ
         // Any slot other than the source, and any uncapped recipe, always passes; called after the binding check (IsInputBoundTo)
         public bool IsWithinCraftCap(MachineRecipeMasterElement recipe, int slotIndex, ItemId itemId)

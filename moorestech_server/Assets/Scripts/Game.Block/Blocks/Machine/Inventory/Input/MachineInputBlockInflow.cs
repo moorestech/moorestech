@@ -28,10 +28,15 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         private MachineRecipeMasterElement _refusalRecipe;
         private IItemStack _refusedStack;
 
+        // 丸ごと断った直近の1件。同じ個体が何も変わっていない機械へまた届く間は、仮想挿入をやり直さず同じ答えを返す
+        // The latest whole refusal; while the same instance keeps arriving at an unchanged machine, the same answer is returned without redoing the virtual insert
+        private readonly MachineInputUnchangedRefusal _unchangedRefusal;
+
         public MachineInputBlockInflow(OpenableInventoryItemDataStoreService itemDataStoreService, MachineInputSlotBinding slotBinding)
         {
             _itemDataStoreService = itemDataStoreService;
             _slotBinding = slotBinding;
+            _unchangedRefusal = new MachineInputUnchangedRefusal(itemDataStoreService, slotBinding);
         }
 
         public void ClearRefusal()
@@ -39,18 +44,17 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             _latestRefusalTick = null;
             _refusalRecipe = null;
             _refusedStack = null;
+            _unchangedRefusal.Forget();
         }
 
         public IItemStack Insert(IItemStack itemStack)
         {
-            // 自動搬入上限で積む（旧 VanillaMachineInputInventory.InsertItemFromBlock の本体）
-            // Stack under the auto-insert cap (the former body of VanillaMachineInputInventory.InsertItemFromBlock)
-            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(_itemDataStoreService.InventoryItems, new List<IItemStack> { itemStack }, _slotBinding);
-            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
+            // 前回丸ごと断った個体が、中身もレシピも上限も同じ機械へまた届いたなら答えは同じ。拒否の時刻だけは下で従来どおり更新する
+            // The instance wholly refused last time arriving at a machine with the same content, recipe and limits gets the same answer; the refusal tick is still refreshed below as before
+            var remainder = _unchangedRefusal.Matches(itemStack) ? itemStack : InsertUnderAutoInsertCap(itemStack);
 
             // 継承元のレベルで断った残りだけを、理由と時刻つきで覚える
             // Remember only a remainder refused on the source level, with its reason and tick
-            var remainder = remainders[0];
             if (_refusedStack != null && remainder.Count < itemStack.Count && itemStack.Id == _refusedStack.Id) _latestRefusalTick = null;
             // silent-ok: 束縛外の品・同じレベルの満杯は従来どおり残りを返すだけ / 品は搬入元（ベルト・チェスト）に残り、プレイヤーが見て気づく
             if (remainder.Count == 0 || !TryClassifyLevelRefusal(remainder, out var reason)) return remainder;
@@ -58,6 +62,21 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             _latestRefusalTick = GameUpdater.CurrentTick;
             _slotBinding.TryGetRecipe(out _refusalRecipe);
             _refusedStack = remainder;
+            return remainder;
+        }
+
+        private IItemStack InsertUnderAutoInsertCap(IItemStack itemStack)
+        {
+            // 自動搬入上限で積む（旧 VanillaMachineInputInventory.InsertItemFromBlock の本体）
+            // Stack under the auto-insert cap (the former body of VanillaMachineInputInventory.InsertItemFromBlock)
+            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(_itemDataStoreService.InventoryItems, new List<IItemStack> { itemStack }, _slotBinding);
+            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
+
+            // 1個も入らず同じ個体がそのまま返ったときだけ控える。少しでも入ったら機械の中身が変わるので控えを捨てる
+            // Keep the record only when nothing went in and the very same instance came back; anything going in changes the machine, so the record is dropped
+            var remainder = remainders[0];
+            if (touchedSlots.Count == 0 && 0 < itemStack.Count && ReferenceEquals(remainder, itemStack)) _unchangedRefusal.Remember(itemStack);
+            else _unchangedRefusal.Forget();
             return remainder;
         }
 

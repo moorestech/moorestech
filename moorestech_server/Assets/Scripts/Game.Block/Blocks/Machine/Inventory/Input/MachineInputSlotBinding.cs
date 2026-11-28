@@ -117,6 +117,13 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return (factory.Create(lowerItemId, slotStack.Count), factory.Create(lowerItemId, incoming.Count));
         }
 
+        // 選択レシピの製作上限。未選択と上限の無いレシピは-1
+        // The selected recipe's craft cap; -1 when unselected or uncapped
+        public int ResolveCraftCapLevel()
+        {
+            return _recipe == null ? -1 : _craftCapGate.ResolveCraftCapLevel(_recipe);
+        }
+
         // 選択済みならそのレシピを返す。未選択は false
         // Returns the selected recipe; false when unselected
         public bool TryGetRecipe(out MachineRecipeMasterElement recipe) => (recipe = _recipe) != null;
