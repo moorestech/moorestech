@@ -69,6 +69,19 @@ namespace Client.Tests.Player
         }
 
         [Test]
+        public void フライ中のSpaceとCの同時押しは相殺する()
+        {
+            DebugParameters.SaveBool(DebugConst.FlyModeKey, true);
+            TapSpace(0.0f, 0.1f, 0.2f, 0.3f);
+
+            Press(_keyboard.spaceKey);
+            Press(_keyboard.cKey);
+            _flyMode.ManualUpdate(1.0f);
+
+            Assert.AreEqual(0f, GetFlightMotion().ResolveVerticalVelocity(0f, 15f, false));
+        }
+
+        [Test]
         public void フライ中のQとEは上下入力にならない()
         {
             DebugParameters.SaveBool(DebugConst.FlyModeKey, true);
