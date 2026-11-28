@@ -247,9 +247,27 @@ properties:
     - key: blockPrefabAddressablesPath
       type: string
       optional: true
-    - key: openable
-      type: boolean
-      default: false
+    - key: blockScreen
+      type: enum
+      options:
+      - None
+      - Generic
+      - Chest
+      - Machine
+      - ElectricGenerator
+      - FuelGearGenerator
+      - GearToElectricGenerator
+      - ElectricMiner
+      - GearMiner
+      - Pump
+      - CleanRoomAirFilter
+      - FluidPipe
+      - FilterSplitter
+      - ElectricToGearGenerator
+      - TrainPlatform
+      - ElectricPole
+      - SpaceElevatorBase
+      - RocketLaunchPad
     - key: blockParam
       switch: ./blockType
       cases:

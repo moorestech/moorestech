@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Master.Validator.Block.Screen;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Fluid;
@@ -66,7 +67,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 表示専用の開けるブロックは空スロットで成功する
                     // Openable display-only blocks succeed with empty inventory slots
-                    return block.BlockMasterElement.Openable
+                    return BlockScreens.IsOpenable(block.BlockMasterElement)
                         ? ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, Array.Empty<IItemStack>(), Array.Empty<FluidMessagePack>())
                         : ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
                 }

@@ -83,7 +83,7 @@ namespace Client.Tests.PlaceSystem.Ground.Entry
         private static BlockMasterElement CreateWidePole()
         {
             return new BlockMasterElement(0, Guid.Empty, "WidePole", "TestBlockType", null, 1, null, "テスト", "テスト", 0, false,
-                new Vector3Int(3, 4, 3), null, false, null);
+                new Vector3Int(3, 4, 3), null, BlockMasterElement.BlockScreenConst.None, null);
         }
     }
 }

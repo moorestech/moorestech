@@ -10,6 +10,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.NearestSearch;
 using Core.Master;
+using Core.Master.Validator.Block.Screen;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
@@ -74,9 +75,9 @@ namespace Client.Game.InGame.Block
                 child.Init(this);
                 DeleteTarget ??= child;
             }
-            // 開けるブロックのみインタラクト面を初期化
-            // Initialize the interact face only for openable blocks
-            if (blockMasterElement.Openable)
+            // 画面IDが None でないブロックだけインタラクトを有効にする
+            // Enable interaction for blocks with a screen ID other than None
+            if (BlockScreens.IsOpenable(blockMasterElement))
             {
                 Interactable = gameObject.AddComponent<BlockInteractable>();
                 Interactable.Initialize(this);

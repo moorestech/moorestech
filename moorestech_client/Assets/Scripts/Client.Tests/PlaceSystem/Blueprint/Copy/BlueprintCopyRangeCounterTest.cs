@@ -12,7 +12,7 @@ namespace Client.Tests.PlaceSystem
     {
         private static BlockMasterElement MakeBlock(string blockType, Vector3Int size)
         {
-            return new BlockMasterElement(0, Guid.Empty, "TestBlock", blockType, null, 1, null, "テスト", "テスト", 0, false, size, null, false, null);
+            return new BlockMasterElement(0, Guid.Empty, "TestBlock", blockType, null, 1, null, "テスト", "テスト", 0, false, size, null, BlockMasterElement.BlockScreenConst.None, null);
         }
 
         [Test]

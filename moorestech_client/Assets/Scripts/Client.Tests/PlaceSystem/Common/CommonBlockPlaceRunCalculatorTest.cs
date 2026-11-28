@@ -160,7 +160,7 @@ namespace Client.Tests.PlaceSystem.Common
                 false,
                 blockSize,
                 null,
-                false, // openable
+                BlockMasterElement.BlockScreenConst.None,
                 null
             );
         }

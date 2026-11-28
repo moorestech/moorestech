@@ -25,7 +25,7 @@
         1
       ],
       "name": "TestElectricMachine",
-      "openable": true,
+      "blockScreen": "Machine",
       "blockType": "ElectricMachine",
       "blockParam": {
         "moduleSlotCount": 4,
@@ -162,7 +162,7 @@
       "initialUnlocked": true,
       "category": "テスト",
       "subCategory": "Block",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -249,7 +249,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -295,7 +295,7 @@
       "initialUnlocked": true,
       "category": "テスト",
       "subCategory": "ElectricPole",
-      "openable": false
+      "blockScreen": "ElectricPole"
     },
     {
       "modelTransform": {
@@ -340,7 +340,7 @@
       "placementsPerCost": 1,
       "category": "テスト",
       "subCategory": "ElectricPole",
-      "openable": false
+      "blockScreen": "ElectricPole"
     },
     {
       "modelTransform": {
@@ -443,7 +443,7 @@
       "category": "テスト",
       "subCategory": "ElectricGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -523,7 +523,7 @@
       "category": "テスト",
       "subCategory": "ElectricMiner",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricMiner"
     },
     {
       "modelTransform": {
@@ -623,7 +623,7 @@
       "category": "テスト",
       "subCategory": "Chest",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Chest"
     },
     {
       "modelTransform": {
@@ -749,7 +749,7 @@
       "category": "テスト",
       "subCategory": "ElectricGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -852,7 +852,7 @@
       "category": "テスト",
       "subCategory": "ElectricGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -944,7 +944,7 @@
       "category": "テスト",
       "subCategory": "ElectricGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -1046,7 +1046,7 @@
       "category": "テスト",
       "subCategory": "ElectricGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -1164,7 +1164,7 @@
       "category": "テスト",
       "subCategory": "Gear",
       "placementsPerCost": 1,
-      "openable": true
+      "blockScreen": "Generic"
     },
     {
       "modelTransform": {
@@ -1339,7 +1339,7 @@
       "category": "テスト",
       "subCategory": "Gear",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -1417,7 +1417,7 @@
       "category": "テスト",
       "subCategory": "Shaft",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -1504,7 +1504,7 @@
       "initialUnlocked": true,
       "category": "テスト",
       "subCategory": "GearChainPole",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -1584,7 +1584,7 @@
       "category": "テスト",
       "subCategory": "GearChainPole",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -1739,7 +1739,7 @@
       "category": "テスト",
       "subCategory": "GearMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "modelTransform": {
@@ -1934,7 +1934,7 @@
       "category": "テスト",
       "subCategory": "GearMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "modelTransform": {
@@ -2012,7 +2012,7 @@
       "category": "テスト",
       "subCategory": "SimpleGearGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FuelGearGenerator"
     },
     {
       "modelTransform": {
@@ -2090,7 +2090,7 @@
       "category": "テスト",
       "subCategory": "SimpleGearGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FuelGearGenerator"
     },
     {
       "modelTransform": {
@@ -2208,7 +2208,7 @@
       "category": "テスト",
       "subCategory": "Gear",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -2326,7 +2326,7 @@
       "category": "テスト",
       "subCategory": "Gear",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "modelTransform": {
@@ -2404,7 +2404,7 @@
       "category": "テスト",
       "subCategory": "SimpleGearGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FuelGearGenerator"
     },
     {
       "blockSize": [
@@ -2507,7 +2507,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -2670,7 +2670,7 @@
       "placementsPerCost": 3,
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "maxStack": 100,
@@ -2791,7 +2791,7 @@
       "category": "テスト",
       "subCategory": "ElectricMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "maxStack": 100,
@@ -2912,7 +2912,7 @@
       "category": "テスト",
       "subCategory": "ElectricMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "maxStack": 100,
@@ -3033,7 +3033,7 @@
       "category": "テスト",
       "subCategory": "ElectricMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "name": "GearMiner",
@@ -3131,7 +3131,7 @@
       "category": "テスト",
       "subCategory": "GearMiner",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "GearMiner"
     },
     {
       "maxStack": 100,
@@ -3163,7 +3163,7 @@
       "initialUnlocked": true,
       "category": "テスト",
       "subCategory": "TrainRail",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "maxStack": 100,
@@ -3194,7 +3194,7 @@
       "placementsPerCost": 1,
       "category": "テスト",
       "subCategory": "TrainRail",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "maxStack": 100,
@@ -3226,7 +3226,7 @@
       "initialUnlocked": true,
       "category": "テスト",
       "subCategory": "TrainRail",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -3293,7 +3293,7 @@
       "category": "テスト",
       "subCategory": "TrainStation",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "TrainPlatform"
     },
     {
       "blockSize": [
@@ -3360,7 +3360,7 @@
       "category": "テスト",
       "subCategory": "TrainItemPlatform",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "TrainPlatform"
     },
     {
       "maxStack": 100,
@@ -3449,7 +3449,7 @@
       "category": "テスト",
       "subCategory": "GearMapObjectMiner",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
@@ -3561,7 +3561,7 @@
       "category": "テスト",
       "subCategory": "FluidPipe",
       "placementsPerCost": 1,
-      "openable": true
+      "blockScreen": "FluidPipe"
     },
     {
       "blockGuid": "019f1a00-0000-7000-8000-00000000f1d0",
@@ -3601,7 +3601,7 @@
       "category": "テスト",
       "subCategory": "VoidPipe",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
@@ -3663,7 +3663,7 @@
       "category": "テスト",
       "subCategory": "FluidPipe",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FluidPipe"
     },
     {
       "time": 1,
@@ -3801,7 +3801,7 @@
       "category": "テスト",
       "subCategory": "ElectricMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "blockSize": [
@@ -3943,7 +3943,7 @@
       "category": "テスト",
       "subCategory": "FuelGearGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FuelGearGenerator"
     },
     {
       "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
@@ -3955,7 +3955,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "None",
       "blockParam": {
         "requiredItems": [
           {
@@ -3984,7 +3984,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "None",
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [
@@ -4021,7 +4021,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "None",
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [],
@@ -4045,7 +4045,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "Pump",
       "blockParam": {
         "generateFluid": [
           {
@@ -4158,7 +4158,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "Pump",
       "blockParam": {
         "generateFluid": [
           {
@@ -4227,7 +4227,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "GearToElectricGenerator",
       "blockParam": {
         "teethCount": 10,
         "maxGeneratedPower": 100,
@@ -4429,7 +4429,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -4533,7 +4533,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -4608,7 +4608,7 @@
       "category": "テスト",
       "subCategory": "TrainFluidPlatform",
       "placementsPerCost": 1,
-      "openable": true
+      "blockScreen": "TrainPlatform"
     },
     {
       "blockSize": [
@@ -4691,7 +4691,7 @@
       "category": "テスト",
       "subCategory": "FilterSplitter",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FilterSplitter"
     },
     {
       "blockSize": [
@@ -4744,7 +4744,7 @@
       "category": "テスト",
       "subCategory": "Chest",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Chest"
     },
     {
       "blockSize": [
@@ -4828,7 +4828,7 @@
       "category": "テスト",
       "subCategory": "Chest",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Chest"
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
@@ -4840,7 +4840,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "ElectricToGearGenerator",
       "blockParam": {
         "teethCount": 10,
         "outputModes": [
@@ -5021,7 +5021,7 @@
       "placementsPerCost": 3,
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -5139,7 +5139,7 @@
       "placementsPerCost": 3,
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "name": "TestCleanRoomWall",
@@ -5154,7 +5154,7 @@
       "category": "テスト",
       "subCategory": "CleanRoomWall",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "name": "TestCleanRoomDoor",
@@ -5169,7 +5169,7 @@
       "category": "テスト",
       "subCategory": "CleanRoomDoor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "name": "TestCleanRoomItemHatch",
@@ -5222,7 +5222,7 @@
       "category": "テスト",
       "subCategory": "CleanRoomItemHatch",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "name": "TestCleanRoomPipeHatch",
@@ -5282,7 +5282,7 @@
       "category": "テスト",
       "subCategory": "CleanRoomPipeHatch",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "name": "TestCleanRoomAirFilter",
@@ -5340,7 +5340,7 @@
       "category": "テスト",
       "subCategory": "CleanRoomAirFilter",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "CleanRoomAirFilter"
     },
     {
       "name": "TestCleanRoomMachine",
@@ -5438,7 +5438,7 @@
       "category": "テスト",
       "subCategory": "CleanRoomMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "modelTransform": {
@@ -5522,7 +5522,7 @@
       "category": "テスト",
       "subCategory": "ElectricMiner",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "ElectricMiner"
     },
     {
       "blockGuid": "f1000000-0000-0000-0000-000000000001",
@@ -5534,7 +5534,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "Pump",
       "blockParam": {
         "generateFluid": [
           {
@@ -5608,7 +5608,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "openable": false,
+      "blockScreen": "Pump",
       "blockParam": {
         "generateFluid": [
           {
@@ -5836,7 +5836,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -5939,7 +5939,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6047,7 +6047,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6233,7 +6233,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6399,7 +6399,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6502,7 +6502,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6610,7 +6610,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6796,7 +6796,7 @@
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6880,7 +6880,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6939,7 +6939,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -6998,7 +6998,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -7102,7 +7102,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -7186,7 +7186,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -7245,7 +7245,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -7304,7 +7304,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -7408,7 +7408,7 @@
       "category": "テスト",
       "subCategory": "BeltConveyor",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "None"
     },
     {
       "blockSize": [
@@ -7460,7 +7460,7 @@
       "category": "テスト",
       "subCategory": "Chest",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Chest"
     },
     {
       "blockSize": [
@@ -7512,7 +7512,7 @@
       "category": "テスト",
       "subCategory": "Chest",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Chest"
     },
     {
       "blockSize": [
@@ -7564,7 +7564,7 @@
       "category": "テスト",
       "subCategory": "Chest",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Chest"
     },
     {
       "blockSize": [
@@ -7644,7 +7644,7 @@
       "category": "テスト",
       "subCategory": "FuelGearGenerator",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "FuelGearGenerator"
     },
     {
       "maxStack": 100,
@@ -7671,7 +7671,7 @@
         1
       ],
       "name": "TestLevelInheritMachine",
-      "openable": true,
+      "blockScreen": "Machine",
       "blockType": "ElectricMachine",
       "blockParam": {
         "moduleSlotCount": 4,
@@ -7883,13 +7883,13 @@
       "category": "テスト",
       "subCategory": "CleanRoomMachine",
       "placementsPerCost": 1,
-      "openable": false
+      "blockScreen": "Machine"
     },
     {
       "blockGuid": "5c8e0000-0000-4000-8000-000000000100",
       "name": "TestRocketLaunchPad",
       "blockType": "RocketLaunchPad",
-      "openable": true,
+      "blockScreen": "RocketLaunchPad",
       "maxStack": 100,
       "modelTransform": {
         "scale": [
@@ -8010,7 +8010,7 @@
       "blockGuid": "5e1ea7a0-0001-4000-8000-000000000001",
       "name": "TestSpaceElevatorBase",
       "blockType": "SpaceElevatorBase",
-      "openable": true,
+      "blockScreen": "SpaceElevatorBase",
       "maxStack": 100,
       "modelTransform": {
         "scale": [
@@ -8145,7 +8145,7 @@
         1
       ],
       "name": "TestFuelMachineWithoutWire",
-      "openable": true,
+      "blockScreen": "Machine",
       "blockType": "ElectricMachine",
       "blockParam": {
         "moduleSlotCount": 4,

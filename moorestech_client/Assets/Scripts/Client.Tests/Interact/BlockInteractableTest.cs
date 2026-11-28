@@ -9,6 +9,7 @@ using Client.Input;
 using Client.Localization;
 using Client.Tests.Common;
 using Core.Master;
+using Core.Master.Validator.Block.Screen;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
@@ -81,8 +82,8 @@ namespace Client.Tests.Interact
         [Test]
         public void インタラクト面は開けるブロックのマスタにだけ付与条件が立つ()
         {
-            Assert.IsTrue(FindMaster(OpenableBlockName).Openable);
-            Assert.IsFalse(FindMaster(PlainBlockName).Openable);
+            Assert.IsTrue(BlockScreens.IsOpenable(FindMaster(OpenableBlockName)));
+            Assert.IsFalse(BlockScreens.IsOpenable(FindMaster(PlainBlockName)));
         }
 
         // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んでインタラクト面を直接初期化する
