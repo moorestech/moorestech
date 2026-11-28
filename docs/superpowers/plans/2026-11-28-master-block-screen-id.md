@@ -538,3 +538,6 @@ git commit -m "ブロック画面IDで今と同じ画面が開くことを確か
 - Task 1 はスキーマ・JSON・判定・検証を1タスクにする。出所: agent前提（スキーマを変えた時点で `Openable` 参照がコンパイルできなくなり、分けると途中のコミットがビルドできない）
 - `mooresmaster/mooresmaster.SandBox/schema/blocks.json` は変えない。出所: agent前提（生成器の試験用の別スキーマで、ゲームのマスタではない）
 - ランタイム挙動（ブロックを開く操作と画面）に触れるので unityプレイ録画テスト（Task 3）を入れる。
+- `VanillaSchema/blocks.yml`: `openable` を消し必須の enum `blockScreen` を同じ位置に入れる（optional・default を付けない）。出所: ユーザー裁定 2026-11-27 選択「画面の指定にまとめる（推奨）」＋ agent前提（AGENTS.md「optional で吸収しない」）
+- `InventoryRequestProtocol.cs`: 表示専用ブロックの成功応答の条件を `Openable` から `BlockScreen != None` へ替えるだけ。応答の形・通信形式は変えない。出所: agent前提（ADR 0109 agent前提5）
+- `BlockScreenValidator.cs`・`BlockMasterUtil.cs`: 既存の `BlockMasterUtil.Validate` の連結に検証を1本足す形（前例: 同ファイルの `FilterSplitterParamValidator.Validate` など）。出所: agent前提（ADR 0109 agent前提3）
